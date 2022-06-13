@@ -57,12 +57,20 @@ end
 local MainFrame = require(script.Parent.Modules.gui).CreateGui()
 MainFrame.Parent = GUI
 MainFrame.Confirm.TextLabel.RichText = true -- GUI -> Script doesnt convert this
-MainFrame.Creator.Pointer:SetAttribute("max", 20)
-MainFrame.Creator.Pointer:SetAttribute("count", 1)
+MainFrame.Creator.PointerHolder.Pointer:SetAttribute("max", 20)
+MainFrame.Creator.PointerHolder.Pointer:SetAttribute("count", 1)
 local Pointer = MainFrame.Creator.ScrollingFrame["2"]
 Pointer.Parent = script
 Pointer:SetAttribute("max", 20)
 Pointer:SetAttribute("count", 1)
+
+MainFrame.Creator.ScrollingFrame:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+    MainFrame.Creator.PointerHolder.CanvasPosition = Vector2.new(0, MainFrame.Creator.ScrollingFrame.CanvasPosition.Y)
+end)
+
+MainFrame.Creator.PointerHolder:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+    MainFrame.Creator.ScrollingFrame.CanvasPosition = Vector2.new(MainFrame.Creator.ScrollingFrame.CanvasPosition.X, MainFrame.Creator.PointerHolder.CanvasPosition.Y)
+end)
 
 --------------------------------------------------------------------------------
 -- Handling --
@@ -118,6 +126,7 @@ local function reset()
     connect1 = MainFrame.Confirm.Yes.MouseButton1Click:Connect(function()
         MainFrame.Confirm.Visible = false
         
+        -- TBD: Reset everything to default
         for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetDescendants()) do
             if v.Name ~= "Top" and v:IsA("ImageLabel") then
                 v:SetAttribute("Color", 0)
@@ -186,27 +195,27 @@ local function addbutton(v: GuiBase2d, frame: GuiBase2d)
         local enter
 
         v.MouseEnter:Connect(function()
-            if MouseDown and Starting == nil then
+            if MouseDown and Starting == nil and not MainFrame.Confirm.Visible then
                 Starting = frame
                 v:SetAttribute("Color", Color)
                 v.ImageColor3 = RepColors[Color]
-            elseif MouseDown and (Starting == frame or not Locked) then
+            elseif MouseDown and (Starting == frame or not Locked) and not MainFrame.Confirm.Visible then
                 v:SetAttribute("Color", Color)
                 v.ImageColor3 = RepColors[Color]
-            elseif Mouse2Down and Starting == nil then
+            elseif Mouse2Down and Starting == nil and not MainFrame.Confirm.Visible then
                 Starting = frame
                 v:SetAttribute("Color", 0)
                 v.ImageColor3 = RepColors[0]
-            elseif Mouse2Down and (Starting == frame or not Locked) then
+            elseif Mouse2Down and (Starting == frame or not Locked) and not MainFrame.Confirm.Visible then
                 v:SetAttribute("Color", 0)
                 v.ImageColor3 = RepColors[0]
             else
                 enter = MainFrame.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 and not MainFrame.Confirm.Visible then
                         Starting = frame
                         v:SetAttribute("Color", Color)
                         v.ImageColor3 = RepColors[Color]
-                    elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+                    elseif input.UserInputType == Enum.UserInputType.MouseButton2 and not MainFrame.Confirm.Visible then
                         Starting = frame
                         v:SetAttribute("Color", 0)
                         v.ImageColor3 = RepColors[0]
@@ -232,7 +241,7 @@ local function addbutton(v: GuiBase2d, frame: GuiBase2d)
 
             local pointer do
                 if v.Parent:GetAttribute("pointer") == 0 then
-                    pointer = MainFrame.Creator.Pointer
+                    pointer = MainFrame.Creator.PointerHolder.Pointer
                 else
                     pointer = MainFrame.Creator.ScrollingFrame[v.Parent:GetAttribute("pointer")]
                 end
@@ -249,7 +258,7 @@ local function addbutton(v: GuiBase2d, frame: GuiBase2d)
         v.Parent:GetAttributeChangedSignal("pointer"):Connect(spacerchange)
         spacerchange()
 
-        v.Parent.Destroying:Connect(function()
+        v.Destroying:Connect(function()
             if connect then
                 connect:Disconnect()
                 connect = nil
@@ -264,7 +273,7 @@ local function registercolumn(column)
     for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
         if v.Name ~= "Last" and v:IsA("Frame") then
             i = tonumber(v.Name)
-            print(i, mypos, v:GetAttribute("spacer"), highest)
+
             if i < mypos and v:GetAttribute("spacer") and i > highest then
                 highest = i
             end
@@ -272,28 +281,33 @@ local function registercolumn(column)
     end
     column:SetAttribute("pointer", highest)
 
-    -- TBF
-    -- local count = #column:GetChildren() - 2
-    -- print(count, highest)
-    -- if count ~= highest[2]:GetAttribute("max") then
-    --     print(count, highest[2]:GetAttribute("max"))
-    --     if count > highest[2]:GetAttribute("max") then
-    --         repeat
-    --             local num = #column:GetChildren() - 2
-    --             local clone = column:GetChildren()[num]:Clone()
-    --             clone.Name = num+1
-    --             clone.LayoutOrder = num+3
-    --             clone.Parent = column
-    --             task.wait()
-    --         until count == highest[2]:GetAttribute("max")
-    --     elseif count < highest[2]:GetAttribute("max") then
-    --         repeat
-    --             local num = #column:GetChildren() - 2
-    --             column:GetChildren()[num]:Destroy()
-    --             task.wait()
-    --         until count == highest[2]:GetAttribute("max")
-    --     end
-    -- end
+    local count = #column:GetChildren() - 3
+    local pointer do
+        if highest == 0 then
+            pointer = MainFrame.Creator.PointerHolder.Pointer
+        else
+            pointer = MainFrame.Creator.ScrollingFrame[highest]
+        end
+    end
+
+    if count ~= pointer:GetAttribute("max") then
+        print(count, pointer:GetAttribute("max"))
+        if count > pointer:GetAttribute("max") then
+            local diff = count - pointer:GetAttribute("max")
+            for i = 1, diff do
+                column[#column:GetChildren() - 3]:Destroy()
+            end
+        elseif count < pointer:GetAttribute("max") then
+            local diff = pointer:GetAttribute("max") - count
+            for i = 1, diff do
+                local clone = column["1"]:Clone()
+                clone.Name = #column:GetChildren() - 2
+                clone.LayoutOrder = #column:GetChildren()
+                clone.Parent = column
+                addbutton(clone, column)
+            end
+        end
+    end
 
     for i,v in pairs(column:GetChildren()) do
         addbutton(v, column)
@@ -320,7 +334,7 @@ end)
 MainFrame.Creator.ScrollingFrame.Last.Devider.subtract.MouseButton1Down:Connect(function()
     MainFrame.Confirm.Visible = true
     local number = #MainFrame.Creator.ScrollingFrame:GetChildren() - 2
-    MainFrame.Confirm.TextLabel.Text = "Are you sure you want to destroy row <b>".. number .."</b>?"
+    MainFrame.Confirm.TextLabel.Text = "Are you sure you want to destroy column <b>".. number .."</b>?"
     local connect1, connect2 = nil, nil
 
     connect1 = MainFrame.Confirm.Yes.MouseButton1Click:Connect(function()
@@ -345,6 +359,17 @@ local function ScrollingFrameChildrenChanged()
 
     MainFrame:WaitForChild("Creator", 5) -- No comment, just errors without this
 
+    local largest do
+        for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+            if v.Name ~= "Last" and v:IsA("Frame") and largest == nil or #largest:GetChildren() < #v:GetChildren() then
+                largest = v
+            end
+        end
+
+        if not largest then
+            largest = MainFrame.Creator.ScrollingFrame["1"]
+        end
+    end
     local AbsoluteSize = MainFrame.Creator.ScrollingFrame.AbsoluteSize
     local Padding = Desired * AbsoluteSize
     Padding = UDim2.fromOffset(Padding.X, Padding.Y)
@@ -352,7 +377,10 @@ local function ScrollingFrameChildrenChanged()
     Size = UDim2.fromOffset(Size.X, Size.Y)
     MainFrame.Creator.ScrollingFrame.UIGridLayout.CellPadding = Padding
     MainFrame.Creator.ScrollingFrame.UIGridLayout.CellSize = Size
-    MainFrame.Creator.ScrollingFrame.CanvasSize = UDim2.fromOffset(MainFrame.Creator.ScrollingFrame.UIGridLayout.AbsoluteContentSize.X + Padding.X.Offset + Size.X.Offset, 0)
+    MainFrame.Creator.PointerHolder.UIGridLayout.CellPadding = Padding
+    MainFrame.Creator.PointerHolder.UIGridLayout.CellSize = Size
+    MainFrame.Creator.ScrollingFrame.CanvasSize = UDim2.fromOffset(MainFrame.Creator.ScrollingFrame.UIGridLayout.AbsoluteContentSize.X + Padding.X.Offset + Size.X.Offset, largest.UIListLayout.AbsoluteContentSize.Y)
+    MainFrame.Creator.PointerHolder.CanvasSize = UDim2.fromOffset(0, largest.UIListLayout.AbsoluteContentSize.Y)
 
     local number = #MainFrame.Creator.ScrollingFrame:GetChildren() - 2
     if number > 1 then
@@ -366,36 +394,95 @@ MainFrame.Creator.ScrollingFrame.ChildAdded:Connect(ScrollingFrameChildrenChange
 MainFrame.Creator.ScrollingFrame.ChildRemoved:Connect(ScrollingFrameChildrenChanged)
 
 -- Add/Remove Rows
--- TBD
--- local function addrows(start: number, end_num: number): nil
---     for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
---         if i >= start and i <= end_num then
---             local clone = v["1"]:Clone()
---             clone.Name = #v:GetChildren() - 2
---             clone.LayoutOrder = #v:GetChildren() + 1
---             clone.Parent = v
---             print(clone)
---             addbutton(clone, v)
---         end
---     end
--- end
 
--- local function removerows(start: number, end_num: number): nil
---     for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
---         if i >= start and i <= end_num then
---             v["" .. #v:GetChildren() - 2]:Destroy()
---             print(#v:GetChildren() - 2)
---         end
---     end
--- end
+local function addrow(pointer: Frame, start: number)
+    if pointer:GetAttribute("max") == 98 then
+        return
+    end
+    local point = pointer[Pointer:GetAttribute("count")]
+    Pointer:SetAttribute("count", 1)
+    point.Parent = pointer[pointer:GetAttribute("count")]
+    -- TBD: Reset all points
 
--- MainFrame.Creator.Pointer.Bottom.add.MouseButton1Down:Connect(function()
---     addrows(1, #MainFrame.Creator.ScrollingFrame:GetChildren() - 1)
--- end)
+    local last do
+        for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+            if v.Name ~= "Last" and v:IsA("Frame") and tonumber(v.Name) >= start and v:GetAttribute("spacer") then
+                last = tonumber(v.Name)
+                break
+            end
+        end
 
--- MainFrame.Creator.Pointer.Bottom.subtract.MouseButton1Down:Connect(function()
---     removerows(1, #MainFrame.Creator.ScrollingFrame:GetChildren() - 1)
--- end)
+        if not last then
+            last = 99
+        end
+    end
+
+    -- Here we have to account for 3 children above and one below
+    -- This is why we dont add to the layout order
+    local pointer_clone = Pointer["2"]:Clone()
+    pointer_clone.Name = #pointer:GetChildren() - 4
+    pointer_clone.LayoutOrder = #pointer:GetChildren()
+    pointer_clone.Parent = pointer
+    pointer:SetAttribute("max", pointer:GetAttribute("max") + 1)
+    for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+        if v.Name ~= "Last" and v:IsA("Frame") and tonumber(v.Name) >= start and tonumber(v.Name) < last then
+            local clone = v["1"]:Clone()
+            clone.Name = #v:GetChildren() - 2
+            clone.LayoutOrder = #v:GetChildren()
+            clone.Parent = v
+            addbutton(clone, v)
+        end
+    end
+    ScrollingFrameChildrenChanged()
+end
+
+local function removerow(pointer: Frame, start: number)
+    if pointer:GetAttribute("max") == 3 then
+        return
+    end
+    local point = pointer[Pointer:GetAttribute("count")]
+    Pointer:SetAttribute("count", 1)
+    point.Parent = pointer[pointer:GetAttribute("count")]
+    -- TBD: Reset all points
+
+    MainFrame.Confirm.Visible = true
+    local last do
+        for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+            if v.Name ~= "Last" and v:IsA("Frame") and tonumber(v.Name) >= start and v:GetAttribute("spacer") then
+                last = tonumber(v.Name)
+                break
+            end
+        end
+
+        if not last then
+            last = 99
+        end
+    end
+    MainFrame.Confirm.TextLabel.Text = "Are you sure you want to destroy the <b>last row</b> on columns <b>".. start .." - ".. last .."</b>?"
+    local connect1, connect2 = nil, nil
+
+    connect1 = MainFrame.Confirm.Yes.MouseButton1Click:Connect(function()
+        MainFrame.Confirm.Visible = false
+    
+        pointer:SetAttribute("max", pointer:GetAttribute("max") - 1)
+        pointer[#pointer:GetChildren() - 5]:Destroy()
+        for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+            if v.Name ~= "Last" and v:IsA("Frame") and tonumber(v.Name) >= start and tonumber(v.Name) < last then
+                v[#v:GetChildren() - 3]:Destroy()
+            end
+        end
+        ScrollingFrameChildrenChanged()
+
+        connect1:Disconnect()
+        connect2:Disconnect()
+    end)
+
+    connect2 = MainFrame.Confirm.No.MouseButton1Click:Connect(function()
+        MainFrame.Confirm.Visible = false
+        connect1:Disconnect()
+        connect2:Disconnect()
+    end)
+end
 
 -- Buttons
 for i,v in pairs(MainFrame.Creator.Info.Buttons:GetChildren()) do
@@ -461,6 +548,15 @@ spacer = function()
     clone:SetAttribute("spacer", true)
     clone.Top.TextBox.Text = MainFrame.Creator.Info.BPM.Text
 
+    clone.Bottom.add.MouseButton1Down:Connect(function()
+        Pause = true
+        addrow(clone, tonumber(clone.Name + 1))
+    end)
+    clone.Bottom.subtract.MouseButton1Down:Connect(function()
+        Pause = true
+        removerow(clone, tonumber(clone.Name + 1))
+    end)
+
     coros[Functions.tablelen(coros) + 1] = {
         pointer = clone,
         waittime = clone.Top.TextBox,
@@ -473,87 +569,18 @@ spacer = function()
 end
 
 coros[0] = {
-    pointer = MainFrame.Creator.Pointer,
+    pointer = MainFrame.Creator.PointerHolder.Pointer,
     waittime = MainFrame.Creator.Info.BPM,
     run = true,
     thread = coroutine.create(update)
 }
 coroutine.resume(coros[0].thread, coros[0], coros[0].pointer, coros[0].waittime)
 
--- local function update(coro: table, pointer: GuiBase2d, bpm: TextBox, start_column: number, end_column: number)
---     print(pointer, bpm, start_column, end_column)
---     local beats = tonumber(bpm.Text) or 0.1
---     local Count = #pointer:GetChildren() - 4
---     local Current = 1
---     local Pointer = pointer["1"].Pointer
---     print(beats, Count)
---     bpm:GetPropertyChangedSignal("Text"):Connect(function()
---         beats = tonumber(bpm.Text) or 0.1
---     end)
-
---     while task.wait(beats) do
---         if coro["kill"] == true then
---             break
---         end
---         if not Pause then
---             Pointer.Parent = pointer[Current]
---             for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
---                 if i >= start_column and i <= end_column and v.Name ~= "Last" and v:IsA("Frame") and not v:GetAttribute("spacer") then
---                     v.Top.ImageColor3 = v[Current].ImageColor3
---                 end
---             end
-
---             if Current == Count then
---                 Current = 1
---             else
---                 Current += 1
---             end
---         end
---     end
-
---     return "killed"
--- end
-
--- spacer = function()
---     local clone = Pointer:Clone()
---     clone.Name = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
---     clone.LayoutOrder = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
---     clone:SetAttribute("spacer", true)
---     clone.Top.TextBox.Text = MainFrame.Creator.Info.BPM.Text
-
---     local len = Functions.tablelen(coros)
---     local coro = Functions.getvaluebykey(coros, len-1)
---     print(coro)
---     coro["kill"] = true
---     repeat wait() until coroutine.status(coro["coro"]) == "suspended"
---     coro["kill"] = nil
---     coroutine.close(coro["coro"])
---     for _,coro in pairs(coros) do
---         for i,v in pairs(coro["pointer"]:GetChildren()) do
---             if v:FindFirstChild("Pointer") then
---                 v.Pointer.Parent = coro["pointer"]["1"]
---             end
---         end
---     end
---     coro["coro"] = coroutine.create(update)
---     coroutine.resume(coro["coro"], coro, coro["pointer"], coro["bpm"], coro["start_column"], #MainFrame.Creator.ScrollingFrame:GetChildren() - 2)
---     print(coro["start_column"], #MainFrame.Creator.ScrollingFrame:GetChildren() - 2)
---     coros[len] = {
---         ["pointer"] = clone,
---         ["bpm"] = clone.Top.TextBox,
---         ["start_column"] = tonumber(clone.Name) + 1,
---         ["end_column"] = 99,
---         ["coro"] = coroutine.create(update)
---     }
---     coroutine.resume(coros[len]["coro"], coros[len], clone, clone.Top.TextBox, tonumber(clone.Name) + 1, 99)
---     clone.Parent = MainFrame.Creator.ScrollingFrame
--- end
-
--- coros[0] = {
---     ["pointer"] = MainFrame.Creator.Pointer,
---     ["bpm"] = MainFrame.Creator.Info.BPM,
---     ["start_column"] = 1,
---     ["end_column"] = 99,
---     ["coro"] = coroutine.create(update),
--- }
--- coroutine.resume(coros[0]["coro"], coros[0], coros[0]["pointer"], coros[0]["bpm"], coros[0]["start_column"], 99)
+MainFrame.Creator.PointerHolder.Pointer.Bottom.add.MouseButton1Down:Connect(function()
+    Pause = true
+    addrow(MainFrame.Creator.PointerHolder.Pointer, 1)
+end)
+MainFrame.Creator.PointerHolder.Pointer.Bottom.subtract.MouseButton1Down:Connect(function()
+    Pause = true
+    removerow(MainFrame.Creator.PointerHolder.Pointer, 1)
+end)
