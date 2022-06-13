@@ -57,6 +57,12 @@ end
 local MainFrame = require(script.Parent.Modules.gui).CreateGui()
 MainFrame.Parent = GUI
 MainFrame.Confirm.TextLabel.RichText = true -- GUI -> Script doesnt convert this
+MainFrame.Creator.Pointer:SetAttribute("max", 20)
+MainFrame.Creator.Pointer:SetAttribute("count", 1)
+local Pointer = MainFrame.Creator.ScrollingFrame["2"]
+Pointer.Parent = script
+Pointer:SetAttribute("max", 20)
+Pointer:SetAttribute("count", 1)
 
 --------------------------------------------------------------------------------
 -- Handling --
@@ -68,7 +74,7 @@ MainFrame:WaitForChild("Confirm")
 local Locked, Pause = true, true
 local MouseDown, Mouse2Down = false, false
 local Color = 1
-local Starting = nil
+local Starting, spacer = nil, nil
 local RepColors = {
     [0] = Color3.fromRGB(40, 40, 40),
     [1] = Color3.fromRGB(47, 71, 255),
@@ -86,6 +92,7 @@ local ButColors = {
     [5] = "Green",
     [6] = "Purple",
 }
+local coros = {}
 
 --Color Change Handler
 local function changecolor(new_color: number)
@@ -136,6 +143,8 @@ MainFrame.InputBegan:Connect(function(input)
         reset()
     elseif input.KeyCode == Enum.KeyCode.P then
         Pause = not Pause
+    elseif input.KeyCode == Enum.KeyCode.Space then
+        spacer()
     elseif input.KeyCode == Enum.KeyCode.One then
         changecolor(1)
     elseif input.KeyCode == Enum.KeyCode.Two then
@@ -212,22 +221,100 @@ local function addbutton(v: GuiBase2d, frame: GuiBase2d)
                 enter = nil
             end
         end)
+        
+        local connect = nil
+
+        local function spacerchange()
+            if connect then
+                connect:Disconnect()
+                connect = nil
+            end
+
+            local pointer do
+                if v.Parent:GetAttribute("pointer") == 0 then
+                    pointer = MainFrame.Creator.Pointer
+                else
+                    pointer = MainFrame.Creator.ScrollingFrame[v.Parent:GetAttribute("pointer")]
+                end
+            end
+            
+            connect = pointer:GetAttributeChangedSignal("count"):Connect(function()
+                local count = pointer:GetAttribute("count")
+                if count == tonumber(v.Name) then
+                    v.Parent.Top.ImageColor3 = v.ImageColor3
+                end
+            end)
+        end
+
+        v.Parent:GetAttributeChangedSignal("pointer"):Connect(spacerchange)
+        spacerchange()
+
+        v.Parent.Destroying:Connect(function()
+            if connect then
+                connect:Disconnect()
+                connect = nil
+            end
+        end)
+    end
+end
+
+local function registercolumn(column)
+    local mypos = table.find(MainFrame.Creator.ScrollingFrame:GetChildren(), column)
+    local highest = 0 -- Index, Value
+    for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+        if v.Name ~= "Last" and v:IsA("Frame") then
+            i = tonumber(v.Name)
+            print(i, mypos, v:GetAttribute("spacer"), highest)
+            if i < mypos and v:GetAttribute("spacer") and i > highest then
+                highest = i
+            end
+        end
+    end
+    column:SetAttribute("pointer", highest)
+
+    -- TBF
+    -- local count = #column:GetChildren() - 2
+    -- print(count, highest)
+    -- if count ~= highest[2]:GetAttribute("max") then
+    --     print(count, highest[2]:GetAttribute("max"))
+    --     if count > highest[2]:GetAttribute("max") then
+    --         repeat
+    --             local num = #column:GetChildren() - 2
+    --             local clone = column:GetChildren()[num]:Clone()
+    --             clone.Name = num+1
+    --             clone.LayoutOrder = num+3
+    --             clone.Parent = column
+    --             task.wait()
+    --         until count == highest[2]:GetAttribute("max")
+    --     elseif count < highest[2]:GetAttribute("max") then
+    --         repeat
+    --             local num = #column:GetChildren() - 2
+    --             column:GetChildren()[num]:Destroy()
+    --             task.wait()
+    --         until count == highest[2]:GetAttribute("max")
+    --     end
+    -- end
+
+    for i,v in pairs(column:GetChildren()) do
+        addbutton(v, column)
     end
 end
 
 -- Add/remove columns
-for i,v in pairs(MainFrame.Creator.ScrollingFrame["1"]:GetChildren()) do
-    addbutton(v, MainFrame.Creator.ScrollingFrame["1"])
-end
+registercolumn(MainFrame.Creator.ScrollingFrame["1"])
+-- for i,v in pairs(MainFrame.Creator.ScrollingFrame["1"]:GetChildren()) do
+--     addbutton(v, MainFrame.Creator.ScrollingFrame["1"])
+-- end
 
 MainFrame.Creator.ScrollingFrame.Last.Devider.add.MouseButton1Down:Connect(function()
     local clone = MainFrame.Creator.ScrollingFrame["1"]:Clone()
     clone.Name = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
-    clone.LayoutOrder = 2
-    for i,v in pairs(clone:GetChildren()) do
-        addbutton(v, clone)
-    end
+    clone.LayoutOrder = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
+    -- for i,v in pairs(clone:GetChildren()) do
+    --     addbutton(v, clone)
+    -- end
     clone.Parent = MainFrame.Creator.ScrollingFrame
+    registercolumn(clone)
 end)
 
 MainFrame.Creator.ScrollingFrame.Last.Devider.subtract.MouseButton1Down:Connect(function()
@@ -342,34 +429,131 @@ GUI:GetPropertyChangedSignal("Enabled"):Connect(function()
     Pause = true
 end)
 
-local function update(pointer: GuiBase2d, bpm: TextBox, start_column: number, end_column: number)
-    print(pointer, bpm, start_column, end_column)
-    local beats = tonumber(bpm.Text) or 700
-    local Count = #MainFrame.Creator.Pointer:GetChildren() - 4
-    local Current = 1
-    local Pointer = MainFrame.Creator.Pointer["1"].Pointer
-    print(beats, Count)
-    bpm:GetPropertyChangedSignal("Text"):Connect(function()
-        beats = tonumber(bpm.Text) or 700
+local function update(coro: table, pointer: GuiBase2d, waittime: TextBox)
+    local point = pointer["1"].Pointer
+
+    pointer.Destroying:Connect(function()
+        coro["run"] = false
     end)
 
-    while task.wait(beats/6000) do
-        if not Pause then
-            Pointer.Parent = MainFrame.Creator.Pointer[Current]
-            for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
-                if i >= start_column and i <= end_column and v.Name ~= "Last" and v:IsA("Frame") then
-                    v.Top.ImageColor3 = v[Current].ImageColor3
-                end
-            end
-
-            if Current == Count then
-                Current = 1
+    while task.wait(tonumber(waittime.Text)) do
+        if coro["run"] and not Pause then
+            local lastcount = pointer:GetAttribute("count")
+            if lastcount == pointer:GetAttribute("max") then
+                pointer:SetAttribute("count", 1)
             else
-                Current += 1
+                pointer:SetAttribute("count", lastcount + 1)
             end
+            
+            point.Parent = pointer[pointer:GetAttribute("count")]
+        elseif coro["run"] == false then
+            break
         end
     end
+
+    table.remove(coros, table.find(coros, coro))
 end
 
-local coro = coroutine.create(update(MainFrame.Creator.Pointer, MainFrame.Creator.Info.BPM, 1, 99))
-coroutine.resume(coro)
+spacer = function()
+    local clone = Pointer:Clone()
+    clone.Name = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
+    clone.LayoutOrder = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
+    clone:SetAttribute("spacer", true)
+    clone.Top.TextBox.Text = MainFrame.Creator.Info.BPM.Text
+
+    coros[Functions.tablelen(coros) + 1] = {
+        pointer = clone,
+        waittime = clone.Top.TextBox,
+        run = true,
+        thread = coroutine.create(update)
+    }
+    coroutine.resume(coros[Functions.tablelen(coros)].thread, coros[Functions.tablelen(coros)], clone, clone.Top.TextBox)
+
+    clone.Parent = MainFrame.Creator.ScrollingFrame
+end
+
+coros[0] = {
+    pointer = MainFrame.Creator.Pointer,
+    waittime = MainFrame.Creator.Info.BPM,
+    run = true,
+    thread = coroutine.create(update)
+}
+coroutine.resume(coros[0].thread, coros[0], coros[0].pointer, coros[0].waittime)
+
+-- local function update(coro: table, pointer: GuiBase2d, bpm: TextBox, start_column: number, end_column: number)
+--     print(pointer, bpm, start_column, end_column)
+--     local beats = tonumber(bpm.Text) or 0.1
+--     local Count = #pointer:GetChildren() - 4
+--     local Current = 1
+--     local Pointer = pointer["1"].Pointer
+--     print(beats, Count)
+--     bpm:GetPropertyChangedSignal("Text"):Connect(function()
+--         beats = tonumber(bpm.Text) or 0.1
+--     end)
+
+--     while task.wait(beats) do
+--         if coro["kill"] == true then
+--             break
+--         end
+--         if not Pause then
+--             Pointer.Parent = pointer[Current]
+--             for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+--                 if i >= start_column and i <= end_column and v.Name ~= "Last" and v:IsA("Frame") and not v:GetAttribute("spacer") then
+--                     v.Top.ImageColor3 = v[Current].ImageColor3
+--                 end
+--             end
+
+--             if Current == Count then
+--                 Current = 1
+--             else
+--                 Current += 1
+--             end
+--         end
+--     end
+
+--     return "killed"
+-- end
+
+-- spacer = function()
+--     local clone = Pointer:Clone()
+--     clone.Name = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
+--     clone.LayoutOrder = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
+--     clone:SetAttribute("spacer", true)
+--     clone.Top.TextBox.Text = MainFrame.Creator.Info.BPM.Text
+
+--     local len = Functions.tablelen(coros)
+--     local coro = Functions.getvaluebykey(coros, len-1)
+--     print(coro)
+--     coro["kill"] = true
+--     repeat wait() until coroutine.status(coro["coro"]) == "suspended"
+--     coro["kill"] = nil
+--     coroutine.close(coro["coro"])
+--     for _,coro in pairs(coros) do
+--         for i,v in pairs(coro["pointer"]:GetChildren()) do
+--             if v:FindFirstChild("Pointer") then
+--                 v.Pointer.Parent = coro["pointer"]["1"]
+--             end
+--         end
+--     end
+--     coro["coro"] = coroutine.create(update)
+--     coroutine.resume(coro["coro"], coro, coro["pointer"], coro["bpm"], coro["start_column"], #MainFrame.Creator.ScrollingFrame:GetChildren() - 2)
+--     print(coro["start_column"], #MainFrame.Creator.ScrollingFrame:GetChildren() - 2)
+--     coros[len] = {
+--         ["pointer"] = clone,
+--         ["bpm"] = clone.Top.TextBox,
+--         ["start_column"] = tonumber(clone.Name) + 1,
+--         ["end_column"] = 99,
+--         ["coro"] = coroutine.create(update)
+--     }
+--     coroutine.resume(coros[len]["coro"], coros[len], clone, clone.Top.TextBox, tonumber(clone.Name) + 1, 99)
+--     clone.Parent = MainFrame.Creator.ScrollingFrame
+-- end
+
+-- coros[0] = {
+--     ["pointer"] = MainFrame.Creator.Pointer,
+--     ["bpm"] = MainFrame.Creator.Info.BPM,
+--     ["start_column"] = 1,
+--     ["end_column"] = 99,
+--     ["coro"] = coroutine.create(update),
+-- }
+-- coroutine.resume(coros[0]["coro"], coros[0], coros[0]["pointer"], coros[0]["bpm"], coros[0]["start_column"], 99)

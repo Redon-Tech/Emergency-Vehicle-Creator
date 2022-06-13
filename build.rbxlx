@@ -284,27 +284,27 @@ gcLgc4RKxr21zq2UlJSM]]></BinaryString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<CoordinateFrame name="CFrame">
-					<X>47.0586967</X>
-					<Y>54.8653793</Y>
-					<Z>-67.8689575</Z>
-					<R00>-0.999498844</R00>
-					<R01>0.0160782952</R01>
-					<R02>-0.027271267</R02>
-					<R10>-9.31322575e-10</R10>
-					<R11>0.861431837</R11>
-					<R12>0.507873476</R12>
-					<R20>0.031658072</R20>
-					<R21>0.507618964</R21>
-					<R22>-0.860999942</R22>
+					<X>-80.9674377</X>
+					<Y>80.1416931</Y>
+					<Z>11.4670801</Z>
+					<R00>0.0913742781</R00>
+					<R01>-0.941669106</R01>
+					<R02>0.323898196</R02>
+					<R10>1.86264537e-09</R10>
+					<R11>0.325258911</R11>
+					<R12>0.945624948</R12>
+					<R20>-0.995816708</R20>
+					<R21>-0.0864057988</R21>
+					<R22>0.0297202952</R22>
 				</CoordinateFrame>
 				<Ref name="CameraSubject">null</Ref>
 				<token name="CameraType">0</token>
 				<float name="FieldOfView">70</float>
 				<token name="FieldOfViewMode">0</token>
 				<CoordinateFrame name="Focus">
-					<X>47.1132393</X>
-					<Y>53.8496323</Y>
-					<Z>-66.1469574</Z>
+					<X>-81.6152344</X>
+					<Y>78.2504425</Y>
+					<Z>11.4076395</Z>
 					<R00>1</R00>
 					<R01>0</R01>
 					<R02>0</R02>
@@ -397,6 +397,8 @@ end
 local MainFrame = require(script.Parent.Modules.gui).CreateGui()
 MainFrame.Parent = GUI
 MainFrame.Confirm.TextLabel.RichText = true -- GUI -> Script doesnt convert this
+local Pointer = MainFrame.Creator.ScrollingFrame["2"]
+Pointer.Parent = script
 
 --------------------------------------------------------------------------------
 -- Handling --
@@ -408,7 +410,7 @@ MainFrame:WaitForChild("Confirm")
 local Locked, Pause = true, true
 local MouseDown, Mouse2Down = false, false
 local Color = 1
-local Starting = nil
+local Starting, spacer = nil, nil
 local RepColors = {
     [0] = Color3.fromRGB(40, 40, 40),
     [1] = Color3.fromRGB(47, 71, 255),
@@ -426,6 +428,7 @@ local ButColors = {
     [5] = "Green",
     [6] = "Purple",
 }
+local coros = {}
 
 --Color Change Handler
 local function changecolor(new_color: number)
@@ -476,6 +479,8 @@ MainFrame.InputBegan:Connect(function(input)
         reset()
     elseif input.KeyCode == Enum.KeyCode.P then
         Pause = not Pause
+    elseif input.KeyCode == Enum.KeyCode.Space then
+        spacer()
     elseif input.KeyCode == Enum.KeyCode.One then
         changecolor(1)
     elseif input.KeyCode == Enum.KeyCode.Two then
@@ -552,22 +557,77 @@ local function addbutton(v: GuiBase2d, frame: GuiBase2d)
                 enter = nil
             end
         end)
+        
+        local connect = nil
+
+        local function spacerchange()
+            if connect then
+                connect:Disconnect()
+                connect = nil
+            end
+
+            connect = v.Parent:GetAttribute("spacer"):GetAttributeChangedSignal("count"):Connect(function()
+                local count = v.Parent:GetAttribute("spacer"):GetAttribute("count")
+                if count == tonumber(v.Name) then
+                    v.Parent.Top.ImageColor3 = v.ImageColor3
+                end
+            end)
+        end
+
+        v.Parent:GetAttributeChangedSignal("spacer"):Connect(spacerchange)
+        spacerchange()
+    end
+end
+
+local function registercolumn(column)
+    local mypos = table.find(MainFrame.Creator.ScrollingFrame:GetChildren(), column)
+    local highest = {0, nil} -- Index, Value
+    for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+        if i < mypos and v:GetAttribute("spacer") and i > highest[1] then
+            highest[1] = i
+            highest[2] = v
+        end
+    end
+    column:SetAttribute("pointer", highest[2])
+
+    local count = #column:GetChildren() - 2
+    if count ~= highest[2]:GetAttribute("max") then
+        if count > highest[2]:GetAttribute("max") then
+            repeat
+                local num = #column:GetChildren() - 2
+                local clone = column:GetChildren()[num]:Clone()
+                clone.Name = num+1
+                clone.LayoutOrder = num+3
+                clone.Parent = column
+            until count == highest[2]:GetAttribute("max")
+        elseif count < highest[2]:GetAttribute("max") then
+            repeat
+                local num = #column:GetChildren() - 2
+                column:GetChildren()[num]:Destroy()
+            until count == highest[2]:GetAttribute("max")
+        end
+    end
+
+    for i,v in pairs(column:GetChildren()) do
+        addbutton(v, column)
     end
 end
 
 -- Add/remove columns
-for i,v in pairs(MainFrame.Creator.ScrollingFrame["1"]:GetChildren()) do
-    addbutton(v, MainFrame.Creator.ScrollingFrame["1"])
-end
+registercolumn(MainFrame.Creator.ScrollingFrame["1"])
+-- for i,v in pairs(MainFrame.Creator.ScrollingFrame["1"]:GetChildren()) do
+--     addbutton(v, MainFrame.Creator.ScrollingFrame["1"])
+-- end
 
 MainFrame.Creator.ScrollingFrame.Last.Devider.add.MouseButton1Down:Connect(function()
     local clone = MainFrame.Creator.ScrollingFrame["1"]:Clone()
     clone.Name = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
-    clone.LayoutOrder = 2
-    for i,v in pairs(clone:GetChildren()) do
-        addbutton(v, clone)
-    end
+    clone.LayoutOrder = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
+    -- for i,v in pairs(clone:GetChildren()) do
+    --     addbutton(v, clone)
+    -- end
     clone.Parent = MainFrame.Creator.ScrollingFrame
+    registercolumn(clone)
 end)
 
 MainFrame.Creator.ScrollingFrame.Last.Devider.subtract.MouseButton1Down:Connect(function()
@@ -682,37 +742,98 @@ GUI:GetPropertyChangedSignal("Enabled"):Connect(function()
     Pause = true
 end)
 
-local function update(pointer: GuiBase2d, bpm: TextBox, start_column: number, end_column: number)
-    print(pointer, bpm, start_column, end_column)
-    local beats = tonumber(bpm.Text) or 700
-    local Count = #MainFrame.Creator.Pointer:GetChildren() - 4
-    local Current = 1
-    local Pointer = MainFrame.Creator.Pointer["1"].Pointer
-    print(beats, Count)
-    bpm:GetPropertyChangedSignal("Text"):Connect(function()
-        beats = tonumber(bpm.Text) or 700
-    end)
-
-    while task.wait(beats/6000) do
-        if not Pause then
-            Pointer.Parent = MainFrame.Creator.Pointer[Current]
-            for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
-                if i >= start_column and i <= end_column and v.Name ~= "Last" and v:IsA("Frame") then
-                    v.Top.ImageColor3 = v[Current].ImageColor3
-                end
-            end
-
-            if Current == Count then
-                Current = 1
-            else
-                Current += 1
-            end
+local function update(pointer: GuiBase2d, time: TextBox)
+    while task.wait(tonumber(time.Text)) do
+        local lastcount = pointer:GetAttribute("count")
+        if lastcount == pointer:GetAttribute("max") then
+            pointer:SetAttribute("count", 1)
+        else
+            pointer:SetAttribute("count", lastcount + 1)
         end
     end
 end
 
-local coro = coroutine.create(update(MainFrame.Creator.Pointer, MainFrame.Creator.Info.BPM, 1, 99))
-coroutine.resume(coro)]]></ProtectedString>
+spacer = function()
+
+end
+
+-- local function update(coro: table, pointer: GuiBase2d, bpm: TextBox, start_column: number, end_column: number)
+--     print(pointer, bpm, start_column, end_column)
+--     local beats = tonumber(bpm.Text) or 0.1
+--     local Count = #pointer:GetChildren() - 4
+--     local Current = 1
+--     local Pointer = pointer["1"].Pointer
+--     print(beats, Count)
+--     bpm:GetPropertyChangedSignal("Text"):Connect(function()
+--         beats = tonumber(bpm.Text) or 0.1
+--     end)
+
+--     while task.wait(beats) do
+--         if coro["kill"] == true then
+--             break
+--         end
+--         if not Pause then
+--             Pointer.Parent = pointer[Current]
+--             for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+--                 if i >= start_column and i <= end_column and v.Name ~= "Last" and v:IsA("Frame") and not v:GetAttribute("spacer") then
+--                     v.Top.ImageColor3 = v[Current].ImageColor3
+--                 end
+--             end
+
+--             if Current == Count then
+--                 Current = 1
+--             else
+--                 Current += 1
+--             end
+--         end
+--     end
+
+--     return "killed"
+-- end
+
+-- spacer = function()
+--     local clone = Pointer:Clone()
+--     clone.Name = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
+--     clone.LayoutOrder = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
+--     clone:SetAttribute("spacer", true)
+--     clone.Top.TextBox.Text = MainFrame.Creator.Info.BPM.Text
+
+--     local len = Functions.tablelen(coros)
+--     local coro = Functions.getvaluebykey(coros, len-1)
+--     print(coro)
+--     coro["kill"] = true
+--     repeat wait() until coroutine.status(coro["coro"]) == "suspended"
+--     coro["kill"] = nil
+--     coroutine.close(coro["coro"])
+--     for _,coro in pairs(coros) do
+--         for i,v in pairs(coro["pointer"]:GetChildren()) do
+--             if v:FindFirstChild("Pointer") then
+--                 v.Pointer.Parent = coro["pointer"]["1"]
+--             end
+--         end
+--     end
+--     coro["coro"] = coroutine.create(update)
+--     coroutine.resume(coro["coro"], coro, coro["pointer"], coro["bpm"], coro["start_column"], #MainFrame.Creator.ScrollingFrame:GetChildren() - 2)
+--     print(coro["start_column"], #MainFrame.Creator.ScrollingFrame:GetChildren() - 2)
+--     coros[len] = {
+--         ["pointer"] = clone,
+--         ["bpm"] = clone.Top.TextBox,
+--         ["start_column"] = tonumber(clone.Name) + 1,
+--         ["end_column"] = 99,
+--         ["coro"] = coroutine.create(update)
+--     }
+--     coroutine.resume(coros[len]["coro"], coros[len], clone, clone.Top.TextBox, tonumber(clone.Name) + 1, 99)
+--     clone.Parent = MainFrame.Creator.ScrollingFrame
+-- end
+
+-- coros[0] = {
+--     ["pointer"] = MainFrame.Creator.Pointer,
+--     ["bpm"] = MainFrame.Creator.Info.BPM,
+--     ["start_column"] = 1,
+--     ["end_column"] = 99,
+--     ["coro"] = coroutine.create(update),
+-- }
+-- coroutine.resume(coros[0]["coro"], coros[0], coros[0]["pointer"], coros[0]["bpm"], coros[0]["start_column"], 99)]]></ProtectedString>
 					<int64 name="SourceAssetId">-1</int64>
 					<BinaryString name="Tags"></BinaryString>
 					<UniqueId name="UniqueId">425070f357fc386702b6a73e000ca26a</UniqueId>
@@ -811,20 +932,11 @@ function GUI.CreateGui()
     local subtract = Instance.new("ImageButton")
     local frame = Instance.new("Frame")
     local UIGridLayout_2 = Instance.new("UIGridLayout")
-    local Pointer = Instance.new("Frame")
-    local UIListLayout_3 = Instance.new("UIListLayout")
-    local _19_2 = Instance.new("Frame")
-    local _20_2 = Instance.new("Frame")
-    local _1_3 = Instance.new("Frame")
-    local Pointer_2 = Instance.new("Frame")
     local _2_2 = Instance.new("Frame")
-    local _3_2 = Instance.new("Frame")
-    local _4_2 = Instance.new("Frame")
-    local _5_2 = Instance.new("Frame")
-    local _6_2 = Instance.new("Frame")
-    local _7_2 = Instance.new("Frame")
-    local _8_2 = Instance.new("Frame")
-    local _9_2 = Instance.new("Frame")
+    local UIListLayout_3 = Instance.new("UIListLayout")
+    local UIPadding = Instance.new("UIPadding")
+    local _1_3 = Instance.new("Frame")
+    local Pointer = Instance.new("Frame")
     local _10_2 = Instance.new("Frame")
     local _11_2 = Instance.new("Frame")
     local _12_2 = Instance.new("Frame")
@@ -834,9 +946,69 @@ function GUI.CreateGui()
     local _16_2 = Instance.new("Frame")
     local _17_2 = Instance.new("Frame")
     local _18_2 = Instance.new("Frame")
-    local Top_3 = Instance.new("Frame")
+    local _19_2 = Instance.new("Frame")
+    local _2_3 = Instance.new("Frame")
+    local _20_2 = Instance.new("Frame")
+    local _3_2 = Instance.new("Frame")
+    local _4_2 = Instance.new("Frame")
+    local _5_2 = Instance.new("Frame")
+    local _6_2 = Instance.new("Frame")
+    local _7_2 = Instance.new("Frame")
+    local _8_2 = Instance.new("Frame")
+    local _9_2 = Instance.new("Frame")
     local Devider_3 = Instance.new("Frame")
-    local UIPadding = Instance.new("UIPadding")
+    local Top_3 = Instance.new("ImageLabel")
+    local TextBox = Instance.new("TextBox")
+    local UIListLayout_4 = Instance.new("UIListLayout")
+    local Top_4 = Instance.new("ImageLabel")
+    local Devider_4 = Instance.new("Frame")
+    local Frame_2 = Instance.new("Frame")
+    local _1_4 = Instance.new("ImageLabel")
+    local _2_4 = Instance.new("ImageLabel")
+    local _3_4 = Instance.new("ImageLabel")
+    local _4_3 = Instance.new("ImageLabel")
+    local _5_3 = Instance.new("ImageLabel")
+    local _6_3 = Instance.new("ImageLabel")
+    local _7_3 = Instance.new("ImageLabel")
+    local _8_3 = Instance.new("ImageLabel")
+    local _9_3 = Instance.new("ImageLabel")
+    local _10_3 = Instance.new("ImageLabel")
+    local _11_3 = Instance.new("ImageLabel")
+    local _12_3 = Instance.new("ImageLabel")
+    local _13_3 = Instance.new("ImageLabel")
+    local _14_3 = Instance.new("ImageLabel")
+    local _15_3 = Instance.new("ImageLabel")
+    local _16_3 = Instance.new("ImageLabel")
+    local _17_3 = Instance.new("ImageLabel")
+    local _18_3 = Instance.new("ImageLabel")
+    local _19_3 = Instance.new("ImageLabel")
+    local _20_3 = Instance.new("ImageLabel")
+    local Pointer_2 = Instance.new("Frame")
+    local UIListLayout_5 = Instance.new("UIListLayout")
+    local _19_4 = Instance.new("Frame")
+    local _20_4 = Instance.new("Frame")
+    local _1_5 = Instance.new("Frame")
+    local Pointer_3 = Instance.new("Frame")
+    local _2_5 = Instance.new("Frame")
+    local _3_5 = Instance.new("Frame")
+    local _4_4 = Instance.new("Frame")
+    local _5_4 = Instance.new("Frame")
+    local _6_4 = Instance.new("Frame")
+    local _7_4 = Instance.new("Frame")
+    local _8_4 = Instance.new("Frame")
+    local _9_4 = Instance.new("Frame")
+    local _10_4 = Instance.new("Frame")
+    local _11_4 = Instance.new("Frame")
+    local _12_4 = Instance.new("Frame")
+    local _13_4 = Instance.new("Frame")
+    local _14_4 = Instance.new("Frame")
+    local _15_4 = Instance.new("Frame")
+    local _16_4 = Instance.new("Frame")
+    local _17_4 = Instance.new("Frame")
+    local _18_4 = Instance.new("Frame")
+    local Top_5 = Instance.new("Frame")
+    local Devider_5 = Instance.new("Frame")
+    local UIPadding_2 = Instance.new("UIPadding")
     local Confirm = Instance.new("ImageLabel")
     local TextLabel_4 = Instance.new("TextLabel")
     local Yes = Instance.new("TextButton")
@@ -1279,8 +1451,8 @@ function GUI.CreateGui()
     BPM.Size = UDim2.new(0.943333328, 0, 0.0416666679, 0)
     BPM.ZIndex = 2
     BPM.Font = Enum.Font.ArialBold
-    BPM.PlaceholderText = "BPM"
-    BPM.Text = "700"
+    BPM.PlaceholderText = "Wait Time"
+    BPM.Text = "0.1"
     BPM.TextColor3 = Color3.fromRGB(255, 255, 255)
     BPM.TextSize = 25.000
     BPM.TextWrapped = true
@@ -1307,7 +1479,7 @@ function GUI.CreateGui()
     TextLabel_3.Position = UDim2.new(0.501447976, 0, 0.477905452, 0)
     TextLabel_3.Size = UDim2.new(0.939999998, 0, 0.027777778, 0)
     TextLabel_3.Font = Enum.Font.Arial
-    TextLabel_3.Text = "BPM Selector"
+    TextLabel_3.Text = "Wait Time Selector"
     TextLabel_3.TextColor3 = Color3.fromRGB(255, 255, 255)
     TextLabel_3.TextScaled = true
     TextLabel_3.TextSize = 14.000
@@ -1704,117 +1876,40 @@ function GUI.CreateGui()
     UIGridLayout_2.CellPadding = UDim2.new(0.00499999989, 0, 0, 0)
     UIGridLayout_2.CellSize = UDim2.new(0.0659999996, 0, 1, 0)
 
-    Pointer.Name = "Pointer"
-    Pointer.Parent = Creator
-    Pointer.AnchorPoint = Vector2.new(0.5, 0.5)
-    Pointer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Pointer.BackgroundTransparency = 1.000
-    Pointer.LayoutOrder = 1
-    Pointer.Position = UDim2.new(0.248612985, 0, 0.49938041, 0)
-    Pointer.Size = UDim2.new(0.0281094834, 0, 0.898694158, 0)
+    _2_2.Name = "2"
+    _2_2.Parent = ScrollingFrame
+    _2_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _2_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    _2_2.BackgroundTransparency = 1.000
+    _2_2.LayoutOrder = 2
+    _2_2.Size = UDim2.new(0.0660792962, 0, 1, 0)
 
-    UIListLayout_3.Parent = Pointer
+    UIListLayout_3.Parent = _2_2
     UIListLayout_3.SortOrder = Enum.SortOrder.LayoutOrder
-    UIListLayout_3.Padding = UDim.new(0.006, 0)
+    UIListLayout_3.Padding = UDim.new(0.00749999983, 0)
 
-    _19_2.Name = "19"
-    _19_2.Parent = Pointer
-    _19_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _19_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _19_2.BackgroundTransparency = 1.000
-    _19_2.LayoutOrder = 21
-    _19_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _20_2.Name = "20"
-    _20_2.Parent = Pointer
-    _20_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _20_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _20_2.BackgroundTransparency = 1.000
-    _20_2.LayoutOrder = 22
-    _20_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+    UIPadding.Parent = _2_2
+    UIPadding.PaddingLeft = UDim.new(0.100000001, 0)
+    UIPadding.PaddingRight = UDim.new(0.100000001, 0)
 
     _1_3.Name = "1"
-    _1_3.Parent = Pointer
+    _1_3.Parent = _2_2
     _1_3.AnchorPoint = Vector2.new(0.5, 0.5)
     _1_3.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _1_3.BackgroundTransparency = 1.000
     _1_3.LayoutOrder = 3
     _1_3.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
-    Pointer_2.Name = "Pointer"
-    Pointer_2.Parent = _1_3
-    Pointer_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    Pointer_2.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    Pointer_2.BorderSizePixel = 0
-    Pointer_2.Position = UDim2.new(0.5, 0, 0.5, 0)
-    Pointer_2.Size = UDim2.new(0.75, 0, 0.25, 0)
-
-    _2_2.Name = "2"
-    _2_2.Parent = Pointer
-    _2_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _2_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _2_2.BackgroundTransparency = 1.000
-    _2_2.LayoutOrder = 4
-    _2_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _3_2.Name = "3"
-    _3_2.Parent = Pointer
-    _3_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _3_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _3_2.BackgroundTransparency = 1.000
-    _3_2.LayoutOrder = 5
-    _3_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _4_2.Name = "4"
-    _4_2.Parent = Pointer
-    _4_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _4_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _4_2.BackgroundTransparency = 1.000
-    _4_2.LayoutOrder = 6
-    _4_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _5_2.Name = "5"
-    _5_2.Parent = Pointer
-    _5_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _5_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _5_2.BackgroundTransparency = 1.000
-    _5_2.LayoutOrder = 7
-    _5_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _6_2.Name = "6"
-    _6_2.Parent = Pointer
-    _6_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _6_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _6_2.BackgroundTransparency = 1.000
-    _6_2.LayoutOrder = 8
-    _6_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _7_2.Name = "7"
-    _7_2.Parent = Pointer
-    _7_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _7_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _7_2.BackgroundTransparency = 1.000
-    _7_2.LayoutOrder = 9
-    _7_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _8_2.Name = "8"
-    _8_2.Parent = Pointer
-    _8_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _8_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _8_2.BackgroundTransparency = 1.000
-    _8_2.LayoutOrder = 10
-    _8_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _9_2.Name = "9"
-    _9_2.Parent = Pointer
-    _9_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _9_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _9_2.BackgroundTransparency = 1.000
-    _9_2.LayoutOrder = 11
-    _9_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+    Pointer.Name = "Pointer"
+    Pointer.Parent = _1_3
+    Pointer.AnchorPoint = Vector2.new(0.5, 0.5)
+    Pointer.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Pointer.BorderSizePixel = 0
+    Pointer.Position = UDim2.new(0.75, 0, 0.5, 0)
+    Pointer.Size = UDim2.new(0.5, 0, 0.25, 0)
 
     _10_2.Name = "10"
-    _10_2.Parent = Pointer
+    _10_2.Parent = _2_2
     _10_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _10_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _10_2.BackgroundTransparency = 1.000
@@ -1822,7 +1917,7 @@ function GUI.CreateGui()
     _10_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _11_2.Name = "11"
-    _11_2.Parent = Pointer
+    _11_2.Parent = _2_2
     _11_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _11_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _11_2.BackgroundTransparency = 1.000
@@ -1830,7 +1925,7 @@ function GUI.CreateGui()
     _11_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _12_2.Name = "12"
-    _12_2.Parent = Pointer
+    _12_2.Parent = _2_2
     _12_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _12_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _12_2.BackgroundTransparency = 1.000
@@ -1838,7 +1933,7 @@ function GUI.CreateGui()
     _12_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _13_2.Name = "13"
-    _13_2.Parent = Pointer
+    _13_2.Parent = _2_2
     _13_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _13_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _13_2.BackgroundTransparency = 1.000
@@ -1846,7 +1941,7 @@ function GUI.CreateGui()
     _13_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _14_2.Name = "14"
-    _14_2.Parent = Pointer
+    _14_2.Parent = _2_2
     _14_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _14_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _14_2.BackgroundTransparency = 1.000
@@ -1854,7 +1949,7 @@ function GUI.CreateGui()
     _14_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _15_2.Name = "15"
-    _15_2.Parent = Pointer
+    _15_2.Parent = _2_2
     _15_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _15_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _15_2.BackgroundTransparency = 1.000
@@ -1862,7 +1957,7 @@ function GUI.CreateGui()
     _15_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _16_2.Name = "16"
-    _16_2.Parent = Pointer
+    _16_2.Parent = _2_2
     _16_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _16_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _16_2.BackgroundTransparency = 1.000
@@ -1870,7 +1965,7 @@ function GUI.CreateGui()
     _16_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _17_2.Name = "17"
-    _17_2.Parent = Pointer
+    _17_2.Parent = _2_2
     _17_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _17_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _17_2.BackgroundTransparency = 1.000
@@ -1878,23 +1973,95 @@ function GUI.CreateGui()
     _17_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _18_2.Name = "18"
-    _18_2.Parent = Pointer
+    _18_2.Parent = _2_2
     _18_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _18_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _18_2.BackgroundTransparency = 1.000
     _18_2.LayoutOrder = 20
     _18_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
-    Top_3.Name = "Top"
-    Top_3.Parent = Pointer
-    Top_3.AnchorPoint = Vector2.new(0.5, 0.5)
-    Top_3.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Top_3.BackgroundTransparency = 1.000
-    Top_3.LayoutOrder = 1
-    Top_3.Size = UDim2.new(1, 0, 0.0385802463, 0)
+    _19_2.Name = "19"
+    _19_2.Parent = _2_2
+    _19_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _19_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _19_2.BackgroundTransparency = 1.000
+    _19_2.LayoutOrder = 21
+    _19_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _2_3.Name = "2"
+    _2_3.Parent = _2_2
+    _2_3.AnchorPoint = Vector2.new(0.5, 0.5)
+    _2_3.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _2_3.BackgroundTransparency = 1.000
+    _2_3.LayoutOrder = 4
+    _2_3.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _20_2.Name = "20"
+    _20_2.Parent = _2_2
+    _20_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _20_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _20_2.BackgroundTransparency = 1.000
+    _20_2.LayoutOrder = 22
+    _20_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _3_2.Name = "3"
+    _3_2.Parent = _2_2
+    _3_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _3_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _3_2.BackgroundTransparency = 1.000
+    _3_2.LayoutOrder = 5
+    _3_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _4_2.Name = "4"
+    _4_2.Parent = _2_2
+    _4_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _4_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _4_2.BackgroundTransparency = 1.000
+    _4_2.LayoutOrder = 6
+    _4_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _5_2.Name = "5"
+    _5_2.Parent = _2_2
+    _5_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _5_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _5_2.BackgroundTransparency = 1.000
+    _5_2.LayoutOrder = 7
+    _5_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _6_2.Name = "6"
+    _6_2.Parent = _2_2
+    _6_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _6_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _6_2.BackgroundTransparency = 1.000
+    _6_2.LayoutOrder = 8
+    _6_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _7_2.Name = "7"
+    _7_2.Parent = _2_2
+    _7_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _7_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _7_2.BackgroundTransparency = 1.000
+    _7_2.LayoutOrder = 9
+    _7_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _8_2.Name = "8"
+    _8_2.Parent = _2_2
+    _8_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _8_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _8_2.BackgroundTransparency = 1.000
+    _8_2.LayoutOrder = 10
+    _8_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _9_2.Name = "9"
+    _9_2.Parent = _2_2
+    _9_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _9_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _9_2.BackgroundTransparency = 1.000
+    _9_2.LayoutOrder = 11
+    _9_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     Devider_3.Name = "Devider"
-    Devider_3.Parent = Pointer
+    Devider_3.Parent = _2_2
     Devider_3.AnchorPoint = Vector2.new(0.5, 0.5)
     Devider_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Devider_3.BackgroundTransparency = 1.000
@@ -1902,9 +2069,234 @@ function GUI.CreateGui()
     Devider_3.Position = UDim2.new(0, 0, 0.0385802463, 0)
     Devider_3.Size = UDim2.new(1, 0, 0.0308641978, 0)
 
-    UIPadding.Parent = Pointer
-    UIPadding.PaddingLeft = UDim.new(0.100000001, 0)
-    UIPadding.PaddingRight = UDim.new(0.100000001, 0)
+    Top_3.Name = "Top"
+    Top_3.Parent = _2_2
+    Top_3.AnchorPoint = Vector2.new(0.5, 0.5)
+    Top_3.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Top_3.BackgroundTransparency = 1.000
+    Top_3.LayoutOrder = 1
+    Top_3.Size = UDim2.new(1, 0, 0.0385802463, 0)
+    Top_3.Image = "rbxassetid://3570695787"
+    Top_3.ImageColor3 = Color3.fromRGB(40, 40, 40)
+    Top_3.ScaleType = Enum.ScaleType.Slice
+    Top_3.SliceCenter = Rect.new(100, 100, 100, 100)
+    Top_3.SliceScale = 0.050
+
+    TextBox.Parent = Top_3
+    TextBox.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextBox.BackgroundTransparency = 1.000
+    TextBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextBox.Size = UDim2.new(1, 0, 1, 0)
+    TextBox.Font = Enum.Font.ArialBold
+    TextBox.PlaceholderText = "Wait Time"
+    TextBox.Text = "0.2"
+    TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextBox.TextScaled = true
+    TextBox.TextSize = 14.000
+    TextBox.TextWrapped = true
+
+    Pointer_2.Name = "Pointer"
+    Pointer_2.Parent = Creator
+    Pointer_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    Pointer_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Pointer_2.BackgroundTransparency = 1.000
+    Pointer_2.LayoutOrder = 1
+    Pointer_2.Position = UDim2.new(0.248612985, 0, 0.49938041, 0)
+    Pointer_2.Size = UDim2.new(0.0281094834, 0, 0.898694158, 0)
+
+    UIListLayout_5.Parent = Pointer_2
+    UIListLayout_5.SortOrder = Enum.SortOrder.LayoutOrder
+    UIListLayout_5.Padding = UDim.new(0.00600000005, 0)
+
+    _19_4.Name = "19"
+    _19_4.Parent = Pointer_2
+    _19_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _19_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _19_4.BackgroundTransparency = 1.000
+    _19_4.LayoutOrder = 21
+    _19_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _20_4.Name = "20"
+    _20_4.Parent = Pointer_2
+    _20_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _20_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _20_4.BackgroundTransparency = 1.000
+    _20_4.LayoutOrder = 22
+    _20_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _1_5.Name = "1"
+    _1_5.Parent = Pointer_2
+    _1_5.AnchorPoint = Vector2.new(0.5, 0.5)
+    _1_5.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _1_5.BackgroundTransparency = 1.000
+    _1_5.LayoutOrder = 3
+    _1_5.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    Pointer_3.Name = "Pointer"
+    Pointer_3.Parent = _1_5
+    Pointer_3.AnchorPoint = Vector2.new(0.5, 0.5)
+    Pointer_3.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Pointer_3.BorderSizePixel = 0
+    Pointer_3.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Pointer_3.Size = UDim2.new(0.75, 0, 0.25, 0)
+
+    _2_5.Name = "2"
+    _2_5.Parent = Pointer_2
+    _2_5.AnchorPoint = Vector2.new(0.5, 0.5)
+    _2_5.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _2_5.BackgroundTransparency = 1.000
+    _2_5.LayoutOrder = 4
+    _2_5.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _3_5.Name = "3"
+    _3_5.Parent = Pointer_2
+    _3_5.AnchorPoint = Vector2.new(0.5, 0.5)
+    _3_5.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _3_5.BackgroundTransparency = 1.000
+    _3_5.LayoutOrder = 5
+    _3_5.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _4_4.Name = "4"
+    _4_4.Parent = Pointer_2
+    _4_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _4_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _4_4.BackgroundTransparency = 1.000
+    _4_4.LayoutOrder = 6
+    _4_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _5_4.Name = "5"
+    _5_4.Parent = Pointer_2
+    _5_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _5_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _5_4.BackgroundTransparency = 1.000
+    _5_4.LayoutOrder = 7
+    _5_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _6_4.Name = "6"
+    _6_4.Parent = Pointer_2
+    _6_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _6_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _6_4.BackgroundTransparency = 1.000
+    _6_4.LayoutOrder = 8
+    _6_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _7_4.Name = "7"
+    _7_4.Parent = Pointer_2
+    _7_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _7_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _7_4.BackgroundTransparency = 1.000
+    _7_4.LayoutOrder = 9
+    _7_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _8_4.Name = "8"
+    _8_4.Parent = Pointer_2
+    _8_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _8_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _8_4.BackgroundTransparency = 1.000
+    _8_4.LayoutOrder = 10
+    _8_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _9_4.Name = "9"
+    _9_4.Parent = Pointer_2
+    _9_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _9_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _9_4.BackgroundTransparency = 1.000
+    _9_4.LayoutOrder = 11
+    _9_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _10_4.Name = "10"
+    _10_4.Parent = Pointer_2
+    _10_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _10_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _10_4.BackgroundTransparency = 1.000
+    _10_4.LayoutOrder = 12
+    _10_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _11_4.Name = "11"
+    _11_4.Parent = Pointer_2
+    _11_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _11_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _11_4.BackgroundTransparency = 1.000
+    _11_4.LayoutOrder = 13
+    _11_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _12_4.Name = "12"
+    _12_4.Parent = Pointer_2
+    _12_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _12_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _12_4.BackgroundTransparency = 1.000
+    _12_4.LayoutOrder = 14
+    _12_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _13_4.Name = "13"
+    _13_4.Parent = Pointer_2
+    _13_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _13_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _13_4.BackgroundTransparency = 1.000
+    _13_4.LayoutOrder = 15
+    _13_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _14_4.Name = "14"
+    _14_4.Parent = Pointer_2
+    _14_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _14_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _14_4.BackgroundTransparency = 1.000
+    _14_4.LayoutOrder = 16
+    _14_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _15_4.Name = "15"
+    _15_4.Parent = Pointer_2
+    _15_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _15_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _15_4.BackgroundTransparency = 1.000
+    _15_4.LayoutOrder = 17
+    _15_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _16_4.Name = "16"
+    _16_4.Parent = Pointer_2
+    _16_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _16_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _16_4.BackgroundTransparency = 1.000
+    _16_4.LayoutOrder = 18
+    _16_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _17_4.Name = "17"
+    _17_4.Parent = Pointer_2
+    _17_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _17_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _17_4.BackgroundTransparency = 1.000
+    _17_4.LayoutOrder = 19
+    _17_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _18_4.Name = "18"
+    _18_4.Parent = Pointer_2
+    _18_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _18_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _18_4.BackgroundTransparency = 1.000
+    _18_4.LayoutOrder = 20
+    _18_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    Top_5.Name = "Top"
+    Top_5.Parent = Pointer_2
+    Top_5.AnchorPoint = Vector2.new(0.5, 0.5)
+    Top_5.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Top_5.BackgroundTransparency = 1.000
+    Top_5.LayoutOrder = 1
+    Top_5.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    Devider_5.Name = "Devider"
+    Devider_5.Parent = Pointer_2
+    Devider_5.AnchorPoint = Vector2.new(0.5, 0.5)
+    Devider_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Devider_5.BackgroundTransparency = 1.000
+    Devider_5.LayoutOrder = 2
+    Devider_5.Position = UDim2.new(0, 0, 0.0385802463, 0)
+    Devider_5.Size = UDim2.new(1, 0, 0.0308641978, 0)
+
+    UIPadding_2.Parent = Pointer_2
+    UIPadding_2.PaddingLeft = UDim.new(0.100000001, 0)
+    UIPadding_2.PaddingRight = UDim.new(0.100000001, 0)
 
     Confirm.Name = "Confirm"
     Confirm.Parent = Main
@@ -2010,7 +2402,24 @@ return GUI]]></ProtectedString>
 						<string name="ScriptGuid">{55D7F2F5-9D3C-41A8-BA18-76010EE653A4}</string>
 						<ProtectedString name="Source"><![CDATA[local functions = {}
 
+function functions.tablelen(t: table): number
+    local n = 0
+    
+    for _ in pairs(t) do
+        n = n + 1
+    end
+    return n
+end
 
+function functions.getvaluebykey(t: table, key: number): any
+    for i, v in pairs(t) do
+        print(i, key)
+        if i == key then
+            return v
+        end
+    end
+    return nil
+end
 
 return functions]]></ProtectedString>
 						<int64 name="SourceAssetId">-1</int64>
@@ -5042,7 +5451,7 @@ return functions]]></ProtectedString>
 									<G>0.699999988</G>
 									<B>0.699999988</B>
 								</Color3>
-								<string name="PlaceholderText">BPM</string>
+								<string name="PlaceholderText">Wait Time</string>
 								<UDim2 name="Position">
 									<XS>0.502458394</XS>
 									<XO>0</XO>
@@ -5070,7 +5479,7 @@ return functions]]></ProtectedString>
 								<token name="SizeConstraint">0</token>
 								<int64 name="SourceAssetId">-1</int64>
 								<BinaryString name="Tags"></BinaryString>
-								<string name="Text">700</string>
+								<string name="Text">0.1</string>
 								<Color3 name="TextColor3">
 									<R>1</R>
 									<G>1</G>
@@ -5251,7 +5660,7 @@ return functions]]></ProtectedString>
 								<token name="SizeConstraint">0</token>
 								<int64 name="SourceAssetId">-1</int64>
 								<BinaryString name="Tags"></BinaryString>
-								<string name="Text">BPM Selector</string>
+								<string name="Text">Wait Time Selector</string>
 								<Color3 name="TextColor3">
 									<R>1</R>
 									<G>1</G>
@@ -8111,6 +8520,1664 @@ return functions]]></ProtectedString>
 								<token name="VerticalAlignment">1</token>
 							</Properties>
 						</Item>
+						<Item class="Frame" referent="RBX6C19E212E4F54EDA86A6422CF1DC5530">
+							<Properties>
+								<bool name="Active">false</bool>
+								<Vector2 name="AnchorPoint">
+									<X>0.5</X>
+									<Y>0.5</Y>
+								</Vector2>
+								<BinaryString name="AttributesSerialize">AQAAAAYAAABzcGFjZXIDAQ==</BinaryString>
+								<bool name="AutoLocalize">true</bool>
+								<token name="AutomaticSize">0</token>
+								<Color3 name="BackgroundColor3">
+									<R>1</R>
+									<G>1</G>
+									<B>1</B>
+								</Color3>
+								<float name="BackgroundTransparency">1</float>
+								<Color3 name="BorderColor3">
+									<R>0.105882362</R>
+									<G>0.164705887</G>
+									<B>0.207843155</B>
+								</Color3>
+								<token name="BorderMode">0</token>
+								<int name="BorderSizePixel">1</int>
+								<bool name="ClipsDescendants">false</bool>
+								<bool name="Draggable">false</bool>
+								<int name="LayoutOrder">2</int>
+								<string name="Name">2</string>
+								<Ref name="NextSelectionDown">null</Ref>
+								<Ref name="NextSelectionLeft">null</Ref>
+								<Ref name="NextSelectionRight">null</Ref>
+								<Ref name="NextSelectionUp">null</Ref>
+								<UDim2 name="Position">
+									<XS>0</XS>
+									<XO>0</XO>
+									<YS>0</YS>
+									<YO>0</YO>
+								</UDim2>
+								<Ref name="RootLocalizationTable">null</Ref>
+								<float name="Rotation">0</float>
+								<bool name="Selectable">false</bool>
+								<token name="SelectionBehaviorDown">0</token>
+								<token name="SelectionBehaviorLeft">0</token>
+								<token name="SelectionBehaviorRight">0</token>
+								<token name="SelectionBehaviorUp">0</token>
+								<bool name="SelectionGroup">false</bool>
+								<Ref name="SelectionImageObject">null</Ref>
+								<int name="SelectionOrder">0</int>
+								<UDim2 name="Size">
+									<XS>0.0660792962</XS>
+									<XO>0</XO>
+									<YS>1</YS>
+									<YO>0</YO>
+								</UDim2>
+								<token name="SizeConstraint">0</token>
+								<int64 name="SourceAssetId">-1</int64>
+								<token name="Style">0</token>
+								<BinaryString name="Tags"></BinaryString>
+								<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c2f26</UniqueId>
+								<bool name="Visible">true</bool>
+								<int name="ZIndex">1</int>
+							</Properties>
+							<Item class="UIListLayout" referent="RBX2C734ABF3B9F4EDDA1041071D550F6F4">
+								<Properties>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<token name="FillDirection">1</token>
+									<token name="HorizontalAlignment">1</token>
+									<string name="Name">UIListLayout</string>
+									<UDim name="Padding">
+										<S>0.00749999983</S>
+										<O>0</O>
+									</UDim>
+									<token name="SortOrder">2</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3254</UniqueId>
+									<token name="VerticalAlignment">1</token>
+								</Properties>
+							</Item>
+							<Item class="UIPadding" referent="RBXB1E5AB49B55040ABB936F9F94C839E49">
+								<Properties>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<string name="Name">UIPadding</string>
+									<UDim name="PaddingBottom">
+										<S>0</S>
+										<O>0</O>
+									</UDim>
+									<UDim name="PaddingLeft">
+										<S>0.100000001</S>
+										<O>0</O>
+									</UDim>
+									<UDim name="PaddingRight">
+										<S>0.100000001</S>
+										<O>0</O>
+									</UDim>
+									<UDim name="PaddingTop">
+										<S>0</S>
+										<O>0</O>
+									</UDim>
+									<int64 name="SourceAssetId">-1</int64>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c31a7</UniqueId>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX9862678BA16A4A5ABD981F24169F2C89">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">3</int>
+									<string name="Name">1</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c318f</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+								<Item class="Frame" referent="RBXF28771D24C394DA6A4774DDB5011780B">
+									<Properties>
+										<bool name="Active">false</bool>
+										<Vector2 name="AnchorPoint">
+											<X>0.5</X>
+											<Y>0.5</Y>
+										</Vector2>
+										<BinaryString name="AttributesSerialize"></BinaryString>
+										<bool name="AutoLocalize">true</bool>
+										<token name="AutomaticSize">0</token>
+										<Color3 name="BackgroundColor3">
+											<R>0.235294119</R>
+											<G>0.235294119</G>
+											<B>0.235294119</B>
+										</Color3>
+										<float name="BackgroundTransparency">0</float>
+										<Color3 name="BorderColor3">
+											<R>0.105882362</R>
+											<G>0.164705887</G>
+											<B>0.207843155</B>
+										</Color3>
+										<token name="BorderMode">0</token>
+										<int name="BorderSizePixel">0</int>
+										<bool name="ClipsDescendants">false</bool>
+										<bool name="Draggable">false</bool>
+										<int name="LayoutOrder">0</int>
+										<string name="Name">Pointer</string>
+										<Ref name="NextSelectionDown">null</Ref>
+										<Ref name="NextSelectionLeft">null</Ref>
+										<Ref name="NextSelectionRight">null</Ref>
+										<Ref name="NextSelectionUp">null</Ref>
+										<UDim2 name="Position">
+											<XS>0.75</XS>
+											<XO>0</XO>
+											<YS>0.5</YS>
+											<YO>0</YO>
+										</UDim2>
+										<Ref name="RootLocalizationTable">null</Ref>
+										<float name="Rotation">0</float>
+										<bool name="Selectable">false</bool>
+										<token name="SelectionBehaviorDown">0</token>
+										<token name="SelectionBehaviorLeft">0</token>
+										<token name="SelectionBehaviorRight">0</token>
+										<token name="SelectionBehaviorUp">0</token>
+										<bool name="SelectionGroup">false</bool>
+										<Ref name="SelectionImageObject">null</Ref>
+										<int name="SelectionOrder">0</int>
+										<UDim2 name="Size">
+											<XS>0.5</XS>
+											<XO>0</XO>
+											<YS>0.25</YS>
+											<YO>0</YO>
+										</UDim2>
+										<token name="SizeConstraint">0</token>
+										<int64 name="SourceAssetId">-1</int64>
+										<token name="Style">0</token>
+										<BinaryString name="Tags"></BinaryString>
+										<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3190</UniqueId>
+										<bool name="Visible">true</bool>
+										<int name="ZIndex">1</int>
+									</Properties>
+								</Item>
+							</Item>
+							<Item class="Frame" referent="RBX2F39AAB324424B309760CBABE43C07A7">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">12</int>
+									<string name="Name">10</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3191</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBXE5795E73B8FB447FAAE48B319297F697">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">13</int>
+									<string name="Name">11</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3192</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX13CB4C11DC3244A0A3D3E5EF8792EC58">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">14</int>
+									<string name="Name">12</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3193</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX3CC0C80B3D7147C78A7FA11CEBD952F9">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">15</int>
+									<string name="Name">13</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3194</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX2438C031A88B4731B956FC3AA04F7B40">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">16</int>
+									<string name="Name">14</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3195</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX93C637A487A1454D897BC1A90C6117FF">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">17</int>
+									<string name="Name">15</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3196</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX708E85BBFB2D488D8876D3C48BB5B202">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">18</int>
+									<string name="Name">16</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3197</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX3A744BF9E0004BCCAB9D1CA4805178AA">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">19</int>
+									<string name="Name">17</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3198</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX654F7728E7C9474F8A32A722EB3D52B7">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">20</int>
+									<string name="Name">18</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3199</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX7A67C88F6792416495D4EEBD5BE18681">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">21</int>
+									<string name="Name">19</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c319a</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX22D5B7769E9045C2B37184FC1023AE30">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">4</int>
+									<string name="Name">2</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c319b</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBXAFCF459BFA1F4E5A8CBB010FD87EEA39">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">22</int>
+									<string name="Name">20</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c319c</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX5A8018D3DEA144BEB347B9927CA49EF2">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">5</int>
+									<string name="Name">3</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c319d</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBXC555742BCAE54BE584BCEE6447585EA5">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">6</int>
+									<string name="Name">4</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c319e</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBXDB23E88E73A14CE8A49D0C033A829B67">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">7</int>
+									<string name="Name">5</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c319f</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX8CD643F51B774BE99548A9F50DB559C2">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">8</int>
+									<string name="Name">6</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c31a0</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX41A723CB481448EEB1206E6BF1AAB750">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">9</int>
+									<string name="Name">7</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c31a1</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBXE6D5E3488DAF4F15A8D546B3A8DB4B4A">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">10</int>
+									<string name="Name">8</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c31a2</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX038A7671C1AD42848FDE029950BC02EC">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">11</int>
+									<string name="Name">9</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c31a3</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="Frame" referent="RBX3F0287AA71DB49128F83B56A9A7BF69C">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>1</R>
+										<G>1</G>
+										<B>1</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<int name="LayoutOrder">2</int>
+									<string name="Name">Devider</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0308641978</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<int64 name="SourceAssetId">-1</int64>
+									<token name="Style">0</token>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c31a4</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+							</Item>
+							<Item class="ImageLabel" referent="RBX386A355868D1488B8E41B3B951708958">
+								<Properties>
+									<bool name="Active">false</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<Content name="Image"><url>rbxassetid://3570695787</url></Content>
+									<Color3 name="ImageColor3">
+										<R>0.156862751</R>
+										<G>0.156862751</G>
+										<B>0.156862751</B>
+									</Color3>
+									<Vector2 name="ImageRectOffset">
+										<X>0</X>
+										<Y>0</Y>
+									</Vector2>
+									<Vector2 name="ImageRectSize">
+										<X>0</X>
+										<Y>0</Y>
+									</Vector2>
+									<float name="ImageTransparency">0</float>
+									<int name="LayoutOrder">1</int>
+									<string name="Name">Top</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0</XS>
+										<XO>0</XO>
+										<YS>0</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="ResampleMode">0</token>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<token name="ScaleType">1</token>
+									<bool name="Selectable">false</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>0.0385802463</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<Rect2D name="SliceCenter">
+										<min>
+											<X>100</X>
+											<Y>100</Y>
+										</min>
+										<max>
+											<X>100</X>
+											<Y>100</Y>
+										</max>
+									</Rect2D>
+									<float name="SliceScale">0.0500000007</float>
+									<int64 name="SourceAssetId">-1</int64>
+									<BinaryString name="Tags"></BinaryString>
+									<UDim2 name="TileSize">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>1</YS>
+										<YO>0</YO>
+									</UDim2>
+									<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3571</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">1</int>
+								</Properties>
+								<Item class="TextBox" referent="RBXA925F4E18849437CA590E4523AAE0F95">
+									<Properties>
+										<bool name="Active">true</bool>
+										<Vector2 name="AnchorPoint">
+											<X>0.5</X>
+											<Y>0.5</Y>
+										</Vector2>
+										<BinaryString name="AttributesSerialize"></BinaryString>
+										<bool name="AutoLocalize">true</bool>
+										<token name="AutomaticSize">0</token>
+										<Color3 name="BackgroundColor3">
+											<R>1</R>
+											<G>1</G>
+											<B>1</B>
+										</Color3>
+										<float name="BackgroundTransparency">1</float>
+										<Color3 name="BorderColor3">
+											<R>0.105882362</R>
+											<G>0.164705887</G>
+											<B>0.207843155</B>
+										</Color3>
+										<token name="BorderMode">0</token>
+										<int name="BorderSizePixel">1</int>
+										<bool name="ClearTextOnFocus">true</bool>
+										<bool name="ClipsDescendants">false</bool>
+										<bool name="Draggable">false</bool>
+										<token name="Font">2</token>
+										<Font name="FontFace"></Font>
+										<int name="LayoutOrder">0</int>
+										<float name="LineHeight">1</float>
+										<int name="MaxVisibleGraphemes">-1</int>
+										<bool name="MultiLine">false</bool>
+										<string name="Name">TextBox</string>
+										<Ref name="NextSelectionDown">null</Ref>
+										<Ref name="NextSelectionLeft">null</Ref>
+										<Ref name="NextSelectionRight">null</Ref>
+										<Ref name="NextSelectionUp">null</Ref>
+										<Color3 name="PlaceholderColor3">
+											<R>0.699999988</R>
+											<G>0.699999988</G>
+											<B>0.699999988</B>
+										</Color3>
+										<string name="PlaceholderText">Wait Time</string>
+										<UDim2 name="Position">
+											<XS>0.5</XS>
+											<XO>0</XO>
+											<YS>0.5</YS>
+											<YO>0</YO>
+										</UDim2>
+										<bool name="RichText">false</bool>
+										<Ref name="RootLocalizationTable">null</Ref>
+										<float name="Rotation">0</float>
+										<bool name="Selectable">true</bool>
+										<token name="SelectionBehaviorDown">0</token>
+										<token name="SelectionBehaviorLeft">0</token>
+										<token name="SelectionBehaviorRight">0</token>
+										<token name="SelectionBehaviorUp">0</token>
+										<bool name="SelectionGroup">false</bool>
+										<Ref name="SelectionImageObject">null</Ref>
+										<int name="SelectionOrder">0</int>
+										<bool name="ShowNativeInput">true</bool>
+										<UDim2 name="Size">
+											<XS>1</XS>
+											<XO>0</XO>
+											<YS>1</YS>
+											<YO>0</YO>
+										</UDim2>
+										<token name="SizeConstraint">0</token>
+										<int64 name="SourceAssetId">-1</int64>
+										<BinaryString name="Tags"></BinaryString>
+										<string name="Text">0.2</string>
+										<Color3 name="TextColor3">
+											<R>1</R>
+											<G>1</G>
+											<B>1</B>
+										</Color3>
+										<bool name="TextEditable">true</bool>
+										<bool name="TextScaled">true</bool>
+										<float name="TextSize">14</float>
+										<Color3 name="TextStrokeColor3">
+											<R>0</R>
+											<G>0</G>
+											<B>0</B>
+										</Color3>
+										<float name="TextStrokeTransparency">1</float>
+										<float name="TextTransparency">0</float>
+										<token name="TextTruncate">0</token>
+										<bool name="TextWrapped">true</bool>
+										<token name="TextXAlignment">2</token>
+										<token name="TextYAlignment">1</token>
+										<UniqueId name="UniqueId">7b150863a1a2b66d02b7d07b000c3581</UniqueId>
+										<bool name="Visible">true</bool>
+										<int name="ZIndex">1</int>
+									</Properties>
+								</Item>
+							</Item>
+						</Item>
 					</Item>
 					<Item class="Frame" referent="RBX9868D0AFD08945D394151797FC5FC9CB">
 						<Properties>
@@ -10562,1279 +12629,6 @@ end]]></ProtectedString>
 				<int64 name="SourceAssetId">-1</int64>
 				<BinaryString name="Tags"></BinaryString>
 				<UniqueId name="UniqueId">425070f357fc386702b6a73e000c9b1d</UniqueId>
-			</Properties>
-		</Item>
-		<Item class="LocalScript" referent="RBX7597EA95F66D4D36A0E4400032C68EFD">
-			<Properties>
-				<BinaryString name="AttributesSerialize"></BinaryString>
-				<bool name="Disabled">false</bool>
-				<Content name="LinkedSource"><null></null></Content>
-				<string name="Name">gui2lua #2</string>
-				<string name="ScriptGuid">{293146A0-EDF1-406B-A120-56FE5C88EE74}</string>
-				<ProtectedString name="Source"><![CDATA[-- Gui to Lua
--- Version: 3.2
-
--- Instances:
-
-local Main = Instance.new("Frame")
-local Creator = Instance.new("Frame")
-local Info = Instance.new("Frame")
-local Title = Instance.new("Frame")
-local TextLabel = Instance.new("TextLabel")
-local UITextSizeConstraint = Instance.new("UITextSizeConstraint")
-local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
-local Buttons = Instance.new("Frame")
-local Blue = Instance.new("TextButton")
-local TextButton_Roundify_10px = Instance.new("ImageLabel")
-local Red = Instance.new("TextButton")
-local TextButton_Roundify_10px_2 = Instance.new("ImageLabel")
-local Amber = Instance.new("TextButton")
-local TextButton_Roundify_10px_3 = Instance.new("ImageLabel")
-local UIGridLayout = Instance.new("UIGridLayout")
-local White = Instance.new("TextButton")
-local TextButton_Roundify_10px_4 = Instance.new("ImageLabel")
-local Green = Instance.new("TextButton")
-local TextButton_Roundify_10px_5 = Instance.new("ImageLabel")
-local Purple = Instance.new("TextButton")
-local TextButton_Roundify_10px_6 = Instance.new("ImageLabel")
-local Pause = Instance.new("TextButton")
-local TextButton_Roundify_10px_7 = Instance.new("ImageLabel")
-local ImageLabel = Instance.new("ImageLabel")
-local Lock = Instance.new("TextButton")
-local TextButton_Roundify_10px_8 = Instance.new("ImageLabel")
-local ImageLabel_2 = Instance.new("ImageLabel")
-local Reset = Instance.new("TextButton")
-local TextButton_Roundify_10px_9 = Instance.new("ImageLabel")
-local TextLabel_2 = Instance.new("TextLabel")
-local UITextSizeConstraint_2 = Instance.new("UITextSizeConstraint")
-local Export = Instance.new("TextButton")
-local TextButton_Roundify_10px_10 = Instance.new("ImageLabel")
-local Save = Instance.new("TextButton")
-local TextButton_Roundify_10px_11 = Instance.new("ImageLabel")
-local BPM = Instance.new("TextBox")
-local TextButton_Roundify_10px_12 = Instance.new("ImageLabel")
-local TextLabel_3 = Instance.new("TextLabel")
-local UITextSizeConstraint_3 = Instance.new("UITextSizeConstraint")
-local UIAspectRatioConstraint_2 = Instance.new("UIAspectRatioConstraint")
-local ScrollingFrame = Instance.new("ScrollingFrame")
-local _1 = Instance.new("Frame")
-local UIListLayout = Instance.new("UIListLayout")
-local Top = Instance.new("ImageLabel")
-local Devider = Instance.new("Frame")
-local Frame = Instance.new("Frame")
-local _1_2 = Instance.new("ImageLabel")
-local _2 = Instance.new("ImageLabel")
-local _3 = Instance.new("ImageLabel")
-local _4 = Instance.new("ImageLabel")
-local _5 = Instance.new("ImageLabel")
-local _6 = Instance.new("ImageLabel")
-local _7 = Instance.new("ImageLabel")
-local _8 = Instance.new("ImageLabel")
-local _9 = Instance.new("ImageLabel")
-local _10 = Instance.new("ImageLabel")
-local _11 = Instance.new("ImageLabel")
-local _12 = Instance.new("ImageLabel")
-local _13 = Instance.new("ImageLabel")
-local _14 = Instance.new("ImageLabel")
-local _15 = Instance.new("ImageLabel")
-local _16 = Instance.new("ImageLabel")
-local _17 = Instance.new("ImageLabel")
-local _18 = Instance.new("ImageLabel")
-local _19 = Instance.new("ImageLabel")
-local _20 = Instance.new("ImageLabel")
-local Last = Instance.new("Frame")
-local UIListLayout_2 = Instance.new("UIListLayout")
-local Top_2 = Instance.new("ImageLabel")
-local Devider_2 = Instance.new("Frame")
-local add = Instance.new("ImageButton")
-local subtract = Instance.new("ImageButton")
-local frame = Instance.new("Frame")
-local UIGridLayout_2 = Instance.new("UIGridLayout")
-local Pointer = Instance.new("Frame")
-local UIListLayout_3 = Instance.new("UIListLayout")
-local _19_2 = Instance.new("Frame")
-local _20_2 = Instance.new("Frame")
-local _1_3 = Instance.new("Frame")
-local Pointer_2 = Instance.new("Frame")
-local _2_2 = Instance.new("Frame")
-local _3_2 = Instance.new("Frame")
-local _4_2 = Instance.new("Frame")
-local _5_2 = Instance.new("Frame")
-local _6_2 = Instance.new("Frame")
-local _7_2 = Instance.new("Frame")
-local _8_2 = Instance.new("Frame")
-local _9_2 = Instance.new("Frame")
-local _10_2 = Instance.new("Frame")
-local _11_2 = Instance.new("Frame")
-local _12_2 = Instance.new("Frame")
-local _13_2 = Instance.new("Frame")
-local _14_2 = Instance.new("Frame")
-local _15_2 = Instance.new("Frame")
-local _16_2 = Instance.new("Frame")
-local _17_2 = Instance.new("Frame")
-local _18_2 = Instance.new("Frame")
-local Top_3 = Instance.new("Frame")
-local Devider_3 = Instance.new("Frame")
-local UIPadding = Instance.new("UIPadding")
-local Confirm = Instance.new("ImageLabel")
-local TextLabel_4 = Instance.new("TextLabel")
-local Yes = Instance.new("TextButton")
-local TextButton_Roundify_10px_13 = Instance.new("ImageLabel")
-local No = Instance.new("TextButton")
-local TextButton_Roundify_10px_14 = Instance.new("ImageLabel")
-
---Properties:
-
-Main.Name = "Main"
-Main.Parent = game.StarterGui.ScreenGui
-Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Main.Size = UDim2.new(1, 0, 1, 0)
-
-Creator.Name = "Creator"
-Creator.Parent = Main
-Creator.AnchorPoint = Vector2.new(0.5, 0.5)
-Creator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Creator.BackgroundTransparency = 1.000
-Creator.Position = UDim2.new(0.5, 0, 0.5, 0)
-Creator.Size = UDim2.new(1, 0, 1, 0)
-
-Info.Name = "Info"
-Info.Parent = Creator
-Info.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Info.BorderSizePixel = 0
-Info.Size = UDim2.new(0.234558254, 0, 1, 0)
-
-Title.Name = "Title"
-Title.Parent = Info
-Title.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-Title.BorderSizePixel = 0
-Title.Size = UDim2.new(1, 0, 0.0833333358, 0)
-
-TextLabel.Parent = Title
-TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel.BackgroundTransparency = 1.000
-TextLabel.Size = UDim2.new(1, 0, 1, 0)
-TextLabel.Font = Enum.Font.ArialBold
-TextLabel.Text = "Emergency Vehicle Creator"
-TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel.TextScaled = true
-TextLabel.TextSize = 25.000
-TextLabel.TextWrapped = true
-
-UITextSizeConstraint.Parent = TextLabel
-UITextSizeConstraint.MaxTextSize = 25
-
-UIAspectRatioConstraint.Parent = Title
-UIAspectRatioConstraint.AspectRatio = 5.000
-
-Buttons.Name = "Buttons"
-Buttons.Parent = Info
-Buttons.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Buttons.BackgroundTransparency = 1.000
-Buttons.Position = UDim2.new(0, 0, 0.650277734, 0)
-Buttons.Size = UDim2.new(1, 0, 0.208333328, 0)
-
-Blue.Name = "Blue"
-Blue.Parent = Buttons
-Blue.AnchorPoint = Vector2.new(0.5, 0.5)
-Blue.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Blue.BackgroundTransparency = 1.000
-Blue.BorderSizePixel = 0
-Blue.LayoutOrder = 1
-Blue.Size = UDim2.new(0.300000012, 0, 0.266666681, 0)
-Blue.ZIndex = 3
-Blue.Font = Enum.Font.ArialBold
-Blue.Text = "Blue"
-Blue.TextColor3 = Color3.fromRGB(47, 71, 255)
-Blue.TextSize = 25.000
-Blue.TextWrapped = true
-
-TextButton_Roundify_10px.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px.Parent = Blue
-TextButton_Roundify_10px.Active = true
-TextButton_Roundify_10px.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px.BackgroundTransparency = 1.000
-TextButton_Roundify_10px.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px.Selectable = true
-TextButton_Roundify_10px.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px.ImageColor3 = Color3.fromRGB(50, 50, 50)
-TextButton_Roundify_10px.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px.SliceScale = 0.100
-
-Red.Name = "Red"
-Red.Parent = Buttons
-Red.AnchorPoint = Vector2.new(0.5, 0.5)
-Red.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Red.BackgroundTransparency = 1.000
-Red.BorderSizePixel = 2
-Red.LayoutOrder = 2
-Red.Size = UDim2.new(0.300000012, 0, 0.266666681, 0)
-Red.ZIndex = 3
-Red.Font = Enum.Font.ArialBold
-Red.Text = "Red"
-Red.TextColor3 = Color3.fromRGB(185, 58, 60)
-Red.TextSize = 25.000
-Red.TextWrapped = true
-
-TextButton_Roundify_10px_2.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_2.Parent = Red
-TextButton_Roundify_10px_2.Active = true
-TextButton_Roundify_10px_2.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_2.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_2.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_2.Selectable = true
-TextButton_Roundify_10px_2.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_2.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_2.ImageColor3 = Color3.fromRGB(50, 50, 50)
-TextButton_Roundify_10px_2.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_2.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_2.SliceScale = 0.100
-
-Amber.Name = "Amber"
-Amber.Parent = Buttons
-Amber.AnchorPoint = Vector2.new(0.5, 0.5)
-Amber.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Amber.BackgroundTransparency = 1.000
-Amber.BorderSizePixel = 0
-Amber.LayoutOrder = 3
-Amber.Size = UDim2.new(0.300000012, 0, 0.266666681, 0)
-Amber.ZIndex = 3
-Amber.Font = Enum.Font.ArialBold
-Amber.Text = "Amber"
-Amber.TextColor3 = Color3.fromRGB(253, 194, 66)
-Amber.TextSize = 25.000
-Amber.TextWrapped = true
-
-TextButton_Roundify_10px_3.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_3.Parent = Amber
-TextButton_Roundify_10px_3.Active = true
-TextButton_Roundify_10px_3.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_3.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_3.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_3.Selectable = true
-TextButton_Roundify_10px_3.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_3.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_3.ImageColor3 = Color3.fromRGB(50, 50, 50)
-TextButton_Roundify_10px_3.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_3.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_3.SliceScale = 0.100
-
-UIGridLayout.Parent = Buttons
-UIGridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-UIGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIGridLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-UIGridLayout.CellPadding = UDim2.new(0.0250000004, 0, 0.0500000007, 0)
-UIGridLayout.CellSize = UDim2.new(0.300000012, 0, 0.266666681, 0)
-
-White.Name = "White"
-White.Parent = Buttons
-White.AnchorPoint = Vector2.new(0.5, 0.5)
-White.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-White.BackgroundTransparency = 1.000
-White.BorderSizePixel = 0
-White.LayoutOrder = 4
-White.Size = UDim2.new(0.300000012, 0, 0.266666681, 0)
-White.ZIndex = 3
-White.Font = Enum.Font.ArialBold
-White.Text = "White"
-White.TextColor3 = Color3.fromRGB(255, 255, 255)
-White.TextSize = 25.000
-White.TextWrapped = true
-
-TextButton_Roundify_10px_4.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_4.Parent = White
-TextButton_Roundify_10px_4.Active = true
-TextButton_Roundify_10px_4.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_4.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_4.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_4.Selectable = true
-TextButton_Roundify_10px_4.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_4.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_4.ImageColor3 = Color3.fromRGB(50, 50, 50)
-TextButton_Roundify_10px_4.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_4.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_4.SliceScale = 0.100
-
-Green.Name = "Green"
-Green.Parent = Buttons
-Green.AnchorPoint = Vector2.new(0.5, 0.5)
-Green.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Green.BackgroundTransparency = 1.000
-Green.BorderSizePixel = 0
-Green.LayoutOrder = 5
-Green.Size = UDim2.new(0.300000012, 0, 0.266666681, 0)
-Green.ZIndex = 3
-Green.Font = Enum.Font.ArialBold
-Green.Text = "Green"
-Green.TextColor3 = Color3.fromRGB(75, 255, 75)
-Green.TextSize = 25.000
-Green.TextWrapped = true
-
-TextButton_Roundify_10px_5.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_5.Parent = Green
-TextButton_Roundify_10px_5.Active = true
-TextButton_Roundify_10px_5.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_5.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_5.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_5.Selectable = true
-TextButton_Roundify_10px_5.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_5.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_5.ImageColor3 = Color3.fromRGB(50, 50, 50)
-TextButton_Roundify_10px_5.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_5.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_5.SliceScale = 0.100
-
-Purple.Name = "Purple"
-Purple.Parent = Buttons
-Purple.AnchorPoint = Vector2.new(0.5, 0.5)
-Purple.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Purple.BackgroundTransparency = 1.000
-Purple.BorderSizePixel = 0
-Purple.LayoutOrder = 6
-Purple.Size = UDim2.new(0.300000012, 0, 0.266666681, 0)
-Purple.ZIndex = 3
-Purple.Font = Enum.Font.ArialBold
-Purple.Text = "Purple"
-Purple.TextColor3 = Color3.fromRGB(188, 12, 211)
-Purple.TextSize = 25.000
-Purple.TextWrapped = true
-
-TextButton_Roundify_10px_6.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_6.Parent = Purple
-TextButton_Roundify_10px_6.Active = true
-TextButton_Roundify_10px_6.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_6.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_6.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_6.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_6.Selectable = true
-TextButton_Roundify_10px_6.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_6.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_6.ImageColor3 = Color3.fromRGB(50, 50, 50)
-TextButton_Roundify_10px_6.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_6.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_6.SliceScale = 0.100
-
-Pause.Name = "Pause"
-Pause.Parent = Buttons
-Pause.AnchorPoint = Vector2.new(0.5, 0.5)
-Pause.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Pause.BackgroundTransparency = 1.000
-Pause.BorderSizePixel = 0
-Pause.LayoutOrder = 7
-Pause.Size = UDim2.new(0.300000012, 0, 0.266666681, 0)
-Pause.ZIndex = 3
-Pause.Font = Enum.Font.ArialBold
-Pause.Text = ""
-Pause.TextColor3 = Color3.fromRGB(255, 255, 255)
-Pause.TextSize = 25.000
-Pause.TextWrapped = true
-
-TextButton_Roundify_10px_7.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_7.Parent = Pause
-TextButton_Roundify_10px_7.Active = true
-TextButton_Roundify_10px_7.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_7.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_7.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_7.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_7.Selectable = true
-TextButton_Roundify_10px_7.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_7.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_7.ImageColor3 = Color3.fromRGB(50, 50, 50)
-TextButton_Roundify_10px_7.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_7.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_7.SliceScale = 0.100
-
-ImageLabel.Parent = Pause
-ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-ImageLabel.BackgroundTransparency = 1.000
-ImageLabel.Position = UDim2.new(0.495111018, 0, 0.5, 0)
-ImageLabel.Size = UDim2.new(0.446488857, 0, 0.99999845, 0)
-ImageLabel.Image = "rbxassetid://3926307971"
-ImageLabel.ImageRectOffset = Vector2.new(804, 124)
-ImageLabel.ImageRectSize = Vector2.new(36, 36)
-ImageLabel.ScaleType = Enum.ScaleType.Fit
-
-Lock.Name = "Lock"
-Lock.Parent = Buttons
-Lock.AnchorPoint = Vector2.new(0.5, 0.5)
-Lock.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Lock.BackgroundTransparency = 1.000
-Lock.BorderSizePixel = 0
-Lock.LayoutOrder = 8
-Lock.Size = UDim2.new(0.300000012, 0, 0.266666681, 0)
-Lock.ZIndex = 3
-Lock.Font = Enum.Font.ArialBold
-Lock.Text = ""
-Lock.TextColor3 = Color3.fromRGB(255, 255, 255)
-Lock.TextSize = 25.000
-Lock.TextWrapped = true
-
-TextButton_Roundify_10px_8.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_8.Parent = Lock
-TextButton_Roundify_10px_8.Active = true
-TextButton_Roundify_10px_8.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_8.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_8.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_8.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_8.Selectable = true
-TextButton_Roundify_10px_8.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_8.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_8.ImageColor3 = Color3.fromRGB(50, 50, 50)
-TextButton_Roundify_10px_8.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_8.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_8.SliceScale = 0.100
-
-ImageLabel_2.Parent = Lock
-ImageLabel_2.AnchorPoint = Vector2.new(0.5, 0.5)
-ImageLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-ImageLabel_2.BackgroundTransparency = 1.000
-ImageLabel_2.Position = UDim2.new(0.494088829, 0, 0.476899713, 0)
-ImageLabel_2.Size = UDim2.new(0.333333343, 0, 0.75, 0)
-ImageLabel_2.Image = "rbxassetid://3926305904"
-ImageLabel_2.ImageRectOffset = Vector2.new(4, 684)
-ImageLabel_2.ImageRectSize = Vector2.new(36, 36)
-ImageLabel_2.ScaleType = Enum.ScaleType.Fit
-
-Reset.Name = "Reset"
-Reset.Parent = Buttons
-Reset.AnchorPoint = Vector2.new(0.5, 0.5)
-Reset.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Reset.BackgroundTransparency = 1.000
-Reset.BorderSizePixel = 0
-Reset.LayoutOrder = 9
-Reset.Size = UDim2.new(0.300000012, 0, 0.266666681, 0)
-Reset.ZIndex = 3
-Reset.Font = Enum.Font.ArialBold
-Reset.Text = "Reset"
-Reset.TextColor3 = Color3.fromRGB(255, 255, 255)
-Reset.TextSize = 25.000
-Reset.TextWrapped = true
-
-TextButton_Roundify_10px_9.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_9.Parent = Reset
-TextButton_Roundify_10px_9.Active = true
-TextButton_Roundify_10px_9.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_9.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_9.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_9.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_9.Selectable = true
-TextButton_Roundify_10px_9.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_9.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_9.ImageColor3 = Color3.fromRGB(50, 50, 50)
-TextButton_Roundify_10px_9.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_9.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_9.SliceScale = 0.100
-
-TextLabel_2.Parent = Info
-TextLabel_2.AnchorPoint = Vector2.new(0.5, 0.5)
-TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel_2.BackgroundTransparency = 1.000
-TextLabel_2.Position = UDim2.new(0.498333335, 0, 0.642588794, 0)
-TextLabel_2.Size = UDim2.new(0.946666658, 0, 0.0347222239, 0)
-TextLabel_2.Font = Enum.Font.Arial
-TextLabel_2.Text = "Select using 1 - 6 on keyboard"
-TextLabel_2.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel_2.TextScaled = true
-TextLabel_2.TextSize = 14.000
-TextLabel_2.TextWrapped = true
-
-UITextSizeConstraint_2.Parent = TextLabel_2
-UITextSizeConstraint_2.MaxTextSize = 21
-
-Export.Name = "Export"
-Export.Parent = Info
-Export.AnchorPoint = Vector2.new(0.5, 0.5)
-Export.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Export.BackgroundTransparency = 1.000
-Export.BorderSizePixel = 0
-Export.Position = UDim2.new(0.500833333, 0, 0.888888896, 0)
-Export.Size = UDim2.new(0.946666658, 0, 0.055555556, 0)
-Export.ZIndex = 2
-Export.Font = Enum.Font.ArialBold
-Export.Text = "Export"
-Export.TextColor3 = Color3.fromRGB(100, 100, 100)
-Export.TextSize = 25.000
-Export.TextWrapped = true
-
-TextButton_Roundify_10px_10.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_10.Parent = Export
-TextButton_Roundify_10px_10.Active = true
-TextButton_Roundify_10px_10.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_10.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_10.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_10.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_10.Selectable = true
-TextButton_Roundify_10px_10.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_10.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_10.ImageColor3 = Color3.fromRGB(45, 45, 45)
-TextButton_Roundify_10px_10.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_10.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_10.SliceScale = 0.100
-
-Save.Name = "Save"
-Save.Parent = Info
-Save.AnchorPoint = Vector2.new(0.5, 0.5)
-Save.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Save.BackgroundTransparency = 1.000
-Save.BorderSizePixel = 0
-Save.Position = UDim2.new(0.50150007, 0, 0.954166651, 0)
-Save.Size = UDim2.new(0.943333328, 0, 0.055555556, 0)
-Save.ZIndex = 2
-Save.Font = Enum.Font.ArialBold
-Save.Text = "Load/Save"
-Save.TextColor3 = Color3.fromRGB(100, 100, 100)
-Save.TextSize = 25.000
-Save.TextWrapped = true
-
-TextButton_Roundify_10px_11.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_11.Parent = Save
-TextButton_Roundify_10px_11.Active = true
-TextButton_Roundify_10px_11.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_11.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_11.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_11.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_11.Selectable = true
-TextButton_Roundify_10px_11.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_11.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_11.ImageColor3 = Color3.fromRGB(45, 45, 45)
-TextButton_Roundify_10px_11.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_11.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_11.SliceScale = 0.100
-
-BPM.Name = "BPM"
-BPM.Parent = Info
-BPM.AnchorPoint = Vector2.new(0.5, 0.5)
-BPM.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-BPM.BackgroundTransparency = 1.000
-BPM.BorderSizePixel = 0
-BPM.Position = UDim2.new(0.502458394, 0, 0.513605475, 0)
-BPM.Size = UDim2.new(0.943333328, 0, 0.0416666679, 0)
-BPM.ZIndex = 2
-BPM.Font = Enum.Font.ArialBold
-BPM.PlaceholderText = "BPM"
-BPM.Text = "700"
-BPM.TextColor3 = Color3.fromRGB(255, 255, 255)
-BPM.TextSize = 25.000
-BPM.TextWrapped = true
-
-TextButton_Roundify_10px_12.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_12.Parent = BPM
-TextButton_Roundify_10px_12.Active = true
-TextButton_Roundify_10px_12.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_12.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_12.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_12.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_12.Selectable = true
-TextButton_Roundify_10px_12.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_12.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_12.ImageColor3 = Color3.fromRGB(50, 50, 50)
-TextButton_Roundify_10px_12.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_12.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_12.SliceScale = 0.100
-
-TextLabel_3.Parent = Info
-TextLabel_3.AnchorPoint = Vector2.new(0.5, 0.5)
-TextLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel_3.BackgroundTransparency = 1.000
-TextLabel_3.Position = UDim2.new(0.501447976, 0, 0.477905452, 0)
-TextLabel_3.Size = UDim2.new(0.939999998, 0, 0.027777778, 0)
-TextLabel_3.Font = Enum.Font.Arial
-TextLabel_3.Text = "BPM Selector"
-TextLabel_3.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel_3.TextScaled = true
-TextLabel_3.TextSize = 14.000
-TextLabel_3.TextWrapped = true
-TextLabel_3.TextXAlignment = Enum.TextXAlignment.Left
-
-UITextSizeConstraint_3.Parent = TextLabel_3
-UITextSizeConstraint_3.MaxTextSize = 20
-
-UIAspectRatioConstraint_2.Parent = Info
-UIAspectRatioConstraint_2.AspectRatio = 0.417
-
-ScrollingFrame.Parent = Creator
-ScrollingFrame.Active = true
-ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-ScrollingFrame.BackgroundTransparency = 1.000
-ScrollingFrame.BorderSizePixel = 0
-ScrollingFrame.Position = UDim2.new(0.262667716, 0, 0.050033316, 0)
-ScrollingFrame.Size = UDim2.new(0, 908, 0, 648)
-ScrollingFrame.BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-ScrollingFrame.ScrollBarThickness = 5
-ScrollingFrame.TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
-
-_1.Name = "1"
-_1.Parent = ScrollingFrame
-_1.AnchorPoint = Vector2.new(0.5, 0.5)
-_1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-_1.BackgroundTransparency = 1.000
-_1.LayoutOrder = 1
-_1.Size = UDim2.new(0.0660792962, 0, 1, 0)
-
-UIListLayout.Parent = _1
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0.00749999983, 0)
-
-Top.Name = "Top"
-Top.Parent = _1
-Top.AnchorPoint = Vector2.new(0.5, 0.5)
-Top.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Top.BackgroundTransparency = 1.000
-Top.LayoutOrder = 1
-Top.Size = UDim2.new(1, 0, 0.0385802463, 0)
-Top.Image = "rbxassetid://3570695787"
-Top.ImageColor3 = Color3.fromRGB(40, 40, 40)
-Top.ScaleType = Enum.ScaleType.Slice
-Top.SliceCenter = Rect.new(100, 100, 100, 100)
-Top.SliceScale = 0.050
-
-Devider.Name = "Devider"
-Devider.Parent = _1
-Devider.AnchorPoint = Vector2.new(0.5, 0.5)
-Devider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Devider.BackgroundTransparency = 1.000
-Devider.LayoutOrder = 2
-Devider.Position = UDim2.new(0, 0, 0.0385802463, 0)
-Devider.Size = UDim2.new(1, 0, 0.0308641978, 0)
-
-Frame.Parent = Devider
-Frame.AnchorPoint = Vector2.new(0.5, 0.5)
-Frame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-Frame.BorderSizePixel = 0
-Frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-Frame.Size = UDim2.new(0.75, 0, 0.25, 0)
-
-_1_2.Name = "1"
-_1_2.Parent = _1
-_1_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_1_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_1_2.BackgroundTransparency = 1.000
-_1_2.LayoutOrder = 3
-_1_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_1_2.Image = "rbxassetid://3570695787"
-_1_2.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_1_2.ScaleType = Enum.ScaleType.Slice
-_1_2.SliceCenter = Rect.new(100, 100, 100, 100)
-_1_2.SliceScale = 0.050
-
-_2.Name = "2"
-_2.Parent = _1
-_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_2.BackgroundTransparency = 1.000
-_2.LayoutOrder = 4
-_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_2.Image = "rbxassetid://3570695787"
-_2.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_2.ScaleType = Enum.ScaleType.Slice
-_2.SliceCenter = Rect.new(100, 100, 100, 100)
-_2.SliceScale = 0.050
-
-_3.Name = "3"
-_3.Parent = _1
-_3.AnchorPoint = Vector2.new(0.5, 0.5)
-_3.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_3.BackgroundTransparency = 1.000
-_3.LayoutOrder = 5
-_3.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_3.Image = "rbxassetid://3570695787"
-_3.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_3.ScaleType = Enum.ScaleType.Slice
-_3.SliceCenter = Rect.new(100, 100, 100, 100)
-_3.SliceScale = 0.050
-
-_4.Name = "4"
-_4.Parent = _1
-_4.AnchorPoint = Vector2.new(0.5, 0.5)
-_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_4.BackgroundTransparency = 1.000
-_4.LayoutOrder = 6
-_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_4.Image = "rbxassetid://3570695787"
-_4.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_4.ScaleType = Enum.ScaleType.Slice
-_4.SliceCenter = Rect.new(100, 100, 100, 100)
-_4.SliceScale = 0.050
-
-_5.Name = "5"
-_5.Parent = _1
-_5.AnchorPoint = Vector2.new(0.5, 0.5)
-_5.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_5.BackgroundTransparency = 1.000
-_5.LayoutOrder = 7
-_5.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_5.Image = "rbxassetid://3570695787"
-_5.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_5.ScaleType = Enum.ScaleType.Slice
-_5.SliceCenter = Rect.new(100, 100, 100, 100)
-_5.SliceScale = 0.050
-
-_6.Name = "6"
-_6.Parent = _1
-_6.AnchorPoint = Vector2.new(0.5, 0.5)
-_6.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_6.BackgroundTransparency = 1.000
-_6.LayoutOrder = 8
-_6.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_6.Image = "rbxassetid://3570695787"
-_6.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_6.ScaleType = Enum.ScaleType.Slice
-_6.SliceCenter = Rect.new(100, 100, 100, 100)
-_6.SliceScale = 0.050
-
-_7.Name = "7"
-_7.Parent = _1
-_7.AnchorPoint = Vector2.new(0.5, 0.5)
-_7.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_7.BackgroundTransparency = 1.000
-_7.LayoutOrder = 9
-_7.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_7.Image = "rbxassetid://3570695787"
-_7.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_7.ScaleType = Enum.ScaleType.Slice
-_7.SliceCenter = Rect.new(100, 100, 100, 100)
-_7.SliceScale = 0.050
-
-_8.Name = "8"
-_8.Parent = _1
-_8.AnchorPoint = Vector2.new(0.5, 0.5)
-_8.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_8.BackgroundTransparency = 1.000
-_8.LayoutOrder = 10
-_8.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_8.Image = "rbxassetid://3570695787"
-_8.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_8.ScaleType = Enum.ScaleType.Slice
-_8.SliceCenter = Rect.new(100, 100, 100, 100)
-_8.SliceScale = 0.050
-
-_9.Name = "9"
-_9.Parent = _1
-_9.AnchorPoint = Vector2.new(0.5, 0.5)
-_9.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_9.BackgroundTransparency = 1.000
-_9.LayoutOrder = 11
-_9.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_9.Image = "rbxassetid://3570695787"
-_9.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_9.ScaleType = Enum.ScaleType.Slice
-_9.SliceCenter = Rect.new(100, 100, 100, 100)
-_9.SliceScale = 0.050
-
-_10.Name = "10"
-_10.Parent = _1
-_10.AnchorPoint = Vector2.new(0.5, 0.5)
-_10.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_10.BackgroundTransparency = 1.000
-_10.LayoutOrder = 12
-_10.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_10.Image = "rbxassetid://3570695787"
-_10.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_10.ScaleType = Enum.ScaleType.Slice
-_10.SliceCenter = Rect.new(100, 100, 100, 100)
-_10.SliceScale = 0.050
-
-_11.Name = "11"
-_11.Parent = _1
-_11.AnchorPoint = Vector2.new(0.5, 0.5)
-_11.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_11.BackgroundTransparency = 1.000
-_11.LayoutOrder = 13
-_11.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_11.Image = "rbxassetid://3570695787"
-_11.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_11.ScaleType = Enum.ScaleType.Slice
-_11.SliceCenter = Rect.new(100, 100, 100, 100)
-_11.SliceScale = 0.050
-
-_12.Name = "12"
-_12.Parent = _1
-_12.AnchorPoint = Vector2.new(0.5, 0.5)
-_12.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_12.BackgroundTransparency = 1.000
-_12.LayoutOrder = 14
-_12.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_12.Image = "rbxassetid://3570695787"
-_12.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_12.ScaleType = Enum.ScaleType.Slice
-_12.SliceCenter = Rect.new(100, 100, 100, 100)
-_12.SliceScale = 0.050
-
-_13.Name = "13"
-_13.Parent = _1
-_13.AnchorPoint = Vector2.new(0.5, 0.5)
-_13.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_13.BackgroundTransparency = 1.000
-_13.LayoutOrder = 15
-_13.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_13.Image = "rbxassetid://3570695787"
-_13.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_13.ScaleType = Enum.ScaleType.Slice
-_13.SliceCenter = Rect.new(100, 100, 100, 100)
-_13.SliceScale = 0.050
-
-_14.Name = "14"
-_14.Parent = _1
-_14.AnchorPoint = Vector2.new(0.5, 0.5)
-_14.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_14.BackgroundTransparency = 1.000
-_14.LayoutOrder = 16
-_14.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_14.Image = "rbxassetid://3570695787"
-_14.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_14.ScaleType = Enum.ScaleType.Slice
-_14.SliceCenter = Rect.new(100, 100, 100, 100)
-_14.SliceScale = 0.050
-
-_15.Name = "15"
-_15.Parent = _1
-_15.AnchorPoint = Vector2.new(0.5, 0.5)
-_15.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_15.BackgroundTransparency = 1.000
-_15.LayoutOrder = 17
-_15.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_15.Image = "rbxassetid://3570695787"
-_15.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_15.ScaleType = Enum.ScaleType.Slice
-_15.SliceCenter = Rect.new(100, 100, 100, 100)
-_15.SliceScale = 0.050
-
-_16.Name = "16"
-_16.Parent = _1
-_16.AnchorPoint = Vector2.new(0.5, 0.5)
-_16.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_16.BackgroundTransparency = 1.000
-_16.LayoutOrder = 18
-_16.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_16.Image = "rbxassetid://3570695787"
-_16.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_16.ScaleType = Enum.ScaleType.Slice
-_16.SliceCenter = Rect.new(100, 100, 100, 100)
-_16.SliceScale = 0.050
-
-_17.Name = "17"
-_17.Parent = _1
-_17.AnchorPoint = Vector2.new(0.5, 0.5)
-_17.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_17.BackgroundTransparency = 1.000
-_17.LayoutOrder = 19
-_17.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_17.Image = "rbxassetid://3570695787"
-_17.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_17.ScaleType = Enum.ScaleType.Slice
-_17.SliceCenter = Rect.new(100, 100, 100, 100)
-_17.SliceScale = 0.050
-
-_18.Name = "18"
-_18.Parent = _1
-_18.AnchorPoint = Vector2.new(0.5, 0.5)
-_18.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_18.BackgroundTransparency = 1.000
-_18.LayoutOrder = 20
-_18.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_18.Image = "rbxassetid://3570695787"
-_18.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_18.ScaleType = Enum.ScaleType.Slice
-_18.SliceCenter = Rect.new(100, 100, 100, 100)
-_18.SliceScale = 0.050
-
-_19.Name = "19"
-_19.Parent = _1
-_19.AnchorPoint = Vector2.new(0.5, 0.5)
-_19.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_19.BackgroundTransparency = 1.000
-_19.LayoutOrder = 21
-_19.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_19.Image = "rbxassetid://3570695787"
-_19.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_19.ScaleType = Enum.ScaleType.Slice
-_19.SliceCenter = Rect.new(100, 100, 100, 100)
-_19.SliceScale = 0.050
-
-_20.Name = "20"
-_20.Parent = _1
-_20.AnchorPoint = Vector2.new(0.5, 0.5)
-_20.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_20.BackgroundTransparency = 1.000
-_20.LayoutOrder = 22
-_20.Size = UDim2.new(1, 0, 0.0385802463, 0)
-_20.Image = "rbxassetid://3570695787"
-_20.ImageColor3 = Color3.fromRGB(40, 40, 40)
-_20.ScaleType = Enum.ScaleType.Slice
-_20.SliceCenter = Rect.new(100, 100, 100, 100)
-_20.SliceScale = 0.050
-
-Last.Name = "Last"
-Last.Parent = ScrollingFrame
-Last.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Last.BackgroundTransparency = 1.000
-Last.LayoutOrder = 100
-Last.Size = UDim2.new(0.0660792962, 0, 1, 0)
-
-UIListLayout_2.Parent = Last
-UIListLayout_2.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout_2.Padding = UDim.new(0.00749999983, 0)
-
-Top_2.Name = "Top"
-Top_2.Parent = Last
-Top_2.AnchorPoint = Vector2.new(0.5, 0.5)
-Top_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Top_2.BackgroundTransparency = 1.000
-Top_2.LayoutOrder = 1
-Top_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-Top_2.Image = "rbxassetid://3570695787"
-Top_2.ImageColor3 = Color3.fromRGB(40, 40, 40)
-Top_2.ImageTransparency = 1.000
-Top_2.ScaleType = Enum.ScaleType.Slice
-Top_2.SliceCenter = Rect.new(100, 100, 100, 100)
-Top_2.SliceScale = 0.050
-
-Devider_2.Name = "Devider"
-Devider_2.Parent = Last
-Devider_2.AnchorPoint = Vector2.new(0.5, 0.5)
-Devider_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Devider_2.BackgroundTransparency = 1.000
-Devider_2.LayoutOrder = 2
-Devider_2.Position = UDim2.new(0, 0, 0.0385802463, 0)
-Devider_2.Size = UDim2.new(1, 0, 0.0308641978, 0)
-
-add.Name = "add"
-add.Parent = Devider_2
-add.AnchorPoint = Vector2.new(0.5, 0.5)
-add.BackgroundTransparency = 1.000
-add.Position = UDim2.new(0, 0, 0.5, 0)
-add.Size = UDim2.new(0.416666657, 0, 1.25, 0)
-add.ZIndex = 2
-add.Image = "rbxassetid://3926307971"
-add.ImageRectOffset = Vector2.new(324, 364)
-add.ImageRectSize = Vector2.new(36, 36)
-
-subtract.Name = "subtract"
-subtract.Parent = Devider_2
-subtract.AnchorPoint = Vector2.new(0.5, 0.5)
-subtract.BackgroundTransparency = 1.000
-subtract.Position = UDim2.new(0.416666657, 0, 0.5, 0)
-subtract.Size = UDim2.new(0.416666657, 0, 1.25, 0)
-subtract.Visible = false
-subtract.ZIndex = 2
-subtract.Image = "rbxassetid://3926307971"
-subtract.ImageRectOffset = Vector2.new(324, 364)
-subtract.ImageRectSize = Vector2.new(36, 36)
-subtract.ImageTransparency = 1.000
-
-frame.Name = "frame"
-frame.Parent = subtract
-frame.AnchorPoint = Vector2.new(0.5, 0.5)
-frame.BackgroundColor3 = Color3.fromRGB(190, 190, 190)
-frame.BorderSizePixel = 0
-frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-frame.Size = UDim2.new(0.600000024, 0, 0.0799999982, 0)
-
-UIGridLayout_2.Parent = ScrollingFrame
-UIGridLayout_2.SortOrder = Enum.SortOrder.LayoutOrder
-UIGridLayout_2.CellPadding = UDim2.new(0.00499999989, 0, 0, 0)
-UIGridLayout_2.CellSize = UDim2.new(0.0659999996, 0, 1, 0)
-
-Pointer.Name = "Pointer"
-Pointer.Parent = Creator
-Pointer.AnchorPoint = Vector2.new(0.5, 0.5)
-Pointer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Pointer.BackgroundTransparency = 1.000
-Pointer.LayoutOrder = 1
-Pointer.Position = UDim2.new(0.248612985, 0, 0.49938041, 0)
-Pointer.Size = UDim2.new(0.0281094834, 0, 0.898694158, 0)
-
-UIListLayout_3.Parent = Pointer
-UIListLayout_3.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout_3.Padding = UDim.new(0.00749999983, 0)
-
-_19_2.Name = "19"
-_19_2.Parent = Pointer
-_19_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_19_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_19_2.BackgroundTransparency = 1.000
-_19_2.LayoutOrder = 21
-_19_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_20_2.Name = "20"
-_20_2.Parent = Pointer
-_20_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_20_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_20_2.BackgroundTransparency = 1.000
-_20_2.LayoutOrder = 22
-_20_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_1_3.Name = "1"
-_1_3.Parent = Pointer
-_1_3.AnchorPoint = Vector2.new(0.5, 0.5)
-_1_3.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_1_3.BackgroundTransparency = 1.000
-_1_3.LayoutOrder = 3
-_1_3.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-Pointer_2.Name = "Pointer"
-Pointer_2.Parent = _1_3
-Pointer_2.AnchorPoint = Vector2.new(0.5, 0.5)
-Pointer_2.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-Pointer_2.BorderSizePixel = 0
-Pointer_2.Position = UDim2.new(0.5, 0, 0.5, 0)
-Pointer_2.Size = UDim2.new(0.75, 0, 0.25, 0)
-
-_2_2.Name = "2"
-_2_2.Parent = Pointer
-_2_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_2_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_2_2.BackgroundTransparency = 1.000
-_2_2.LayoutOrder = 4
-_2_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_3_2.Name = "3"
-_3_2.Parent = Pointer
-_3_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_3_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_3_2.BackgroundTransparency = 1.000
-_3_2.LayoutOrder = 5
-_3_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_4_2.Name = "4"
-_4_2.Parent = Pointer
-_4_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_4_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_4_2.BackgroundTransparency = 1.000
-_4_2.LayoutOrder = 6
-_4_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_5_2.Name = "5"
-_5_2.Parent = Pointer
-_5_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_5_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_5_2.BackgroundTransparency = 1.000
-_5_2.LayoutOrder = 7
-_5_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_6_2.Name = "6"
-_6_2.Parent = Pointer
-_6_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_6_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_6_2.BackgroundTransparency = 1.000
-_6_2.LayoutOrder = 8
-_6_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_7_2.Name = "7"
-_7_2.Parent = Pointer
-_7_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_7_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_7_2.BackgroundTransparency = 1.000
-_7_2.LayoutOrder = 9
-_7_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_8_2.Name = "8"
-_8_2.Parent = Pointer
-_8_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_8_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_8_2.BackgroundTransparency = 1.000
-_8_2.LayoutOrder = 10
-_8_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_9_2.Name = "9"
-_9_2.Parent = Pointer
-_9_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_9_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_9_2.BackgroundTransparency = 1.000
-_9_2.LayoutOrder = 11
-_9_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_10_2.Name = "10"
-_10_2.Parent = Pointer
-_10_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_10_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_10_2.BackgroundTransparency = 1.000
-_10_2.LayoutOrder = 12
-_10_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_11_2.Name = "11"
-_11_2.Parent = Pointer
-_11_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_11_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_11_2.BackgroundTransparency = 1.000
-_11_2.LayoutOrder = 13
-_11_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_12_2.Name = "12"
-_12_2.Parent = Pointer
-_12_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_12_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_12_2.BackgroundTransparency = 1.000
-_12_2.LayoutOrder = 14
-_12_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_13_2.Name = "13"
-_13_2.Parent = Pointer
-_13_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_13_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_13_2.BackgroundTransparency = 1.000
-_13_2.LayoutOrder = 15
-_13_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_14_2.Name = "14"
-_14_2.Parent = Pointer
-_14_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_14_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_14_2.BackgroundTransparency = 1.000
-_14_2.LayoutOrder = 16
-_14_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_15_2.Name = "15"
-_15_2.Parent = Pointer
-_15_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_15_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_15_2.BackgroundTransparency = 1.000
-_15_2.LayoutOrder = 17
-_15_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_16_2.Name = "16"
-_16_2.Parent = Pointer
-_16_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_16_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_16_2.BackgroundTransparency = 1.000
-_16_2.LayoutOrder = 18
-_16_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_17_2.Name = "17"
-_17_2.Parent = Pointer
-_17_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_17_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_17_2.BackgroundTransparency = 1.000
-_17_2.LayoutOrder = 19
-_17_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-_18_2.Name = "18"
-_18_2.Parent = Pointer
-_18_2.AnchorPoint = Vector2.new(0.5, 0.5)
-_18_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_18_2.BackgroundTransparency = 1.000
-_18_2.LayoutOrder = 20
-_18_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-Top_3.Name = "Top"
-Top_3.Parent = Pointer
-Top_3.AnchorPoint = Vector2.new(0.5, 0.5)
-Top_3.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Top_3.BackgroundTransparency = 1.000
-Top_3.LayoutOrder = 1
-Top_3.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-Devider_3.Name = "Devider"
-Devider_3.Parent = Pointer
-Devider_3.AnchorPoint = Vector2.new(0.5, 0.5)
-Devider_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Devider_3.BackgroundTransparency = 1.000
-Devider_3.LayoutOrder = 2
-Devider_3.Position = UDim2.new(0, 0, 0.0385802463, 0)
-Devider_3.Size = UDim2.new(1, 0, 0.0308641978, 0)
-
-UIPadding.Parent = Pointer
-UIPadding.PaddingLeft = UDim.new(0.100000001, 0)
-UIPadding.PaddingRight = UDim.new(0.100000001, 0)
-
-Confirm.Name = "Confirm"
-Confirm.Parent = Main
-Confirm.AnchorPoint = Vector2.new(0.5, 0.5)
-Confirm.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Confirm.BackgroundTransparency = 1.000
-Confirm.Position = UDim2.new(0.5, 0, 0.5, 0)
-Confirm.Size = UDim2.new(0, 300, 0, 150)
-Confirm.Visible = false
-Confirm.Image = "rbxassetid://3570695787"
-Confirm.ImageColor3 = Color3.fromRGB(40, 40, 40)
-Confirm.ScaleType = Enum.ScaleType.Slice
-Confirm.SliceCenter = Rect.new(100, 100, 100, 100)
-Confirm.SliceScale = 0.100
-
-TextLabel_4.Parent = Confirm
-TextLabel_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel_4.BackgroundTransparency = 1.000
-TextLabel_4.Size = UDim2.new(0, 300, 0, 60)
-TextLabel_4.Font = Enum.Font.Arial
-TextLabel_4.Text = "Are you sure you want to reset? <b>Any unsaved progress will be lost!</b>"
-TextLabel_4.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel_4.TextScaled = true
-TextLabel_4.TextSize = 14.000
-TextLabel_4.TextWrapped = true
-
-Yes.Name = "Yes"
-Yes.Parent = Confirm
-Yes.AnchorPoint = Vector2.new(0.5, 0.5)
-Yes.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Yes.BackgroundTransparency = 1.000
-Yes.BorderSizePixel = 0
-Yes.LayoutOrder = 4
-Yes.Position = UDim2.new(0.234266758, 0, 0.726666689, 0)
-Yes.Size = UDim2.new(0.335199982, 0, 0.266666681, 0)
-Yes.ZIndex = 3
-Yes.Font = Enum.Font.ArialBold
-Yes.Text = "Yes"
-Yes.TextColor3 = Color3.fromRGB(255, 255, 255)
-Yes.TextSize = 25.000
-Yes.TextWrapped = true
-
-TextButton_Roundify_10px_13.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_13.Parent = Yes
-TextButton_Roundify_10px_13.Active = true
-TextButton_Roundify_10px_13.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_13.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_13.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_13.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_13.Selectable = true
-TextButton_Roundify_10px_13.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_13.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_13.ImageColor3 = Color3.fromRGB(76, 150, 55)
-TextButton_Roundify_10px_13.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_13.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_13.SliceScale = 0.100
-
-No.Name = "No"
-No.Parent = Confirm
-No.AnchorPoint = Vector2.new(0.5, 0.5)
-No.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-No.BackgroundTransparency = 1.000
-No.BorderSizePixel = 0
-No.LayoutOrder = 4
-No.Position = UDim2.new(0.764266729, 0, 0.726666689, 0)
-No.Size = UDim2.new(0.335199982, 0, 0.266666681, 0)
-No.ZIndex = 3
-No.Font = Enum.Font.ArialBold
-No.Text = "No"
-No.TextColor3 = Color3.fromRGB(255, 255, 255)
-No.TextSize = 25.000
-No.TextWrapped = true
-
-TextButton_Roundify_10px_14.Name = "TextButton_Roundify_10px"
-TextButton_Roundify_10px_14.Parent = No
-TextButton_Roundify_10px_14.Active = true
-TextButton_Roundify_10px_14.AnchorPoint = Vector2.new(0.5, 0.5)
-TextButton_Roundify_10px_14.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextButton_Roundify_10px_14.BackgroundTransparency = 1.000
-TextButton_Roundify_10px_14.Position = UDim2.new(0.5, 0, 0.5, 0)
-TextButton_Roundify_10px_14.Selectable = true
-TextButton_Roundify_10px_14.Size = UDim2.new(1, 0, 1, 0)
-TextButton_Roundify_10px_14.Image = "rbxassetid://3570695787"
-TextButton_Roundify_10px_14.ImageColor3 = Color3.fromRGB(232, 65, 24)
-TextButton_Roundify_10px_14.ScaleType = Enum.ScaleType.Slice
-TextButton_Roundify_10px_14.SliceCenter = Rect.new(100, 100, 100, 100)
-TextButton_Roundify_10px_14.SliceScale = 0.100]]></ProtectedString>
-				<int64 name="SourceAssetId">-1</int64>
-				<BinaryString name="Tags"></BinaryString>
-				<UniqueId name="UniqueId">315cf5f974f242ee02b71c7a000c4caf</UniqueId>
 			</Properties>
 		</Item>
 	</Item>

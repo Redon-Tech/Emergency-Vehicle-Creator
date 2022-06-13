@@ -77,20 +77,11 @@ function GUI.CreateGui()
     local subtract = Instance.new("ImageButton")
     local frame = Instance.new("Frame")
     local UIGridLayout_2 = Instance.new("UIGridLayout")
-    local Pointer = Instance.new("Frame")
-    local UIListLayout_3 = Instance.new("UIListLayout")
-    local _19_2 = Instance.new("Frame")
-    local _20_2 = Instance.new("Frame")
-    local _1_3 = Instance.new("Frame")
-    local Pointer_2 = Instance.new("Frame")
     local _2_2 = Instance.new("Frame")
-    local _3_2 = Instance.new("Frame")
-    local _4_2 = Instance.new("Frame")
-    local _5_2 = Instance.new("Frame")
-    local _6_2 = Instance.new("Frame")
-    local _7_2 = Instance.new("Frame")
-    local _8_2 = Instance.new("Frame")
-    local _9_2 = Instance.new("Frame")
+    local UIListLayout_3 = Instance.new("UIListLayout")
+    local UIPadding = Instance.new("UIPadding")
+    local _1_3 = Instance.new("Frame")
+    local Pointer = Instance.new("Frame")
     local _10_2 = Instance.new("Frame")
     local _11_2 = Instance.new("Frame")
     local _12_2 = Instance.new("Frame")
@@ -100,9 +91,69 @@ function GUI.CreateGui()
     local _16_2 = Instance.new("Frame")
     local _17_2 = Instance.new("Frame")
     local _18_2 = Instance.new("Frame")
-    local Top_3 = Instance.new("Frame")
+    local _19_2 = Instance.new("Frame")
+    local _2_3 = Instance.new("Frame")
+    local _20_2 = Instance.new("Frame")
+    local _3_2 = Instance.new("Frame")
+    local _4_2 = Instance.new("Frame")
+    local _5_2 = Instance.new("Frame")
+    local _6_2 = Instance.new("Frame")
+    local _7_2 = Instance.new("Frame")
+    local _8_2 = Instance.new("Frame")
+    local _9_2 = Instance.new("Frame")
     local Devider_3 = Instance.new("Frame")
-    local UIPadding = Instance.new("UIPadding")
+    local Top_3 = Instance.new("ImageLabel")
+    local TextBox = Instance.new("TextBox")
+    local UIListLayout_4 = Instance.new("UIListLayout")
+    local Top_4 = Instance.new("ImageLabel")
+    local Devider_4 = Instance.new("Frame")
+    local Frame_2 = Instance.new("Frame")
+    local _1_4 = Instance.new("ImageLabel")
+    local _2_4 = Instance.new("ImageLabel")
+    local _3_4 = Instance.new("ImageLabel")
+    local _4_3 = Instance.new("ImageLabel")
+    local _5_3 = Instance.new("ImageLabel")
+    local _6_3 = Instance.new("ImageLabel")
+    local _7_3 = Instance.new("ImageLabel")
+    local _8_3 = Instance.new("ImageLabel")
+    local _9_3 = Instance.new("ImageLabel")
+    local _10_3 = Instance.new("ImageLabel")
+    local _11_3 = Instance.new("ImageLabel")
+    local _12_3 = Instance.new("ImageLabel")
+    local _13_3 = Instance.new("ImageLabel")
+    local _14_3 = Instance.new("ImageLabel")
+    local _15_3 = Instance.new("ImageLabel")
+    local _16_3 = Instance.new("ImageLabel")
+    local _17_3 = Instance.new("ImageLabel")
+    local _18_3 = Instance.new("ImageLabel")
+    local _19_3 = Instance.new("ImageLabel")
+    local _20_3 = Instance.new("ImageLabel")
+    local Pointer_2 = Instance.new("Frame")
+    local UIListLayout_5 = Instance.new("UIListLayout")
+    local _19_4 = Instance.new("Frame")
+    local _20_4 = Instance.new("Frame")
+    local _1_5 = Instance.new("Frame")
+    local Pointer_3 = Instance.new("Frame")
+    local _2_5 = Instance.new("Frame")
+    local _3_5 = Instance.new("Frame")
+    local _4_4 = Instance.new("Frame")
+    local _5_4 = Instance.new("Frame")
+    local _6_4 = Instance.new("Frame")
+    local _7_4 = Instance.new("Frame")
+    local _8_4 = Instance.new("Frame")
+    local _9_4 = Instance.new("Frame")
+    local _10_4 = Instance.new("Frame")
+    local _11_4 = Instance.new("Frame")
+    local _12_4 = Instance.new("Frame")
+    local _13_4 = Instance.new("Frame")
+    local _14_4 = Instance.new("Frame")
+    local _15_4 = Instance.new("Frame")
+    local _16_4 = Instance.new("Frame")
+    local _17_4 = Instance.new("Frame")
+    local _18_4 = Instance.new("Frame")
+    local Top_5 = Instance.new("Frame")
+    local Devider_5 = Instance.new("Frame")
+    local UIPadding_2 = Instance.new("UIPadding")
     local Confirm = Instance.new("ImageLabel")
     local TextLabel_4 = Instance.new("TextLabel")
     local Yes = Instance.new("TextButton")
@@ -545,8 +596,8 @@ function GUI.CreateGui()
     BPM.Size = UDim2.new(0.943333328, 0, 0.0416666679, 0)
     BPM.ZIndex = 2
     BPM.Font = Enum.Font.ArialBold
-    BPM.PlaceholderText = "BPM"
-    BPM.Text = "700"
+    BPM.PlaceholderText = "Wait Time"
+    BPM.Text = "0.1"
     BPM.TextColor3 = Color3.fromRGB(255, 255, 255)
     BPM.TextSize = 25.000
     BPM.TextWrapped = true
@@ -573,7 +624,7 @@ function GUI.CreateGui()
     TextLabel_3.Position = UDim2.new(0.501447976, 0, 0.477905452, 0)
     TextLabel_3.Size = UDim2.new(0.939999998, 0, 0.027777778, 0)
     TextLabel_3.Font = Enum.Font.Arial
-    TextLabel_3.Text = "BPM Selector"
+    TextLabel_3.Text = "Wait Time Selector"
     TextLabel_3.TextColor3 = Color3.fromRGB(255, 255, 255)
     TextLabel_3.TextScaled = true
     TextLabel_3.TextSize = 14.000
@@ -970,117 +1021,40 @@ function GUI.CreateGui()
     UIGridLayout_2.CellPadding = UDim2.new(0.00499999989, 0, 0, 0)
     UIGridLayout_2.CellSize = UDim2.new(0.0659999996, 0, 1, 0)
 
-    Pointer.Name = "Pointer"
-    Pointer.Parent = Creator
-    Pointer.AnchorPoint = Vector2.new(0.5, 0.5)
-    Pointer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Pointer.BackgroundTransparency = 1.000
-    Pointer.LayoutOrder = 1
-    Pointer.Position = UDim2.new(0.248612985, 0, 0.49938041, 0)
-    Pointer.Size = UDim2.new(0.0281094834, 0, 0.898694158, 0)
+    _2_2.Name = "2"
+    _2_2.Parent = ScrollingFrame
+    _2_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _2_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    _2_2.BackgroundTransparency = 1.000
+    _2_2.LayoutOrder = 2
+    _2_2.Size = UDim2.new(0.0660792962, 0, 1, 0)
 
-    UIListLayout_3.Parent = Pointer
+    UIListLayout_3.Parent = _2_2
     UIListLayout_3.SortOrder = Enum.SortOrder.LayoutOrder
-    UIListLayout_3.Padding = UDim.new(0.006, 0)
+    UIListLayout_3.Padding = UDim.new(0.00749999983, 0)
 
-    _19_2.Name = "19"
-    _19_2.Parent = Pointer
-    _19_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _19_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _19_2.BackgroundTransparency = 1.000
-    _19_2.LayoutOrder = 21
-    _19_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _20_2.Name = "20"
-    _20_2.Parent = Pointer
-    _20_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _20_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _20_2.BackgroundTransparency = 1.000
-    _20_2.LayoutOrder = 22
-    _20_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+    UIPadding.Parent = _2_2
+    UIPadding.PaddingLeft = UDim.new(0.100000001, 0)
+    UIPadding.PaddingRight = UDim.new(0.100000001, 0)
 
     _1_3.Name = "1"
-    _1_3.Parent = Pointer
+    _1_3.Parent = _2_2
     _1_3.AnchorPoint = Vector2.new(0.5, 0.5)
     _1_3.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _1_3.BackgroundTransparency = 1.000
     _1_3.LayoutOrder = 3
     _1_3.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
-    Pointer_2.Name = "Pointer"
-    Pointer_2.Parent = _1_3
-    Pointer_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    Pointer_2.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    Pointer_2.BorderSizePixel = 0
-    Pointer_2.Position = UDim2.new(0.5, 0, 0.5, 0)
-    Pointer_2.Size = UDim2.new(0.75, 0, 0.25, 0)
-
-    _2_2.Name = "2"
-    _2_2.Parent = Pointer
-    _2_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _2_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _2_2.BackgroundTransparency = 1.000
-    _2_2.LayoutOrder = 4
-    _2_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _3_2.Name = "3"
-    _3_2.Parent = Pointer
-    _3_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _3_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _3_2.BackgroundTransparency = 1.000
-    _3_2.LayoutOrder = 5
-    _3_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _4_2.Name = "4"
-    _4_2.Parent = Pointer
-    _4_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _4_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _4_2.BackgroundTransparency = 1.000
-    _4_2.LayoutOrder = 6
-    _4_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _5_2.Name = "5"
-    _5_2.Parent = Pointer
-    _5_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _5_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _5_2.BackgroundTransparency = 1.000
-    _5_2.LayoutOrder = 7
-    _5_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _6_2.Name = "6"
-    _6_2.Parent = Pointer
-    _6_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _6_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _6_2.BackgroundTransparency = 1.000
-    _6_2.LayoutOrder = 8
-    _6_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _7_2.Name = "7"
-    _7_2.Parent = Pointer
-    _7_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _7_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _7_2.BackgroundTransparency = 1.000
-    _7_2.LayoutOrder = 9
-    _7_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _8_2.Name = "8"
-    _8_2.Parent = Pointer
-    _8_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _8_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _8_2.BackgroundTransparency = 1.000
-    _8_2.LayoutOrder = 10
-    _8_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
-
-    _9_2.Name = "9"
-    _9_2.Parent = Pointer
-    _9_2.AnchorPoint = Vector2.new(0.5, 0.5)
-    _9_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    _9_2.BackgroundTransparency = 1.000
-    _9_2.LayoutOrder = 11
-    _9_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+    Pointer.Name = "Pointer"
+    Pointer.Parent = _1_3
+    Pointer.AnchorPoint = Vector2.new(0.5, 0.5)
+    Pointer.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Pointer.BorderSizePixel = 0
+    Pointer.Position = UDim2.new(0.75, 0, 0.5, 0)
+    Pointer.Size = UDim2.new(0.5, 0, 0.25, 0)
 
     _10_2.Name = "10"
-    _10_2.Parent = Pointer
+    _10_2.Parent = _2_2
     _10_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _10_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _10_2.BackgroundTransparency = 1.000
@@ -1088,7 +1062,7 @@ function GUI.CreateGui()
     _10_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _11_2.Name = "11"
-    _11_2.Parent = Pointer
+    _11_2.Parent = _2_2
     _11_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _11_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _11_2.BackgroundTransparency = 1.000
@@ -1096,7 +1070,7 @@ function GUI.CreateGui()
     _11_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _12_2.Name = "12"
-    _12_2.Parent = Pointer
+    _12_2.Parent = _2_2
     _12_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _12_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _12_2.BackgroundTransparency = 1.000
@@ -1104,7 +1078,7 @@ function GUI.CreateGui()
     _12_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _13_2.Name = "13"
-    _13_2.Parent = Pointer
+    _13_2.Parent = _2_2
     _13_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _13_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _13_2.BackgroundTransparency = 1.000
@@ -1112,7 +1086,7 @@ function GUI.CreateGui()
     _13_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _14_2.Name = "14"
-    _14_2.Parent = Pointer
+    _14_2.Parent = _2_2
     _14_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _14_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _14_2.BackgroundTransparency = 1.000
@@ -1120,7 +1094,7 @@ function GUI.CreateGui()
     _14_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _15_2.Name = "15"
-    _15_2.Parent = Pointer
+    _15_2.Parent = _2_2
     _15_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _15_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _15_2.BackgroundTransparency = 1.000
@@ -1128,7 +1102,7 @@ function GUI.CreateGui()
     _15_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _16_2.Name = "16"
-    _16_2.Parent = Pointer
+    _16_2.Parent = _2_2
     _16_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _16_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _16_2.BackgroundTransparency = 1.000
@@ -1136,7 +1110,7 @@ function GUI.CreateGui()
     _16_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _17_2.Name = "17"
-    _17_2.Parent = Pointer
+    _17_2.Parent = _2_2
     _17_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _17_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _17_2.BackgroundTransparency = 1.000
@@ -1144,23 +1118,95 @@ function GUI.CreateGui()
     _17_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     _18_2.Name = "18"
-    _18_2.Parent = Pointer
+    _18_2.Parent = _2_2
     _18_2.AnchorPoint = Vector2.new(0.5, 0.5)
     _18_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     _18_2.BackgroundTransparency = 1.000
     _18_2.LayoutOrder = 20
     _18_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
-    Top_3.Name = "Top"
-    Top_3.Parent = Pointer
-    Top_3.AnchorPoint = Vector2.new(0.5, 0.5)
-    Top_3.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Top_3.BackgroundTransparency = 1.000
-    Top_3.LayoutOrder = 1
-    Top_3.Size = UDim2.new(1, 0, 0.0385802463, 0)
+    _19_2.Name = "19"
+    _19_2.Parent = _2_2
+    _19_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _19_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _19_2.BackgroundTransparency = 1.000
+    _19_2.LayoutOrder = 21
+    _19_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _2_3.Name = "2"
+    _2_3.Parent = _2_2
+    _2_3.AnchorPoint = Vector2.new(0.5, 0.5)
+    _2_3.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _2_3.BackgroundTransparency = 1.000
+    _2_3.LayoutOrder = 4
+    _2_3.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _20_2.Name = "20"
+    _20_2.Parent = _2_2
+    _20_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _20_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _20_2.BackgroundTransparency = 1.000
+    _20_2.LayoutOrder = 22
+    _20_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _3_2.Name = "3"
+    _3_2.Parent = _2_2
+    _3_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _3_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _3_2.BackgroundTransparency = 1.000
+    _3_2.LayoutOrder = 5
+    _3_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _4_2.Name = "4"
+    _4_2.Parent = _2_2
+    _4_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _4_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _4_2.BackgroundTransparency = 1.000
+    _4_2.LayoutOrder = 6
+    _4_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _5_2.Name = "5"
+    _5_2.Parent = _2_2
+    _5_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _5_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _5_2.BackgroundTransparency = 1.000
+    _5_2.LayoutOrder = 7
+    _5_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _6_2.Name = "6"
+    _6_2.Parent = _2_2
+    _6_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _6_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _6_2.BackgroundTransparency = 1.000
+    _6_2.LayoutOrder = 8
+    _6_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _7_2.Name = "7"
+    _7_2.Parent = _2_2
+    _7_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _7_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _7_2.BackgroundTransparency = 1.000
+    _7_2.LayoutOrder = 9
+    _7_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _8_2.Name = "8"
+    _8_2.Parent = _2_2
+    _8_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _8_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _8_2.BackgroundTransparency = 1.000
+    _8_2.LayoutOrder = 10
+    _8_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _9_2.Name = "9"
+    _9_2.Parent = _2_2
+    _9_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    _9_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _9_2.BackgroundTransparency = 1.000
+    _9_2.LayoutOrder = 11
+    _9_2.Size = UDim2.new(1, 0, 0.0385802463, 0)
 
     Devider_3.Name = "Devider"
-    Devider_3.Parent = Pointer
+    Devider_3.Parent = _2_2
     Devider_3.AnchorPoint = Vector2.new(0.5, 0.5)
     Devider_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Devider_3.BackgroundTransparency = 1.000
@@ -1168,9 +1214,234 @@ function GUI.CreateGui()
     Devider_3.Position = UDim2.new(0, 0, 0.0385802463, 0)
     Devider_3.Size = UDim2.new(1, 0, 0.0308641978, 0)
 
-    UIPadding.Parent = Pointer
-    UIPadding.PaddingLeft = UDim.new(0.100000001, 0)
-    UIPadding.PaddingRight = UDim.new(0.100000001, 0)
+    Top_3.Name = "Top"
+    Top_3.Parent = _2_2
+    Top_3.AnchorPoint = Vector2.new(0.5, 0.5)
+    Top_3.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Top_3.BackgroundTransparency = 1.000
+    Top_3.LayoutOrder = 1
+    Top_3.Size = UDim2.new(1, 0, 0.0385802463, 0)
+    Top_3.Image = "rbxassetid://3570695787"
+    Top_3.ImageColor3 = Color3.fromRGB(40, 40, 40)
+    Top_3.ScaleType = Enum.ScaleType.Slice
+    Top_3.SliceCenter = Rect.new(100, 100, 100, 100)
+    Top_3.SliceScale = 0.050
+
+    TextBox.Parent = Top_3
+    TextBox.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextBox.BackgroundTransparency = 1.000
+    TextBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextBox.Size = UDim2.new(1, 0, 1, 0)
+    TextBox.Font = Enum.Font.ArialBold
+    TextBox.PlaceholderText = "Wait Time"
+    TextBox.Text = "0.2"
+    TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextBox.TextScaled = true
+    TextBox.TextSize = 14.000
+    TextBox.TextWrapped = true
+
+    Pointer_2.Name = "Pointer"
+    Pointer_2.Parent = Creator
+    Pointer_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    Pointer_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Pointer_2.BackgroundTransparency = 1.000
+    Pointer_2.LayoutOrder = 1
+    Pointer_2.Position = UDim2.new(0.248612985, 0, 0.49938041, 0)
+    Pointer_2.Size = UDim2.new(0.0281094834, 0, 0.898694158, 0)
+
+    UIListLayout_5.Parent = Pointer_2
+    UIListLayout_5.SortOrder = Enum.SortOrder.LayoutOrder
+    UIListLayout_5.Padding = UDim.new(0.00600000005, 0)
+
+    _19_4.Name = "19"
+    _19_4.Parent = Pointer_2
+    _19_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _19_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _19_4.BackgroundTransparency = 1.000
+    _19_4.LayoutOrder = 21
+    _19_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _20_4.Name = "20"
+    _20_4.Parent = Pointer_2
+    _20_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _20_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _20_4.BackgroundTransparency = 1.000
+    _20_4.LayoutOrder = 22
+    _20_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _1_5.Name = "1"
+    _1_5.Parent = Pointer_2
+    _1_5.AnchorPoint = Vector2.new(0.5, 0.5)
+    _1_5.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _1_5.BackgroundTransparency = 1.000
+    _1_5.LayoutOrder = 3
+    _1_5.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    Pointer_3.Name = "Pointer"
+    Pointer_3.Parent = _1_5
+    Pointer_3.AnchorPoint = Vector2.new(0.5, 0.5)
+    Pointer_3.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Pointer_3.BorderSizePixel = 0
+    Pointer_3.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Pointer_3.Size = UDim2.new(0.75, 0, 0.25, 0)
+
+    _2_5.Name = "2"
+    _2_5.Parent = Pointer_2
+    _2_5.AnchorPoint = Vector2.new(0.5, 0.5)
+    _2_5.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _2_5.BackgroundTransparency = 1.000
+    _2_5.LayoutOrder = 4
+    _2_5.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _3_5.Name = "3"
+    _3_5.Parent = Pointer_2
+    _3_5.AnchorPoint = Vector2.new(0.5, 0.5)
+    _3_5.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _3_5.BackgroundTransparency = 1.000
+    _3_5.LayoutOrder = 5
+    _3_5.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _4_4.Name = "4"
+    _4_4.Parent = Pointer_2
+    _4_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _4_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _4_4.BackgroundTransparency = 1.000
+    _4_4.LayoutOrder = 6
+    _4_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _5_4.Name = "5"
+    _5_4.Parent = Pointer_2
+    _5_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _5_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _5_4.BackgroundTransparency = 1.000
+    _5_4.LayoutOrder = 7
+    _5_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _6_4.Name = "6"
+    _6_4.Parent = Pointer_2
+    _6_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _6_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _6_4.BackgroundTransparency = 1.000
+    _6_4.LayoutOrder = 8
+    _6_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _7_4.Name = "7"
+    _7_4.Parent = Pointer_2
+    _7_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _7_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _7_4.BackgroundTransparency = 1.000
+    _7_4.LayoutOrder = 9
+    _7_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _8_4.Name = "8"
+    _8_4.Parent = Pointer_2
+    _8_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _8_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _8_4.BackgroundTransparency = 1.000
+    _8_4.LayoutOrder = 10
+    _8_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _9_4.Name = "9"
+    _9_4.Parent = Pointer_2
+    _9_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _9_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _9_4.BackgroundTransparency = 1.000
+    _9_4.LayoutOrder = 11
+    _9_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _10_4.Name = "10"
+    _10_4.Parent = Pointer_2
+    _10_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _10_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _10_4.BackgroundTransparency = 1.000
+    _10_4.LayoutOrder = 12
+    _10_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _11_4.Name = "11"
+    _11_4.Parent = Pointer_2
+    _11_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _11_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _11_4.BackgroundTransparency = 1.000
+    _11_4.LayoutOrder = 13
+    _11_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _12_4.Name = "12"
+    _12_4.Parent = Pointer_2
+    _12_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _12_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _12_4.BackgroundTransparency = 1.000
+    _12_4.LayoutOrder = 14
+    _12_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _13_4.Name = "13"
+    _13_4.Parent = Pointer_2
+    _13_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _13_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _13_4.BackgroundTransparency = 1.000
+    _13_4.LayoutOrder = 15
+    _13_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _14_4.Name = "14"
+    _14_4.Parent = Pointer_2
+    _14_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _14_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _14_4.BackgroundTransparency = 1.000
+    _14_4.LayoutOrder = 16
+    _14_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _15_4.Name = "15"
+    _15_4.Parent = Pointer_2
+    _15_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _15_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _15_4.BackgroundTransparency = 1.000
+    _15_4.LayoutOrder = 17
+    _15_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _16_4.Name = "16"
+    _16_4.Parent = Pointer_2
+    _16_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _16_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _16_4.BackgroundTransparency = 1.000
+    _16_4.LayoutOrder = 18
+    _16_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _17_4.Name = "17"
+    _17_4.Parent = Pointer_2
+    _17_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _17_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _17_4.BackgroundTransparency = 1.000
+    _17_4.LayoutOrder = 19
+    _17_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    _18_4.Name = "18"
+    _18_4.Parent = Pointer_2
+    _18_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    _18_4.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _18_4.BackgroundTransparency = 1.000
+    _18_4.LayoutOrder = 20
+    _18_4.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    Top_5.Name = "Top"
+    Top_5.Parent = Pointer_2
+    Top_5.AnchorPoint = Vector2.new(0.5, 0.5)
+    Top_5.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Top_5.BackgroundTransparency = 1.000
+    Top_5.LayoutOrder = 1
+    Top_5.Size = UDim2.new(1, 0, 0.0385802463, 0)
+
+    Devider_5.Name = "Devider"
+    Devider_5.Parent = Pointer_2
+    Devider_5.AnchorPoint = Vector2.new(0.5, 0.5)
+    Devider_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Devider_5.BackgroundTransparency = 1.000
+    Devider_5.LayoutOrder = 2
+    Devider_5.Position = UDim2.new(0, 0, 0.0385802463, 0)
+    Devider_5.Size = UDim2.new(1, 0, 0.0308641978, 0)
+
+    UIPadding_2.Parent = Pointer_2
+    UIPadding_2.PaddingLeft = UDim.new(0.100000001, 0)
+    UIPadding_2.PaddingRight = UDim.new(0.100000001, 0)
 
     Confirm.Name = "Confirm"
     Confirm.Parent = Main
