@@ -1735,7 +1735,7 @@ function GUI.CreateGui()
     Import.ZIndex = 3
     Import.Font = Enum.Font.ArialBold
     Import.Text = "Import"
-    Import.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Import.TextColor3 = Color3.fromRGB(100, 100, 100)
     Import.TextSize = 25.000
     Import.TextWrapped = true
 
@@ -1749,7 +1749,7 @@ function GUI.CreateGui()
     TextButton_Roundify_10px_17.Selectable = true
     TextButton_Roundify_10px_17.Size = UDim2.new(1, 0, 1, 0)
     TextButton_Roundify_10px_17.Image = "rbxassetid://3570695787"
-    TextButton_Roundify_10px_17.ImageColor3 = Color3.fromRGB(50, 50, 50)
+    TextButton_Roundify_10px_17.ImageColor3 = Color3.fromRGB(45, 45, 45)
     TextButton_Roundify_10px_17.ScaleType = Enum.ScaleType.Slice
     TextButton_Roundify_10px_17.SliceCenter = Rect.new(100, 100, 100, 100)
     TextButton_Roundify_10px_17.SliceScale = 0.100

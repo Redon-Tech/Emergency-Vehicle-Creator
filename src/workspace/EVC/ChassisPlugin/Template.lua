@@ -29,6 +29,11 @@ Settings = {
         [5] = Color3.fromRGB(75, 255, 75),
         [6] = Color3.fromRGB(188, 12, 211),
     },
+    -- Determins which lights can over ride each other
+    -- For example lightbars should be 1 and traffic advisors 2
+    -- This allows the traffic advisor to override the back of the lightbar
+    -- If multiple are the same then the light will default to the first loaded
+    Weight = 1,
     -- The two function below is preset to be for neons
     -- You can find Lighto and ParticleEmitter examples at the documentation
     On = function(Light, Enabled)
@@ -43,8 +48,7 @@ Settings = {
 --[[
     Example of how lights should look
     ["LightName"] = {
-        Lights = {1,1,1,1,1,1,0,0,0,0,0,0}, -- This is in a binary form meaning **1 = On | 0 = Off**
-        Colors = {1,2,3,4,5,6,1,1,1,1,1,1}, -- Colors are refrenced back to the color table above
+        1,2,3,4,5,6,0,0,0,0,0,0, -- Refrenced to the color table above, **0 = Off**
     },
 ]]
 Lights = {

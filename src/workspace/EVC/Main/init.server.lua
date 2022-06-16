@@ -334,7 +334,6 @@ local function registercolumn(column)
     end
 
     if count ~= pointer:GetAttribute("max") then
-        print(count, pointer:GetAttribute("max"))
         if count > pointer:GetAttribute("max") then
             local diff = count - pointer:GetAttribute("max")
             for i = 1, diff do
@@ -518,6 +517,7 @@ local function removerow(pointer: Frame, start: number, skipconfirm)
             last = 99
         end
     end
+    resetcounters()
     if skipconfirm then
         pointer:SetAttribute("max", pointer:GetAttribute("max") - 1)
         pointer[#pointer:GetChildren() - 5]:Destroy()
@@ -527,8 +527,8 @@ local function removerow(pointer: Frame, start: number, skipconfirm)
             end
         end
         ScrollingFrameChildrenChanged()
+        return
     end
-    resetcounters()
 
     MainFrame.Confirm.Visible = true
     MainFrame.Confirm.TextLabel.Text = "Are you sure you want to destroy the <b>last row</b> on columns <b>".. start .." - ".. last .."</b>?"
@@ -561,7 +561,6 @@ end
 
 local function SavesUpdate()
     local Saves = plugin:GetSetting("saves")
-    print(Saves)
     if Saves then
         for i,v in pairs(MainFrame.SaveLoad.ScrollingFrame:GetChildren()) do
             if v:IsA("ImageLabel") then
@@ -586,9 +585,7 @@ local function SavesUpdate()
                     MainFrame.SaveLoad.Visible = true
                     
                     local Saves = plugin:GetSetting("saves")
-                    print(Saves)
                     Saves[i] = nil
-                    print(Saves)
                     plugin:SetSetting("saves", Saves)
 
                     connect1:Disconnect()
@@ -634,9 +631,8 @@ local function SavesUpdate()
                             end
                         end
                     end
-                    print(Data)
+
                     Saves[i] = Data
-                    print(Saves)
                     plugin:SetSetting("saves", Saves)
                     SavesUpdate()
 
@@ -671,9 +667,28 @@ local function SavesUpdate()
                     for i,v in pairs(Data) do
                         if v.Spacer then
                             spacer(v.BPM, v.Size, tonumber(i))
+                        elseif i == "1" then
+                            local Count = 0
+                            for i,v in pairs(v.Rows) do
+                                Count += 1
+                            end
+                            local PointerRows = MainFrame.Creator.PointerHolder.Pointer:GetAttribute("max")
+                            if Count ~= PointerRows then
+                                if Count > PointerRows then
+                                    local diff = Count - PointerRows
+                                    for i = 1, diff do
+                                        addrow(MainFrame.Creator.PointerHolder.Pointer, 1)
+                                    end
+                                elseif Count < PointerRows then
+                                    local diff = PointerRows - Count
+                                    for i = 1, diff do
+                                        removerow(MainFrame.Creator.PointerHolder.Pointer, 1, true)
+                                    end
+                                end
+                            end
                         end
                     end
-                    --TBF doesnt remove rows
+
                     for i,v in pairs(Data) do
                         if i == "BPM" then
                             MainFrame.Creator.Info.BPM.Text = v
@@ -733,25 +748,20 @@ MainFrame.SaveLoad.Save.MouseButton1Down:Connect(function()
         Saves = {}
     end
     local Name do
-        print(MainFrame.SaveLoad.PatternName.Text)
         if MainFrame.SaveLoad.PatternName.Text == "" or MainFrame.SaveLoad.PatternName.Text == nil then
-            print("unname")
             Name = "Unnamed"
         else
-            print("name")
             Name = MainFrame.SaveLoad.PatternName.Text
         end
     end
-    print(Name)
+
     local function checkname()
         if Saves[Name] then
-            print("overwritting name", Name)
             Name = Name.. " (Copy)"
             checkname()
         end
     end
     checkname()
-    print(Saves, Name)
 
     local Data = {}
     Data.BPM = MainFrame.Creator.Info.BPM.Text
@@ -773,9 +783,8 @@ MainFrame.SaveLoad.Save.MouseButton1Down:Connect(function()
             end
         end
     end
-    print(Data)
+
     Saves[Name] = Data
-    print(Saves)
     plugin:SetSetting("saves", Saves)
     SavesUpdate()
 end)
@@ -828,9 +837,6 @@ GUI:GetPropertyChangedSignal("Enabled"):Connect(function()
     Button:SetActive(GUI.Enabled)
     Pause = true
 end)
-
--- 16 is not a valid member of Frame "4"
--- line 885? = clone.Name = position
 
 local function update(coro: table, pointer: GuiBase2d, waittime: TextBox)
     local point = pointer["1"].Pointer
@@ -895,7 +901,6 @@ spacer = function(waittime, size, position)
     if size then
         local clonerows = #clone:GetChildren() - 5
         if size ~= clonerows then
-            print(size, clonerows)
             if size > clonerows then
                 local diff = size - clonerows
                 for i = 1, diff do
@@ -926,6 +931,10 @@ spacer = function(waittime, size, position)
         thread = coroutine.create(update)
     }
     coroutine.resume(coros[Functions.tablelen(coros)].thread, coros[Functions.tablelen(coros)], clone, clone.Top.TextBox)
+    clone.Destroying:Connect(function()
+        coros[Functions.tablelen(coros)]["run"] = false
+        coroutine.close(coros[Functions.tablelen(coros)].thread)
+    end)
 
     clone.Parent = MainFrame.Creator.ScrollingFrame
 end
