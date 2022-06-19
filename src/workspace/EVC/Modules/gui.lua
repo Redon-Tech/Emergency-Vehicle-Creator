@@ -47,6 +47,9 @@ function GUI.CreateGui()
     local _1 = Instance.new("Frame")
     local UIListLayout = Instance.new("UIListLayout")
     local Top = Instance.new("ImageLabel")
+    local Light = Instance.new("ImageLabel")
+    local Light2 = Instance.new("ImageLabel")
+    local Light1 = Instance.new("ImageLabel")
     local Devider = Instance.new("Frame")
     local Frame = Instance.new("Frame")
     local _1_2 = Instance.new("ImageLabel")
@@ -716,6 +719,45 @@ function GUI.CreateGui()
     Top.ScaleType = Enum.ScaleType.Slice
     Top.SliceCenter = Rect.new(100, 100, 100, 100)
     Top.SliceScale = 0.050
+
+    Light.Name = "Light"
+    Light.Parent = Top
+    Light.AnchorPoint = Vector2.new(0.5, 0.5)
+    Light.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Light.BackgroundTransparency = 1.000
+    Light.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Light.Size = UDim2.new(1.25, 0, 1.75, 0)
+    Light.Visible = false
+    Light.ZIndex = 2
+    Light.Image = "rbxassetid://8081553398"
+    Light.ImageColor3 = Color3.fromRGB(47, 71, 255)
+
+    Light2.Name = "Light2"
+    Light2.Parent = Top
+    Light2.AnchorPoint = Vector2.new(0.5, 0.5)
+    Light2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Light2.BackgroundTransparency = 1.000
+    Light2.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Light2.Size = UDim2.new(1.25, 0, 1.5, 0)
+    Light2.Visible = false
+    Light2.ZIndex = 2
+    Light2.Image = "http://www.roblox.com/asset/?id=9957617181"
+    Light2.ImageColor3 = Color3.fromRGB(47, 71, 255)
+    Light2.ScaleType = Enum.ScaleType.Slice
+    Light2.SliceCenter = Rect.new(244, 256, 244, 256)
+    Light2.SliceScale = 0.050
+
+    Light1.Name = "Light1"
+    Light1.Parent = Top
+    Light1.AnchorPoint = Vector2.new(0.5, 0.5)
+    Light1.BackgroundColor3 = Color3.fromRGB(193, 192, 195)
+    Light1.BackgroundTransparency = 1.000
+    Light1.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Light1.Size = UDim2.new(2, 0, 4, 0)
+    Light1.Visible = false
+    Light1.ZIndex = 2
+    Light1.Image = "rbxassetid://2468100097"
+    Light1.ImageColor3 = Color3.fromRGB(47, 71, 255)
 
     Devider.Name = "Devider"
     Devider.Parent = _1

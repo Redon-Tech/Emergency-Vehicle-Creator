@@ -44,18 +44,27 @@ local Colors = {
 local function light(light, color)
 	if color == 0 then
 		for i,v in pairs(Lightbar[light]:GetDescendants()) do
-			if v:IsA("GuiBase2d") or v:IsA("ParticleEmitter") or v:IsA("Light") then
+			if v:IsA("GuiObject") then
+				v.Visible = true
+			elseif v:IsA("SurfaceGui") or v:IsA("Light") then
 				v.Enabled = false
+			elseif v:IsA("ParticleEmitter") then
+				v.Transparency = NumberSequence.new(1)
 			end
 		end
 		Lightbar[light].Transparency = 1
 	else
 		for i,v in pairs(Lightbar[light]:GetDescendants()) do
-			if v:IsA("ImageLabel") then
+			if v:IsA("ImageLabel") or v:IsA("ImageButton") then
 				v.ImageColor3 = Colors[color]
-				v.Enabled = true
-			elseif v:IsA("ParticleEmitter") or v:IsA("Light") then
+				v.Visible = true
+			elseif v:IsA("Light") then
 				v.Color = Colors[color]
+				v.Enabled = true
+			elseif v:IsA("ParticleEmitter") then
+				v.Color = ColorSequence.new(Colors[color])
+				v.Transparency = NumberSequence.new(0)
+			elseif v:IsA("SurfaceGui") then
 				v.Enabled = true
 			end
 		end
@@ -443,6 +452,16 @@ local function registercolumn(column)
             end
         end
     end
+
+    column.Top:GetPropertyChangedSignal("ImageColor3"):Connect(function()
+        local enabled = if column.Top.ImageColor3 == RepColors[0] then false else true
+        column.Top.Light.ImageColor3 = column.Top.ImageColor3
+        column.Top.Light.Visible = enabled
+        column.Top.Light1.ImageColor3 = column.Top.ImageColor3
+        column.Top.Light1.Visible = enabled
+        column.Top.Light2.ImageColor3 = column.Top.ImageColor3
+        column.Top.Light2.Visible = enabled
+    end)
 
     for i,v in pairs(column:GetChildren()) do
         addbutton(v, column)
