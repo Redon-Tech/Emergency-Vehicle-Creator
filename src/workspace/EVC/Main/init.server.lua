@@ -10,6 +10,7 @@ EVC
 local Studio = settings():GetService("Studio")
 local Is_RBXM = plugin.Name:find(".rbxm") ~= nil
 local Functions = require(script.Parent.Modules.functions)
+local Selection = game:GetService("Selection")
 
 script.Parent.ChassisPlugin.EVCPlugin_Client.Disabled = true
 script.Parent.ChassisPlugin.EVCPlugin.Disabled = true
@@ -23,21 +24,69 @@ end
 
 local Plugin_Name = getName("Emergency Vehicle Creator")
 local Plugin_Description = "Create ELS for emergency vehicles!"
-local Plugin_Icon = ""
+local Plugin_Icon = "http://www.roblox.com/asset/?id=9953243250"
 local Widget_Name = getName("EVC")
 local Button_Name = getName("EVC Button")
+local Standard_Script_Template =[[
+local Lightbar = script.Parent
+
+-- Colors, change this if you wish
+local Colors = {
+	[1] = Color3.fromRGB(63, 112, 202),
+	[2] = Color3.fromRGB(255, 89, 89),
+	[3] = Color3.fromRGB(218, 133, 65),
+	[4] = Color3.fromRGB(255, 255, 255),
+	[5] = Color3.fromRGB(75, 151, 75),
+	[6] = Color3.fromRGB(170, 0, 170),
+}
+
+-- By default this color function will work with most light types, modify it to your needs
+local function light(light, color)
+	if color == 0 then
+		for i,v in pairs(Lightbar[light]:GetDescendants()) do
+			if v:IsA("GuiBase2d") or v:IsA("ParticleEmitter") or v:IsA("Light") then
+				v.Enabled = false
+			end
+		end
+		Lightbar[light].Transparency = 1
+	else
+		for i,v in pairs(Lightbar[light]:GetDescendants()) do
+			if v:IsA("ImageLabel") then
+				v.ImageColor3 = Colors[color]
+				v.Enabled = true
+			elseif v:IsA("ParticleEmitter") or v:IsA("Light") then
+				v.Color = Colors[color]
+				v.Enabled = true
+			end
+		end
+		Lightbar[light].Color = Colors[color]
+		Lightbar[light].Transparency = 0
+	end
+end
+
+-- Main Loop
+--------------
+-- To use the function above do
+--      light("L1", 0)
+-- The above will turn off said light
+--      light("L1", 1)
+-- The above will turn on said light and change its color to said color defined in the color table
+--------------
+while task.wait() do
+]]
 
 if not _G.RT then
     _G.RT = {Buttons = {}}
 end
 
-if not _G.RT.Buttons then
-    _G.RT.Buttons = {}
+if not _G.RT["Buttons"] then
+    _G.RT["Buttons"] = {}
 end
 
-if not _G.RT.RTToolbar then
-    _G.RT.RTToolbar = plugin:CreateToolbar("Redon Tech Plugins")
+if _G.RT["RTToolbar"] then
+    _G.RT["RTToolbar"] = nil
 end
+_G.RT["RTToolbar"] = plugin:CreateToolbar("Redon Tech Plugins")
 
 --------------------------------------------------------------------------------
 -- UI Init --
@@ -50,12 +99,11 @@ GUI.Title = Plugin_Name
 GUI.Name = Widget_Name
 
 local Button = nil
-if table.find(_G.RT.Buttons, Button_Name) then
-    Button = _G.RT.Buttons[Button_Name]
-else
-    Button = _G.RT.RTToolbar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
-    _G.RT.Buttons[Button_Name] = Button
+if _G.RT["Buttons"][Button_Name] then
+    _G.RT["Buttons"][Button_Name] = nil
 end
+Button = _G.RT.RTToolbar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
+_G.RT["Buttons"][Button_Name] = Button
 
 local MainFrame = require(script.Parent.Modules.gui).CreateGui()
 MainFrame.Parent = GUI
@@ -124,6 +172,8 @@ local function changecolor(new_color: number)
 end
 changecolor(1)
 
+local addbutton
+local resetcounters
 local function reset(skipconfirm)
     if skipconfirm then
         for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
@@ -148,7 +198,7 @@ local function reset(skipconfirm)
     connect1 = MainFrame.Confirm.Yes.MouseButton1Click:Connect(function()
         MainFrame.Confirm.Visible = false
         
-        -- TBD: Reset everything to default
+        changecolor(1)
         for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
             if v.Name == "1" or v.Name == "Last" or v.Name == "UIGridLayout" then else
                 v:Destroy()
@@ -160,6 +210,44 @@ local function reset(skipconfirm)
                 v.ImageColor3 = RepColors[0]
             end
         end
+        MainFrame.Creator.ScrollingFrame["1"].Top.ImageColor3 = RepColors[0]
+        local count = #MainFrame.Creator.ScrollingFrame["1"]:GetChildren() - 3
+        if count ~= 20 then
+            if count > 20 then
+                local diff = count - 20
+                for i = 1, diff do
+                    MainFrame.Creator.ScrollingFrame["1"][#MainFrame.Creator.ScrollingFrame["1"]:GetChildren() - 3]:Destroy()
+                end
+            elseif count < 20 then
+                local diff = 20 - count
+                for i = 1, diff do
+                    local clone = MainFrame.Creator.ScrollingFrame["1"]["1"]:Clone()
+                    clone.Name = #MainFrame.Creator.ScrollingFrame["1"]:GetChildren() - 2
+                    clone.LayoutOrder = #MainFrame.Creator.ScrollingFrame["1"]:GetChildren()
+                    clone.Parent = MainFrame.Creator.ScrollingFrame["1"]
+                    addbutton(clone, MainFrame.Creator.ScrollingFrame["1"])
+                end
+            end
+        end
+        local count = #MainFrame.Creator.PointerHolder.Pointer:GetChildren() - 5
+        resetcounters()
+        if count ~= 20 then
+            if count > 20 then
+                local diff = count - 20
+                for i = 1, diff do
+                    MainFrame.Creator.PointerHolder.Pointer[#MainFrame.Creator.PointerHolder.Pointer:GetChildren() - 5]:Destroy()
+                end
+            elseif count < 20 then
+                local diff = 20 - count
+                for i = 1, diff do
+                    local pointer_clone = MainFrame.Creator.PointerHolder.Pointer["2"]:Clone()
+                    pointer_clone.Name = #MainFrame.Creator.PointerHolder.Pointer:GetChildren() - 4
+                    pointer_clone.LayoutOrder = #MainFrame.Creator.PointerHolder.Pointer:GetChildren()
+                    pointer_clone.Parent = MainFrame.Creator.PointerHolder.Pointer
+                end
+            end
+        end
+        MainFrame.Creator.PointerHolder.Pointer:SetAttribute("max", 20)
         Exportable = false
 
         connect1:Disconnect()
@@ -173,7 +261,7 @@ local function reset(skipconfirm)
     end)
 end
 
-local function resetcounters()
+resetcounters = function()
     Pause = true
     MainFrame.Creator.PointerHolder.Pointer[MainFrame.Creator.PointerHolder.Pointer:GetAttribute("count")].Pointer.Parent = MainFrame.Creator.PointerHolder.Pointer["1"]
     MainFrame.Creator.PointerHolder.Pointer:SetAttribute("count", 1)
@@ -192,6 +280,11 @@ MainFrame.InputBegan:Connect(function(input)
         reset()
     elseif input.KeyCode == Enum.KeyCode.P and Usable then
         Pause = not Pause
+        if Pause then
+            MainFrame.Creator.Info.Buttons.Pause.ImageLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
+        else
+            MainFrame.Creator.Info.Buttons.Pause.ImageLabel.ImageColor3 = Color3.fromRGB(100, 100, 100)
+        end
     elseif input.KeyCode == Enum.KeyCode.Space and Usable then
         spacer()
     elseif input.KeyCode == Enum.KeyCode.One and Usable then
@@ -228,7 +321,7 @@ MainFrame.InputEnded:Connect(function(input)
 end)
 
 -- Column button handler
-local function addbutton(v: GuiBase2d, frame: GuiBase2d)
+addbutton = function(v: GuiBase2d, frame: GuiBase2d)
     if v.Name ~= "Top" and v:IsA("ImageLabel") then
         v:SetAttribute("Color", 0)
         v.ImageColor3 = RepColors[0]
@@ -444,7 +537,7 @@ MainFrame.Creator.ScrollingFrame.ChildAdded:Connect(ScrollingFrameChildrenChange
 MainFrame.Creator.ScrollingFrame.ChildRemoved:Connect(ScrollingFrameChildrenChanged)
 
 local function VisabilityChanged()
-    if MainFrame.Confirm.Visible or MainFrame.SaveLoad.Visible then
+    if MainFrame.Confirm.Visible or MainFrame.SaveLoad.Visible or MainFrame.Export.Visible then
         Usable = false
     else
         Usable = true
@@ -453,6 +546,7 @@ end
 
 MainFrame.Confirm:GetPropertyChangedSignal("Visible"):Connect(VisabilityChanged)
 MainFrame.SaveLoad:GetPropertyChangedSignal("Visible"):Connect(VisabilityChanged)
+MainFrame.Export:GetPropertyChangedSignal("Visible"):Connect(VisabilityChanged)
 
 -- Add/Remove Rows
 
@@ -793,6 +887,137 @@ MainFrame.SaveLoad.Cancel.MouseButton1Down:Connect(function()
     MainFrame.SaveLoad.Visible = false
 end)
 
+-- Export
+MainFrame.Export.Select.Standard.MouseButton1Down:Connect(function()
+    for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
+        if v:IsA("GuiBase2d") and v.Name ~= "Title" then
+            v.Visible = false
+        end
+    end
+
+    MainFrame.Export.Select.Visible = false
+    resetcounters()
+    for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+        if v:IsA("Frame") and v.Name ~= "Last" and not v:GetAttribute("spacer") then
+            v.Top.ImageColor3 = RepColors[0]
+            local TextBox = Instance.new("TextBox")
+            TextBox.Size = UDim2.new(1,0,1,0)
+            TextBox.AnchorPoint = Vector2.new(0.5,0.5)
+            TextBox.Position = UDim2.new(0.5,0,0.5,0)
+            TextBox.BackgroundTransparency = 1
+            TextBox.ZIndex = 4
+            TextBox.Font = Enum.Font.Arial
+            TextBox.TextScaled = true
+            TextBox.PlaceholderText = "Light".. v.Name
+            TextBox.Text = ""
+            TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextBox.Parent = v.Top
+        end
+    end
+    MainFrame.Export.SelectName.Visible = true
+
+    MainFrame.Export.SelectName.Done.MouseButton1Down:Connect(function()
+        MainFrame.Export.SelectName.Visible = false
+
+        local CurrentPointer = MainFrame.Creator.PointerHolder.Pointer
+        local Data = {
+            [CurrentPointer] = {}
+        }
+        for i=1, #MainFrame.Creator.ScrollingFrame:GetChildren() - 2 do
+            local v = MainFrame.Creator.ScrollingFrame[i]
+            if v:GetAttribute("spacer") and tonumber(v.Top.TextBox.Text) ~= tonumber(MainFrame.Creator.Info.BPM) then
+                CurrentPointer = v
+                Data[CurrentPointer] = {}
+            elseif v:GetAttribute("spacer") then
+                CurrentPointer = MainFrame.Creator.PointerHolder.Pointer
+            else
+                Data[CurrentPointer][i] = {
+                    LightName = if v.Top.TextBox.Text == nil or v.Top.TextBox.Text == "" then v.Top.TextBox.PlaceholderText else v.Top.TextBox.Text,
+                    Rows = {}
+                }
+                for _,row in pairs(v:GetChildren()) do
+                    if row:IsA("ImageLabel") and row.Name ~= "Top" then
+                        Data[CurrentPointer][i].Rows[tonumber(row.Name)] = row:GetAttribute("Color")
+                    end
+                end
+                v.Top.TextBox:Destroy()
+            end
+        end
+
+        local Model = Instance.new("Model")
+        Model.Name = "Emergency Vehicle Creator Export"
+        for pointer,value in pairs(Data) do
+            local NewScript = Instance.new("Script")
+            local BPM
+            if pointer == MainFrame.Creator.PointerHolder.Pointer then
+                NewScript.Name = "Controller1"
+                BPM = MainFrame.Creator.Info.BPM.Text
+            else
+                NewScript.Name = "Controller".. pointer.Name
+                BPM = pointer.Top.TextBox.Text
+            end
+            local Code = "local WaitTime = ".. BPM .."\n".. Standard_Script_Template
+            local TableLength = Functions.tablevaluelen(value)
+            local LastInTable = TableLength
+            local FirstInTable = TableLength - (Functions.tablelen(value) - 1)
+
+            local Length = 0
+            for _,column in pairs(value) do
+                if #column.Rows > Length then
+                    Length = #column.Rows
+                end
+            end
+
+            for light=1, Length do
+                for i=FirstInTable, LastInTable do
+                    Code ..= "	light(\"".. value[i].LightName .."\", ".. value[i].Rows[light] ..")\n"
+                end
+                Code ..= "	wait(WaitTime)\n"
+            end
+            Code ..= "end\n\n-- This code was automatically generated by Emergency Vehicle Creator"
+            NewScript.Source = Code
+            NewScript.Parent = Model
+
+            for i=FirstInTable, LastInTable do
+                local part = Instance.new("Part")
+                part.Parent = Model
+                part.Name = value[i].LightName
+                part.TopSurface = Enum.SurfaceType.Smooth
+                part.BottomSurface = Enum.SurfaceType.Smooth
+                part.Material = Enum.Material.Neon
+                part.BrickColor = BrickColor.new("Institutional white")
+                part.Anchored = true
+                part.CanCollide = false
+                part.Size = Vector3.new(0.75, 0.3, 0.1)
+                part.Position = Vector3.new((0.75 * i) + (0.1 * i), 10, 0)
+            end
+        end
+        Model.Parent = workspace
+        Selection:Set({Model})
+
+        for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
+            if v:IsA("GuiBase2d") and v.Name ~= "Title" then
+                v.Visible = true
+            end
+        end
+        Usable = true
+    end)
+
+    MainFrame.Export.SelectName.Cancel.MouseButton1Down:Connect(function()
+        MainFrame.Export.Visible = false
+        for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+            if v:FindFirstChild("Top") and v.Top:FindFirstChild("TextBox") and not v:GetAttribute("spacer") then
+                v.Top.TextBox:Destroy()
+            end
+        end
+        for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
+            if v:IsA("GuiBase2d") and v.Name ~= "Title" then
+                v.Visible = true
+            end
+        end
+    end)
+end)
+
 -- Buttons
 for i,v in pairs(MainFrame.Creator.Info.Buttons:GetChildren()) do
     if table.find(ButColors, v.Name) then
@@ -823,10 +1048,29 @@ MainFrame.Creator.Info.Buttons.Lock.MouseButton1Down:Connect(function()
 end)
 
 MainFrame.Creator.Info.Save.MouseButton1Down:Connect(function()
-    if not Usable and MainFrame.Visible == false then
+    if not Usable and MainFrame.SaveLoad.Visible == false then
         return
     end
     MainFrame.SaveLoad.Visible = not MainFrame.SaveLoad.Visible
+end)
+
+MainFrame.Creator.Info.Export.MouseButton1Down:Connect(function()
+    if not Usable and MainFrame.Export.Visible == false then
+        return
+    end
+    MainFrame.Export.Visible = not MainFrame.Export.Visible
+    MainFrame.Export.Select.Visible = true
+    MainFrame.Export.SelectName.Visible = false
+    MainFrame.Export.StandardComplete.Visible = false
+end)
+
+MainFrame.Creator.Info.Buttons.Pause.MouseButton1Down:Connect(function()
+    Pause = not Pause
+    if Pause then
+        MainFrame.Creator.Info.Buttons.Pause.ImageLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    else
+        MainFrame.Creator.Info.Buttons.Pause.ImageLabel.ImageColor3 = Color3.fromRGB(100, 100, 100)
+    end
 end)
 
 Button.Click:Connect(function()
@@ -854,7 +1098,7 @@ local function update(coro: table, pointer: GuiBase2d, waittime: TextBox)
 
     if not main then
         MainFrame.Creator.PointerHolder.Pointer:GetAttributeChangedSignal("count"):Connect(function()
-            if tonumber(waittime.Text) == tonumber(MainFrame.Creator.Info.BPM.Text) then
+            if tonumber(waittime.Text) == tonumber(MainFrame.Creator.Info.BPM.Text) and coro["run"] then
                 local lastcount = pointer:GetAttribute("count")
                 if lastcount == pointer:GetAttribute("max") then
                     pointer:SetAttribute("count", 1)
