@@ -328,27 +328,27 @@ gcLgc4RKxr21zq2UlJSM]]></BinaryString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<CoordinateFrame name="CFrame">
-					<X>5.3835516</X>
-					<Y>5.10851669</Y>
-					<Z>4.91503859</Z>
-					<R00>0.999963105</R00>
-					<R01>-0.00120868802</R01>
-					<R02>0.00850343797</R02>
-					<R10>1.16415308e-10</R10>
-					<R11>0.990048528</R11>
-					<R12>0.140726581</R12>
-					<R20>-0.0085889101</R20>
-					<R21>-0.140721396</R21>
-					<R22>0.99001205</R22>
+					<X>25.9566345</X>
+					<Y>14.9614887</Y>
+					<Z>36.2847214</Z>
+					<R00>0.991718531</R00>
+					<R01>-0.0429000817</R01>
+					<R02>0.121053725</R02>
+					<R10>3.7252903e-09</R10>
+					<R11>0.942561388</R11>
+					<R12>0.334033102</R12>
+					<R20>-0.12843062</R20>
+					<R21>-0.33126682</R21>
+					<R22>0.934755564</R22>
 				</CoordinateFrame>
 				<Ref name="CameraSubject">null</Ref>
 				<token name="CameraType">0</token>
 				<float name="FieldOfView">70</float>
 				<token name="FieldOfViewMode">0</token>
 				<CoordinateFrame name="Focus">
-					<X>5.36654472</X>
-					<Y>4.82706356</Y>
-					<Z>2.93501472</Z>
+					<X>25.7145271</X>
+					<Y>14.2934227</Y>
+					<Z>34.4152107</Z>
 					<R00>1</R00>
 					<R01>0</R01>
 					<R02>0</R02>
@@ -501,6 +501,13 @@ _G.RT["Buttons"][Button_Name] = Button
 local MainFrame = require(script.Parent.Modules.gui).CreateGui()
 MainFrame.Parent = GUI
 MainFrame.Confirm.TextLabel.RichText = true -- GUI -> Script doesnt convert this
+MainFrame.Creator.Info.Thanks.RichText = true
+MainFrame.Creator.Info.Credits.RichText = true
+for i,v in pairs(MainFrame.Controls:GetChildren()) do
+    if v:IsA("TextLabel") then
+        v.RichText = true
+    end
+end
 MainFrame.Creator.PointerHolder.Pointer:SetAttribute("max", 20)
 MainFrame.Creator.PointerHolder.Pointer:SetAttribute("count", 1)
 local Pointer = MainFrame.Creator.ScrollingFrame["2"]
@@ -858,7 +865,7 @@ registercolumn(MainFrame.Creator.ScrollingFrame["1"])
 --     addbutton(v, MainFrame.Creator.ScrollingFrame["1"])
 -- end
 
-MainFrame.Creator.ScrollingFrame.Last.Devider.add.MouseButton1Down:Connect(function()
+MainFrame.Creator.ScrollingFrame.Last.Devider.add.MouseButton1Click:Connect(function()
     if not Usable then
         return
     end
@@ -873,7 +880,7 @@ MainFrame.Creator.ScrollingFrame.Last.Devider.add.MouseButton1Down:Connect(funct
     registercolumn(clone)
 end)
 
-MainFrame.Creator.ScrollingFrame.Last.Devider.subtract.MouseButton1Down:Connect(function()
+MainFrame.Creator.ScrollingFrame.Last.Devider.subtract.MouseButton1Click:Connect(function()
     if not Usable then
         return
     end
@@ -939,17 +946,23 @@ end
 MainFrame.Creator.ScrollingFrame.ChildAdded:Connect(ScrollingFrameChildrenChanged)
 MainFrame.Creator.ScrollingFrame.ChildRemoved:Connect(ScrollingFrameChildrenChanged)
 
-local function VisabilityChanged()
-    if MainFrame.Confirm.Visible or MainFrame.SaveLoad.Visible or MainFrame.Export.Visible then
+local function VisibilityChanged()
+    if (
+        MainFrame.Confirm.Visible
+        or MainFrame.SaveLoad.Visible
+        or MainFrame.Export.Visible
+        or MainFrame.Controls.Visible
+    ) then
         Usable = false
     else
         Usable = true
     end
 end
 
-MainFrame.Confirm:GetPropertyChangedSignal("Visible"):Connect(VisabilityChanged)
-MainFrame.SaveLoad:GetPropertyChangedSignal("Visible"):Connect(VisabilityChanged)
-MainFrame.Export:GetPropertyChangedSignal("Visible"):Connect(VisabilityChanged)
+MainFrame.Confirm:GetPropertyChangedSignal("Visible"):Connect(VisibilityChanged)
+MainFrame.SaveLoad:GetPropertyChangedSignal("Visible"):Connect(VisibilityChanged)
+MainFrame.Export:GetPropertyChangedSignal("Visible"):Connect(VisibilityChanged)
+MainFrame.Controls:GetPropertyChangedSignal("Visible"):Connect(VisibilityChanged)
 
 -- Add/Remove Rows
 
@@ -1071,7 +1084,7 @@ local function SavesUpdate()
             clone.TextBox.Text = i
             clone.Parent = MainFrame.SaveLoad.ScrollingFrame
 
-            clone.Delete.MouseButton1Down:Connect(function()
+            clone.Delete.MouseButton1Click:Connect(function()
                 MainFrame.Confirm.Visible = true
                 MainFrame.SaveLoad.Visible = false
                 MainFrame.Confirm.TextLabel.Text = "Are you sure you want to delete the save <b>".. i .."</b>? This cannot be undone."
@@ -1239,7 +1252,7 @@ local function SavesUpdate()
 end
 SavesUpdate()
 
-MainFrame.SaveLoad.Save.MouseButton1Down:Connect(function()
+MainFrame.SaveLoad.Save.MouseButton1Click:Connect(function()
     local Saves = plugin:GetSetting("saves")
     if not Saves then
         Saves = {}
@@ -1286,12 +1299,12 @@ MainFrame.SaveLoad.Save.MouseButton1Down:Connect(function()
     SavesUpdate()
 end)
 
-MainFrame.SaveLoad.Cancel.MouseButton1Down:Connect(function()
+MainFrame.SaveLoad.Cancel.MouseButton1Click:Connect(function()
     MainFrame.SaveLoad.Visible = false
 end)
 
 -- Export
-MainFrame.Export.Select.Standard.MouseButton1Down:Connect(function()
+MainFrame.Export.Select.Standard.MouseButton1Click:Connect(function()
     for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
         if v:IsA("GuiBase2d") and v.Name ~= "Title" then
             v.Visible = false
@@ -1315,11 +1328,19 @@ MainFrame.Export.Select.Standard.MouseButton1Down:Connect(function()
             TextBox.Text = ""
             TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
             TextBox.Parent = v.Top
+
+            TextBox.FocusLost:Connect(function(enterPressed)
+                if enterPressed then
+                    if MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1] and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
+                        MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox:CaptureFocus()
+                    end
+                end
+            end)
         end
     end
     MainFrame.Export.SelectName.Visible = true
 
-    MainFrame.Export.SelectName.Done.MouseButton1Down:Connect(function()
+    MainFrame.Export.SelectName.Done.MouseButton1Click:Connect(function()
         MainFrame.Export.SelectName.Visible = false
 
         local CurrentPointer = MainFrame.Creator.PointerHolder.Pointer
@@ -1406,7 +1427,7 @@ MainFrame.Export.Select.Standard.MouseButton1Down:Connect(function()
         Usable = true
     end)
 
-    MainFrame.Export.SelectName.Cancel.MouseButton1Down:Connect(function()
+    MainFrame.Export.SelectName.Cancel.MouseButton1Click:Connect(function()
         MainFrame.Export.Visible = false
         for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
             if v:FindFirstChild("Top") and v.Top:FindFirstChild("TextBox") and not v:GetAttribute("spacer") then
@@ -1424,20 +1445,20 @@ end)
 -- Buttons
 for i,v in pairs(MainFrame.Creator.Info.Buttons:GetChildren()) do
     if table.find(ButColors, v.Name) then
-        v.MouseButton1Down:Connect(function()
+        v.MouseButton1Click:Connect(function()
             changecolor(table.find(ButColors, v.Name))
         end)
     end
 end
 
-MainFrame.Creator.Info.Buttons.Reset.MouseButton1Down:Connect(function()
+MainFrame.Creator.Info.Buttons.Reset.MouseButton1Click:Connect(function()
     if not Usable then
         return
     end
     reset()
 end)
 
-MainFrame.Creator.Info.Buttons.Lock.MouseButton1Down:Connect(function()
+MainFrame.Creator.Info.Buttons.Lock.MouseButton1Click:Connect(function()
     if not Usable then
         return
     end
@@ -1450,14 +1471,14 @@ MainFrame.Creator.Info.Buttons.Lock.MouseButton1Down:Connect(function()
     end
 end)
 
-MainFrame.Creator.Info.Save.MouseButton1Down:Connect(function()
+MainFrame.Creator.Info.Save.MouseButton1Click:Connect(function()
     if not Usable and MainFrame.SaveLoad.Visible == false then
         return
     end
     MainFrame.SaveLoad.Visible = not MainFrame.SaveLoad.Visible
 end)
 
-MainFrame.Creator.Info.Export.MouseButton1Down:Connect(function()
+MainFrame.Creator.Info.Export.MouseButton1Click:Connect(function()
     if not Usable and MainFrame.Export.Visible == false then
         return
     end
@@ -1467,13 +1488,20 @@ MainFrame.Creator.Info.Export.MouseButton1Down:Connect(function()
     MainFrame.Export.StandardComplete.Visible = false
 end)
 
-MainFrame.Creator.Info.Buttons.Pause.MouseButton1Down:Connect(function()
+MainFrame.Creator.Info.Buttons.Pause.MouseButton1Click:Connect(function()
     Pause = not Pause
     if Pause then
         MainFrame.Creator.Info.Buttons.Pause.ImageLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
     else
         MainFrame.Creator.Info.Buttons.Pause.ImageLabel.ImageColor3 = Color3.fromRGB(100, 100, 100)
     end
+end)
+
+MainFrame.Creator.Info.Controls.MouseButton1Click:Connect(function()
+    if not Usable and MainFrame.Controls.Visible == false then
+        return
+    end
+    MainFrame.Controls.Visible = not MainFrame.Controls.Visible
 end)
 
 Button.Click:Connect(function()
@@ -1494,6 +1522,26 @@ local function update(coro: table, pointer: GuiBase2d, waittime: TextBox)
             main = false
         end
     end
+
+    waittime.Focused:Connect(function()
+        Pause = true
+        resetcounters()
+    end)
+
+    waittime.FocusLost:Connect(function()
+        if tonumber(waittime.Text) >= 0.001 and tonumber(waittime.Text) <= 10 then
+            Pause = false
+            resetcounters()
+        elseif tonumber(waittime.Text) < 0.001 then
+            waittime.Text = "0.001"
+            Pause = false
+            resetcounters()
+        elseif tonumber(waittime.Text) > 10 then
+            waittime.Text = "10"
+            Pause = false
+            resetcounters()
+        end
+    end)
 
     pointer.Destroying:Connect(function()
         coro["run"] = false
@@ -1562,11 +1610,11 @@ spacer = function(waittime, size, position)
         end
     end
 
-    clone.Bottom.add.MouseButton1Down:Connect(function()
+    clone.Bottom.add.MouseButton1Click:Connect(function()
         Pause = true
         addrow(clone, tonumber(clone.Name + 1))
     end)
-    clone.Bottom.subtract.MouseButton1Down:Connect(function()
+    clone.Bottom.subtract.MouseButton1Click:Connect(function()
         Pause = true
         removerow(clone, tonumber(clone.Name + 1))
     end)
@@ -1594,11 +1642,11 @@ coros[0] = {
 }
 coroutine.resume(coros[0].thread, coros[0], coros[0].pointer, coros[0].waittime)
 
-MainFrame.Creator.PointerHolder.Pointer.Bottom.add.MouseButton1Down:Connect(function()
+MainFrame.Creator.PointerHolder.Pointer.Bottom.add.MouseButton1Click:Connect(function()
     Pause = true
     addrow(MainFrame.Creator.PointerHolder.Pointer, 1)
 end)
-MainFrame.Creator.PointerHolder.Pointer.Bottom.subtract.MouseButton1Down:Connect(function()
+MainFrame.Creator.PointerHolder.Pointer.Bottom.subtract.MouseButton1Click:Connect(function()
     Pause = true
     removerow(MainFrame.Creator.PointerHolder.Pointer, 1)
 end)]]></ProtectedString>
@@ -1666,6 +1714,12 @@ function GUI.CreateGui()
     local TextLabel_3 = Instance.new("TextLabel")
     local UITextSizeConstraint_3 = Instance.new("UITextSizeConstraint")
     local UIAspectRatioConstraint_2 = Instance.new("UIAspectRatioConstraint")
+    local Controls = Instance.new("TextButton")
+    local TextButton_Roundify_10px_13 = Instance.new("ImageLabel")
+    local TextLabel_4 = Instance.new("TextLabel")
+    local UITextSizeConstraint_4 = Instance.new("UITextSizeConstraint")
+    local TextLabel_5 = Instance.new("TextLabel")
+    local UITextSizeConstraint_5 = Instance.new("UITextSizeConstraint")
     local ScrollingFrame = Instance.new("ScrollingFrame")
     local _1 = Instance.new("Frame")
     local UIListLayout = Instance.new("UIListLayout")
@@ -1767,21 +1821,21 @@ function GUI.CreateGui()
     local UIPadding_2 = Instance.new("UIPadding")
     local UIListLayout_4 = Instance.new("UIListLayout")
     local Confirm = Instance.new("ImageLabel")
-    local TextLabel_4 = Instance.new("TextLabel")
+    local TextLabel_6 = Instance.new("TextLabel")
     local Yes = Instance.new("TextButton")
-    local TextButton_Roundify_10px_13 = Instance.new("ImageLabel")
-    local No = Instance.new("TextButton")
     local TextButton_Roundify_10px_14 = Instance.new("ImageLabel")
-    local SaveLoad = Instance.new("ImageLabel")
-    local TextLabel_5 = Instance.new("TextLabel")
-    local Save_2 = Instance.new("TextButton")
+    local No = Instance.new("TextButton")
     local TextButton_Roundify_10px_15 = Instance.new("ImageLabel")
-    local PatternName = Instance.new("TextBox")
+    local SaveLoad = Instance.new("ImageLabel")
+    local TextLabel_7 = Instance.new("TextLabel")
+    local Save_2 = Instance.new("TextButton")
     local TextButton_Roundify_10px_16 = Instance.new("ImageLabel")
-    local Import = Instance.new("TextButton")
+    local PatternName = Instance.new("TextBox")
     local TextButton_Roundify_10px_17 = Instance.new("ImageLabel")
-    local Cancel = Instance.new("TextButton")
+    local Import = Instance.new("TextButton")
     local TextButton_Roundify_10px_18 = Instance.new("ImageLabel")
+    local Cancel = Instance.new("TextButton")
+    local TextButton_Roundify_10px_19 = Instance.new("ImageLabel")
     local ScrollingFrame_2 = Instance.new("ScrollingFrame")
     local UIGridLayout_4 = Instance.new("UIGridLayout")
     local Frame_2 = Instance.new("ImageLabel")
@@ -1794,23 +1848,29 @@ function GUI.CreateGui()
     local Delete_Roundify_5px_3 = Instance.new("ImageLabel")
     local Export_2 = Instance.new("Frame")
     local Select = Instance.new("ImageLabel")
-    local TextLabel_6 = Instance.new("TextLabel")
-    local Standard = Instance.new("TextButton")
-    local TextButton_Roundify_10px_19 = Instance.new("ImageLabel")
-    local Plugin = Instance.new("TextButton")
-    local TextButton_Roundify_10px_20 = Instance.new("ImageLabel")
-    local SelectName = Instance.new("ImageLabel")
-    local TextLabel_7 = Instance.new("TextLabel")
-    local Cancel_2 = Instance.new("TextButton")
-    local TextButton_Roundify_10px_21 = Instance.new("ImageLabel")
-    local Done = Instance.new("TextButton")
-    local TextButton_Roundify_10px_22 = Instance.new("ImageLabel")
-    local StandardComplete = Instance.new("ImageLabel")
     local TextLabel_8 = Instance.new("TextLabel")
+    local Standard = Instance.new("TextButton")
+    local TextButton_Roundify_10px_20 = Instance.new("ImageLabel")
+    local Plugin = Instance.new("TextButton")
+    local TextButton_Roundify_10px_21 = Instance.new("ImageLabel")
+    local SelectName = Instance.new("ImageLabel")
+    local TextLabel_9 = Instance.new("TextLabel")
+    local Cancel_2 = Instance.new("TextButton")
+    local TextButton_Roundify_10px_22 = Instance.new("ImageLabel")
+    local Done = Instance.new("TextButton")
+    local TextButton_Roundify_10px_23 = Instance.new("ImageLabel")
+    local StandardComplete = Instance.new("ImageLabel")
+    local TextLabel_10 = Instance.new("TextLabel")
+    local Controls_2 = Instance.new("ImageLabel")
+    local TextLabel_11 = Instance.new("TextLabel")
+    local TextLabel_12 = Instance.new("TextLabel")
+    local TextLabel_13 = Instance.new("TextLabel")
+    local TextLabel_14 = Instance.new("TextLabel")
 
     --Properties:
 
     Main.Name = "Main"
+    Main.Parent = game.StarterGui.ScreenGui
     Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     Main.Size = UDim2.new(1, 0, 1, 0)
 
@@ -2303,6 +2363,72 @@ function GUI.CreateGui()
 
     UIAspectRatioConstraint_2.Parent = Info
     UIAspectRatioConstraint_2.AspectRatio = 0.417
+
+    Controls.Name = "Controls"
+    Controls.Parent = Info
+    Controls.AnchorPoint = Vector2.new(0.5, 0.5)
+    Controls.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Controls.BackgroundTransparency = 1.000
+    Controls.BorderSizePixel = 0
+    Controls.Position = UDim2.new(0.50150007, 0, 0.433169395, 0)
+    Controls.Size = UDim2.new(0.943333328, 0, 0.0350000001, 0)
+    Controls.ZIndex = 102
+    Controls.Font = Enum.Font.ArialBold
+    Controls.Text = "Show Controls"
+    Controls.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Controls.TextSize = 25.000
+    Controls.TextWrapped = true
+
+    TextButton_Roundify_10px_13.Name = "TextButton_Roundify_10px"
+    TextButton_Roundify_10px_13.Parent = Controls
+    TextButton_Roundify_10px_13.Active = true
+    TextButton_Roundify_10px_13.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextButton_Roundify_10px_13.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_Roundify_10px_13.BackgroundTransparency = 1.000
+    TextButton_Roundify_10px_13.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextButton_Roundify_10px_13.Selectable = true
+    TextButton_Roundify_10px_13.Size = UDim2.new(1, 0, 1, 0)
+    TextButton_Roundify_10px_13.ZIndex = 101
+    TextButton_Roundify_10px_13.Image = "rbxassetid://3570695787"
+    TextButton_Roundify_10px_13.ImageColor3 = Color3.fromRGB(50, 50, 50)
+    TextButton_Roundify_10px_13.ScaleType = Enum.ScaleType.Slice
+    TextButton_Roundify_10px_13.SliceCenter = Rect.new(100, 100, 100, 100)
+    TextButton_Roundify_10px_13.SliceScale = 0.100
+
+    TextLabel_4.Parent = Info
+    TextLabel_4.Name = "Credits"
+    TextLabel_4.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextLabel_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_4.BackgroundTransparency = 1.000
+    TextLabel_4.Position = UDim2.new(0.501666665, 0, 0.379797161, 0)
+    TextLabel_4.Size = UDim2.new(0.946666658, 0, 0.0591389909, 0)
+    TextLabel_4.ZIndex = 101
+    TextLabel_4.Font = Enum.Font.Arial
+    TextLabel_4.Text = "Credits: Siren Tool (Insperation), parker02311 (Project Maintainer), <b>You!</b> (Supporter)"
+    TextLabel_4.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_4.TextScaled = true
+    TextLabel_4.TextSize = 14.000
+    TextLabel_4.TextWrapped = true
+
+    UITextSizeConstraint_4.Parent = TextLabel_4
+    UITextSizeConstraint_4.MaxTextSize = 21
+
+    TextLabel_5.Parent = Info
+    TextLabel_5.Name = "Thanks"
+    TextLabel_5.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextLabel_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_5.BackgroundTransparency = 1.000
+    TextLabel_5.Position = UDim2.new(0.501666665, 0, 0.292505533, 0)
+    TextLabel_5.Size = UDim2.new(0.946666658, 0, 0.0979999974, 0)
+    TextLabel_5.ZIndex = 101
+    TextLabel_5.Font = Enum.Font.Arial
+    TextLabel_5.Text = "<font size=\"20\"><b>Thanks for using Emergency Vehicle Creator!</b></font>\nIf you have any problems/suggestions join our communications server: Eb384Xw"
+    TextLabel_5.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_5.TextSize = 14.000
+    TextLabel_5.TextWrapped = true
+
+    UITextSizeConstraint_5.Parent = TextLabel_5
+    UITextSizeConstraint_5.MaxTextSize = 21
 
     ScrollingFrame.Parent = Creator
     ScrollingFrame.Active = true
@@ -3263,17 +3389,17 @@ function GUI.CreateGui()
     Confirm.SliceCenter = Rect.new(100, 100, 100, 100)
     Confirm.SliceScale = 0.100
 
-    TextLabel_4.Parent = Confirm
-    TextLabel_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel_4.BackgroundTransparency = 1.000
-    TextLabel_4.Size = UDim2.new(0, 300, 0, 60)
-    TextLabel_4.ZIndex = 3
-    TextLabel_4.Font = Enum.Font.Arial
-    TextLabel_4.Text = "Are you sure you want to reset? <b>Any unsaved progress will be lost!</b>"
-    TextLabel_4.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel_4.TextScaled = true
-    TextLabel_4.TextSize = 14.000
-    TextLabel_4.TextWrapped = true
+    TextLabel_6.Parent = Confirm
+    TextLabel_6.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_6.BackgroundTransparency = 1.000
+    TextLabel_6.Size = UDim2.new(0, 300, 0, 60)
+    TextLabel_6.ZIndex = 3
+    TextLabel_6.Font = Enum.Font.Arial
+    TextLabel_6.Text = "Are you sure you want to reset? <b>Any unsaved progress will be lost!</b>"
+    TextLabel_6.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_6.TextScaled = true
+    TextLabel_6.TextSize = 14.000
+    TextLabel_6.TextWrapped = true
 
     Yes.Name = "Yes"
     Yes.Parent = Confirm
@@ -3291,21 +3417,21 @@ function GUI.CreateGui()
     Yes.TextSize = 25.000
     Yes.TextWrapped = true
 
-    TextButton_Roundify_10px_13.Name = "TextButton_Roundify_10px"
-    TextButton_Roundify_10px_13.Parent = Yes
-    TextButton_Roundify_10px_13.Active = true
-    TextButton_Roundify_10px_13.AnchorPoint = Vector2.new(0.5, 0.5)
-    TextButton_Roundify_10px_13.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextButton_Roundify_10px_13.BackgroundTransparency = 1.000
-    TextButton_Roundify_10px_13.Position = UDim2.new(0.5, 0, 0.5, 0)
-    TextButton_Roundify_10px_13.Selectable = true
-    TextButton_Roundify_10px_13.Size = UDim2.new(1, 0, 1, 0)
-    TextButton_Roundify_10px_13.ZIndex = 2
-    TextButton_Roundify_10px_13.Image = "rbxassetid://3570695787"
-    TextButton_Roundify_10px_13.ImageColor3 = Color3.fromRGB(76, 150, 55)
-    TextButton_Roundify_10px_13.ScaleType = Enum.ScaleType.Slice
-    TextButton_Roundify_10px_13.SliceCenter = Rect.new(100, 100, 100, 100)
-    TextButton_Roundify_10px_13.SliceScale = 0.100
+    TextButton_Roundify_10px_14.Name = "TextButton_Roundify_10px"
+    TextButton_Roundify_10px_14.Parent = Yes
+    TextButton_Roundify_10px_14.Active = true
+    TextButton_Roundify_10px_14.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextButton_Roundify_10px_14.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_Roundify_10px_14.BackgroundTransparency = 1.000
+    TextButton_Roundify_10px_14.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextButton_Roundify_10px_14.Selectable = true
+    TextButton_Roundify_10px_14.Size = UDim2.new(1, 0, 1, 0)
+    TextButton_Roundify_10px_14.ZIndex = 2
+    TextButton_Roundify_10px_14.Image = "rbxassetid://3570695787"
+    TextButton_Roundify_10px_14.ImageColor3 = Color3.fromRGB(76, 150, 55)
+    TextButton_Roundify_10px_14.ScaleType = Enum.ScaleType.Slice
+    TextButton_Roundify_10px_14.SliceCenter = Rect.new(100, 100, 100, 100)
+    TextButton_Roundify_10px_14.SliceScale = 0.100
 
     No.Name = "No"
     No.Parent = Confirm
@@ -3323,21 +3449,21 @@ function GUI.CreateGui()
     No.TextSize = 25.000
     No.TextWrapped = true
 
-    TextButton_Roundify_10px_14.Name = "TextButton_Roundify_10px"
-    TextButton_Roundify_10px_14.Parent = No
-    TextButton_Roundify_10px_14.Active = true
-    TextButton_Roundify_10px_14.AnchorPoint = Vector2.new(0.5, 0.5)
-    TextButton_Roundify_10px_14.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextButton_Roundify_10px_14.BackgroundTransparency = 1.000
-    TextButton_Roundify_10px_14.Position = UDim2.new(0.5, 0, 0.5, 0)
-    TextButton_Roundify_10px_14.Selectable = true
-    TextButton_Roundify_10px_14.Size = UDim2.new(1, 0, 1, 0)
-    TextButton_Roundify_10px_14.ZIndex = 2
-    TextButton_Roundify_10px_14.Image = "rbxassetid://3570695787"
-    TextButton_Roundify_10px_14.ImageColor3 = Color3.fromRGB(232, 65, 24)
-    TextButton_Roundify_10px_14.ScaleType = Enum.ScaleType.Slice
-    TextButton_Roundify_10px_14.SliceCenter = Rect.new(100, 100, 100, 100)
-    TextButton_Roundify_10px_14.SliceScale = 0.100
+    TextButton_Roundify_10px_15.Name = "TextButton_Roundify_10px"
+    TextButton_Roundify_10px_15.Parent = No
+    TextButton_Roundify_10px_15.Active = true
+    TextButton_Roundify_10px_15.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextButton_Roundify_10px_15.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_Roundify_10px_15.BackgroundTransparency = 1.000
+    TextButton_Roundify_10px_15.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextButton_Roundify_10px_15.Selectable = true
+    TextButton_Roundify_10px_15.Size = UDim2.new(1, 0, 1, 0)
+    TextButton_Roundify_10px_15.ZIndex = 2
+    TextButton_Roundify_10px_15.Image = "rbxassetid://3570695787"
+    TextButton_Roundify_10px_15.ImageColor3 = Color3.fromRGB(232, 65, 24)
+    TextButton_Roundify_10px_15.ScaleType = Enum.ScaleType.Slice
+    TextButton_Roundify_10px_15.SliceCenter = Rect.new(100, 100, 100, 100)
+    TextButton_Roundify_10px_15.SliceScale = 0.100
 
     SaveLoad.Name = "SaveLoad"
     SaveLoad.Parent = Main
@@ -3354,16 +3480,16 @@ function GUI.CreateGui()
     SaveLoad.SliceCenter = Rect.new(100, 100, 100, 100)
     SaveLoad.SliceScale = 0.100
 
-    TextLabel_5.Parent = SaveLoad
-    TextLabel_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel_5.BackgroundTransparency = 1.000
-    TextLabel_5.Size = UDim2.new(0, 500, 0, 60)
-    TextLabel_5.ZIndex = 3
-    TextLabel_5.Font = Enum.Font.ArialBold
-    TextLabel_5.Text = "Load/Save"
-    TextLabel_5.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel_5.TextSize = 25.000
-    TextLabel_5.TextWrapped = true
+    TextLabel_7.Parent = SaveLoad
+    TextLabel_7.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_7.BackgroundTransparency = 1.000
+    TextLabel_7.Size = UDim2.new(0, 500, 0, 60)
+    TextLabel_7.ZIndex = 3
+    TextLabel_7.Font = Enum.Font.ArialBold
+    TextLabel_7.Text = "Load/Save"
+    TextLabel_7.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_7.TextSize = 25.000
+    TextLabel_7.TextWrapped = true
 
     Save_2.Name = "Save"
     Save_2.Parent = SaveLoad
@@ -3381,21 +3507,21 @@ function GUI.CreateGui()
     Save_2.TextSize = 25.000
     Save_2.TextWrapped = true
 
-    TextButton_Roundify_10px_15.Name = "TextButton_Roundify_10px"
-    TextButton_Roundify_10px_15.Parent = Save_2
-    TextButton_Roundify_10px_15.Active = true
-    TextButton_Roundify_10px_15.AnchorPoint = Vector2.new(0.5, 0.5)
-    TextButton_Roundify_10px_15.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextButton_Roundify_10px_15.BackgroundTransparency = 1.000
-    TextButton_Roundify_10px_15.Position = UDim2.new(0.5, 0, 0.5, 0)
-    TextButton_Roundify_10px_15.Selectable = true
-    TextButton_Roundify_10px_15.Size = UDim2.new(1, 0, 1, 0)
-    TextButton_Roundify_10px_15.ZIndex = 2
-    TextButton_Roundify_10px_15.Image = "rbxassetid://3570695787"
-    TextButton_Roundify_10px_15.ImageColor3 = Color3.fromRGB(50, 50, 50)
-    TextButton_Roundify_10px_15.ScaleType = Enum.ScaleType.Slice
-    TextButton_Roundify_10px_15.SliceCenter = Rect.new(100, 100, 100, 100)
-    TextButton_Roundify_10px_15.SliceScale = 0.100
+    TextButton_Roundify_10px_16.Name = "TextButton_Roundify_10px"
+    TextButton_Roundify_10px_16.Parent = Save_2
+    TextButton_Roundify_10px_16.Active = true
+    TextButton_Roundify_10px_16.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextButton_Roundify_10px_16.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_Roundify_10px_16.BackgroundTransparency = 1.000
+    TextButton_Roundify_10px_16.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextButton_Roundify_10px_16.Selectable = true
+    TextButton_Roundify_10px_16.Size = UDim2.new(1, 0, 1, 0)
+    TextButton_Roundify_10px_16.ZIndex = 2
+    TextButton_Roundify_10px_16.Image = "rbxassetid://3570695787"
+    TextButton_Roundify_10px_16.ImageColor3 = Color3.fromRGB(50, 50, 50)
+    TextButton_Roundify_10px_16.ScaleType = Enum.ScaleType.Slice
+    TextButton_Roundify_10px_16.SliceCenter = Rect.new(100, 100, 100, 100)
+    TextButton_Roundify_10px_16.SliceScale = 0.100
 
     PatternName.Name = "PatternName"
     PatternName.Parent = SaveLoad
@@ -3415,21 +3541,21 @@ function GUI.CreateGui()
     PatternName.TextSize = 25.000
     PatternName.TextWrapped = true
 
-    TextButton_Roundify_10px_16.Name = "TextButton_Roundify_10px"
-    TextButton_Roundify_10px_16.Parent = PatternName
-    TextButton_Roundify_10px_16.Active = true
-    TextButton_Roundify_10px_16.AnchorPoint = Vector2.new(0.5, 0.5)
-    TextButton_Roundify_10px_16.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextButton_Roundify_10px_16.BackgroundTransparency = 1.000
-    TextButton_Roundify_10px_16.Position = UDim2.new(0.5, 0, 0.5, 0)
-    TextButton_Roundify_10px_16.Selectable = true
-    TextButton_Roundify_10px_16.Size = UDim2.new(1, 0, 1, 0)
-    TextButton_Roundify_10px_16.ZIndex = 2
-    TextButton_Roundify_10px_16.Image = "rbxassetid://3570695787"
-    TextButton_Roundify_10px_16.ImageColor3 = Color3.fromRGB(50, 50, 50)
-    TextButton_Roundify_10px_16.ScaleType = Enum.ScaleType.Slice
-    TextButton_Roundify_10px_16.SliceCenter = Rect.new(100, 100, 100, 100)
-    TextButton_Roundify_10px_16.SliceScale = 0.100
+    TextButton_Roundify_10px_17.Name = "TextButton_Roundify_10px"
+    TextButton_Roundify_10px_17.Parent = PatternName
+    TextButton_Roundify_10px_17.Active = true
+    TextButton_Roundify_10px_17.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextButton_Roundify_10px_17.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_Roundify_10px_17.BackgroundTransparency = 1.000
+    TextButton_Roundify_10px_17.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextButton_Roundify_10px_17.Selectable = true
+    TextButton_Roundify_10px_17.Size = UDim2.new(1, 0, 1, 0)
+    TextButton_Roundify_10px_17.ZIndex = 2
+    TextButton_Roundify_10px_17.Image = "rbxassetid://3570695787"
+    TextButton_Roundify_10px_17.ImageColor3 = Color3.fromRGB(50, 50, 50)
+    TextButton_Roundify_10px_17.ScaleType = Enum.ScaleType.Slice
+    TextButton_Roundify_10px_17.SliceCenter = Rect.new(100, 100, 100, 100)
+    TextButton_Roundify_10px_17.SliceScale = 0.100
 
     Import.Name = "Import"
     Import.Parent = SaveLoad
@@ -3447,21 +3573,21 @@ function GUI.CreateGui()
     Import.TextSize = 25.000
     Import.TextWrapped = true
 
-    TextButton_Roundify_10px_17.Name = "TextButton_Roundify_10px"
-    TextButton_Roundify_10px_17.Parent = Import
-    TextButton_Roundify_10px_17.Active = true
-    TextButton_Roundify_10px_17.AnchorPoint = Vector2.new(0.5, 0.5)
-    TextButton_Roundify_10px_17.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextButton_Roundify_10px_17.BackgroundTransparency = 1.000
-    TextButton_Roundify_10px_17.Position = UDim2.new(0.5, 0, 0.5, 0)
-    TextButton_Roundify_10px_17.Selectable = true
-    TextButton_Roundify_10px_17.Size = UDim2.new(1, 0, 1, 0)
-    TextButton_Roundify_10px_17.ZIndex = 2
-    TextButton_Roundify_10px_17.Image = "rbxassetid://3570695787"
-    TextButton_Roundify_10px_17.ImageColor3 = Color3.fromRGB(45, 45, 45)
-    TextButton_Roundify_10px_17.ScaleType = Enum.ScaleType.Slice
-    TextButton_Roundify_10px_17.SliceCenter = Rect.new(100, 100, 100, 100)
-    TextButton_Roundify_10px_17.SliceScale = 0.100
+    TextButton_Roundify_10px_18.Name = "TextButton_Roundify_10px"
+    TextButton_Roundify_10px_18.Parent = Import
+    TextButton_Roundify_10px_18.Active = true
+    TextButton_Roundify_10px_18.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextButton_Roundify_10px_18.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_Roundify_10px_18.BackgroundTransparency = 1.000
+    TextButton_Roundify_10px_18.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextButton_Roundify_10px_18.Selectable = true
+    TextButton_Roundify_10px_18.Size = UDim2.new(1, 0, 1, 0)
+    TextButton_Roundify_10px_18.ZIndex = 2
+    TextButton_Roundify_10px_18.Image = "rbxassetid://3570695787"
+    TextButton_Roundify_10px_18.ImageColor3 = Color3.fromRGB(45, 45, 45)
+    TextButton_Roundify_10px_18.ScaleType = Enum.ScaleType.Slice
+    TextButton_Roundify_10px_18.SliceCenter = Rect.new(100, 100, 100, 100)
+    TextButton_Roundify_10px_18.SliceScale = 0.100
 
     Cancel.Name = "Cancel"
     Cancel.Parent = SaveLoad
@@ -3479,21 +3605,21 @@ function GUI.CreateGui()
     Cancel.TextSize = 25.000
     Cancel.TextWrapped = true
 
-    TextButton_Roundify_10px_18.Name = "TextButton_Roundify_10px"
-    TextButton_Roundify_10px_18.Parent = Cancel
-    TextButton_Roundify_10px_18.Active = true
-    TextButton_Roundify_10px_18.AnchorPoint = Vector2.new(0.5, 0.5)
-    TextButton_Roundify_10px_18.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextButton_Roundify_10px_18.BackgroundTransparency = 1.000
-    TextButton_Roundify_10px_18.Position = UDim2.new(0.5, 0, 0.5, 0)
-    TextButton_Roundify_10px_18.Selectable = true
-    TextButton_Roundify_10px_18.Size = UDim2.new(1, 0, 1, 0)
-    TextButton_Roundify_10px_18.ZIndex = 2
-    TextButton_Roundify_10px_18.Image = "rbxassetid://3570695787"
-    TextButton_Roundify_10px_18.ImageColor3 = Color3.fromRGB(50, 50, 50)
-    TextButton_Roundify_10px_18.ScaleType = Enum.ScaleType.Slice
-    TextButton_Roundify_10px_18.SliceCenter = Rect.new(100, 100, 100, 100)
-    TextButton_Roundify_10px_18.SliceScale = 0.100
+    TextButton_Roundify_10px_19.Name = "TextButton_Roundify_10px"
+    TextButton_Roundify_10px_19.Parent = Cancel
+    TextButton_Roundify_10px_19.Active = true
+    TextButton_Roundify_10px_19.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextButton_Roundify_10px_19.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_Roundify_10px_19.BackgroundTransparency = 1.000
+    TextButton_Roundify_10px_19.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextButton_Roundify_10px_19.Selectable = true
+    TextButton_Roundify_10px_19.Size = UDim2.new(1, 0, 1, 0)
+    TextButton_Roundify_10px_19.ZIndex = 2
+    TextButton_Roundify_10px_19.Image = "rbxassetid://3570695787"
+    TextButton_Roundify_10px_19.ImageColor3 = Color3.fromRGB(50, 50, 50)
+    TextButton_Roundify_10px_19.ScaleType = Enum.ScaleType.Slice
+    TextButton_Roundify_10px_19.SliceCenter = Rect.new(100, 100, 100, 100)
+    TextButton_Roundify_10px_19.SliceScale = 0.100
 
     ScrollingFrame_2.Parent = SaveLoad
     ScrollingFrame_2.Active = true
@@ -3660,17 +3786,17 @@ function GUI.CreateGui()
     Select.SliceCenter = Rect.new(100, 100, 100, 100)
     Select.SliceScale = 0.100
 
-    TextLabel_6.Parent = Select
-    TextLabel_6.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel_6.BackgroundTransparency = 1.000
-    TextLabel_6.Size = UDim2.new(0, 300, 0, 60)
-    TextLabel_6.ZIndex = 3
-    TextLabel_6.Font = Enum.Font.Arial
-    TextLabel_6.Text = "Please chose the type of export you wish to use."
-    TextLabel_6.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel_6.TextScaled = true
-    TextLabel_6.TextSize = 14.000
-    TextLabel_6.TextWrapped = true
+    TextLabel_8.Parent = Select
+    TextLabel_8.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_8.BackgroundTransparency = 1.000
+    TextLabel_8.Size = UDim2.new(0, 300, 0, 60)
+    TextLabel_8.ZIndex = 3
+    TextLabel_8.Font = Enum.Font.Arial
+    TextLabel_8.Text = "Please chose the type of export you wish to use."
+    TextLabel_8.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_8.TextScaled = true
+    TextLabel_8.TextSize = 14.000
+    TextLabel_8.TextWrapped = true
 
     Standard.Name = "Standard"
     Standard.Parent = Select
@@ -3688,21 +3814,21 @@ function GUI.CreateGui()
     Standard.TextSize = 20.000
     Standard.TextWrapped = true
 
-    TextButton_Roundify_10px_19.Name = "TextButton_Roundify_10px"
-    TextButton_Roundify_10px_19.Parent = Standard
-    TextButton_Roundify_10px_19.Active = true
-    TextButton_Roundify_10px_19.AnchorPoint = Vector2.new(0.5, 0.5)
-    TextButton_Roundify_10px_19.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextButton_Roundify_10px_19.BackgroundTransparency = 1.000
-    TextButton_Roundify_10px_19.Position = UDim2.new(0.5, 0, 0.5, 0)
-    TextButton_Roundify_10px_19.Selectable = true
-    TextButton_Roundify_10px_19.Size = UDim2.new(1, 0, 1, 0)
-    TextButton_Roundify_10px_19.ZIndex = 2
-    TextButton_Roundify_10px_19.Image = "rbxassetid://3570695787"
-    TextButton_Roundify_10px_19.ImageColor3 = Color3.fromRGB(50, 50, 50)
-    TextButton_Roundify_10px_19.ScaleType = Enum.ScaleType.Slice
-    TextButton_Roundify_10px_19.SliceCenter = Rect.new(100, 100, 100, 100)
-    TextButton_Roundify_10px_19.SliceScale = 0.100
+    TextButton_Roundify_10px_20.Name = "TextButton_Roundify_10px"
+    TextButton_Roundify_10px_20.Parent = Standard
+    TextButton_Roundify_10px_20.Active = true
+    TextButton_Roundify_10px_20.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextButton_Roundify_10px_20.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_Roundify_10px_20.BackgroundTransparency = 1.000
+    TextButton_Roundify_10px_20.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextButton_Roundify_10px_20.Selectable = true
+    TextButton_Roundify_10px_20.Size = UDim2.new(1, 0, 1, 0)
+    TextButton_Roundify_10px_20.ZIndex = 2
+    TextButton_Roundify_10px_20.Image = "rbxassetid://3570695787"
+    TextButton_Roundify_10px_20.ImageColor3 = Color3.fromRGB(50, 50, 50)
+    TextButton_Roundify_10px_20.ScaleType = Enum.ScaleType.Slice
+    TextButton_Roundify_10px_20.SliceCenter = Rect.new(100, 100, 100, 100)
+    TextButton_Roundify_10px_20.SliceScale = 0.100
 
     Plugin.Name = "Plugin"
     Plugin.Parent = Select
@@ -3720,21 +3846,21 @@ function GUI.CreateGui()
     Plugin.TextSize = 20.000
     Plugin.TextWrapped = true
 
-    TextButton_Roundify_10px_20.Name = "TextButton_Roundify_10px"
-    TextButton_Roundify_10px_20.Parent = Plugin
-    TextButton_Roundify_10px_20.Active = true
-    TextButton_Roundify_10px_20.AnchorPoint = Vector2.new(0.5, 0.5)
-    TextButton_Roundify_10px_20.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextButton_Roundify_10px_20.BackgroundTransparency = 1.000
-    TextButton_Roundify_10px_20.Position = UDim2.new(0.5, 0, 0.5, 0)
-    TextButton_Roundify_10px_20.Selectable = true
-    TextButton_Roundify_10px_20.Size = UDim2.new(1, 0, 1, 0)
-    TextButton_Roundify_10px_20.ZIndex = 2
-    TextButton_Roundify_10px_20.Image = "rbxassetid://3570695787"
-    TextButton_Roundify_10px_20.ImageColor3 = Color3.fromRGB(45, 45, 45)
-    TextButton_Roundify_10px_20.ScaleType = Enum.ScaleType.Slice
-    TextButton_Roundify_10px_20.SliceCenter = Rect.new(100, 100, 100, 100)
-    TextButton_Roundify_10px_20.SliceScale = 0.100
+    TextButton_Roundify_10px_21.Name = "TextButton_Roundify_10px"
+    TextButton_Roundify_10px_21.Parent = Plugin
+    TextButton_Roundify_10px_21.Active = true
+    TextButton_Roundify_10px_21.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextButton_Roundify_10px_21.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_Roundify_10px_21.BackgroundTransparency = 1.000
+    TextButton_Roundify_10px_21.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextButton_Roundify_10px_21.Selectable = true
+    TextButton_Roundify_10px_21.Size = UDim2.new(1, 0, 1, 0)
+    TextButton_Roundify_10px_21.ZIndex = 2
+    TextButton_Roundify_10px_21.Image = "rbxassetid://3570695787"
+    TextButton_Roundify_10px_21.ImageColor3 = Color3.fromRGB(45, 45, 45)
+    TextButton_Roundify_10px_21.ScaleType = Enum.ScaleType.Slice
+    TextButton_Roundify_10px_21.SliceCenter = Rect.new(100, 100, 100, 100)
+    TextButton_Roundify_10px_21.SliceScale = 0.100
 
     SelectName.Name = "SelectName"
     SelectName.Parent = Export_2
@@ -3751,17 +3877,17 @@ function GUI.CreateGui()
     SelectName.SliceCenter = Rect.new(100, 100, 100, 100)
     SelectName.SliceScale = 0.100
 
-    TextLabel_7.Parent = SelectName
-    TextLabel_7.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel_7.BackgroundTransparency = 1.000
-    TextLabel_7.Size = UDim2.new(0, 300, 0, 60)
-    TextLabel_7.ZIndex = 3
-    TextLabel_7.Font = Enum.Font.Arial
-    TextLabel_7.Text = "Please name all the lights."
-    TextLabel_7.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel_7.TextScaled = true
-    TextLabel_7.TextSize = 14.000
-    TextLabel_7.TextWrapped = true
+    TextLabel_9.Parent = SelectName
+    TextLabel_9.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_9.BackgroundTransparency = 1.000
+    TextLabel_9.Size = UDim2.new(0, 300, 0, 60)
+    TextLabel_9.ZIndex = 3
+    TextLabel_9.Font = Enum.Font.Arial
+    TextLabel_9.Text = "Please name all the lights."
+    TextLabel_9.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_9.TextScaled = true
+    TextLabel_9.TextSize = 14.000
+    TextLabel_9.TextWrapped = true
 
     Cancel_2.Name = "Cancel"
     Cancel_2.Parent = SelectName
@@ -3779,21 +3905,21 @@ function GUI.CreateGui()
     Cancel_2.TextSize = 25.000
     Cancel_2.TextWrapped = true
 
-    TextButton_Roundify_10px_21.Name = "TextButton_Roundify_10px"
-    TextButton_Roundify_10px_21.Parent = Cancel_2
-    TextButton_Roundify_10px_21.Active = true
-    TextButton_Roundify_10px_21.AnchorPoint = Vector2.new(0.5, 0.5)
-    TextButton_Roundify_10px_21.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextButton_Roundify_10px_21.BackgroundTransparency = 1.000
-    TextButton_Roundify_10px_21.Position = UDim2.new(0.5, 0, 0.5, 0)
-    TextButton_Roundify_10px_21.Selectable = true
-    TextButton_Roundify_10px_21.Size = UDim2.new(1, 0, 1, 0)
-    TextButton_Roundify_10px_21.ZIndex = 2
-    TextButton_Roundify_10px_21.Image = "rbxassetid://3570695787"
-    TextButton_Roundify_10px_21.ImageColor3 = Color3.fromRGB(232, 65, 24)
-    TextButton_Roundify_10px_21.ScaleType = Enum.ScaleType.Slice
-    TextButton_Roundify_10px_21.SliceCenter = Rect.new(100, 100, 100, 100)
-    TextButton_Roundify_10px_21.SliceScale = 0.100
+    TextButton_Roundify_10px_22.Name = "TextButton_Roundify_10px"
+    TextButton_Roundify_10px_22.Parent = Cancel_2
+    TextButton_Roundify_10px_22.Active = true
+    TextButton_Roundify_10px_22.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextButton_Roundify_10px_22.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_Roundify_10px_22.BackgroundTransparency = 1.000
+    TextButton_Roundify_10px_22.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextButton_Roundify_10px_22.Selectable = true
+    TextButton_Roundify_10px_22.Size = UDim2.new(1, 0, 1, 0)
+    TextButton_Roundify_10px_22.ZIndex = 2
+    TextButton_Roundify_10px_22.Image = "rbxassetid://3570695787"
+    TextButton_Roundify_10px_22.ImageColor3 = Color3.fromRGB(232, 65, 24)
+    TextButton_Roundify_10px_22.ScaleType = Enum.ScaleType.Slice
+    TextButton_Roundify_10px_22.SliceCenter = Rect.new(100, 100, 100, 100)
+    TextButton_Roundify_10px_22.SliceScale = 0.100
 
     Done.Name = "Done"
     Done.Parent = SelectName
@@ -3811,21 +3937,21 @@ function GUI.CreateGui()
     Done.TextSize = 25.000
     Done.TextWrapped = true
 
-    TextButton_Roundify_10px_22.Name = "TextButton_Roundify_10px"
-    TextButton_Roundify_10px_22.Parent = Done
-    TextButton_Roundify_10px_22.Active = true
-    TextButton_Roundify_10px_22.AnchorPoint = Vector2.new(0.5, 0.5)
-    TextButton_Roundify_10px_22.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextButton_Roundify_10px_22.BackgroundTransparency = 1.000
-    TextButton_Roundify_10px_22.Position = UDim2.new(0.5, 0, 0.5, 0)
-    TextButton_Roundify_10px_22.Selectable = true
-    TextButton_Roundify_10px_22.Size = UDim2.new(1, 0, 1, 0)
-    TextButton_Roundify_10px_22.ZIndex = 2
-    TextButton_Roundify_10px_22.Image = "rbxassetid://3570695787"
-    TextButton_Roundify_10px_22.ImageColor3 = Color3.fromRGB(76, 150, 55)
-    TextButton_Roundify_10px_22.ScaleType = Enum.ScaleType.Slice
-    TextButton_Roundify_10px_22.SliceCenter = Rect.new(100, 100, 100, 100)
-    TextButton_Roundify_10px_22.SliceScale = 0.100
+    TextButton_Roundify_10px_23.Name = "TextButton_Roundify_10px"
+    TextButton_Roundify_10px_23.Parent = Done
+    TextButton_Roundify_10px_23.Active = true
+    TextButton_Roundify_10px_23.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextButton_Roundify_10px_23.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_Roundify_10px_23.BackgroundTransparency = 1.000
+    TextButton_Roundify_10px_23.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextButton_Roundify_10px_23.Selectable = true
+    TextButton_Roundify_10px_23.Size = UDim2.new(1, 0, 1, 0)
+    TextButton_Roundify_10px_23.ZIndex = 2
+    TextButton_Roundify_10px_23.Image = "rbxassetid://3570695787"
+    TextButton_Roundify_10px_23.ImageColor3 = Color3.fromRGB(76, 150, 55)
+    TextButton_Roundify_10px_23.ScaleType = Enum.ScaleType.Slice
+    TextButton_Roundify_10px_23.SliceCenter = Rect.new(100, 100, 100, 100)
+    TextButton_Roundify_10px_23.SliceScale = 0.100
 
     StandardComplete.Name = "StandardComplete"
     StandardComplete.Parent = Export_2
@@ -3842,17 +3968,84 @@ function GUI.CreateGui()
     StandardComplete.SliceCenter = Rect.new(100, 100, 100, 100)
     StandardComplete.SliceScale = 0.100
 
-    TextLabel_8.Parent = StandardComplete
-    TextLabel_8.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel_8.BackgroundTransparency = 1.000
-    TextLabel_8.Size = UDim2.new(0, 300, 0, 60)
-    TextLabel_8.ZIndex = 3
-    TextLabel_8.Font = Enum.Font.Arial
-    TextLabel_8.Text = "Export complete, window will close automatically."
-    TextLabel_8.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel_8.TextScaled = true
-    TextLabel_8.TextSize = 14.000
-    TextLabel_8.TextWrapped = true
+    TextLabel_10.Parent = StandardComplete
+    TextLabel_10.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_10.BackgroundTransparency = 1.000
+    TextLabel_10.Size = UDim2.new(0, 300, 0, 60)
+    TextLabel_10.ZIndex = 3
+    TextLabel_10.Font = Enum.Font.Arial
+    TextLabel_10.Text = "Export complete, window will close automatically."
+    TextLabel_10.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_10.TextScaled = true
+    TextLabel_10.TextSize = 14.000
+    TextLabel_10.TextWrapped = true
+
+    Controls_2.Name = "Controls"
+    Controls_2.Parent = Main
+    Controls_2.AnchorPoint = Vector2.new(0.5, 0.5)
+    Controls_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Controls_2.BackgroundTransparency = 1.000
+    Controls_2.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Controls_2.Size = UDim2.new(0, 500, 0, 250)
+    Controls_2.Visible = false
+    Controls_2.ZIndex = 2
+    Controls_2.Image = "rbxassetid://3570695787"
+    Controls_2.ImageColor3 = Color3.fromRGB(40, 40, 40)
+    Controls_2.ScaleType = Enum.ScaleType.Slice
+    Controls_2.SliceCenter = Rect.new(100, 100, 100, 100)
+    Controls_2.SliceScale = 0.100
+
+    TextLabel_11.Parent = Controls_2
+    TextLabel_11.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_11.BackgroundTransparency = 1.000
+    TextLabel_11.Position = UDim2.new(0.200000003, 0, 0.299615979, 0)
+    TextLabel_11.Size = UDim2.new(0, 300, 0, 25)
+    TextLabel_11.ZIndex = 3
+    TextLabel_11.Font = Enum.Font.Arial
+    TextLabel_11.Text = "<b>P</b> - Pause"
+    TextLabel_11.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_11.TextScaled = true
+    TextLabel_11.TextSize = 14.000
+    TextLabel_11.TextWrapped = true
+
+    TextLabel_12.Parent = Controls_2
+    TextLabel_12.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_12.BackgroundTransparency = 1.000
+    TextLabel_12.Position = UDim2.new(0.200000003, 0, 0.399615973, 0)
+    TextLabel_12.Size = UDim2.new(0, 300, 0, 25)
+    TextLabel_12.ZIndex = 3
+    TextLabel_12.Font = Enum.Font.Arial
+    TextLabel_12.Text = "<b>Space</b> - Spacer"
+    TextLabel_12.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_12.TextScaled = true
+    TextLabel_12.TextSize = 14.000
+    TextLabel_12.TextWrapped = true
+
+    TextLabel_13.Parent = Controls_2
+    TextLabel_13.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_13.BackgroundTransparency = 1.000
+    TextLabel_13.Position = UDim2.new(0.200000003, 0, 0.499615997, 0)
+    TextLabel_13.Size = UDim2.new(0, 300, 0, 25)
+    TextLabel_13.ZIndex = 3
+    TextLabel_13.Font = Enum.Font.Arial
+    TextLabel_13.Text = "<b>R</b> - Reset"
+    TextLabel_13.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_13.TextScaled = true
+    TextLabel_13.TextSize = 14.000
+    TextLabel_13.TextWrapped = true
+
+    TextLabel_14.Parent = Controls_2
+    TextLabel_14.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_14.BackgroundTransparency = 1.000
+    TextLabel_14.Position = UDim2.new(0.200000003, 0, 0.599616051, 0)
+    TextLabel_14.Size = UDim2.new(0, 300, 0, 25)
+    TextLabel_14.ZIndex = 3
+    TextLabel_14.Font = Enum.Font.Arial
+    TextLabel_14.Text = "<b>1-6</b> - Change Colors"
+    TextLabel_14.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel_14.TextScaled = true
+    TextLabel_14.TextSize = 14.000
+    TextLabel_14.TextWrapped = true
 
     return Main
 end
@@ -34326,6 +34519,383 @@ end
 								<UniqueId name="UniqueId">425070f357fc386702b6a73e000c8f44</UniqueId>
 							</Properties>
 						</Item>
+						<Item class="TextButton" referent="RBX6A4B70D53DB2446C91CCC691A3D61259">
+							<Properties>
+								<bool name="Active">true</bool>
+								<Vector2 name="AnchorPoint">
+									<X>0.5</X>
+									<Y>0.5</Y>
+								</Vector2>
+								<BinaryString name="AttributesSerialize"></BinaryString>
+								<bool name="AutoButtonColor">true</bool>
+								<bool name="AutoLocalize">true</bool>
+								<token name="AutomaticSize">0</token>
+								<Color3 name="BackgroundColor3">
+									<R>0.196078435</R>
+									<G>0.196078435</G>
+									<B>0.196078435</B>
+								</Color3>
+								<float name="BackgroundTransparency">1</float>
+								<Color3 name="BorderColor3">
+									<R>0.105882362</R>
+									<G>0.164705887</G>
+									<B>0.207843155</B>
+								</Color3>
+								<token name="BorderMode">0</token>
+								<int name="BorderSizePixel">0</int>
+								<bool name="ClipsDescendants">false</bool>
+								<bool name="Draggable">false</bool>
+								<token name="Font">2</token>
+								<Font name="FontFace"></Font>
+								<int name="LayoutOrder">0</int>
+								<float name="LineHeight">1</float>
+								<int name="MaxVisibleGraphemes">-1</int>
+								<bool name="Modal">false</bool>
+								<string name="Name">Controls</string>
+								<Ref name="NextSelectionDown">null</Ref>
+								<Ref name="NextSelectionLeft">null</Ref>
+								<Ref name="NextSelectionRight">null</Ref>
+								<Ref name="NextSelectionUp">null</Ref>
+								<UDim2 name="Position">
+									<XS>0.50150007</XS>
+									<XO>0</XO>
+									<YS>0.433169395</YS>
+									<YO>0</YO>
+								</UDim2>
+								<bool name="RichText">false</bool>
+								<Ref name="RootLocalizationTable">null</Ref>
+								<float name="Rotation">0</float>
+								<bool name="Selectable">true</bool>
+								<bool name="Selected">false</bool>
+								<token name="SelectionBehaviorDown">0</token>
+								<token name="SelectionBehaviorLeft">0</token>
+								<token name="SelectionBehaviorRight">0</token>
+								<token name="SelectionBehaviorUp">0</token>
+								<bool name="SelectionGroup">false</bool>
+								<Ref name="SelectionImageObject">null</Ref>
+								<int name="SelectionOrder">0</int>
+								<UDim2 name="Size">
+									<XS>0.943333328</XS>
+									<XO>0</XO>
+									<YS>0.0350000001</YS>
+									<YO>0</YO>
+								</UDim2>
+								<token name="SizeConstraint">0</token>
+								<int64 name="SourceAssetId">-1</int64>
+								<token name="Style">0</token>
+								<BinaryString name="Tags"></BinaryString>
+								<string name="Text">Show Controls</string>
+								<Color3 name="TextColor3">
+									<R>1</R>
+									<G>1</G>
+									<B>1</B>
+								</Color3>
+								<bool name="TextScaled">false</bool>
+								<float name="TextSize">25</float>
+								<Color3 name="TextStrokeColor3">
+									<R>0</R>
+									<G>0</G>
+									<B>0</B>
+								</Color3>
+								<float name="TextStrokeTransparency">1</float>
+								<float name="TextTransparency">0</float>
+								<token name="TextTruncate">0</token>
+								<bool name="TextWrapped">true</bool>
+								<token name="TextXAlignment">2</token>
+								<token name="TextYAlignment">1</token>
+								<UniqueId name="UniqueId">74786f28e66c004702c25284000c2cf2</UniqueId>
+								<bool name="Visible">true</bool>
+								<int name="ZIndex">102</int>
+							</Properties>
+							<Item class="ImageLabel" referent="RBX534DD27823874CCFB47FAD5336BB2E00">
+								<Properties>
+									<bool name="Active">true</bool>
+									<Vector2 name="AnchorPoint">
+										<X>0.5</X>
+										<Y>0.5</Y>
+									</Vector2>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<bool name="AutoLocalize">true</bool>
+									<token name="AutomaticSize">0</token>
+									<Color3 name="BackgroundColor3">
+										<R>1</R>
+										<G>1</G>
+										<B>1</B>
+									</Color3>
+									<float name="BackgroundTransparency">1</float>
+									<Color3 name="BorderColor3">
+										<R>0.105882362</R>
+										<G>0.164705887</G>
+										<B>0.207843155</B>
+									</Color3>
+									<token name="BorderMode">0</token>
+									<int name="BorderSizePixel">1</int>
+									<bool name="ClipsDescendants">false</bool>
+									<bool name="Draggable">false</bool>
+									<Content name="Image"><url>rbxassetid://3570695787</url></Content>
+									<Color3 name="ImageColor3">
+										<R>0.196078435</R>
+										<G>0.196078435</G>
+										<B>0.196078435</B>
+									</Color3>
+									<Vector2 name="ImageRectOffset">
+										<X>0</X>
+										<Y>0</Y>
+									</Vector2>
+									<Vector2 name="ImageRectSize">
+										<X>0</X>
+										<Y>0</Y>
+									</Vector2>
+									<float name="ImageTransparency">0</float>
+									<int name="LayoutOrder">0</int>
+									<string name="Name">TextButton_Roundify_10px</string>
+									<Ref name="NextSelectionDown">null</Ref>
+									<Ref name="NextSelectionLeft">null</Ref>
+									<Ref name="NextSelectionRight">null</Ref>
+									<Ref name="NextSelectionUp">null</Ref>
+									<UDim2 name="Position">
+										<XS>0.5</XS>
+										<XO>0</XO>
+										<YS>0.5</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="ResampleMode">0</token>
+									<Ref name="RootLocalizationTable">null</Ref>
+									<float name="Rotation">0</float>
+									<token name="ScaleType">1</token>
+									<bool name="Selectable">true</bool>
+									<token name="SelectionBehaviorDown">0</token>
+									<token name="SelectionBehaviorLeft">0</token>
+									<token name="SelectionBehaviorRight">0</token>
+									<token name="SelectionBehaviorUp">0</token>
+									<bool name="SelectionGroup">false</bool>
+									<Ref name="SelectionImageObject">null</Ref>
+									<int name="SelectionOrder">0</int>
+									<UDim2 name="Size">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>1</YS>
+										<YO>0</YO>
+									</UDim2>
+									<token name="SizeConstraint">0</token>
+									<Rect2D name="SliceCenter">
+										<min>
+											<X>100</X>
+											<Y>100</Y>
+										</min>
+										<max>
+											<X>100</X>
+											<Y>100</Y>
+										</max>
+									</Rect2D>
+									<float name="SliceScale">0.100000001</float>
+									<int64 name="SourceAssetId">-1</int64>
+									<BinaryString name="Tags"></BinaryString>
+									<UDim2 name="TileSize">
+										<XS>1</XS>
+										<XO>0</XO>
+										<YS>1</YS>
+										<YO>0</YO>
+									</UDim2>
+									<UniqueId name="UniqueId">74786f28e66c004702c25284000c2cf3</UniqueId>
+									<bool name="Visible">true</bool>
+									<int name="ZIndex">101</int>
+								</Properties>
+							</Item>
+						</Item>
+						<Item class="TextLabel" referent="RBX466D596A9A704153ACC51028EC3BFE01">
+							<Properties>
+								<bool name="Active">false</bool>
+								<Vector2 name="AnchorPoint">
+									<X>0.5</X>
+									<Y>0.5</Y>
+								</Vector2>
+								<BinaryString name="AttributesSerialize"></BinaryString>
+								<bool name="AutoLocalize">true</bool>
+								<token name="AutomaticSize">0</token>
+								<Color3 name="BackgroundColor3">
+									<R>1</R>
+									<G>1</G>
+									<B>1</B>
+								</Color3>
+								<float name="BackgroundTransparency">1</float>
+								<Color3 name="BorderColor3">
+									<R>0.105882362</R>
+									<G>0.164705887</G>
+									<B>0.207843155</B>
+								</Color3>
+								<token name="BorderMode">0</token>
+								<int name="BorderSizePixel">1</int>
+								<bool name="ClipsDescendants">false</bool>
+								<bool name="Draggable">false</bool>
+								<token name="Font">1</token>
+								<Font name="FontFace"></Font>
+								<int name="LayoutOrder">0</int>
+								<float name="LineHeight">1</float>
+								<int name="MaxVisibleGraphemes">-1</int>
+								<string name="Name">Credits</string>
+								<Ref name="NextSelectionDown">null</Ref>
+								<Ref name="NextSelectionLeft">null</Ref>
+								<Ref name="NextSelectionRight">null</Ref>
+								<Ref name="NextSelectionUp">null</Ref>
+								<UDim2 name="Position">
+									<XS>0.501666665</XS>
+									<XO>0</XO>
+									<YS>0.379797161</YS>
+									<YO>0</YO>
+								</UDim2>
+								<bool name="RichText">true</bool>
+								<Ref name="RootLocalizationTable">null</Ref>
+								<float name="Rotation">0</float>
+								<bool name="Selectable">false</bool>
+								<token name="SelectionBehaviorDown">0</token>
+								<token name="SelectionBehaviorLeft">0</token>
+								<token name="SelectionBehaviorRight">0</token>
+								<token name="SelectionBehaviorUp">0</token>
+								<bool name="SelectionGroup">false</bool>
+								<Ref name="SelectionImageObject">null</Ref>
+								<int name="SelectionOrder">0</int>
+								<UDim2 name="Size">
+									<XS>0.946666658</XS>
+									<XO>0</XO>
+									<YS>0.0591389909</YS>
+									<YO>0</YO>
+								</UDim2>
+								<token name="SizeConstraint">0</token>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"></BinaryString>
+								<string name="Text">Credits: Siren Tool (Insperation), parker02311 (Project Maintainer), &lt;b&gt;You!&lt;/b&gt; (Supporter)</string>
+								<Color3 name="TextColor3">
+									<R>1</R>
+									<G>1</G>
+									<B>1</B>
+								</Color3>
+								<bool name="TextScaled">true</bool>
+								<float name="TextSize">14</float>
+								<Color3 name="TextStrokeColor3">
+									<R>0</R>
+									<G>0</G>
+									<B>0</B>
+								</Color3>
+								<float name="TextStrokeTransparency">1</float>
+								<float name="TextTransparency">0</float>
+								<token name="TextTruncate">0</token>
+								<bool name="TextWrapped">true</bool>
+								<token name="TextXAlignment">2</token>
+								<token name="TextYAlignment">1</token>
+								<UniqueId name="UniqueId">74786f28e66c004702c25284000c2fa8</UniqueId>
+								<bool name="Visible">true</bool>
+								<int name="ZIndex">101</int>
+							</Properties>
+							<Item class="UITextSizeConstraint" referent="RBX58EF0A193FAE450BBB5F8A978428968E">
+								<Properties>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<int name="MaxTextSize">21</int>
+									<int name="MinTextSize">1</int>
+									<string name="Name">UITextSizeConstraint</string>
+									<int64 name="SourceAssetId">-1</int64>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">74786f28e66c004702c25284000c2fa9</UniqueId>
+								</Properties>
+							</Item>
+						</Item>
+						<Item class="TextLabel" referent="RBX54301118560843BB99F2D90FC5518112">
+							<Properties>
+								<bool name="Active">false</bool>
+								<Vector2 name="AnchorPoint">
+									<X>0.5</X>
+									<Y>0.5</Y>
+								</Vector2>
+								<BinaryString name="AttributesSerialize"></BinaryString>
+								<bool name="AutoLocalize">true</bool>
+								<token name="AutomaticSize">0</token>
+								<Color3 name="BackgroundColor3">
+									<R>1</R>
+									<G>1</G>
+									<B>1</B>
+								</Color3>
+								<float name="BackgroundTransparency">1</float>
+								<Color3 name="BorderColor3">
+									<R>0.105882362</R>
+									<G>0.164705887</G>
+									<B>0.207843155</B>
+								</Color3>
+								<token name="BorderMode">0</token>
+								<int name="BorderSizePixel">1</int>
+								<bool name="ClipsDescendants">false</bool>
+								<bool name="Draggable">false</bool>
+								<token name="Font">1</token>
+								<Font name="FontFace"></Font>
+								<int name="LayoutOrder">0</int>
+								<float name="LineHeight">1</float>
+								<int name="MaxVisibleGraphemes">-1</int>
+								<string name="Name">Thanks</string>
+								<Ref name="NextSelectionDown">null</Ref>
+								<Ref name="NextSelectionLeft">null</Ref>
+								<Ref name="NextSelectionRight">null</Ref>
+								<Ref name="NextSelectionUp">null</Ref>
+								<UDim2 name="Position">
+									<XS>0.501666665</XS>
+									<XO>0</XO>
+									<YS>0.292505533</YS>
+									<YO>0</YO>
+								</UDim2>
+								<bool name="RichText">true</bool>
+								<Ref name="RootLocalizationTable">null</Ref>
+								<float name="Rotation">0</float>
+								<bool name="Selectable">false</bool>
+								<token name="SelectionBehaviorDown">0</token>
+								<token name="SelectionBehaviorLeft">0</token>
+								<token name="SelectionBehaviorRight">0</token>
+								<token name="SelectionBehaviorUp">0</token>
+								<bool name="SelectionGroup">false</bool>
+								<Ref name="SelectionImageObject">null</Ref>
+								<int name="SelectionOrder">0</int>
+								<UDim2 name="Size">
+									<XS>0.946666658</XS>
+									<XO>0</XO>
+									<YS>0.0979999974</YS>
+									<YO>0</YO>
+								</UDim2>
+								<token name="SizeConstraint">0</token>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"></BinaryString>
+								<string name="Text"><![CDATA[<font size="20"><b>Thanks for using Emergency Vehicle Creator!</b></font>
+If you have any problems/suggestions join our communications server: Eb384Xw]]></string>
+								<Color3 name="TextColor3">
+									<R>1</R>
+									<G>1</G>
+									<B>1</B>
+								</Color3>
+								<bool name="TextScaled">false</bool>
+								<float name="TextSize">14</float>
+								<Color3 name="TextStrokeColor3">
+									<R>0</R>
+									<G>0</G>
+									<B>0</B>
+								</Color3>
+								<float name="TextStrokeTransparency">1</float>
+								<float name="TextTransparency">0</float>
+								<token name="TextTruncate">0</token>
+								<bool name="TextWrapped">true</bool>
+								<token name="TextXAlignment">2</token>
+								<token name="TextYAlignment">1</token>
+								<UniqueId name="UniqueId">74786f28e66c004702c25284000c3501</UniqueId>
+								<bool name="Visible">true</bool>
+								<int name="ZIndex">101</int>
+							</Properties>
+							<Item class="UITextSizeConstraint" referent="RBXD8C2F778ECC64DAAAD13A70911F762CD">
+								<Properties>
+									<BinaryString name="AttributesSerialize"></BinaryString>
+									<int name="MaxTextSize">21</int>
+									<int name="MinTextSize">1</int>
+									<string name="Name">UITextSizeConstraint</string>
+									<int64 name="SourceAssetId">-1</int64>
+									<BinaryString name="Tags"></BinaryString>
+									<UniqueId name="UniqueId">74786f28e66c004702c25284000c3502</UniqueId>
+								</Properties>
+							</Item>
+						</Item>
 					</Item>
 					<Item class="ScrollingFrame" referent="RBXD8B2F93649094C099E5152F3FFBFB038">
 						<Properties>
@@ -45044,6 +45614,441 @@ end
 								<int name="ZIndex">3</int>
 							</Properties>
 						</Item>
+					</Item>
+				</Item>
+				<Item class="ImageLabel" referent="RBX2C7686ED767D464DA1D42FB8B637CD63">
+					<Properties>
+						<bool name="Active">false</bool>
+						<Vector2 name="AnchorPoint">
+							<X>0.5</X>
+							<Y>0.5</Y>
+						</Vector2>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<bool name="AutoLocalize">true</bool>
+						<token name="AutomaticSize">0</token>
+						<Color3 name="BackgroundColor3">
+							<R>0.156862751</R>
+							<G>0.156862751</G>
+							<B>0.156862751</B>
+						</Color3>
+						<float name="BackgroundTransparency">1</float>
+						<Color3 name="BorderColor3">
+							<R>0.105882362</R>
+							<G>0.164705887</G>
+							<B>0.207843155</B>
+						</Color3>
+						<token name="BorderMode">0</token>
+						<int name="BorderSizePixel">1</int>
+						<bool name="ClipsDescendants">false</bool>
+						<bool name="Draggable">false</bool>
+						<Content name="Image"><url>rbxassetid://3570695787</url></Content>
+						<Color3 name="ImageColor3">
+							<R>0.156862751</R>
+							<G>0.156862751</G>
+							<B>0.156862751</B>
+						</Color3>
+						<Vector2 name="ImageRectOffset">
+							<X>0</X>
+							<Y>0</Y>
+						</Vector2>
+						<Vector2 name="ImageRectSize">
+							<X>0</X>
+							<Y>0</Y>
+						</Vector2>
+						<float name="ImageTransparency">0</float>
+						<int name="LayoutOrder">0</int>
+						<string name="Name">Controls</string>
+						<Ref name="NextSelectionDown">null</Ref>
+						<Ref name="NextSelectionLeft">null</Ref>
+						<Ref name="NextSelectionRight">null</Ref>
+						<Ref name="NextSelectionUp">null</Ref>
+						<UDim2 name="Position">
+							<XS>0.5</XS>
+							<XO>0</XO>
+							<YS>0.5</YS>
+							<YO>0</YO>
+						</UDim2>
+						<token name="ResampleMode">0</token>
+						<Ref name="RootLocalizationTable">null</Ref>
+						<float name="Rotation">0</float>
+						<token name="ScaleType">1</token>
+						<bool name="Selectable">false</bool>
+						<token name="SelectionBehaviorDown">0</token>
+						<token name="SelectionBehaviorLeft">0</token>
+						<token name="SelectionBehaviorRight">0</token>
+						<token name="SelectionBehaviorUp">0</token>
+						<bool name="SelectionGroup">false</bool>
+						<Ref name="SelectionImageObject">null</Ref>
+						<int name="SelectionOrder">0</int>
+						<UDim2 name="Size">
+							<XS>0</XS>
+							<XO>500</XO>
+							<YS>0</YS>
+							<YO>250</YO>
+						</UDim2>
+						<token name="SizeConstraint">0</token>
+						<Rect2D name="SliceCenter">
+							<min>
+								<X>100</X>
+								<Y>100</Y>
+							</min>
+							<max>
+								<X>100</X>
+								<Y>100</Y>
+							</max>
+						</Rect2D>
+						<float name="SliceScale">0.100000001</float>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"></BinaryString>
+						<UDim2 name="TileSize">
+							<XS>1</XS>
+							<XO>0</XO>
+							<YS>1</YS>
+							<YO>0</YO>
+						</UDim2>
+						<UniqueId name="UniqueId">74786f28e66c004702c25284000c2482</UniqueId>
+						<bool name="Visible">false</bool>
+						<int name="ZIndex">2</int>
+					</Properties>
+					<Item class="TextLabel" referent="RBXA2FF2E43C9674D8DB4207CE481A53196">
+						<Properties>
+							<bool name="Active">false</bool>
+							<Vector2 name="AnchorPoint">
+								<X>0</X>
+								<Y>0</Y>
+							</Vector2>
+							<BinaryString name="AttributesSerialize"></BinaryString>
+							<bool name="AutoLocalize">true</bool>
+							<token name="AutomaticSize">0</token>
+							<Color3 name="BackgroundColor3">
+								<R>1</R>
+								<G>1</G>
+								<B>1</B>
+							</Color3>
+							<float name="BackgroundTransparency">1</float>
+							<Color3 name="BorderColor3">
+								<R>0.105882362</R>
+								<G>0.164705887</G>
+								<B>0.207843155</B>
+							</Color3>
+							<token name="BorderMode">0</token>
+							<int name="BorderSizePixel">1</int>
+							<bool name="ClipsDescendants">false</bool>
+							<bool name="Draggable">false</bool>
+							<token name="Font">1</token>
+							<Font name="FontFace"></Font>
+							<int name="LayoutOrder">0</int>
+							<float name="LineHeight">1</float>
+							<int name="MaxVisibleGraphemes">-1</int>
+							<string name="Name">TextLabel</string>
+							<Ref name="NextSelectionDown">null</Ref>
+							<Ref name="NextSelectionLeft">null</Ref>
+							<Ref name="NextSelectionRight">null</Ref>
+							<Ref name="NextSelectionUp">null</Ref>
+							<UDim2 name="Position">
+								<XS>0.200000003</XS>
+								<XO>0</XO>
+								<YS>0.299615979</YS>
+								<YO>0</YO>
+							</UDim2>
+							<bool name="RichText">true</bool>
+							<Ref name="RootLocalizationTable">null</Ref>
+							<float name="Rotation">0</float>
+							<bool name="Selectable">false</bool>
+							<token name="SelectionBehaviorDown">0</token>
+							<token name="SelectionBehaviorLeft">0</token>
+							<token name="SelectionBehaviorRight">0</token>
+							<token name="SelectionBehaviorUp">0</token>
+							<bool name="SelectionGroup">false</bool>
+							<Ref name="SelectionImageObject">null</Ref>
+							<int name="SelectionOrder">0</int>
+							<UDim2 name="Size">
+								<XS>0</XS>
+								<XO>300</XO>
+								<YS>0</YS>
+								<YO>25</YO>
+							</UDim2>
+							<token name="SizeConstraint">0</token>
+							<int64 name="SourceAssetId">-1</int64>
+							<BinaryString name="Tags"></BinaryString>
+							<string name="Text">&lt;b&gt;P&lt;/b&gt; - Pause</string>
+							<Color3 name="TextColor3">
+								<R>1</R>
+								<G>1</G>
+								<B>1</B>
+							</Color3>
+							<bool name="TextScaled">true</bool>
+							<float name="TextSize">14</float>
+							<Color3 name="TextStrokeColor3">
+								<R>0</R>
+								<G>0</G>
+								<B>0</B>
+							</Color3>
+							<float name="TextStrokeTransparency">1</float>
+							<float name="TextTransparency">0</float>
+							<token name="TextTruncate">0</token>
+							<bool name="TextWrapped">true</bool>
+							<token name="TextXAlignment">2</token>
+							<token name="TextYAlignment">1</token>
+							<UniqueId name="UniqueId">74786f28e66c004702c25284000c2483</UniqueId>
+							<bool name="Visible">true</bool>
+							<int name="ZIndex">3</int>
+						</Properties>
+					</Item>
+					<Item class="TextLabel" referent="RBX4BBDD40284CA42E48A90BF798D58313D">
+						<Properties>
+							<bool name="Active">false</bool>
+							<Vector2 name="AnchorPoint">
+								<X>0</X>
+								<Y>0</Y>
+							</Vector2>
+							<BinaryString name="AttributesSerialize"></BinaryString>
+							<bool name="AutoLocalize">true</bool>
+							<token name="AutomaticSize">0</token>
+							<Color3 name="BackgroundColor3">
+								<R>1</R>
+								<G>1</G>
+								<B>1</B>
+							</Color3>
+							<float name="BackgroundTransparency">1</float>
+							<Color3 name="BorderColor3">
+								<R>0.105882362</R>
+								<G>0.164705887</G>
+								<B>0.207843155</B>
+							</Color3>
+							<token name="BorderMode">0</token>
+							<int name="BorderSizePixel">1</int>
+							<bool name="ClipsDescendants">false</bool>
+							<bool name="Draggable">false</bool>
+							<token name="Font">1</token>
+							<Font name="FontFace"></Font>
+							<int name="LayoutOrder">0</int>
+							<float name="LineHeight">1</float>
+							<int name="MaxVisibleGraphemes">-1</int>
+							<string name="Name">TextLabel</string>
+							<Ref name="NextSelectionDown">null</Ref>
+							<Ref name="NextSelectionLeft">null</Ref>
+							<Ref name="NextSelectionRight">null</Ref>
+							<Ref name="NextSelectionUp">null</Ref>
+							<UDim2 name="Position">
+								<XS>0.200000003</XS>
+								<XO>0</XO>
+								<YS>0.399615973</YS>
+								<YO>0</YO>
+							</UDim2>
+							<bool name="RichText">true</bool>
+							<Ref name="RootLocalizationTable">null</Ref>
+							<float name="Rotation">0</float>
+							<bool name="Selectable">false</bool>
+							<token name="SelectionBehaviorDown">0</token>
+							<token name="SelectionBehaviorLeft">0</token>
+							<token name="SelectionBehaviorRight">0</token>
+							<token name="SelectionBehaviorUp">0</token>
+							<bool name="SelectionGroup">false</bool>
+							<Ref name="SelectionImageObject">null</Ref>
+							<int name="SelectionOrder">0</int>
+							<UDim2 name="Size">
+								<XS>0</XS>
+								<XO>300</XO>
+								<YS>0</YS>
+								<YO>25</YO>
+							</UDim2>
+							<token name="SizeConstraint">0</token>
+							<int64 name="SourceAssetId">-1</int64>
+							<BinaryString name="Tags"></BinaryString>
+							<string name="Text">&lt;b&gt;Space&lt;/b&gt; - Spacer</string>
+							<Color3 name="TextColor3">
+								<R>1</R>
+								<G>1</G>
+								<B>1</B>
+							</Color3>
+							<bool name="TextScaled">true</bool>
+							<float name="TextSize">14</float>
+							<Color3 name="TextStrokeColor3">
+								<R>0</R>
+								<G>0</G>
+								<B>0</B>
+							</Color3>
+							<float name="TextStrokeTransparency">1</float>
+							<float name="TextTransparency">0</float>
+							<token name="TextTruncate">0</token>
+							<bool name="TextWrapped">true</bool>
+							<token name="TextXAlignment">2</token>
+							<token name="TextYAlignment">1</token>
+							<UniqueId name="UniqueId">74786f28e66c004702c25284000c258f</UniqueId>
+							<bool name="Visible">true</bool>
+							<int name="ZIndex">3</int>
+						</Properties>
+					</Item>
+					<Item class="TextLabel" referent="RBX50ACD205CD4C437B8FC52F664EA1467C">
+						<Properties>
+							<bool name="Active">false</bool>
+							<Vector2 name="AnchorPoint">
+								<X>0</X>
+								<Y>0</Y>
+							</Vector2>
+							<BinaryString name="AttributesSerialize"></BinaryString>
+							<bool name="AutoLocalize">true</bool>
+							<token name="AutomaticSize">0</token>
+							<Color3 name="BackgroundColor3">
+								<R>1</R>
+								<G>1</G>
+								<B>1</B>
+							</Color3>
+							<float name="BackgroundTransparency">1</float>
+							<Color3 name="BorderColor3">
+								<R>0.105882362</R>
+								<G>0.164705887</G>
+								<B>0.207843155</B>
+							</Color3>
+							<token name="BorderMode">0</token>
+							<int name="BorderSizePixel">1</int>
+							<bool name="ClipsDescendants">false</bool>
+							<bool name="Draggable">false</bool>
+							<token name="Font">1</token>
+							<Font name="FontFace"></Font>
+							<int name="LayoutOrder">0</int>
+							<float name="LineHeight">1</float>
+							<int name="MaxVisibleGraphemes">-1</int>
+							<string name="Name">TextLabel</string>
+							<Ref name="NextSelectionDown">null</Ref>
+							<Ref name="NextSelectionLeft">null</Ref>
+							<Ref name="NextSelectionRight">null</Ref>
+							<Ref name="NextSelectionUp">null</Ref>
+							<UDim2 name="Position">
+								<XS>0.200000003</XS>
+								<XO>0</XO>
+								<YS>0.499615997</YS>
+								<YO>0</YO>
+							</UDim2>
+							<bool name="RichText">true</bool>
+							<Ref name="RootLocalizationTable">null</Ref>
+							<float name="Rotation">0</float>
+							<bool name="Selectable">false</bool>
+							<token name="SelectionBehaviorDown">0</token>
+							<token name="SelectionBehaviorLeft">0</token>
+							<token name="SelectionBehaviorRight">0</token>
+							<token name="SelectionBehaviorUp">0</token>
+							<bool name="SelectionGroup">false</bool>
+							<Ref name="SelectionImageObject">null</Ref>
+							<int name="SelectionOrder">0</int>
+							<UDim2 name="Size">
+								<XS>0</XS>
+								<XO>300</XO>
+								<YS>0</YS>
+								<YO>25</YO>
+							</UDim2>
+							<token name="SizeConstraint">0</token>
+							<int64 name="SourceAssetId">-1</int64>
+							<BinaryString name="Tags"></BinaryString>
+							<string name="Text">&lt;b&gt;R&lt;/b&gt; - Reset</string>
+							<Color3 name="TextColor3">
+								<R>1</R>
+								<G>1</G>
+								<B>1</B>
+							</Color3>
+							<bool name="TextScaled">true</bool>
+							<float name="TextSize">14</float>
+							<Color3 name="TextStrokeColor3">
+								<R>0</R>
+								<G>0</G>
+								<B>0</B>
+							</Color3>
+							<float name="TextStrokeTransparency">1</float>
+							<float name="TextTransparency">0</float>
+							<token name="TextTruncate">0</token>
+							<bool name="TextWrapped">true</bool>
+							<token name="TextXAlignment">2</token>
+							<token name="TextYAlignment">1</token>
+							<UniqueId name="UniqueId">74786f28e66c004702c25284000c26fe</UniqueId>
+							<bool name="Visible">true</bool>
+							<int name="ZIndex">3</int>
+						</Properties>
+					</Item>
+					<Item class="TextLabel" referent="RBX1450D998EEAB4EC5A6F4872A60AACB34">
+						<Properties>
+							<bool name="Active">false</bool>
+							<Vector2 name="AnchorPoint">
+								<X>0</X>
+								<Y>0</Y>
+							</Vector2>
+							<BinaryString name="AttributesSerialize"></BinaryString>
+							<bool name="AutoLocalize">true</bool>
+							<token name="AutomaticSize">0</token>
+							<Color3 name="BackgroundColor3">
+								<R>1</R>
+								<G>1</G>
+								<B>1</B>
+							</Color3>
+							<float name="BackgroundTransparency">1</float>
+							<Color3 name="BorderColor3">
+								<R>0.105882362</R>
+								<G>0.164705887</G>
+								<B>0.207843155</B>
+							</Color3>
+							<token name="BorderMode">0</token>
+							<int name="BorderSizePixel">1</int>
+							<bool name="ClipsDescendants">false</bool>
+							<bool name="Draggable">false</bool>
+							<token name="Font">1</token>
+							<Font name="FontFace"></Font>
+							<int name="LayoutOrder">0</int>
+							<float name="LineHeight">1</float>
+							<int name="MaxVisibleGraphemes">-1</int>
+							<string name="Name">TextLabel</string>
+							<Ref name="NextSelectionDown">null</Ref>
+							<Ref name="NextSelectionLeft">null</Ref>
+							<Ref name="NextSelectionRight">null</Ref>
+							<Ref name="NextSelectionUp">null</Ref>
+							<UDim2 name="Position">
+								<XS>0.200000003</XS>
+								<XO>0</XO>
+								<YS>0.599616051</YS>
+								<YO>0</YO>
+							</UDim2>
+							<bool name="RichText">true</bool>
+							<Ref name="RootLocalizationTable">null</Ref>
+							<float name="Rotation">0</float>
+							<bool name="Selectable">false</bool>
+							<token name="SelectionBehaviorDown">0</token>
+							<token name="SelectionBehaviorLeft">0</token>
+							<token name="SelectionBehaviorRight">0</token>
+							<token name="SelectionBehaviorUp">0</token>
+							<bool name="SelectionGroup">false</bool>
+							<Ref name="SelectionImageObject">null</Ref>
+							<int name="SelectionOrder">0</int>
+							<UDim2 name="Size">
+								<XS>0</XS>
+								<XO>300</XO>
+								<YS>0</YS>
+								<YO>25</YO>
+							</UDim2>
+							<token name="SizeConstraint">0</token>
+							<int64 name="SourceAssetId">-1</int64>
+							<BinaryString name="Tags"></BinaryString>
+							<string name="Text">&lt;b&gt;1-6&lt;/b&gt; - Change Colors</string>
+							<Color3 name="TextColor3">
+								<R>1</R>
+								<G>1</G>
+								<B>1</B>
+							</Color3>
+							<bool name="TextScaled">true</bool>
+							<float name="TextSize">14</float>
+							<Color3 name="TextStrokeColor3">
+								<R>0</R>
+								<G>0</G>
+								<B>0</B>
+							</Color3>
+							<float name="TextStrokeTransparency">1</float>
+							<float name="TextTransparency">0</float>
+							<token name="TextTruncate">0</token>
+							<bool name="TextWrapped">true</bool>
+							<token name="TextXAlignment">2</token>
+							<token name="TextYAlignment">1</token>
+							<UniqueId name="UniqueId">74786f28e66c004702c25284000c2a43</UniqueId>
+							<bool name="Visible">true</bool>
+							<int name="ZIndex">3</int>
+						</Properties>
 					</Item>
 				</Item>
 			</Item>

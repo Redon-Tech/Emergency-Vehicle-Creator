@@ -117,6 +117,13 @@ _G.RT["Buttons"][Button_Name] = Button
 local MainFrame = require(script.Parent.Modules.gui).CreateGui()
 MainFrame.Parent = GUI
 MainFrame.Confirm.TextLabel.RichText = true -- GUI -> Script doesnt convert this
+MainFrame.Creator.Info.Thanks.RichText = true
+MainFrame.Creator.Info.Credits.RichText = true
+for i,v in pairs(MainFrame.Controls:GetChildren()) do
+    if v:IsA("TextLabel") then
+        v.RichText = true
+    end
+end
 MainFrame.Creator.PointerHolder.Pointer:SetAttribute("max", 20)
 MainFrame.Creator.PointerHolder.Pointer:SetAttribute("count", 1)
 local Pointer = MainFrame.Creator.ScrollingFrame["2"]
@@ -474,7 +481,7 @@ registercolumn(MainFrame.Creator.ScrollingFrame["1"])
 --     addbutton(v, MainFrame.Creator.ScrollingFrame["1"])
 -- end
 
-MainFrame.Creator.ScrollingFrame.Last.Devider.add.MouseButton1Down:Connect(function()
+MainFrame.Creator.ScrollingFrame.Last.Devider.add.MouseButton1Click:Connect(function()
     if not Usable then
         return
     end
@@ -489,7 +496,7 @@ MainFrame.Creator.ScrollingFrame.Last.Devider.add.MouseButton1Down:Connect(funct
     registercolumn(clone)
 end)
 
-MainFrame.Creator.ScrollingFrame.Last.Devider.subtract.MouseButton1Down:Connect(function()
+MainFrame.Creator.ScrollingFrame.Last.Devider.subtract.MouseButton1Click:Connect(function()
     if not Usable then
         return
     end
@@ -555,17 +562,23 @@ end
 MainFrame.Creator.ScrollingFrame.ChildAdded:Connect(ScrollingFrameChildrenChanged)
 MainFrame.Creator.ScrollingFrame.ChildRemoved:Connect(ScrollingFrameChildrenChanged)
 
-local function VisabilityChanged()
-    if MainFrame.Confirm.Visible or MainFrame.SaveLoad.Visible or MainFrame.Export.Visible then
+local function VisibilityChanged()
+    if (
+        MainFrame.Confirm.Visible
+        or MainFrame.SaveLoad.Visible
+        or MainFrame.Export.Visible
+        or MainFrame.Controls.Visible
+    ) then
         Usable = false
     else
         Usable = true
     end
 end
 
-MainFrame.Confirm:GetPropertyChangedSignal("Visible"):Connect(VisabilityChanged)
-MainFrame.SaveLoad:GetPropertyChangedSignal("Visible"):Connect(VisabilityChanged)
-MainFrame.Export:GetPropertyChangedSignal("Visible"):Connect(VisabilityChanged)
+MainFrame.Confirm:GetPropertyChangedSignal("Visible"):Connect(VisibilityChanged)
+MainFrame.SaveLoad:GetPropertyChangedSignal("Visible"):Connect(VisibilityChanged)
+MainFrame.Export:GetPropertyChangedSignal("Visible"):Connect(VisibilityChanged)
+MainFrame.Controls:GetPropertyChangedSignal("Visible"):Connect(VisibilityChanged)
 
 -- Add/Remove Rows
 
@@ -687,7 +700,7 @@ local function SavesUpdate()
             clone.TextBox.Text = i
             clone.Parent = MainFrame.SaveLoad.ScrollingFrame
 
-            clone.Delete.MouseButton1Down:Connect(function()
+            clone.Delete.MouseButton1Click:Connect(function()
                 MainFrame.Confirm.Visible = true
                 MainFrame.SaveLoad.Visible = false
                 MainFrame.Confirm.TextLabel.Text = "Are you sure you want to delete the save <b>".. i .."</b>? This cannot be undone."
@@ -855,7 +868,7 @@ local function SavesUpdate()
 end
 SavesUpdate()
 
-MainFrame.SaveLoad.Save.MouseButton1Down:Connect(function()
+MainFrame.SaveLoad.Save.MouseButton1Click:Connect(function()
     local Saves = plugin:GetSetting("saves")
     if not Saves then
         Saves = {}
@@ -902,12 +915,12 @@ MainFrame.SaveLoad.Save.MouseButton1Down:Connect(function()
     SavesUpdate()
 end)
 
-MainFrame.SaveLoad.Cancel.MouseButton1Down:Connect(function()
+MainFrame.SaveLoad.Cancel.MouseButton1Click:Connect(function()
     MainFrame.SaveLoad.Visible = false
 end)
 
 -- Export
-MainFrame.Export.Select.Standard.MouseButton1Down:Connect(function()
+MainFrame.Export.Select.Standard.MouseButton1Click:Connect(function()
     for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
         if v:IsA("GuiBase2d") and v.Name ~= "Title" then
             v.Visible = false
@@ -931,11 +944,19 @@ MainFrame.Export.Select.Standard.MouseButton1Down:Connect(function()
             TextBox.Text = ""
             TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
             TextBox.Parent = v.Top
+
+            TextBox.FocusLost:Connect(function(enterPressed)
+                if enterPressed then
+                    if MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1] and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
+                        MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox:CaptureFocus()
+                    end
+                end
+            end)
         end
     end
     MainFrame.Export.SelectName.Visible = true
 
-    MainFrame.Export.SelectName.Done.MouseButton1Down:Connect(function()
+    MainFrame.Export.SelectName.Done.MouseButton1Click:Connect(function()
         MainFrame.Export.SelectName.Visible = false
 
         local CurrentPointer = MainFrame.Creator.PointerHolder.Pointer
@@ -1022,7 +1043,7 @@ MainFrame.Export.Select.Standard.MouseButton1Down:Connect(function()
         Usable = true
     end)
 
-    MainFrame.Export.SelectName.Cancel.MouseButton1Down:Connect(function()
+    MainFrame.Export.SelectName.Cancel.MouseButton1Click:Connect(function()
         MainFrame.Export.Visible = false
         for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
             if v:FindFirstChild("Top") and v.Top:FindFirstChild("TextBox") and not v:GetAttribute("spacer") then
@@ -1040,20 +1061,20 @@ end)
 -- Buttons
 for i,v in pairs(MainFrame.Creator.Info.Buttons:GetChildren()) do
     if table.find(ButColors, v.Name) then
-        v.MouseButton1Down:Connect(function()
+        v.MouseButton1Click:Connect(function()
             changecolor(table.find(ButColors, v.Name))
         end)
     end
 end
 
-MainFrame.Creator.Info.Buttons.Reset.MouseButton1Down:Connect(function()
+MainFrame.Creator.Info.Buttons.Reset.MouseButton1Click:Connect(function()
     if not Usable then
         return
     end
     reset()
 end)
 
-MainFrame.Creator.Info.Buttons.Lock.MouseButton1Down:Connect(function()
+MainFrame.Creator.Info.Buttons.Lock.MouseButton1Click:Connect(function()
     if not Usable then
         return
     end
@@ -1066,14 +1087,14 @@ MainFrame.Creator.Info.Buttons.Lock.MouseButton1Down:Connect(function()
     end
 end)
 
-MainFrame.Creator.Info.Save.MouseButton1Down:Connect(function()
+MainFrame.Creator.Info.Save.MouseButton1Click:Connect(function()
     if not Usable and MainFrame.SaveLoad.Visible == false then
         return
     end
     MainFrame.SaveLoad.Visible = not MainFrame.SaveLoad.Visible
 end)
 
-MainFrame.Creator.Info.Export.MouseButton1Down:Connect(function()
+MainFrame.Creator.Info.Export.MouseButton1Click:Connect(function()
     if not Usable and MainFrame.Export.Visible == false then
         return
     end
@@ -1083,13 +1104,20 @@ MainFrame.Creator.Info.Export.MouseButton1Down:Connect(function()
     MainFrame.Export.StandardComplete.Visible = false
 end)
 
-MainFrame.Creator.Info.Buttons.Pause.MouseButton1Down:Connect(function()
+MainFrame.Creator.Info.Buttons.Pause.MouseButton1Click:Connect(function()
     Pause = not Pause
     if Pause then
         MainFrame.Creator.Info.Buttons.Pause.ImageLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
     else
         MainFrame.Creator.Info.Buttons.Pause.ImageLabel.ImageColor3 = Color3.fromRGB(100, 100, 100)
     end
+end)
+
+MainFrame.Creator.Info.Controls.MouseButton1Click:Connect(function()
+    if not Usable and MainFrame.Controls.Visible == false then
+        return
+    end
+    MainFrame.Controls.Visible = not MainFrame.Controls.Visible
 end)
 
 Button.Click:Connect(function()
@@ -1110,6 +1138,26 @@ local function update(coro: table, pointer: GuiBase2d, waittime: TextBox)
             main = false
         end
     end
+
+    waittime.Focused:Connect(function()
+        Pause = true
+        resetcounters()
+    end)
+
+    waittime.FocusLost:Connect(function()
+        if tonumber(waittime.Text) >= 0.001 and tonumber(waittime.Text) <= 10 then
+            Pause = false
+            resetcounters()
+        elseif tonumber(waittime.Text) < 0.001 then
+            waittime.Text = "0.001"
+            Pause = false
+            resetcounters()
+        elseif tonumber(waittime.Text) > 10 then
+            waittime.Text = "10"
+            Pause = false
+            resetcounters()
+        end
+    end)
 
     pointer.Destroying:Connect(function()
         coro["run"] = false
@@ -1178,11 +1226,11 @@ spacer = function(waittime, size, position)
         end
     end
 
-    clone.Bottom.add.MouseButton1Down:Connect(function()
+    clone.Bottom.add.MouseButton1Click:Connect(function()
         Pause = true
         addrow(clone, tonumber(clone.Name + 1))
     end)
-    clone.Bottom.subtract.MouseButton1Down:Connect(function()
+    clone.Bottom.subtract.MouseButton1Click:Connect(function()
         Pause = true
         removerow(clone, tonumber(clone.Name + 1))
     end)
@@ -1210,11 +1258,11 @@ coros[0] = {
 }
 coroutine.resume(coros[0].thread, coros[0], coros[0].pointer, coros[0].waittime)
 
-MainFrame.Creator.PointerHolder.Pointer.Bottom.add.MouseButton1Down:Connect(function()
+MainFrame.Creator.PointerHolder.Pointer.Bottom.add.MouseButton1Click:Connect(function()
     Pause = true
     addrow(MainFrame.Creator.PointerHolder.Pointer, 1)
 end)
-MainFrame.Creator.PointerHolder.Pointer.Bottom.subtract.MouseButton1Down:Connect(function()
+MainFrame.Creator.PointerHolder.Pointer.Bottom.subtract.MouseButton1Click:Connect(function()
     Pause = true
     removerow(MainFrame.Creator.PointerHolder.Pointer, 1)
 end)
