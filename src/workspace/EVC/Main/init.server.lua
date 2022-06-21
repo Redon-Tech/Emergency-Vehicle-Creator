@@ -947,8 +947,10 @@ MainFrame.Export.Select.Standard.MouseButton1Click:Connect(function()
 
             TextBox.FocusLost:Connect(function(enterPressed)
                 if enterPressed then
-                    if MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1] and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
+                    if MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 1) and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
                         MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox:CaptureFocus()
+                        game:GetService("RunService").Heartbeat:Wait()
+                        MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text = ""
                     end
                 end
             end)
