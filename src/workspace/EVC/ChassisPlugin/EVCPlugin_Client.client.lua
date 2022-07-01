@@ -15,10 +15,10 @@ local UserInputService = game:GetService("UserInputService")
 -- Handling --
 --------------------------------------------------------------------------------
 
-local function input(input: InputObject, gameProcessedEvent: BoolValue)
-    if not gameProcessedEvent then
-        Event:FireServer(input)
-    end
+local function input(InputObj: InputObject, gameProcessedEvent: BoolValue)
+	if not gameProcessedEvent then
+		Event:FireServer(InputObj.UserInputState, InputObj.UserInputType, InputObj.KeyCode)
+	end
 end
 
 UserInputService.InputBegan:Connect(input)
