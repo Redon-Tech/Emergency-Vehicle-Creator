@@ -59,7 +59,7 @@ return {
 					v.Color = ColorSequence.new(Colors[Color])
 				end
 			end
-			Light.Transparency = 1
+			Light.Transparency = 0
 			Light.Color = Colors[Color]
 		end
 	end,

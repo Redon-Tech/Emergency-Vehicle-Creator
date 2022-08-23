@@ -35,16 +35,18 @@ Lightbar:SetAttribute("max_stages", 0)
 Lightbar:SetAttribute("max_traffic_advisor", 0)
 
 for i,v in pairs(Lightbar.ModuleStore.Stages:GetChildren()) do
-	if v:FindFirstChildWhichIsA("Folder") then
+	if v:IsA("Folder") then
 		Lightbar:SetAttribute("max_stages", Lightbar:GetAttribute("max_stages") + 1)
 	end
 end
 
 for i,v in pairs(Lightbar.ModuleStore.Traffic_Advisor:GetChildren()) do
-	if v:FindFirstChildWhichIsA("Folder") then
+	if v:IsA("Folder") then
 		Lightbar:SetAttribute("max_traffic_advisor", Lightbar:GetAttribute("max_traffic_advisor") + 1)
 	end
 end
+
+local CurrentStage = 0
 
 --------------------------------------------------------------------------------
 -- Handling --
@@ -52,36 +54,61 @@ end
 
 -- Value changes
 Lightbar:GetAttributeChangedSignal("stage"):Connect(function()
-	print(Lightbar:GetAttribute("stage"))
+	local stage = Lightbar:GetAttribute("stage")
+	print(stage)
 	for i,v in pairs(Coros.Lightbar) do
 		print(v)
 		coroutine.close(v)
+		print(coroutine.status(v))
+		table.remove(Coros.Lightbar, i)
 	end
 
-	for i,v in pairs(Lightbar.ModuleStore.Stages["Stage".. Lightbar:GetAttribute("stage")]:GetChildren()) do
-		print(v)
-		if v:IsA("ModuleScript") then
-			local Module = require(v)
-			for name,colors in pairs(Module.Lights) do
-				local light = Lights[name]
-				if (
-					light.running_module.Value == nil
-					or require(light.running_module.Value).Settings.Weight < Module.Settings.Weight
-				) then
-					light.running_module.Value = v
-				end
-			end
-			table.insert(Coros.Lightbar, coroutine.create(function()
-				while task.wait(Module.Settings.WaitTime) do
-					if v:GetAttribute("max_count") == v:GetAttribute("count") then
-						v:SetAttribute("count", 1)
-					else
-						v:SetAttribute("count", v:GetAttribute("count") + 1)
+	if CurrentStage > 0 or Lightbar.ModuleStore.Stages:FindFirstChild("Stage0") then
+		for i,v in pairs(Lightbar.ModuleStore.Stages["Stage".. CurrentStage]:GetChildren()) do
+			print(v)
+			if v:IsA("ModuleScript") then
+				local Module = require(v)
+				for name,colors in pairs(Module.Lights) do
+					local light = Lights[name]
+					if light.running_module.Value ~= nil then
+						light.running_module.Value = nil
 					end
 				end
-			end))
+			end
 		end
 	end
+
+	if stage > 0 or Lightbar.ModuleStore.Stages:FindFirstChild("Stage0") then
+		for i,v in pairs(Lightbar.ModuleStore.Stages["Stage".. stage]:GetChildren()) do
+			print(v)
+			if v:IsA("ModuleScript") then
+				local Module = require(v)
+				for name,colors in pairs(Module.Lights) do
+					local light = Lights[name]
+					if (
+						light.running_module.Value == nil
+						or require(light.running_module.Value).Settings.Weight < Module.Settings.Weight
+					) then
+						light.running_module.Value = v
+					end
+				end
+				local coro = coroutine.create(function()
+					while task.wait(Module.Settings.WaitTime) do
+						print(v:GetAttribute("max_count"), v:GetAttribute("count"))
+						if v:GetAttribute("max_count") == v:GetAttribute("count") or v:GetAttribute("count") == nil then
+							v:SetAttribute("count", 1)
+						else
+							v:SetAttribute("count", tonumber(v:GetAttribute("count")) + 1)
+						end
+					end
+				end)
+				table.insert(Coros.Lightbar, coro)
+				coroutine.resume(coro)
+			end
+		end
+	end
+
+	CurrentStage = stage
 end)
 
 -- Module Registration
@@ -113,7 +140,7 @@ for i,v in pairs(Lightbar.ModuleStore:GetDescendants()) do
 
 				if Lights[name].running_module.Value ~= nil then
 					Connections.Lights[name] = Lights[name].running_module.Value:GetAttributeChangedSignal("count"):Connect(function()
-						LightFunction(light, colors[light:GetAttribute("count")], Module.Settings.Colors)
+						LightFunction(light, colors[tonumber(Lights[name].running_module.Value:GetAttribute("count"))], Module.Settings.Colors)
 					end)
 				else
 					LightFunction(light, 0, Module.Settings.Colors)
