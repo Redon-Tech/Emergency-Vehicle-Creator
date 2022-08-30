@@ -12,17 +12,64 @@ return {
 	LightbarLocation = "Lightbar",
 
 	-- The name of the siren location inside the lightbar location
-	SirenLocation = "middle", 
-
-	-- The airhorn name inside the siren location
-	AirhornLocation = "Horn",
+	SirenLocation = "middle",
 
 	-- All the selectable sirens and there respected keybinds
 	-- Modifier keys are planned for a future update
 	Sirens = {
-		[Enum.KeyCode.R] = "Wail",
-		[Enum.KeyCode.T] = "Yelp",
-		[Enum.KeyCode.Y] = "Priority"
+		[Enum.KeyCode.H] = {
+			_Type = "Hold",
+			Name = "Horn",
+			OverrideOtherSounds = true,
+			Modifier = {
+				_Type = "Rumber"
+				Name = "RHorn",
+				Options = {
+					PlayNonModified = true,
+					PlayOnModifierChange = true,
+					Delay = -0.05,
+				}
+			}
+		},
+		[Enum.KeyCode.R] = {
+			_Type = "Siren",
+			Name = "Wail",
+			OverrideOtherSounds = true,
+			Modifier = {
+				_Type = "Rumber"
+				Name = "RWail",
+				Options = {
+					PlayNonModified = false,
+					PlayOnModifierChange = true,
+					Delay = 0,
+				}
+			}
+		},
+		[Enum.KeyCode.T] = {
+			_Type = "Siren",
+			Name = "Yelp",
+			OverrideOtherSounds = true,
+			Modifier = {
+				_Type = "Rumber"
+				Name = "RYelp",
+				Options = {
+					PlayNonModified = true,
+					PlayOnModifierChange = true,
+					Delay = -0.05,
+				}
+			}
+		},
+		[Enum.KeyCode.Y] = {
+			_Type = "Siren",
+			Name = "Priority",
+			OverrideOtherSounds = true,
+			Modifier = nil
+		},
+		[Enum.KeyCode.LeftBracket] = {
+			_Type = "Modifier",
+			Name = "Rumbler",
+			Enabled = false
+		}
 	},
 
 	-- All the keybinds for any other functionality the system has

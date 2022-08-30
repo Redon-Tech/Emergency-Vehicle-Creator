@@ -16,7 +16,7 @@ local UserInputService = game:GetService("UserInputService")
 --------------------------------------------------------------------------------
 
 local function input(InputObj: InputObject, gameProcessedEvent: BoolValue)
-	if not gameProcessedEvent then
+	if not gameProcessedEvent and InputObj.UserInputType == Enum.UserInputType.Keyboard then
 		Event:FireServer(InputObj.UserInputState, InputObj.UserInputType, InputObj.KeyCode)
 	end
 end
