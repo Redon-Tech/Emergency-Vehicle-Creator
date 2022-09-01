@@ -31,7 +31,7 @@ The Redon Tech Emergency Vehcile Creator is a plugin for Roblox inspired by Sire
 
 [Video](https://youtu.be/V2dkDgH1Sio)
 
-# Contributor Informatio
+# Contributor Information
 
 The "build" branch is only for full releases, any development should go onto the "main" branch.
 

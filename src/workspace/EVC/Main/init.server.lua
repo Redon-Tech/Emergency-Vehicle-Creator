@@ -83,7 +83,7 @@ end
 --------------
 while task.wait() do
 ]]
-
+-- TBD: Get all plugins of Redon Tech to be on the same toolbar
 if not _G.RT then
 	_G.RT = {Buttons = {}}
 end

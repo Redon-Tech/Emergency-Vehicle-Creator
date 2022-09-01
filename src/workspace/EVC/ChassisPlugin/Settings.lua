@@ -81,6 +81,11 @@ return {
 		TrafficAdvisor = Enum.KeyCode.K
 	},
 
+	-- Enable park mode
+	-- Requires exporting a pattern to "Park" folder in the ModuleStore
+	--		- Make sure to set the park modes weight to be higher then the normal patterns
+	ParkMode = true,
+
 	-- Do not change below unless you know what you are doing
 	Light = function(Light, Color, Colors)
 		if Color == 0 then
