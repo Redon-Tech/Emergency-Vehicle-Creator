@@ -22,7 +22,7 @@ return {
 			Name = "Horn",
 			OverrideOtherSounds = true,
 			Modifier = {
-				_Type = "Rumber"
+				_Type = "Rumber",
 				Name = "RHorn",
 				Options = {
 					PlayNonModified = true,
@@ -36,7 +36,7 @@ return {
 			Name = "Wail",
 			OverrideOtherSounds = true,
 			Modifier = {
-				_Type = "Rumber"
+				_Type = "Rumber",
 				Name = "RWail",
 				Options = {
 					PlayNonModified = false,
@@ -50,7 +50,7 @@ return {
 			Name = "Yelp",
 			OverrideOtherSounds = true,
 			Modifier = {
-				_Type = "Rumber"
+				_Type = "Rumber",
 				Name = "RYelp",
 				Options = {
 					PlayNonModified = true,

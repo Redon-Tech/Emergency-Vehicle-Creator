@@ -16,7 +16,7 @@ local Values = script.Parent.Values
 -- Handling --
 --------------------------------------------------------------------------------
 
-Values.Park:GetPropertyChangedSignal("Value"):Connect(funciton()
+Values.Park:GetPropertyChangedSignal("Value"):Connect(function()
 	Event:FireServer("ParkMode", Values.Park.Value)
 	-- I am doing this in school, I have no idea if this is the right value name
 end)
