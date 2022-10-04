@@ -26,7 +26,7 @@ local Plugin_Name = getName("Emergency Vehicle Creator")
 local Plugin_Description = "Create ELS for emergency vehicles!"
 local Plugin_Icon = "http://www.roblox.com/asset/?id=9953243250"
 local Widget_Name = getName("EVC")
-local Button_Name = getName("EVC Button")
+local Button_Name = getName("EVC Menu")
 local Standard_Script_Template =[[
 local Lightbar = script.Parent
 
@@ -83,19 +83,36 @@ end
 --------------
 while task.wait() do
 ]]
+-- TBD: Get all plugins of Redon Tech to be on the same toolbar
+-- if not _G.RT then
+-- 	_G.RT = {Buttons = {}}
+-- end
 
-if not _G.RT then
-	_G.RT = {Buttons = {}}
-end
+-- if not _G.RT["Buttons"] then
+-- 	_G.RT["Buttons"] = {}
+-- end
 
-if not _G.RT["Buttons"] then
-	_G.RT["Buttons"] = {}
-end
+-- if _G.RT["RTToolbar"] then
+-- 	_G.RT["RTToolbar"] = nil
+-- end
+-- _G.RT["RTToolbar"] = plugin:CreateToolbar("Redon Tech Plugins")
 
-if _G.RT["RTToolbar"] then
-	_G.RT["RTToolbar"] = nil
+if _G.RTPlugins and typeof(_G.RTPlugins) == "table" then
+	if _G.RTPlugins.Buttons[Plugin_Name] then
+		Button = _G.RTPlugins.Buttons[Plugin_Name]
+	else
+		_G.RTPlugins.Buttons[Plugin_Name] = _G.RTPlugins.ToolBar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
+		Button = _G.RTPlugins.Buttons[Plugin_Name]
+	end
+else
+	_G.RTPlugins = {
+		ToolBar = plugin:CreateToolbar("Redon Tech Plugins"),
+		Buttons = {}
+	}
+
+	_G.RTPlugins.Buttons[Plugin_Name] = _G.RTPlugins.ToolBar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
+	Button = _G.RTPlugins.Buttons[Plugin_Name]
 end
-_G.RT["RTToolbar"] = plugin:CreateToolbar("Redon Tech Plugins")
 
 --------------------------------------------------------------------------------
 -- UI Init --
@@ -107,12 +124,12 @@ GUI.ZIndexBehavior = Enum.ZIndexBehavior.Global
 GUI.Title = Plugin_Name
 GUI.Name = Widget_Name
 
-local Button = nil
-if _G.RT["Buttons"][Button_Name] then
-	_G.RT["Buttons"][Button_Name] = nil
-end
-Button = _G.RT.RTToolbar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
-_G.RT["Buttons"][Button_Name] = Button
+-- local Button = nil
+-- if _G.RT["Buttons"][Button_Name] then
+-- 	_G.RT["Buttons"][Button_Name] = nil
+-- end
+-- Button = _G.RT.RTToolbar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
+-- _G.RT["Buttons"][Button_Name] = Button
 
 local MainFrame = require(script.Parent.Modules.gui).CreateGui()
 MainFrame.Parent = GUI
@@ -529,14 +546,12 @@ local function ScrollingFrameChildrenChanged()
 	MainFrame:WaitForChild("Creator", 5) -- No comment, just errors without this
 
 	local largest do
+		largest = MainFrame.Creator.PointerHolder.Pointer
+
 		for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
 			if v.Name ~= "Last" and v:IsA("Frame") and largest == nil or #largest:GetChildren() < #v:GetChildren() then
 				largest = v
 			end
-		end
-
-		if not largest then
-			largest = MainFrame.Creator.ScrollingFrame["1"]
 		end
 	end
 	local AbsoluteSize = MainFrame.Creator.ScrollingFrame.AbsoluteSize
@@ -548,8 +563,10 @@ local function ScrollingFrameChildrenChanged()
 	MainFrame.Creator.ScrollingFrame.UIGridLayout.CellSize = Size
 	MainFrame.Creator.PointerHolder.UIGridLayout.CellPadding = Padding
 	MainFrame.Creator.PointerHolder.UIGridLayout.CellSize = Size
-	MainFrame.Creator.ScrollingFrame.CanvasSize = UDim2.fromOffset(MainFrame.Creator.ScrollingFrame.UIGridLayout.AbsoluteContentSize.X + Padding.X.Offset + Size.X.Offset, largest.UIListLayout.AbsoluteContentSize.Y)
-	MainFrame.Creator.PointerHolder.CanvasSize = UDim2.fromOffset(0, largest.UIListLayout.AbsoluteContentSize.Y)
+	local y = largest.UIListLayout.AbsoluteContentSize.Y + (largest.UIListLayout.AbsoluteContentSize.Y - GUI.AbsoluteSize.Y)
+	print(y)
+	MainFrame.Creator.ScrollingFrame.CanvasSize = UDim2.fromOffset(MainFrame.Creator.ScrollingFrame.UIGridLayout.AbsoluteContentSize.X + Padding.X.Offset + Size.X.Offset, y)
+	MainFrame.Creator.PointerHolder.CanvasSize = UDim2.fromOffset(0, y)
 
 	local number = #MainFrame.Creator.ScrollingFrame:GetChildren() - 2
 	if number > 1 then
@@ -558,9 +575,10 @@ local function ScrollingFrameChildrenChanged()
 		MainFrame.Creator.ScrollingFrame.Last.Devider.subtract.Visible = false
 	end
 end
-
+ScrollingFrameChildrenChanged()
 MainFrame.Creator.ScrollingFrame.ChildAdded:Connect(ScrollingFrameChildrenChanged)
 MainFrame.Creator.ScrollingFrame.ChildRemoved:Connect(ScrollingFrameChildrenChanged)
+GUI:GetPropertyChangedSignal("AbsoluteSize"):Connect(ScrollingFrameChildrenChanged)
 
 local function VisibilityChanged()
 	if (

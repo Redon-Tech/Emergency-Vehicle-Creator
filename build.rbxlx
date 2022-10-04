@@ -44,7 +44,6 @@
 			</Vector3>
 			<string name="Name">Workspace</string>
 			<bool name="NeedsPivotMigration">false</bool>
-			<token name="PhysicsInertiaAndVolumeFix">0</token>
 			<token name="PhysicsSteppingMethod">0</token>
 			<Ref name="PrimaryPart">null</Ref>
 			<token name="ReplicateInstanceDestroySetting">0</token>
@@ -53,12 +52,14 @@
 			<int64 name="SourceAssetId">-1</int64>
 			<token name="StreamOutBehavior">0</token>
 			<bool name="StreamingEnabled">false</bool>
+			<token name="StreamingIntegrityMode">0</token>
 			<int name="StreamingMinRadius">64</int>
 			<token name="StreamingPauseMode">0</token>
 			<int name="StreamingTargetRadius">1024</int>
 			<BinaryString name="Tags"></BinaryString>
 			<bool name="TerrainWeldsFixed">true</bool>
 			<bool name="TouchesUseCollisionGroups">false</bool>
+			<token name="UnionsScaleNonuniformly">0</token>
 			<UniqueId name="UniqueId">425070f357fc386702b6a73e0001dbfb</UniqueId>
 			<OptionalCoordinateFrame name="WorldPivotData">
 				<CFrame>
@@ -107,6 +108,7 @@
 				<bool name="CanQuery">true</bool>
 				<bool name="CanTouch">true</bool>
 				<bool name="CastShadow">true</bool>
+				<string name="CollisionGroup">Default</string>
 				<int name="CollisionGroupId">0</int>
 				<Color3uint8 name="Color3uint8">4284636770</Color3uint8>
 				<PhysicalProperties name="CustomPhysicalProperties">
@@ -247,6 +249,7 @@
 				<bool name="CanQuery">true</bool>
 				<bool name="CanTouch">true</bool>
 				<bool name="CastShadow">true</bool>
+				<string name="CollisionGroup">Default</string>
 				<int name="CollisionGroupId">0</int>
 				<Color3uint8 name="Color3uint8">4288914085</Color3uint8>
 				<PhysicalProperties name="CustomPhysicalProperties">
@@ -328,27 +331,27 @@ gcLgc4RKxr21zq2UlJSM]]></BinaryString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<CoordinateFrame name="CFrame">
-					<X>-2.56411314</X>
-					<Y>10.7447815</Y>
-					<Z>73.8247986</Z>
-					<R00>-0.436528832</R00>
-					<R01>0.343283117</R01>
-					<R02>-0.831624508</R02>
-					<R10>-0</R10>
-					<R11>0.924345374</R11>
-					<R12>0.381556988</R12>
-					<R20>0.89969027</R20>
-					<R21>0.16656062</R21>
-					<R22>-0.403503418</R22>
+					<X>-4.42207861</X>
+					<Y>47.0284729</Y>
+					<Z>31.9500961</Z>
+					<R00>-0.204006642</R00>
+					<R01>0.811778367</R01>
+					<R02>-0.547172189</R02>
+					<R10>-7.45058149e-09</R10>
+					<R11>0.558926702</R11>
+					<R12>0.829217136</R12>
+					<R20>0.978969574</R20>
+					<R21>0.169165805</R21>
+					<R22>-0.114024751</R22>
 				</CoordinateFrame>
 				<Ref name="CameraSubject">null</Ref>
 				<token name="CameraType">0</token>
 				<float name="FieldOfView">70</float>
 				<token name="FieldOfViewMode">0</token>
 				<CoordinateFrame name="Focus">
-					<X>-0.900864124</X>
-					<Y>9.98166752</Y>
-					<Z>74.6318054</Z>
+					<X>-3.32773066</X>
+					<Y>45.3700333</Y>
+					<Z>32.1781464</Z>
 					<R00>1</R00>
 					<R01>0</R01>
 					<R02>0</R02>
@@ -381,6 +384,8 @@ gcLgc4RKxr21zq2UlJSM]]></BinaryString>
 					<bool name="Disabled">false</bool>
 					<Content name="LinkedSource"><null></null></Content>
 					<string name="Name">Main</string>
+					<string name="OriginalScriptGuid"></string>
+					<token name="RunContext">0</token>
 					<string name="ScriptGuid">{BAFBCABF-1477-4F18-8FE3-F924D90816C5}</string>
 					<ProtectedString name="Source"><![CDATA[--[[
 Redon Tech 2022
@@ -410,7 +415,7 @@ local Plugin_Name = getName("Emergency Vehicle Creator")
 local Plugin_Description = "Create ELS for emergency vehicles!"
 local Plugin_Icon = "http://www.roblox.com/asset/?id=9953243250"
 local Widget_Name = getName("EVC")
-local Button_Name = getName("EVC Button")
+local Button_Name = getName("EVC Menu")
 local Standard_Script_Template =[[
 local Lightbar = script.Parent
 
@@ -467,19 +472,36 @@ end
 --------------
 while task.wait() do
 ]]
+-- TBD: Get all plugins of Redon Tech to be on the same toolbar
+-- if not _G.RT then
+-- 	_G.RT = {Buttons = {}}
+-- end
 
-if not _G.RT then
-	_G.RT = {Buttons = {}}
-end
+-- if not _G.RT["Buttons"] then
+-- 	_G.RT["Buttons"] = {}
+-- end
 
-if not _G.RT["Buttons"] then
-	_G.RT["Buttons"] = {}
-end
+-- if _G.RT["RTToolbar"] then
+-- 	_G.RT["RTToolbar"] = nil
+-- end
+-- _G.RT["RTToolbar"] = plugin:CreateToolbar("Redon Tech Plugins")
 
-if _G.RT["RTToolbar"] then
-	_G.RT["RTToolbar"] = nil
+if _G.RTPlugins and typeof(_G.RTPlugins) == "table" then
+	if _G.RTPlugins.Buttons[Plugin_Name] then
+		Button = _G.RTPlugins.Buttons[Plugin_Name]
+	else
+		_G.RTPlugins.Buttons[Plugin_Name] = _G.RTPlugins.ToolBar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
+		Button = _G.RTPlugins.Buttons[Plugin_Name]
+	end
+else
+	_G.RTPlugins = {
+		ToolBar = plugin:CreateToolbar("Redon Tech Plugins"),
+		Buttons = {}
+	}
+
+	_G.RTPlugins.Buttons[Plugin_Name] = _G.RTPlugins.ToolBar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
+	Button = _G.RTPlugins.Buttons[Plugin_Name]
 end
-_G.RT["RTToolbar"] = plugin:CreateToolbar("Redon Tech Plugins")
 
 --------------------------------------------------------------------------------
 -- UI Init --
@@ -491,12 +513,12 @@ GUI.ZIndexBehavior = Enum.ZIndexBehavior.Global
 GUI.Title = Plugin_Name
 GUI.Name = Widget_Name
 
-local Button = nil
-if _G.RT["Buttons"][Button_Name] then
-	_G.RT["Buttons"][Button_Name] = nil
-end
-Button = _G.RT.RTToolbar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
-_G.RT["Buttons"][Button_Name] = Button
+-- local Button = nil
+-- if _G.RT["Buttons"][Button_Name] then
+-- 	_G.RT["Buttons"][Button_Name] = nil
+-- end
+-- Button = _G.RT.RTToolbar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
+-- _G.RT["Buttons"][Button_Name] = Button
 
 local MainFrame = require(script.Parent.Modules.gui).CreateGui()
 MainFrame.Parent = GUI
@@ -913,14 +935,12 @@ local function ScrollingFrameChildrenChanged()
 	MainFrame:WaitForChild("Creator", 5) -- No comment, just errors without this
 
 	local largest do
+		largest = MainFrame.Creator.PointerHolder.Pointer
+
 		for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
 			if v.Name ~= "Last" and v:IsA("Frame") and largest == nil or #largest:GetChildren() < #v:GetChildren() then
 				largest = v
 			end
-		end
-
-		if not largest then
-			largest = MainFrame.Creator.ScrollingFrame["1"]
 		end
 	end
 	local AbsoluteSize = MainFrame.Creator.ScrollingFrame.AbsoluteSize
@@ -932,8 +952,10 @@ local function ScrollingFrameChildrenChanged()
 	MainFrame.Creator.ScrollingFrame.UIGridLayout.CellSize = Size
 	MainFrame.Creator.PointerHolder.UIGridLayout.CellPadding = Padding
 	MainFrame.Creator.PointerHolder.UIGridLayout.CellSize = Size
-	MainFrame.Creator.ScrollingFrame.CanvasSize = UDim2.fromOffset(MainFrame.Creator.ScrollingFrame.UIGridLayout.AbsoluteContentSize.X + Padding.X.Offset + Size.X.Offset, largest.UIListLayout.AbsoluteContentSize.Y)
-	MainFrame.Creator.PointerHolder.CanvasSize = UDim2.fromOffset(0, largest.UIListLayout.AbsoluteContentSize.Y)
+	local y = largest.UIListLayout.AbsoluteContentSize.Y + (largest.UIListLayout.AbsoluteContentSize.Y - GUI.AbsoluteSize.Y)
+	print(y)
+	MainFrame.Creator.ScrollingFrame.CanvasSize = UDim2.fromOffset(MainFrame.Creator.ScrollingFrame.UIGridLayout.AbsoluteContentSize.X + Padding.X.Offset + Size.X.Offset, y)
+	MainFrame.Creator.PointerHolder.CanvasSize = UDim2.fromOffset(0, y)
 
 	local number = #MainFrame.Creator.ScrollingFrame:GetChildren() - 2
 	if number > 1 then
@@ -942,9 +964,10 @@ local function ScrollingFrameChildrenChanged()
 		MainFrame.Creator.ScrollingFrame.Last.Devider.subtract.Visible = false
 	end
 end
-
+ScrollingFrameChildrenChanged()
 MainFrame.Creator.ScrollingFrame.ChildAdded:Connect(ScrollingFrameChildrenChanged)
 MainFrame.Creator.ScrollingFrame.ChildRemoved:Connect(ScrollingFrameChildrenChanged)
+GUI:GetPropertyChangedSignal("AbsoluteSize"):Connect(ScrollingFrameChildrenChanged)
 
 local function VisibilityChanged()
 	if (
@@ -1670,6 +1693,7 @@ end)]]></ProtectedString>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">gui</string>
+						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{4A5BB853-E6D6-4E66-AD11-D229DA131FC0}</string>
 						<ProtectedString name="Source"><![CDATA[local GUI = {}
 
@@ -4062,6 +4086,7 @@ return GUI]]></ProtectedString>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">functions</string>
+						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{55D7F2F5-9D3C-41A8-BA18-76010EE653A4}</string>
 						<ProtectedString name="Source"><![CDATA[local functions = {}
 
@@ -4116,6 +4141,8 @@ return functions]]></ProtectedString>
 						<bool name="Disabled">false</bool>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">EVCPlugin</string>
+						<string name="OriginalScriptGuid"></string>
+						<token name="RunContext">0</token>
 						<string name="ScriptGuid">{00A16CCF-D9B8-4E9A-ABCE-F0DC5553F9AA}</string>
 						<ProtectedString name="Source"><![CDATA[local Lighting = game:GetService("Lighting")
 --[[
@@ -4133,7 +4160,11 @@ local Settings = require(script.Parent.Settings)
 local Body = Car:WaitForChild("Body")
 local Lightbar = Body:WaitForChild(Settings.LightbarLocation)
 if not Lightbar then
-	error("EVC: No lightbar avaliable")
+	error("EVC: No lightbar avaliable on car ".. Car.Name)
+end
+local Sounds = Lightbar:WaitForChild(Settings.SirenLocation)
+if not Sounds then
+	error("EVC: No sound location avaliable on car ".. Car.Name)
 end
 
 local Coros = {
@@ -4154,16 +4185,18 @@ Lightbar:SetAttribute("max_stages", 0)
 Lightbar:SetAttribute("max_traffic_advisor", 0)
 
 for i,v in pairs(Lightbar.ModuleStore.Stages:GetChildren()) do
-	if v:FindFirstChildWhichIsA("Folder") then
+	if v:IsA("Folder") then
 		Lightbar:SetAttribute("max_stages", Lightbar:GetAttribute("max_stages") + 1)
 	end
 end
 
 for i,v in pairs(Lightbar.ModuleStore.Traffic_Advisor:GetChildren()) do
-	if v:FindFirstChildWhichIsA("Folder") then
+	if v:IsA("Folder") then
 		Lightbar:SetAttribute("max_traffic_advisor", Lightbar:GetAttribute("max_traffic_advisor") + 1)
 	end
 end
+
+local CurrentStage = 0
 
 --------------------------------------------------------------------------------
 -- Handling --
@@ -4171,36 +4204,61 @@ end
 
 -- Value changes
 Lightbar:GetAttributeChangedSignal("stage"):Connect(function()
-	print(Lightbar:GetAttribute("stage"))
+	local stage = Lightbar:GetAttribute("stage")
+	print(stage)
 	for i,v in pairs(Coros.Lightbar) do
 		print(v)
 		coroutine.close(v)
+		print(coroutine.status(v))
+		table.remove(Coros.Lightbar, i)
 	end
 
-	for i,v in pairs(Lightbar.ModuleStore.Stages["Stage".. Lightbar:GetAttribute("stage")]:GetChildren()) do
-		print(v)
-		if v:IsA("ModuleScript") then
-			local Module = require(v)
-			for name,colors in pairs(Module.Lights) do
-				local light = Lights[name]
-				if (
-					light.running_module.Value == nil
-					or require(light.running_module.Value).Settings.Weight < Module.Settings.Weight
-				) then
-					light.running_module.Value = v
-				end
-			end
-			table.insert(Coros.Lightbar, coroutine.create(function()
-				while task.wait(Module.Settings.WaitTime) do
-					if v:GetAttribute("max_count") == v:GetAttribute("count") then
-						v:SetAttribute("count", 1)
-					else
-						v:SetAttribute("count", v:GetAttribute("count") + 1)
+	if CurrentStage > 0 or Lightbar.ModuleStore.Stages:FindFirstChild("Stage0") then
+		for i,v in pairs(Lightbar.ModuleStore.Stages["Stage".. CurrentStage]:GetChildren()) do
+			print(v)
+			if v:IsA("ModuleScript") then
+				local Module = require(v)
+				for name,colors in pairs(Module.Lights) do
+					local light = Lights[name]
+					if light.running_module.Value ~= nil then
+						light.running_module.Value = nil
 					end
 				end
-			end))
+			end
 		end
 	end
+
+	if stage > 0 or Lightbar.ModuleStore.Stages:FindFirstChild("Stage0") then
+		for i,v in pairs(Lightbar.ModuleStore.Stages["Stage".. stage]:GetChildren()) do
+			print(v)
+			if v:IsA("ModuleScript") then
+				local Module = require(v)
+				for name,colors in pairs(Module.Lights) do
+					local light = Lights[name]
+					if (
+						light.running_module.Value == nil
+						or require(light.running_module.Value).Settings.Weight < Module.Settings.Weight
+					) then
+						light.running_module.Value = v
+					end
+				end
+				local coro = coroutine.create(function()
+					while task.wait(Module.Settings.WaitTime) do
+						print(v:GetAttribute("max_count"), v:GetAttribute("count"))
+						if v:GetAttribute("max_count") == v:GetAttribute("count") or v:GetAttribute("count") == nil then
+							v:SetAttribute("count", 1)
+						else
+							v:SetAttribute("count", tonumber(v:GetAttribute("count")) + 1)
+						end
+					end
+				end)
+				table.insert(Coros.Lightbar, coro)
+				coroutine.resume(coro)
+			end
+		end
+	end
+
+	CurrentStage = stage
 end)
 
 -- Module Registration
@@ -4232,7 +4290,7 @@ for i,v in pairs(Lightbar.ModuleStore:GetDescendants()) do
 
 				if Lights[name].running_module.Value ~= nil then
 					Connections.Lights[name] = Lights[name].running_module.Value:GetAttributeChangedSignal("count"):Connect(function()
-						LightFunction(light, colors[light:GetAttribute("count")], Module.Settings.Colors)
+						LightFunction(light, colors[tonumber(Lights[name].running_module.Value:GetAttribute("count"))], Module.Settings.Colors)
 					end)
 				else
 					LightFunction(light, 0, Module.Settings.Colors)
@@ -4244,23 +4302,93 @@ for i,v in pairs(Lightbar.ModuleStore:GetDescendants()) do
 end
 
 -- User Input
-Event.OnServerEvent:Connect(function(player: Player, State: Enum, Type: Enum, KeyCode: Enum)
+Event.OnServerEvent:Connect(function(player: Player, _Function: String, State, Type: Enum, KeyCode: Enum)
 	if player.Character == Car.DriveSeat.Occupant.Parent then
-		if State == Enum.UserInputState.Begin then
-			if KeyCode == Settings.Keybinds.Lights then
-				local stage = Lightbar:GetAttribute("stage")
-				if stage == Lightbar:GetAttribute("max_stages") then
-					Lightbar:SetAttribute("stage", 0)
-				else
-					Lightbar:SetAttribute("stage", stage + 1)
+		if _Function == "Input" then
+			if State == Enum.UserInputState.Begin then
+				if KeyCode == Settings.Keybinds.Lights then
+					local stage = Lightbar:GetAttribute("stage")
+					if stage == Lightbar:GetAttribute("max_stages") then
+						Lightbar:SetAttribute("stage", 0)
+					else
+						Lightbar:SetAttribute("stage", stage + 1)
+					end
+				elseif KeyCode == Settings.Keybinds.TrafficAdvisor then
+					local traffic_advisor = Lightbar:GetAttribute("traffic_advisor")
+					if traffic_advisor == Lightbar:GetAttribute("max_traffic_advisor") then
+						Lightbar:SetAttribute("traffic_advisor", 0)
+					else
+						Lightbar:SetAttribute("traffic_advisor", traffic_advisor + 1)
+					end
+				elseif table.find(Settings.Sirens, KeyCode) then
+					local siren = Settings.Sirens[KeyCode]
+					if siren._Type == "Hold" or siren._Type == "Siren" then
+						if Sounds:FindFirstChild(siren.Name) then
+							local sound = Sounds[siren.Name]
+							if sound.Playing then
+								sound:Stop()
+							else
+								if siren.OverrideOtherSounds then
+									for i,v in pairs(Sounds:GetDescendants()) do
+										if v:IsA("Sound") then
+											v:Stop()
+										end
+									end
+								end
+								sound:Play()
+							end
+						else
+							warn("EVC: Siren missing ".. siren.Name .." on car ".. Car.Name)
+						end
+					elseif siren._Type == "Modifier" then
+						if siren.Enabled then
+							for i,v in pairs(Settings.Sirens) do
+								if v.Modifier and v.Modifier.Options.PlayOnModifierChange and v.Modifier._Type == siren.Name then
+									if v.Modifier.Options.PlayNonModified then
+										if Sounds:FindFirstChild(v.Modifier.Name) and Sounds:FindFirstChild(v.Name) then
+											local ModifiedSound = Sounds[v.Modifier.Name]
+											local Sound = Sounds[v.Name]
+											ModifiedSound.TimePosition = Sound.TimePosition + v.Modifier.Options.Delay
+											ModifiedSound:Play()
+										end
+									else
+										if Sounds:FindFirstChild(v.Modifier.Name) and Sounds:FindFirstChild(v.Name) then
+											local ModifiedSound = Sounds[v.Modifier.Name]
+											local Sound = Sounds[v.Name]
+											ModifiedSound.TimePosition = Sound.TimePosition + v.Modifier.Options.Delay
+											ModifiedSound:Play()
+											Sound:Stop()
+										end
+									end
+								end
+							end
+						else
+							for i,v in pairs(Settings.Sirens) do
+								if v.Modifier and v.Modifier.Options.PlayOnModifierChange and v.Modifier._Type == siren.Name then
+									if v.Modifier.Options.PlayNonModified then
+										if Sounds:FindFirstChild(v.Modifier.Name) then
+											local ModifiedSound = Sounds[v.Modifier.Name]
+											ModifiedSound:Stop()
+										end
+									else
+										if Sounds:FindFirstChild(v.Modifier.Name) and Sounds:FindFirstChild(v.Name) then
+											local ModifiedSound = Sounds[v.Modifier.Name]
+											local Sound = Sounds[v.Name]
+											Sound.TimePosition = ModifiedSound.TimePosition - v.Modifier.Options.Delay
+											Sound:Play()
+											ModifiedSound:Stop()
+										end
+									end
+								end
+							end
+						end
+					end
 				end
-			elseif KeyCode == Settings.Keybinds.TrafficAdvisor then
-				local traffic_advisor = Lightbar:GetAttribute("traffic_advisor")
-				if traffic_advisor == Lightbar:GetAttribute("max_traffic_advisor") then
-					Lightbar:SetAttribute("traffic_advisor", 0)
-				else
-					Lightbar:SetAttribute("traffic_advisor", traffic_advisor + 1)
-				end
+			end
+		elseif _Function == "ParkMode" then
+			if State then
+				-- No idea how I am going to do this yes, lol
+			elseif not State then
 			end
 		end
 	end
@@ -4275,6 +4403,7 @@ end)]]></ProtectedString>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Template</string>
+						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{7053822E-2DD8-470E-AFA3-0955207201A8}</string>
 						<ProtectedString name="Source"><![CDATA[--[[
 Generated By: Emergency Vehicle Creator
@@ -4346,6 +4475,7 @@ return {
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Settings</string>
+						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{7C5A00E1-EC26-48A8-9224-B1D7AE978422}</string>
 						<ProtectedString name="Source"><![CDATA[--[[
 Redon Tech 2022
@@ -4361,17 +4491,64 @@ return {
 	LightbarLocation = "Lightbar",
 
 	-- The name of the siren location inside the lightbar location
-	SirenLocation = "middle", 
-
-	-- The airhorn name inside the siren location
-	AirhornLocation = "Horn",
+	SirenLocation = "middle",
 
 	-- All the selectable sirens and there respected keybinds
 	-- Modifier keys are planned for a future update
 	Sirens = {
-		[Enum.KeyCode.R] = "Wail",
-		[Enum.KeyCode.T] = "Yelp",
-		[Enum.KeyCode.Y] = "Priority"
+		[Enum.KeyCode.H] = {
+			_Type = "Hold",
+			Name = "Horn",
+			OverrideOtherSounds = true,
+			Modifier = {
+				_Type = "Rumber",
+				Name = "RHorn",
+				Options = {
+					PlayNonModified = true,
+					PlayOnModifierChange = true,
+					Delay = -0.05,
+				}
+			}
+		},
+		[Enum.KeyCode.R] = {
+			_Type = "Siren",
+			Name = "Wail",
+			OverrideOtherSounds = true,
+			Modifier = {
+				_Type = "Rumber",
+				Name = "RWail",
+				Options = {
+					PlayNonModified = false,
+					PlayOnModifierChange = true,
+					Delay = 0,
+				}
+			}
+		},
+		[Enum.KeyCode.T] = {
+			_Type = "Siren",
+			Name = "Yelp",
+			OverrideOtherSounds = true,
+			Modifier = {
+				_Type = "Rumber",
+				Name = "RYelp",
+				Options = {
+					PlayNonModified = true,
+					PlayOnModifierChange = true,
+					Delay = -0.05,
+				}
+			}
+		},
+		[Enum.KeyCode.Y] = {
+			_Type = "Siren",
+			Name = "Priority",
+			OverrideOtherSounds = true,
+			Modifier = nil
+		},
+		[Enum.KeyCode.LeftBracket] = {
+			_Type = "Modifier",
+			Name = "Rumbler",
+			Enabled = false
+		}
 	},
 
 	-- All the keybinds for any other functionality the system has
@@ -4382,6 +4559,11 @@ return {
 		Lights = Enum.KeyCode.J,
 		TrafficAdvisor = Enum.KeyCode.K
 	},
+
+	-- Enable park mode
+	-- Requires exporting a pattern to "Park" folder in the ModuleStore
+	--		- Make sure to set the park modes weight to be higher then the normal patterns
+	ParkMode = true,
 
 	-- Do not change below unless you know what you are doing
 	Light = function(Light, Color, Colors)
@@ -4408,7 +4590,7 @@ return {
 					v.Color = ColorSequence.new(Colors[Color])
 				end
 			end
-			Light.Transparency = 1
+			Light.Transparency = 0
 			Light.Color = Colors[Color]
 		end
 	end,
@@ -4424,6 +4606,8 @@ return {
 						<bool name="Disabled">false</bool>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">EVCPlugin_Client</string>
+						<string name="OriginalScriptGuid"></string>
+						<token name="RunContext">0</token>
 						<string name="ScriptGuid">{0CD9A6AC-A2CC-48A7-AD35-604A9EED606F}</string>
 						<ProtectedString name="Source"><![CDATA[--[[
 Redon Tech 2022
@@ -4437,14 +4621,20 @@ EVC
 local Car = script.Parent.Car.Value
 local Event = Car:WaitForChild("EVCRemote")
 local UserInputService = game:GetService("UserInputService")
+local Values = script.Parent.Values
 
 --------------------------------------------------------------------------------
 -- Handling --
 --------------------------------------------------------------------------------
 
+Values.Park:GetPropertyChangedSignal("Value"):Connect(function()
+	Event:FireServer("ParkMode", Values.Park.Value)
+	-- I am doing this in school, I have no idea if this is the right value name
+end)
+
 local function input(InputObj: InputObject, gameProcessedEvent: BoolValue)
-	if not gameProcessedEvent then
-		Event:FireServer(InputObj.UserInputState, InputObj.UserInputType, InputObj.KeyCode)
+	if not gameProcessedEvent and InputObj.UserInputType == Enum.UserInputType.Keyboard then
+		Event:FireServer("Input", InputObj.UserInputState, InputObj.UserInputType, InputObj.KeyCode)
 	end
 end
 
@@ -4629,6 +4819,7 @@ UserInputService.InputEnded:Connect(input)]]></ProtectedString>
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -4724,6 +4915,7 @@ UserInputService.InputEnded:Connect(input)]]></ProtectedString>
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4288651692</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -4928,6 +5120,7 @@ UserInputService.InputEnded:Connect(input)]]></ProtectedString>
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -5023,6 +5216,7 @@ UserInputService.InputEnded:Connect(input)]]></ProtectedString>
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -5118,6 +5312,7 @@ UserInputService.InputEnded:Connect(input)]]></ProtectedString>
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -5213,6 +5408,7 @@ UserInputService.InputEnded:Connect(input)]]></ProtectedString>
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -5308,6 +5504,7 @@ UserInputService.InputEnded:Connect(input)]]></ProtectedString>
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -5403,6 +5600,7 @@ UserInputService.InputEnded:Connect(input)]]></ProtectedString>
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -5498,6 +5696,7 @@ UserInputService.InputEnded:Connect(input)]]></ProtectedString>
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -5592,6 +5791,7 @@ UserInputService.InputEnded:Connect(input)]]></ProtectedString>
 										<BinaryString name="AttributesSerialize"></BinaryString>
 										<Content name="LinkedSource"><null></null></Content>
 										<string name="Name">Template</string>
+										<string name="OriginalScriptGuid"></string>
 										<string name="ScriptGuid">{473BDFF6-F21A-4724-AB6F-90684AAE75EC}</string>
 										<ProtectedString name="Source"><![CDATA[--[[
 Generated By: Emergency Vehicle Creator
@@ -5643,7 +5843,7 @@ Settings = {
 ]]
 Lights = {
 	["L1"] = {
-		1,2,3,4,5,6,0,0,0,0,0,0,
+		1,0,2,0,3,0,4,0,5,0,6,0
 	}
 }
 
@@ -5750,6 +5950,7 @@ return {
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4279970357</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -5846,6 +6047,7 @@ return {
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4279970357</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -5942,6 +6144,7 @@ return {
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4279970357</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -6142,6 +6345,7 @@ return {
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294901760</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -6173,7 +6377,6 @@ return {
 									<bool name="Massless">false</bool>
 									<token name="Material">288</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3218201077</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3218201077</url></Content>
 									<string name="Name">T</string>
 									<SharedString name="PhysicalConfigData">2eYuVu2pzqNo4pahDxwqVQ==</SharedString>
@@ -6276,6 +6479,7 @@ return {
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294901760</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -6307,7 +6511,6 @@ return {
 									<bool name="Massless">false</bool>
 									<token name="Material">288</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3218202304</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3218202304</url></Content>
 									<string name="Name">T</string>
 									<SharedString name="PhysicalConfigData">kDKLR5JXLYxrdQIg+nqyZA==</SharedString>
@@ -6387,6 +6590,8 @@ return {
 								<bool name="Disabled">false</bool>
 								<Content name="LinkedSource"><null></null></Content>
 								<string name="Name">_main</string>
+								<string name="OriginalScriptGuid"></string>
+								<token name="RunContext">0</token>
 								<string name="ScriptGuid">{2F01B5C3-4045-4219-A98E-3BADC8226E5F}</string>
 								<ProtectedString name="Source"><![CDATA[grp1 = script.Parent.G1:GetChildren()
 while true do
@@ -6487,6 +6692,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4288914085</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -6518,7 +6724,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">256</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154237623</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154237623</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">OcnmleohjtqQjK+pVdiEiw==</SharedString>
@@ -6601,6 +6806,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -6632,7 +6838,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154371050</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154371050</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">Nk/GqXlvA1WF8KOwyKbDIg==</SharedString>
@@ -6715,6 +6920,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4288914085</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -6746,7 +6952,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">256</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154241566</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154241566</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
@@ -6829,6 +7034,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -6860,7 +7066,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154245613</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154245613</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">Gv0zzw3cbXxrFKPYGLHNQg==</SharedString>
@@ -6943,6 +7148,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -6974,7 +7180,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154246286</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154246286</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">o2DbL7DWL7lnGLZkIlnx2A==</SharedString>
@@ -7057,6 +7262,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4288914085</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -7088,7 +7294,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">256</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154249648</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154249648</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">JDBL2fniV7hZln+lOjkfXw==</SharedString>
@@ -7171,6 +7376,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -7202,7 +7408,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154251071</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154251071</url></Content>
 								<string name="Name">Bed</string>
 								<SharedString name="PhysicalConfigData">YeME1TmVUYb+X78zuzTDLg==</SharedString>
@@ -7285,6 +7490,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -7316,7 +7522,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154252162</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154252162</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">j/OGG4VfIq1r+BdaiiNMxg==</SharedString>
@@ -7399,6 +7604,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -7430,7 +7636,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154311924</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154311924</url></Content>
 								<string name="Name">glass</string>
 								<SharedString name="PhysicalConfigData">3xZtITK6U9aEdSlNj566DA==</SharedString>
@@ -7560,6 +7765,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -7591,7 +7797,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154269153</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154269153</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">ArEKH7yRG0gGXAIT+Q9A8Q==</SharedString>
@@ -7674,6 +7879,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -7705,7 +7911,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154291622</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154291622</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">psJd7VhH27r/jWD01xyW/g==</SharedString>
@@ -7788,6 +7993,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -7819,7 +8025,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154296609</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154296609</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">6QZZrd5NAn6/uFgbXY96rg==</SharedString>
@@ -7902,6 +8107,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -7933,7 +8139,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154303760</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154303760</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">dNmGkjIQbjgLz+latuuaDw==</SharedString>
@@ -8016,6 +8221,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -8047,7 +8253,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154308107</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154308107</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">jsEWFgnQYb8+Is9Fu8Ygug==</SharedString>
@@ -8130,6 +8335,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -8161,7 +8367,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154262671</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154262671</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
@@ -8244,6 +8449,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -8275,7 +8481,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154265238</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154265238</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">JoiYfEExwOX2QBOnQJp/3w==</SharedString>
@@ -8358,6 +8563,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -8389,7 +8595,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">1568</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154303760</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154303760</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">dNmGkjIQbjgLz+latuuaDw==</SharedString>
@@ -8472,6 +8677,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -8503,7 +8709,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">1568</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154269153</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154269153</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">ArEKH7yRG0gGXAIT+Q9A8Q==</SharedString>
@@ -8586,6 +8791,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -8617,7 +8823,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">1568</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154291622</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154291622</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">psJd7VhH27r/jWD01xyW/g==</SharedString>
@@ -8700,6 +8905,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -8731,7 +8937,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">1568</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154296609</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154296609</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">6QZZrd5NAn6/uFgbXY96rg==</SharedString>
@@ -8814,6 +9019,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -8845,7 +9051,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">1568</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154308107</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154308107</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">jsEWFgnQYb8+Is9Fu8Ygug==</SharedString>
@@ -8928,6 +9133,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -8959,7 +9165,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">1568</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154265238</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154265238</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">JoiYfEExwOX2QBOnQJp/3w==</SharedString>
@@ -9042,6 +9247,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -9073,7 +9279,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">1568</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://3154262671</url></Content>
 									<Content name="MeshId"><url>rbxassetid://3154262671</url></Content>
 									<string name="Name">MeshPart</string>
 									<SharedString name="PhysicalConfigData">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
@@ -9157,6 +9362,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -9188,7 +9394,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154266893</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154266893</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">GCkHdMw2tpsHC4zcr4yNjQ==</SharedString>
@@ -9271,6 +9476,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -9302,7 +9508,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154271957</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154271957</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">7BqmRoD3uQh3Q12NrbEHJQ==</SharedString>
@@ -9385,6 +9590,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -9416,7 +9622,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154275588</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154275588</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">tJQwRn+o4+2CQbCm4qD/Qw==</SharedString>
@@ -9499,6 +9704,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4284702562</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -9530,7 +9736,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154276538</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154276538</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">fru+8U+QsZ6JDgbn/qGeLQ==</SharedString>
@@ -9613,6 +9818,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -9644,7 +9850,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154279923</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154279923</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">8J5+HOcZdMEN5zQ+1cYrhQ==</SharedString>
@@ -9727,6 +9932,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -9758,7 +9964,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154287096</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154287096</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">Y4x7bZRzTTBa2Ob1l5k96w==</SharedString>
@@ -9841,6 +10046,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -9872,7 +10078,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154293394</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154293394</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">cRXEP2rqyWr5Bhdz05Z7pA==</SharedString>
@@ -9955,6 +10160,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -9986,7 +10192,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154297576</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154297576</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">V6lfMXT0D5R/sDPayjXAlA==</SharedString>
@@ -10069,6 +10274,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -10100,7 +10306,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154305415</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154305415</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">JJHRiPbnWRCCv6LrzwDpTQ==</SharedString>
@@ -10183,6 +10388,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -10214,7 +10420,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154309165</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154309165</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">GP4Jx/EobhCfaMfmVQlOBw==</SharedString>
@@ -10297,6 +10502,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4281479730</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -10328,7 +10534,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3154254349</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3154254349</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">r97kdTvB8juEdcvzjnhPYQ==</SharedString>
@@ -10412,6 +10617,7 @@ end]]></ProtectedString>
 							<bool name="CanQuery">true</bool>
 							<bool name="CanTouch">true</bool>
 							<bool name="CastShadow">true</bool>
+							<string name="CollisionGroup">Default</string>
 							<int name="CollisionGroupId">0</int>
 							<Color3uint8 name="Color3uint8">4279970357</Color3uint8>
 							<PhysicalProperties name="CustomPhysicalProperties">
@@ -10443,7 +10649,6 @@ end]]></ProtectedString>
 							<bool name="Massless">false</bool>
 							<token name="Material">272</token>
 							<string name="MaterialVariantSerialized"></string>
-							<Content name="MeshID"><url>rbxassetid://1790249411</url></Content>
 							<Content name="MeshId"><url>rbxassetid://1790249411</url></Content>
 							<string name="Name">Meshes/Seats</string>
 							<SharedString name="PhysicalConfigData">MfzfJ1gOboLtpLJ8rZy3DA==</SharedString>
@@ -10573,6 +10778,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4288914085</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -10604,7 +10810,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">256</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3208287310</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3208287310</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">gBL6EWRcQCZZ1t+a1rzAwg==</SharedString>
@@ -10687,6 +10892,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4288914085</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -10718,7 +10924,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">256</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://3208286671</url></Content>
 								<Content name="MeshId"><url>rbxassetid://3208286671</url></Content>
 								<string name="Name">MeshPart</string>
 								<SharedString name="PhysicalConfigData">qzjMcrb8e3ih+sRuiEhmgw==</SharedString>
@@ -10852,6 +11057,7 @@ end]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4291045404</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -11006,6 +11212,7 @@ end]]></ProtectedString>
 						<bool name="CanQuery">true</bool>
 						<bool name="CanTouch">true</bool>
 						<bool name="CastShadow">true</bool>
+						<string name="CollisionGroup">Default</string>
 						<int name="CollisionGroupId">0</int>
 						<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 						<PhysicalProperties name="CustomPhysicalProperties">
@@ -11247,6 +11454,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -11278,7 +11486,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://2189061279</url></Content>
 									<Content name="MeshId"><url>rbxassetid://2189061279</url></Content>
 									<string name="Name">frontrim</string>
 									<SharedString name="PhysicalConfigData">ZoRS6sNYHnJDKlYbuP6DIw==</SharedString>
@@ -11361,6 +11568,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -11397,7 +11605,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://1006374813</url></Content>
 									<Content name="MeshId"><url>rbxassetid://1006374813</url></Content>
 									<string name="Name">Tire</string>
 									<SharedString name="PhysicalConfigData">fJUVJduaAplmklDfk84Iqw==</SharedString>
@@ -11560,6 +11767,7 @@ end]]></ProtectedString>
 						<bool name="CanQuery">true</bool>
 						<bool name="CanTouch">true</bool>
 						<bool name="CastShadow">true</bool>
+						<string name="CollisionGroup">Default</string>
 						<int name="CollisionGroupId">0</int>
 						<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 						<PhysicalProperties name="CustomPhysicalProperties">
@@ -11753,6 +11961,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -11784,7 +11993,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://2189061279</url></Content>
 									<Content name="MeshId"><url>rbxassetid://2189061279</url></Content>
 									<string name="Name">frontrim</string>
 									<SharedString name="PhysicalConfigData">ZoRS6sNYHnJDKlYbuP6DIw==</SharedString>
@@ -11867,6 +12075,7 @@ end]]></ProtectedString>
 									<bool name="CanQuery">true</bool>
 									<bool name="CanTouch">true</bool>
 									<bool name="CastShadow">true</bool>
+									<string name="CollisionGroup">Default</string>
 									<int name="CollisionGroupId">0</int>
 									<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 									<PhysicalProperties name="CustomPhysicalProperties">
@@ -11903,7 +12112,6 @@ end]]></ProtectedString>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
 									<string name="MaterialVariantSerialized"></string>
-									<Content name="MeshID"><url>rbxassetid://1006374813</url></Content>
 									<Content name="MeshId"><url>rbxassetid://1006374813</url></Content>
 									<string name="Name">Tire</string>
 									<SharedString name="PhysicalConfigData">fJUVJduaAplmklDfk84Iqw==</SharedString>
@@ -12114,6 +12322,7 @@ end]]></ProtectedString>
 						<bool name="CanQuery">true</bool>
 						<bool name="CanTouch">true</bool>
 						<bool name="CastShadow">true</bool>
+						<string name="CollisionGroup">Default</string>
 						<int name="CollisionGroupId">0</int>
 						<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 						<PhysicalProperties name="CustomPhysicalProperties">
@@ -12260,6 +12469,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -12291,7 +12501,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://2189061279</url></Content>
 								<Content name="MeshId"><url>rbxassetid://2189061279</url></Content>
 								<string name="Name">frontrim</string>
 								<SharedString name="PhysicalConfigData">ZoRS6sNYHnJDKlYbuP6DIw==</SharedString>
@@ -12374,6 +12583,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -12410,7 +12620,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://1006374813</url></Content>
 								<Content name="MeshId"><url>rbxassetid://1006374813</url></Content>
 								<string name="Name">Tire</string>
 								<SharedString name="PhysicalConfigData">fJUVJduaAplmklDfk84Iqw==</SharedString>
@@ -12620,6 +12829,7 @@ end]]></ProtectedString>
 						<bool name="CanQuery">true</bool>
 						<bool name="CanTouch">true</bool>
 						<bool name="CastShadow">true</bool>
+						<string name="CollisionGroup">Default</string>
 						<int name="CollisionGroupId">0</int>
 						<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 						<PhysicalProperties name="CustomPhysicalProperties">
@@ -12814,6 +13024,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -12845,7 +13056,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://2189061279</url></Content>
 								<Content name="MeshId"><url>rbxassetid://2189061279</url></Content>
 								<string name="Name">frontrim</string>
 								<SharedString name="PhysicalConfigData">ZoRS6sNYHnJDKlYbuP6DIw==</SharedString>
@@ -12928,6 +13138,7 @@ end]]></ProtectedString>
 								<bool name="CanQuery">true</bool>
 								<bool name="CanTouch">true</bool>
 								<bool name="CastShadow">true</bool>
+								<string name="CollisionGroup">Default</string>
 								<int name="CollisionGroupId">0</int>
 								<Color3uint8 name="Color3uint8">4279308561</Color3uint8>
 								<PhysicalProperties name="CustomPhysicalProperties">
@@ -12964,7 +13175,6 @@ end]]></ProtectedString>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
 								<string name="MaterialVariantSerialized"></string>
-								<Content name="MeshID"><url>rbxassetid://1006374813</url></Content>
 								<Content name="MeshId"><url>rbxassetid://1006374813</url></Content>
 								<string name="Name">Tire</string>
 								<SharedString name="PhysicalConfigData">fJUVJduaAplmklDfk84Iqw==</SharedString>
@@ -13102,6 +13312,7 @@ end]]></ProtectedString>
 					<BinaryString name="AttributesSerialize"></BinaryString>
 					<Content name="LinkedSource"><null></null></Content>
 					<string name="Name">A-Chassis Tune</string>
+					<string name="OriginalScriptGuid"></string>
 					<string name="ScriptGuid">{3873FBD2-384A-45C4-8743-8FD3D46CEF13}</string>
 					<ProtectedString name="Source"><![CDATA[--[[
 	    ___      _______                _       _______
@@ -13466,6 +13677,8 @@ return Tune]]></ProtectedString>
 								<bool name="Disabled">false</bool>
 								<Content name="LinkedSource"><null></null></Content>
 								<string name="Name">Controls_AC6</string>
+								<string name="OriginalScriptGuid"></string>
+								<token name="RunContext">0</token>
 								<string name="ScriptGuid">{41C901EA-E539-4121-B82E-2C1A2647AE35}</string>
 								<ProtectedString name="Source"><![CDATA[--[[
 		___      _______                _     
@@ -13718,7 +13931,12 @@ end]]></ProtectedString>
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">6</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+										<Weight>400</Weight>
+										<Style>Italic</Style>
+										<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">0</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -13803,7 +14021,12 @@ end]]></ProtectedString>
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">6</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+										<Weight>400</Weight>
+										<Style>Italic</Style>
+										<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">0</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -13888,7 +14111,12 @@ end]]></ProtectedString>
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">5</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+										<Weight>300</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Light.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">0</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -13973,7 +14201,12 @@ end]]></ProtectedString>
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">5</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+										<Weight>300</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Light.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">0</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -14120,7 +14353,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -14209,7 +14447,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -14298,7 +14541,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -14510,7 +14758,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -14683,7 +14936,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -14856,7 +15114,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -15029,7 +15292,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -15202,7 +15470,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -15287,7 +15560,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -15372,7 +15650,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -15457,7 +15740,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -15543,7 +15831,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -15632,7 +15925,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -15721,7 +16019,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -15810,7 +16113,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -15899,7 +16207,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -15988,7 +16301,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -16077,7 +16395,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -16166,7 +16489,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -16255,7 +16583,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -16343,7 +16676,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -16428,7 +16766,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -16513,7 +16856,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -16598,7 +16946,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -16683,7 +17036,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -16768,7 +17126,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -16853,7 +17216,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -16938,7 +17306,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17023,7 +17396,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17109,7 +17487,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17198,7 +17581,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17287,7 +17675,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17376,7 +17769,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17465,7 +17863,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17554,7 +17957,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17643,7 +18051,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17731,7 +18144,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17816,7 +18234,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17901,7 +18324,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -17986,7 +18414,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -18071,7 +18504,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -18156,7 +18594,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -18241,7 +18684,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -18327,7 +18775,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -18416,7 +18869,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -18505,7 +18963,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -18594,7 +19057,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -18683,7 +19151,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -18772,7 +19245,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -18861,7 +19339,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -18950,7 +19433,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -19039,7 +19527,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -19128,7 +19621,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -19217,7 +19715,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -19306,7 +19809,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -19395,7 +19903,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -19484,7 +19997,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -19573,7 +20091,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -19661,7 +20184,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -19746,7 +20274,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -19831,7 +20364,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -19916,7 +20454,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20001,7 +20544,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20086,7 +20634,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20171,7 +20724,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20256,7 +20814,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20341,7 +20904,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20426,7 +20994,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20511,7 +21084,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20596,7 +21174,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20681,7 +21264,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20766,7 +21354,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20851,7 +21444,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -20937,7 +21535,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -21025,7 +21628,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -21110,7 +21718,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">6</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Italic</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-It.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -21196,7 +21809,12 @@ end]]></ProtectedString>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">3</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+											<Weight>400</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -21287,7 +21905,12 @@ end]]></ProtectedString>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">1</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>400</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -21356,6 +21979,8 @@ end]]></ProtectedString>
 							<bool name="Disabled">false</bool>
 							<Content name="LinkedSource"><null></null></Content>
 							<string name="Name">AC6_Stock_Sound</string>
+							<string name="OriginalScriptGuid"></string>
+							<token name="RunContext">0</token>
 							<string name="ScriptGuid">{F885B642-EB70-42C2-AB99-270A28D37BFC}</string>
 							<ProtectedString name="Source"><![CDATA[--[[
 		___      _______                _     
@@ -21425,6 +22050,8 @@ end
 									<bool name="Disabled">true</bool>
 									<Content name="LinkedSource"><null></null></Content>
 									<string name="Name">Handler</string>
+									<string name="OriginalScriptGuid"></string>
+									<token name="RunContext">0</token>
 									<string name="ScriptGuid">{A5D85FE9-1CAC-4BDB-95CF-AF29B798B02C}</string>
 									<ProtectedString name="Source"><![CDATA[local car = script.Parent.Parent
 local Sounds = {}
@@ -21533,6 +22160,8 @@ end)]]></ProtectedString>
 							<bool name="Disabled">false</bool>
 							<Content name="LinkedSource"><null></null></Content>
 							<string name="Name">AC6_MSteer_Camera</string>
+							<string name="OriginalScriptGuid"></string>
+							<token name="RunContext">0</token>
 							<string name="ScriptGuid">{DA39DF48-28D3-4A02-8A72-7EE28B3E33A7}</string>
 							<ProtectedString name="Source"><![CDATA[--[[
 		___      _______                _     
@@ -22886,6 +23515,8 @@ end)]]></ProtectedString>
 								<bool name="Disabled">false</bool>
 								<Content name="LinkedSource"><null></null></Content>
 								<string name="Name">Simulated</string>
+								<string name="OriginalScriptGuid"></string>
+								<token name="RunContext">0</token>
 								<string name="ScriptGuid">{D7745FB3-3D21-430A-BC31-B3E44FC7F153}</string>
 								<ProtectedString name="Source"><![CDATA[  				    --//AC6 Ported Plugin [SS6]//--
 				  --//SecondLogic x INSPARE 2017//--
@@ -23312,6 +23943,8 @@ end]]></ProtectedString>
 							<bool name="Disabled">false</bool>
 							<Content name="LinkedSource"><null></null></Content>
 							<string name="Name">AC6_Boost_Sound</string>
+							<string name="OriginalScriptGuid"></string>
+							<token name="RunContext">0</token>
 							<string name="ScriptGuid">{13CEFFCA-057D-4D8B-9CEA-6B951395438E}</string>
 							<ProtectedString name="Source"><![CDATA[--[[
 	    ___      _______                _       _______
@@ -24054,7 +24687,12 @@ end]]></ProtectedString>
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">0</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -24140,7 +24778,12 @@ end]]></ProtectedString>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -24225,7 +24868,12 @@ end]]></ProtectedString>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -24310,7 +24958,12 @@ end]]></ProtectedString>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -24395,7 +25048,12 @@ end]]></ProtectedString>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -24480,7 +25138,12 @@ end]]></ProtectedString>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -24566,7 +25229,12 @@ end]]></ProtectedString>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -24654,7 +25322,12 @@ end]]></ProtectedString>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -24719,6 +25392,8 @@ end]]></ProtectedString>
 								<bool name="Disabled">false</bool>
 								<Content name="LinkedSource"><null></null></Content>
 								<string name="Name">Gauges_AC6</string>
+								<string name="OriginalScriptGuid"></string>
+								<token name="RunContext">0</token>
 								<string name="ScriptGuid">{B5DF4FAF-48FE-40C6-AE20-E0B2B0BD0B9D}</string>
 								<ProtectedString name="Source"><![CDATA[--[[
 	    ___      _______                _       _______
@@ -25505,7 +26180,12 @@ PBrake()
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">0</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -25591,7 +26271,12 @@ PBrake()
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -25657,6 +26342,8 @@ PBrake()
 							<bool name="Disabled">false</bool>
 							<Content name="LinkedSource"><null></null></Content>
 							<string name="Name">EVCPlugin_Client</string>
+							<string name="OriginalScriptGuid"></string>
+							<token name="RunContext">0</token>
 							<string name="ScriptGuid">{B0E1E75F-F583-4F8D-8A65-2C706CC3279F}</string>
 							<ProtectedString name="Source"><![CDATA[--[[
 Redon Tech 2022
@@ -25676,7 +26363,7 @@ local UserInputService = game:GetService("UserInputService")
 --------------------------------------------------------------------------------
 
 local function input(InputObj: InputObject, gameProcessedEvent: BoolValue)
-	if not gameProcessedEvent then
+	if not gameProcessedEvent and InputObj.UserInputType == Enum.UserInputType.Keyboard then
 		Event:FireServer(InputObj.UserInputState, InputObj.UserInputType, InputObj.KeyCode)
 	end
 end
@@ -25702,6 +26389,8 @@ UserInputService.InputEnded:Connect(input)]]></ProtectedString>
 									<bool name="Disabled">true</bool>
 									<Content name="LinkedSource"><null></null></Content>
 									<string name="Name">EVCPlugin</string>
+									<string name="OriginalScriptGuid"></string>
+									<token name="RunContext">0</token>
 									<string name="ScriptGuid">{2D1D27A7-548D-40EF-8D27-D8A61FE9B44F}</string>
 									<ProtectedString name="Source"><![CDATA[local Lighting = game:GetService("Lighting")
 --[[
@@ -25740,16 +26429,18 @@ Lightbar:SetAttribute("max_stages", 0)
 Lightbar:SetAttribute("max_traffic_advisor", 0)
 
 for i,v in pairs(Lightbar.ModuleStore.Stages:GetChildren()) do
-	if v:FindFirstChildWhichIsA("Folder") then
+	if v:IsA("Folder") then
 		Lightbar:SetAttribute("max_stages", Lightbar:GetAttribute("max_stages") + 1)
 	end
 end
 
 for i,v in pairs(Lightbar.ModuleStore.Traffic_Advisor:GetChildren()) do
-	if v:FindFirstChildWhichIsA("Folder") then
+	if v:IsA("Folder") then
 		Lightbar:SetAttribute("max_traffic_advisor", Lightbar:GetAttribute("max_traffic_advisor") + 1)
 	end
 end
+
+local CurrentStage = 0
 
 --------------------------------------------------------------------------------
 -- Handling --
@@ -25757,36 +26448,61 @@ end
 
 -- Value changes
 Lightbar:GetAttributeChangedSignal("stage"):Connect(function()
-	print(Lightbar:GetAttribute("stage"))
+	local stage = Lightbar:GetAttribute("stage")
+	print(stage)
 	for i,v in pairs(Coros.Lightbar) do
 		print(v)
 		coroutine.close(v)
+		print(coroutine.status(v))
+		table.remove(Coros.Lightbar, i)
 	end
 
-	for i,v in pairs(Lightbar.ModuleStore.Stages["Stage".. Lightbar:GetAttribute("stage")]:GetChildren()) do
-		print(v)
-		if v:IsA("ModuleScript") then
-			local Module = require(v)
-			for name,colors in pairs(Module.Lights) do
-				local light = Lights[name]
-				if (
-					light.running_module.Value == nil
-						or require(light.running_module.Value).Settings.Weight < Module.Settings.Weight
-					) then
-					light.running_module.Value = v
-				end
-			end
-			table.insert(Coros.Lightbar, coroutine.create(function()
-				while task.wait(Module.Settings.WaitTime) do
-					if v:GetAttribute("max_count") == v:GetAttribute("count") then
-						v:SetAttribute("count", 1)
-					else
-						v:SetAttribute("count", v:GetAttribute("count") + 1)
+	if CurrentStage > 0 or Lightbar.ModuleStore.Stages:FindFirstChild("Stage0") then
+		for i,v in pairs(Lightbar.ModuleStore.Stages["Stage".. CurrentStage]:GetChildren()) do
+			print(v)
+			if v:IsA("ModuleScript") then
+				local Module = require(v)
+				for name,colors in pairs(Module.Lights) do
+					local light = Lights[name]
+					if light.running_module.Value ~= nil then
+						light.running_module.Value = nil
 					end
 				end
-			end))
+			end
 		end
 	end
+
+	if stage > 0 or Lightbar.ModuleStore.Stages:FindFirstChild("Stage0") then
+		for i,v in pairs(Lightbar.ModuleStore.Stages["Stage".. stage]:GetChildren()) do
+			print(v)
+			if v:IsA("ModuleScript") then
+				local Module = require(v)
+				for name,colors in pairs(Module.Lights) do
+					local light = Lights[name]
+					if (
+						light.running_module.Value == nil
+							or require(light.running_module.Value).Settings.Weight < Module.Settings.Weight
+						) then
+						light.running_module.Value = v
+					end
+				end
+				local coro = coroutine.create(function()
+					while task.wait(Module.Settings.WaitTime) do
+						print(v:GetAttribute("max_count"), v:GetAttribute("count"))
+						if v:GetAttribute("max_count") == v:GetAttribute("count") or v:GetAttribute("count") == nil then
+							v:SetAttribute("count", 1)
+						else
+							v:SetAttribute("count", tonumber(v:GetAttribute("count")) + 1)
+						end
+					end
+				end)
+				table.insert(Coros.Lightbar, coro)
+				coroutine.resume(coro)
+			end
+		end
+	end
+
+	CurrentStage = stage
 end)
 
 -- Module Registration
@@ -25818,7 +26534,7 @@ for i,v in pairs(Lightbar.ModuleStore:GetDescendants()) do
 
 				if Lights[name].running_module.Value ~= nil then
 					Connections.Lights[name] = Lights[name].running_module.Value:GetAttributeChangedSignal("count"):Connect(function()
-						LightFunction(light, colors[light:GetAttribute("count")], Module.Settings.Colors)
+						LightFunction(light, colors[tonumber(Lights[name].running_module.Value:GetAttribute("count"))], Module.Settings.Colors)
 					end)
 				else
 					LightFunction(light, 0, Module.Settings.Colors)
@@ -25861,6 +26577,7 @@ end)]]></ProtectedString>
 									<BinaryString name="AttributesSerialize"></BinaryString>
 									<Content name="LinkedSource"><null></null></Content>
 									<string name="Name">Settings</string>
+									<string name="OriginalScriptGuid"></string>
 									<string name="ScriptGuid">{1ACD3226-438A-4505-9816-E3DE171D105C}</string>
 									<ProtectedString name="Source"><![CDATA[--[[
 Redon Tech 2022
@@ -25872,61 +26589,62 @@ EVC
 --------------------------------------------------------------------------------
 
 return {
-    -- The name of the lightbar in body
-    LightbarLocation = "Lightbar",
+	-- The name of the lightbar in body
+	LightbarLocation = "Lightbar",
 
-    -- The name of the siren location inside the lightbar location
-    SirenLocation = "middle", 
+	-- The name of the siren location inside the lightbar location
+	SirenLocation = "middle", 
 
-    -- The airhorn name inside the siren location
-    AirhornLocation = "Horn",
+	-- The airhorn name inside the siren location
+	AirhornLocation = "Horn",
 
-    -- All the selectable sirens and there respected keybinds
-    -- Modifier keys are planned for a future update
-    Sirens = {
-        [Enum.KeyCode.R] = "Wail",
-        [Enum.KeyCode.T] = "Yelp",
-        [Enum.KeyCode.Y] = "Priority"
-    },
+	-- All the selectable sirens and there respected keybinds
+	-- Modifier keys are planned for a future update
+	Sirens = {
+		[Enum.KeyCode.R] = "Wail",
+		[Enum.KeyCode.T] = "Yelp",
+		[Enum.KeyCode.Y] = "Priority"
+	},
 
-    -- All the keybinds for any other functionality the system has
-    -- Currently only the following functions are avaliable:
-    --      - Lights: Changes the current stage
-    --      - TrafficAdvisor: Changes the current traffic advisor direction
-    Keybinds = {
-        ["Lights"] = Enum.KeyCode.J,
-        ["TrafficAdvisor"] = Enum.KeyCode.K
-    },
+	-- All the keybinds for any other functionality the system has
+	-- Currently only the following functions are avaliable:
+	--      - Lights: Changes the current stage
+	--      - TrafficAdvisor: Changes the current traffic advisor direction
+	Keybinds = {
+		Lights = Enum.KeyCode.J,
+		TrafficAdvisor = Enum.KeyCode.K
+	},
 
-    -- Do not change below unless you know what you are doing
-    Light = function(Light, Color, Colors)
-        if Color == 0 then
-            for i,v in pairs(Light:GetDescendants()) do
-                if v:IsA("GuiObject") then
-                    v.Visible = false
-                elseif v:IsA("Light") or v:IsA("SurfaceGui") then
-                    v.Enabled = false
-                elseif v:IsA("PartticleEmitter") then
-                    v.Transparency = NumberSequence.new(1)
-                end
-            end
-            Light.Transparency = 1
-        else
-            for i,v in pairs(Light:GetDescendants()) do
-                if v:IsA("GuiObject") then
-                    v.Visible = true
-                    v.ImageColor3 = Colors[Color]
-                elseif v:IsA("Light") or v:IsA("SurfaceGui") then
-                    v.Enabled = true
-                elseif v:IsA("PartticleEmitter") then
-                    v.Transparency = NumberSequence.new(0)
-                    v.Color = ColorSequence.new(Colors[Color])
-                end
-            end
-            Light.Transparency = 1
-            Light.Color = Colors[Color]
-        end
-    end,
+	-- Do not change below unless you know what you are doing
+	Light = function(Light, Color, Colors)
+		print(Color, Colors, Colors[Color])
+		if Color == 0 then
+			for i,v in pairs(Light:GetDescendants()) do
+				if v:IsA("GuiObject") then
+					v.Visible = false
+				elseif v:IsA("Light") or v:IsA("SurfaceGui") then
+					v.Enabled = false
+				elseif v:IsA("PartticleEmitter") then
+					v.Transparency = NumberSequence.new(1)
+				end
+			end
+			Light.Transparency = 1
+		else
+			for i,v in pairs(Light:GetDescendants()) do
+				if v:IsA("GuiObject") then
+					v.Visible = true
+					v.ImageColor3 = Colors[Color]
+				elseif v:IsA("Light") or v:IsA("SurfaceGui") then
+					v.Enabled = true
+				elseif v:IsA("PartticleEmitter") then
+					v.Transparency = NumberSequence.new(0)
+					v.Color = ColorSequence.new(Colors[Color])
+				end
+			end
+			Light.Transparency = 0
+			Light.Color = Colors[Color]
+		end
+	end,
 }]]></ProtectedString>
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"></BinaryString>
@@ -25941,6 +26659,7 @@ return {
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">README</string>
+						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{19520D8E-9CA7-47A1-840A-095CDA4D2D2C}</string>
 						<ProtectedString name="Source"><![CDATA[--[[                                           <<DO NOT DELETE THIS MODULE>>
    ___      _______                _       _______
@@ -26108,6 +26827,8 @@ return "6.81"]]></ProtectedString>
 						<bool name="Disabled">false</bool>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Initialize</string>
+						<string name="OriginalScriptGuid"></string>
+						<token name="RunContext">0</token>
 						<string name="ScriptGuid">{A25D7DAE-7FDB-43E4-9752-260AD34F62B9}</string>
 						<ProtectedString name="Source"><![CDATA[--[[
 		___      _______                _     
@@ -26687,6 +27408,7 @@ return "6.81"]]></ProtectedString>
 							<BinaryString name="AttributesSerialize"></BinaryString>
 							<Content name="LinkedSource"><null></null></Content>
 							<string name="Name">MiscWeld</string>
+							<string name="OriginalScriptGuid"></string>
 							<string name="ScriptGuid">{9731B668-1E38-4163-9F64-9609FB982722}</string>
 							<ProtectedString name="Source"><![CDATA[local MiscWeld = {}
 
@@ -27034,6 +27756,8 @@ return MiscWeld]]></ProtectedString>
 							<bool name="Disabled">false</bool>
 							<Content name="LinkedSource"><null></null></Content>
 							<string name="Name">Drive</string>
+							<string name="OriginalScriptGuid"></string>
+							<token name="RunContext">0</token>
 							<string name="ScriptGuid">{BD4C9F91-521F-4974-9440-3D5062FC29E8}</string>
 							<ProtectedString name="Source"><![CDATA[--[[
 		___      _______                _     
@@ -27832,6 +28556,7 @@ return MiscWeld]]></ProtectedString>
 				<bool name="CanQuery">true</bool>
 				<bool name="CanTouch">true</bool>
 				<bool name="CastShadow">true</bool>
+				<string name="CollisionGroup">Default</string>
 				<int name="CollisionGroupId">0</int>
 				<Color3uint8 name="Color3uint8">4294924633</Color3uint8>
 				<PhysicalProperties name="CustomPhysicalProperties">
@@ -27927,6 +28652,7 @@ return MiscWeld]]></ProtectedString>
 				<bool name="CanQuery">true</bool>
 				<bool name="CanTouch">true</bool>
 				<bool name="CastShadow">true</bool>
+				<string name="CollisionGroup">Default</string>
 				<int name="CollisionGroupId">0</int>
 				<Color3uint8 name="Color3uint8">4282347722</Color3uint8>
 				<PhysicalProperties name="CustomPhysicalProperties">
@@ -28022,6 +28748,7 @@ return MiscWeld]]></ProtectedString>
 				<bool name="CanQuery">true</bool>
 				<bool name="CanTouch">true</bool>
 				<bool name="CastShadow">true</bool>
+				<string name="CollisionGroup">Default</string>
 				<int name="CollisionGroupId">0</int>
 				<Color3uint8 name="Color3uint8">4292511041</Color3uint8>
 				<PhysicalProperties name="CustomPhysicalProperties">
@@ -28117,6 +28844,7 @@ return MiscWeld]]></ProtectedString>
 				<bool name="CanQuery">true</bool>
 				<bool name="CanTouch">true</bool>
 				<bool name="CastShadow">true</bool>
+				<string name="CollisionGroup">Default</string>
 				<int name="CollisionGroupId">0</int>
 				<Color3uint8 name="Color3uint8">4294967295</Color3uint8>
 				<PhysicalProperties name="CustomPhysicalProperties">
@@ -28212,6 +28940,7 @@ return MiscWeld]]></ProtectedString>
 				<bool name="CanQuery">true</bool>
 				<bool name="CanTouch">true</bool>
 				<bool name="CastShadow">true</bool>
+				<string name="CollisionGroup">Default</string>
 				<int name="CollisionGroupId">0</int>
 				<Color3uint8 name="Color3uint8">4283144011</Color3uint8>
 				<PhysicalProperties name="CustomPhysicalProperties">
@@ -28307,6 +29036,7 @@ return MiscWeld]]></ProtectedString>
 				<bool name="CanQuery">true</bool>
 				<bool name="CanTouch">true</bool>
 				<bool name="CastShadow">true</bool>
+				<string name="CollisionGroup">Default</string>
 				<int name="CollisionGroupId">0</int>
 				<Color3uint8 name="Color3uint8">4289331370</Color3uint8>
 				<PhysicalProperties name="CustomPhysicalProperties">
@@ -28402,6 +29132,7 @@ return MiscWeld]]></ProtectedString>
 				<bool name="CanQuery">true</bool>
 				<bool name="CanTouch">true</bool>
 				<bool name="CastShadow">true</bool>
+				<string name="CollisionGroup">Default</string>
 				<int name="CollisionGroupId">0</int>
 				<Color3uint8 name="Color3uint8">4288914085</Color3uint8>
 				<PhysicalProperties name="CustomPhysicalProperties">
@@ -28562,6 +29293,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -28901,6 +29633,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -29240,6 +29973,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -29579,6 +30313,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -29918,6 +30653,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -30257,6 +30993,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -30596,6 +31333,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -30759,6 +31497,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -30922,6 +31661,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -31085,6 +31825,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -31248,6 +31989,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -31411,6 +32153,7 @@ return MiscWeld]]></ProtectedString>
 					<bool name="CanQuery">true</bool>
 					<bool name="CanTouch">true</bool>
 					<bool name="CastShadow">true</bool>
+					<string name="CollisionGroup">Default</string>
 					<int name="CollisionGroupId">0</int>
 					<Color3uint8 name="Color3uint8">4294506744</Color3uint8>
 					<PhysicalProperties name="CustomPhysicalProperties">
@@ -31550,6 +32293,8 @@ return MiscWeld]]></ProtectedString>
 					<bool name="Disabled">false</bool>
 					<Content name="LinkedSource"><null></null></Content>
 					<string name="Name">Controller1</string>
+					<string name="OriginalScriptGuid"></string>
+					<token name="RunContext">0</token>
 					<string name="ScriptGuid">{1B112A91-86EA-48CE-8421-D1DAB12DE333}</string>
 					<ProtectedString name="Source"><![CDATA[local WaitTime = 0.075
 local Lightbar = script.Parent
@@ -31732,6 +32477,16 @@ end
 			<int64 name="SourceAssetId">-1</int64>
 			<BinaryString name="Tags"></BinaryString>
 			<UniqueId name="UniqueId">425070f357fc386702b6a73e0001f4d7</UniqueId>
+			<token name="VolumetricAudio">1</token>
+		</Properties>
+	</Item>
+	<Item class="VideoCaptureService" referent="RBX29DE0A1FA5A24E2293D837EC1576FD7D">
+		<Properties>
+			<BinaryString name="AttributesSerialize"></BinaryString>
+			<string name="Name">Instance</string>
+			<int64 name="SourceAssetId">-1</int64>
+			<BinaryString name="Tags"></BinaryString>
+			<UniqueId name="UniqueId">4e75a32d895771540315fb4f00021d82</UniqueId>
 		</Properties>
 	</Item>
 	<Item class="NonReplicatedCSGDictionaryService" referent="RBX29891FAD8F0B4421BDF93A9796DF2088">
@@ -31803,6 +32558,48 @@ end
 			<UniqueId name="UniqueId">425070f357fc386702b6a73e0001f4f2</UniqueId>
 		</Properties>
 	</Item>
+	<Item class="MaterialService" referent="RBXC9F5900B67EB4E9AA72E0AB556834581">
+		<Properties>
+			<string name="AsphaltName">Asphalt</string>
+			<BinaryString name="AttributesSerialize"></BinaryString>
+			<string name="BasaltName">Basalt</string>
+			<string name="BrickName">Brick</string>
+			<string name="CobblestoneName">Cobblestone</string>
+			<string name="ConcreteName">Concrete</string>
+			<string name="CorrodedMetalName">CorrodedMetal</string>
+			<string name="CrackedLavaName">CrackedLava</string>
+			<string name="DiamondPlateName">DiamondPlate</string>
+			<string name="FabricName">Fabric</string>
+			<string name="FoilName">Foil</string>
+			<string name="GlacierName">Glacier</string>
+			<string name="GraniteName">Granite</string>
+			<string name="GrassName">Grass</string>
+			<string name="GroundName">Ground</string>
+			<string name="IceName">Ice</string>
+			<string name="LeafyGrassName">LeafyGrass</string>
+			<string name="LimestoneName">Limestone</string>
+			<string name="MarbleName">Marble</string>
+			<string name="MetalName">Metal</string>
+			<string name="MudName">Mud</string>
+			<string name="Name">MaterialService</string>
+			<string name="PavementName">Pavement</string>
+			<string name="PebbleName">Pebble</string>
+			<string name="PlasticName">Plastic</string>
+			<string name="RockName">Rock</string>
+			<string name="SaltName">Salt</string>
+			<string name="SandName">Sand</string>
+			<string name="SandstoneName">Sandstone</string>
+			<string name="SlateName">Slate</string>
+			<string name="SmoothPlasticName">SmoothPlastic</string>
+			<string name="SnowName">Snow</string>
+			<int64 name="SourceAssetId">-1</int64>
+			<BinaryString name="Tags"></BinaryString>
+			<UniqueId name="UniqueId">4e75a32d895771540315fb4f00021d93</UniqueId>
+			<bool name="Use2022MaterialsXml">false</bool>
+			<string name="WoodName">Wood</string>
+			<string name="WoodPlanksName">WoodPlanks</string>
+		</Properties>
+	</Item>
 	<Item class="PermissionsService" referent="RBX239F10863DD4444FBC1F4BC501991F24">
 		<Properties>
 			<BinaryString name="AttributesSerialize"></BinaryString>
@@ -31859,6 +32656,7 @@ end
 			<token name="DevComputerMovementMode">0</token>
 			<token name="DevTouchCameraMovementMode">0</token>
 			<token name="DevTouchMovementMode">0</token>
+			<token name="EnableDynamicHeads">0</token>
 			<bool name="EnableMouseLockOption">true</bool>
 			<int64 name="GameSettingsAssetIDFace">0</int64>
 			<int64 name="GameSettingsAssetIDHead">0</int64>
@@ -32217,7 +33015,12 @@ end
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">0</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -32388,7 +33191,12 @@ end
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">1</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -32572,7 +33380,12 @@ end
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">2</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -32756,7 +33569,12 @@ end
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">3</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -32967,7 +33785,12 @@ end
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">4</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -33151,7 +33974,12 @@ end
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">5</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -33335,7 +34163,12 @@ end
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">6</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -33519,7 +34352,12 @@ end
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">7</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -33798,7 +34636,12 @@ end
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">8</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -34077,7 +34920,12 @@ end
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">9</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -34261,7 +35109,12 @@ end
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">1</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>400</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -34358,7 +35211,12 @@ end
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -34542,7 +35400,12 @@ end
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -34726,7 +35589,12 @@ end
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -34915,7 +35783,12 @@ end
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">1</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>400</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -35024,7 +35897,12 @@ end
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -35207,7 +36085,12 @@ end
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">1</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>400</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -35303,7 +36186,12 @@ end
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">1</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>400</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -40060,7 +40948,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
 										<token name="Font">2</token>
-										<Font name="FontFace"></Font>
+										<Font name="FontFace">
+											<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+											<Weight>700</Weight>
+											<Style>Normal</Style>
+											<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+										</Font>
 										<int name="LayoutOrder">0</int>
 										<float name="LineHeight">1</float>
 										<int name="MaxVisibleGraphemes">-1</int>
@@ -42549,7 +43442,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">1</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>400</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">0</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -42635,7 +43533,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">2</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>700</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">4</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -42819,7 +43722,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">2</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>700</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">4</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -43097,7 +44005,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">2</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>700</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">0</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -43183,7 +44096,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">2</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>700</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">4</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -43367,7 +44285,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">2</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>700</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">4</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -43557,7 +44480,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">2</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>700</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">4</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -43741,7 +44669,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">2</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>700</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">4</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -44133,7 +45066,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">1</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>400</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">0</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -44228,7 +45166,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">4</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -44412,7 +45355,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">4</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -44596,7 +45544,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
 									<token name="Font">2</token>
-									<Font name="FontFace"></Font>
+									<Font name="FontFace">
+										<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+										<Weight>700</Weight>
+										<Style>Normal</Style>
+										<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+									</Font>
 									<int name="LayoutOrder">4</int>
 									<float name="LineHeight">1</float>
 									<int name="MaxVisibleGraphemes">-1</int>
@@ -44937,7 +45890,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">1</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>400</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -45023,7 +45981,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">4</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -45207,7 +46170,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">4</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -45485,7 +46453,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">1</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>400</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -45571,7 +46544,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">4</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -45755,7 +46733,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">2</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>700</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">4</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -46033,7 +47016,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
 								<token name="Font">1</token>
-								<Font name="FontFace"></Font>
+								<Font name="FontFace">
+									<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+									<Weight>400</Weight>
+									<Style>Normal</Style>
+									<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+								</Font>
 								<int name="LayoutOrder">0</int>
 								<float name="LineHeight">1</float>
 								<int name="MaxVisibleGraphemes">-1</int>
@@ -46214,7 +47202,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">1</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>400</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">0</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -46299,7 +47292,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">1</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>400</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">0</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -46384,7 +47382,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">1</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>400</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">0</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -46469,7 +47472,12 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
 							<token name="Font">1</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+								<Weight>400</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">0</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -46537,6 +47545,8 @@ If you have any problems/suggestions join our communications server: Eb384Xw]]><
 				<bool name="Disabled">false</bool>
 				<Content name="LinkedSource"><null></null></Content>
 				<string name="Name">READ ME - GUI DEV</string>
+				<string name="OriginalScriptGuid"></string>
+				<token name="RunContext">0</token>
 				<string name="ScriptGuid">{05AE4293-BE87-4CF4-A34C-96187515DBE2}</string>
 				<ProtectedString name="Source"><![CDATA[--[[
 
@@ -46559,6 +47569,8 @@ Then use a plugin to convert the GUI to code
 				<bool name="Disabled">true</bool>
 				<Content name="LinkedSource"><null></null></Content>
 				<string name="Name">Offset-&gt;Scale</string>
+				<string name="OriginalScriptGuid"></string>
+				<token name="RunContext">0</token>
 				<string name="ScriptGuid">{588F756F-D52A-42A0-BB1B-1FB871014207}</string>
 				<ProtectedString name="Source"><![CDATA[-- Run in command bar
 game:GetService("ChangeHistoryService"):SetWaypoint("Offset-Scale")
