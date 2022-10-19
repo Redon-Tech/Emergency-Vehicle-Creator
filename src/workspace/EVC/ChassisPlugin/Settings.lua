@@ -84,6 +84,7 @@ return {
 	-- Enable park mode
 	-- Requires exporting a pattern to "Park" folder in the ModuleStore
 	--		- Make sure to set the park modes weight to be higher then the normal patterns
+	-- ParkMode is planned for a future update, and will not work at this time
 	ParkMode = true,
 
 	-- Do not change below unless you know what you are doing
@@ -115,4 +116,14 @@ return {
 			Light.Color = Colors[Color]
 		end
 	end,
+
+
+
+
+
+
+	-- DO NOT CHANGE
+	-- THIS IS AUTOMATICALLY GENERATED
+	PluginVersion = "1.0.0",
+	-- THIS IS FOR THE CHASSIS PLUGIN AND SHOULD NOT MATH THE STUDIO PLUGIN
 }

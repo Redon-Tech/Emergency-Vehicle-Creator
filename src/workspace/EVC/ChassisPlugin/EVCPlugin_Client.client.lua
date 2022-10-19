@@ -1,3 +1,4 @@
+if not game:GetService("RunService"):IsRunning() then return end -- Prevents error spamming in studio
 --[[
 Redon Tech 2022
 EVC
@@ -10,16 +11,15 @@ EVC
 local Car = script.Parent.Car.Value
 local Event = Car:WaitForChild("EVCRemote")
 local UserInputService = game:GetService("UserInputService")
-local Values = script.Parent.Values
+-- local Values = script.Parent.Values
 
 --------------------------------------------------------------------------------
 -- Handling --
 --------------------------------------------------------------------------------
 
-Values.Park:GetPropertyChangedSignal("Value"):Connect(function()
-	Event:FireServer("ParkMode", Values.Park.Value)
-	-- I am doing this in school, I have no idea if this is the right value name
-end)
+-- Values.PBrake:GetPropertyChangedSignal("Value"):Connect(function()
+-- 	Event:FireServer("ParkMode", Values.PBrake.Value)
+-- end)
 
 local function input(InputObj: InputObject, gameProcessedEvent: BoolValue)
 	if not gameProcessedEvent and InputObj.UserInputType == Enum.UserInputType.Keyboard then

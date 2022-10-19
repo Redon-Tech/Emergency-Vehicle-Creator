@@ -20,7 +20,7 @@ Settings = {
 	-- The time between each light flash
 	WaitTime = 0.1,
 	-- The colors to be used in the "color" function
-	-- These colors are a RGB
+	-- These colors are a Color3
 	Colors = {
 		[1] = Color3.fromRGB(47, 71, 255),
 		[2] = Color3.fromRGB(185, 58, 60),
@@ -29,7 +29,7 @@ Settings = {
 		[5] = Color3.fromRGB(75, 255, 75),
 		[6] = Color3.fromRGB(188, 12, 211),
 	},
-	-- Determins which lights can over ride each other
+	-- Determins which lights can override each other
 	-- For example lightbars should be 1 and traffic advisors 2
 	-- This allows the traffic advisor to override the back of the lightbar
 	-- If multiple are the same then the light will default to the first loaded
@@ -43,7 +43,7 @@ Settings = {
 --[[
 	Example of how lights should look
 	["LightName"] = {
-		1,2,3,4,5,6,0,0,0,0,0,0, -- Refrenced to the color table above, **0 = Off**
+		1,0,2,0,3,0,4,0,5,0,6, -- Refrenced to the color table above, **0 = Off**
 	},
 ]]
 Lights = {

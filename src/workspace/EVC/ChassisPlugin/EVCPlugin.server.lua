@@ -1,4 +1,4 @@
-local Lighting = game:GetService("Lighting")
+if not game:GetService("RunService"):IsRunning() then return end -- Prevents error spamming in studio
 --[[
 Redon Tech 2022
 EVC
@@ -156,7 +156,7 @@ for i,v in pairs(Lightbar.ModuleStore:GetDescendants()) do
 end
 
 -- User Input
-Event.OnServerEvent:Connect(function(player: Player, _Function: String, State, Type: Enum, KeyCode: Enum)
+Event.OnServerEvent:Connect(function(player: Player, _Function: string, State, Type: Enum, KeyCode: Enum)
 	if player.Character == Car.DriveSeat.Occupant.Parent then
 		if _Function == "Input" then
 			if State == Enum.UserInputState.Begin then
@@ -174,7 +174,7 @@ Event.OnServerEvent:Connect(function(player: Player, _Function: String, State, T
 					else
 						Lightbar:SetAttribute("traffic_advisor", traffic_advisor + 1)
 					end
-				elseif table.find(Settings.Sirens, KeyCode) then
+				elseif Settings.Sirens[KeyCode] then
 					local siren = Settings.Sirens[KeyCode]
 					if siren._Type == "Hold" or siren._Type == "Siren" then
 						if Sounds:FindFirstChild(siren.Name) then
@@ -182,7 +182,19 @@ Event.OnServerEvent:Connect(function(player: Player, _Function: String, State, T
 							if sound.Playing then
 								sound:Stop()
 							else
-								if siren.OverrideOtherSounds then
+								if siren.OverrideOtherSounds and siren._Type == "Hold" then
+									for i,v in pairs(Sounds:GetDescendants()) do
+										if v:IsA("Sound") then
+											if v.Playing then
+												siren._LastPlaying = v
+												siren._LastPlayingVolume = v.Volume
+												v.Volume = 0
+											else
+												v:Stop()
+											end
+										end
+									end
+								elseif siren.OverrideOtherSounds then
 									for i,v in pairs(Sounds:GetDescendants()) do
 										if v:IsA("Sound") then
 											v:Stop()
@@ -238,12 +250,27 @@ Event.OnServerEvent:Connect(function(player: Player, _Function: String, State, T
 						end
 					end
 				end
+			elseif State == Enum.UserInputState.End then
+				if Settings.Sirens[KeyCode] then
+					local siren = Settings.Sirens[KeyCode]
+					if siren._Type == "Hold" then
+						if Sounds:FindFirstChild(siren.Name) then
+							local sound = Sounds[siren.Name]
+							sound:Stop()
+							if siren.OverrideOtherSounds and siren._LastPlaying then
+								siren._LastPlaying.Volume = siren._LastPlayingVolume
+							end
+						else
+							warn("EVC: Siren missing ".. siren.Name .." on car ".. Car.Name)
+						end
+					end
+				end
 			end
-		elseif _Function == "ParkMode" then
-			if State then
-				-- No idea how I am going to do this yes, lol
-			elseif not State then
-			end
+		-- elseif _Function == "ParkMode" then
+		-- 	if State then
+		-- 		-- No idea how I am going to do this yes, lol
+		-- 	elseif not State then
+		-- 	end
 		end
 	end
 end)
