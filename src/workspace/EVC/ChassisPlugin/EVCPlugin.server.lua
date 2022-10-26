@@ -51,25 +51,23 @@ for i,v in pairs(Lightbar.ModuleStore.Traffic_Advisor:GetChildren()) do
 end
 
 local CurrentStage = 0
+local CurrentTraffic_Advisor = 0
 
 --------------------------------------------------------------------------------
 -- Handling --
 --------------------------------------------------------------------------------
 
 -- Value changes
-Lightbar:GetAttributeChangedSignal("stage"):Connect(function()
+local stageChange, TAChange
+function stageChange(calledBy: boolean?)
 	local stage = Lightbar:GetAttribute("stage")
-	print(stage)
 	for i,v in pairs(Coros.Lightbar) do
-		print(v)
 		coroutine.close(v)
-		print(coroutine.status(v))
-		table.remove(Coros.Lightbar, i)
+		Coros.Lightbar[i] = nil
 	end
 
 	if CurrentStage > 0 or Lightbar.ModuleStore.Stages:FindFirstChild("Stage0") then
 		for i,v in pairs(Lightbar.ModuleStore.Stages["Stage".. CurrentStage]:GetChildren()) do
-			print(v)
 			if v:IsA("ModuleScript") then
 				local Module = require(v)
 				for name,colors in pairs(Module.Lights) do
@@ -80,11 +78,13 @@ Lightbar:GetAttributeChangedSignal("stage"):Connect(function()
 				end
 			end
 		end
+		if not calledBy then
+			TAChange(true)
+		end
 	end
 
 	if stage > 0 or Lightbar.ModuleStore.Stages:FindFirstChild("Stage0") then
 		for i,v in pairs(Lightbar.ModuleStore.Stages["Stage".. stage]:GetChildren()) do
-			print(v)
 			if v:IsA("ModuleScript") then
 				local Module = require(v)
 				for name,colors in pairs(Module.Lights) do
@@ -97,8 +97,8 @@ Lightbar:GetAttributeChangedSignal("stage"):Connect(function()
 					end
 				end
 				local coro = coroutine.create(function()
+					v:SetAttribute("count", 1)
 					while task.wait(Module.Settings.WaitTime) do
-						print(v:GetAttribute("max_count"), v:GetAttribute("count"))
 						if v:GetAttribute("max_count") == v:GetAttribute("count") or v:GetAttribute("count") == nil then
 							v:SetAttribute("count", 1)
 						else
@@ -106,14 +106,73 @@ Lightbar:GetAttributeChangedSignal("stage"):Connect(function()
 						end
 					end
 				end)
-				table.insert(Coros.Lightbar, coro)
+				Coros.Lightbar[v] = coro
 				coroutine.resume(coro)
 			end
 		end
 	end
 
 	CurrentStage = stage
-end)
+end
+
+function TAChange(calledBy: boolean?)
+	local traffic_advisor = Lightbar:GetAttribute("traffic_advisor")
+	for i,v in pairs(Coros.Traffic_Advisor) do
+		coroutine.close(v)
+		Coros.Traffic_Advisor[i] = nil
+	end
+
+	if CurrentTraffic_Advisor > 0 or Lightbar.ModuleStore.Traffic_Advisor:FindFirstChild("TA0") then
+		for i,v in pairs(Lightbar.ModuleStore.Traffic_Advisor["TA".. CurrentTraffic_Advisor]:GetChildren()) do
+			if v:IsA("ModuleScript") then
+				local Module = require(v)
+				for name,colors in pairs(Module.Lights) do
+					local light = Lights[name]
+					if light.running_module.Value ~= nil then
+						light.running_module.Value = nil
+					end
+				end
+			end
+		end
+		if not calledBy then
+			stageChange(true)
+		end
+	end
+
+	if traffic_advisor > 0 or Lightbar.ModuleStore.Traffic_Advisor:FindFirstChild("TA0") then
+		for i,v in pairs(Lightbar.ModuleStore.Traffic_Advisor["TA".. traffic_advisor]:GetChildren()) do
+			if v:IsA("ModuleScript") then
+				local Module = require(v)
+				for name,colors in pairs(Module.Lights) do
+					local light = Lights[name]
+					if (
+						light.running_module.Value == nil
+						or require(light.running_module.Value).Settings.Weight < Module.Settings.Weight
+					) then
+						light.running_module.Value = v
+					end
+				end
+				local coro = coroutine.create(function()
+					v:SetAttribute("count", 1)
+					while task.wait(Module.Settings.WaitTime) do
+						if v:GetAttribute("max_count") == v:GetAttribute("count") or v:GetAttribute("count") == nil then
+							v:SetAttribute("count", 1)
+						else
+							v:SetAttribute("count", tonumber(v:GetAttribute("count")) + 1)
+						end
+					end
+				end)
+				Coros.Traffic_Advisor[v] = coro
+				coroutine.resume(coro)
+			end
+		end
+	end
+
+	CurrentTraffic_Advisor = traffic_advisor
+end
+
+Lightbar:GetAttributeChangedSignal("stage"):Connect(stageChange)
+Lightbar:GetAttributeChangedSignal("traffic_advisor"):Connect(TAChange)
 
 -- Module Registration
 for i,v in pairs(Lightbar.ModuleStore:GetDescendants()) do
@@ -126,6 +185,13 @@ for i,v in pairs(Lightbar.ModuleStore:GetDescendants()) do
 				LightFunction = Settings.Light
 			end
 		end
+		local ColorTable do
+			if Module.Settings.Colors ~= nil then
+				ColorTable = Module.Settings.Colors
+			else
+				ColorTable = Settings.Colors
+			end
+		end
 
 		local size = 0
 		for name,colors in pairs(Module.Lights) do
@@ -134,25 +200,100 @@ for i,v in pairs(Lightbar.ModuleStore:GetDescendants()) do
 			if not Lights[name] then
 				Lights[name] = {
 					running_module = Instance.new("ObjectValue"),
+					last_running_module = Instance.new("ObjectValue"),
+					light = light,
 				}
+				LightFunction(light, 0, ColorTable)
 			end
-			LightFunction(light, 0, Module.Settings.Colors)
-			Lights[name].running_module:GetPropertyChangedSignal("Value"):Connect(function()
-				if Connections.Lights[name] then
-					Connections.Lights[name]:Disconnect()
-				end
-
-				if Lights[name].running_module.Value ~= nil then
-					Connections.Lights[name] = Lights[name].running_module.Value:GetAttributeChangedSignal("count"):Connect(function()
-						LightFunction(light, colors[tonumber(Lights[name].running_module.Value:GetAttribute("count"))], Module.Settings.Colors)
-					end)
-				else
-					LightFunction(light, 0, Module.Settings.Colors)
-				end
-			end)
 		end
 		v:SetAttribute("max_count", size)
 	end
+end
+
+for name,value in pairs(Lights) do
+	-- local LightFunction do
+	-- 	if Module.Settings.Light ~= nil then
+	-- 		LightFunction = Module.Settings.Light
+	-- 	else
+	-- 		LightFunction = Settings.Light
+	-- 	end
+	-- end
+	-- local ColorTable do
+	-- 	if Module.Settings.Colors ~= nil then
+	-- 		ColorTable = Module.Settings.Colors
+	-- 	else
+	-- 		ColorTable = Settings.Colors
+	-- 	end
+	-- end
+	-- LightFunction(light, 0, ColorTable)
+	-- Lights[name].running_module:GetPropertyChangedSignal("Value"):Connect(function()
+	-- 	if Connections.Lights[name] then
+	-- 		Connections.Lights[name]:Disconnect()
+	-- 	end
+
+	-- 	if Lights[name].running_module.Value ~= nil then
+	-- 		Connections.Lights[name] = Lights[name].running_module.Value:GetAttributeChangedSignal("count"):Connect(function()
+	-- 			LightFunction(light, colors[tonumber(Lights[name].running_module.Value:GetAttribute("count"))], ColorTable)
+	-- 		end)
+	-- 	else
+	-- 		LightFunction(light, 0, ColorTable)
+	-- 	end
+	-- end)
+	value.running_module:GetPropertyChangedSignal("Value"):Connect(function()
+		if value.running_module.Value then
+			local Module = require(value.running_module.Value)
+			local light = value.light
+
+			local LightFunction do
+				if Module.Settings.Light ~= nil then
+					LightFunction = Module.Settings.Light
+				else
+					LightFunction = Settings.Light
+				end
+			end
+			local ColorTable do
+				if Module.Settings.Colors ~= nil then
+					ColorTable = Module.Settings.Colors
+				else
+					ColorTable = Settings.Colors
+				end
+			end
+			local Colors = Module.Lights[name]
+
+			LightFunction(light, 0, ColorTable)
+			if Connections.Lights[name] then
+				Connections.Lights[name]:Disconnect()
+			end
+	
+			Connections.Lights[name] = Lights[name].running_module.Value:GetAttributeChangedSignal("count"):Connect(function()
+				LightFunction(light, Colors[tonumber(Lights[name].running_module.Value:GetAttribute("count"))], ColorTable)
+			end)
+			value.last_running_module.Value = value.running_module.Value
+		else
+			local Module = require(value.last_running_module.Value)
+			local light = value.light
+
+			local LightFunction do
+				if Module.Settings.Light ~= nil then
+					LightFunction = Module.Settings.Light
+				else
+					LightFunction = Settings.Light
+				end
+			end
+			local ColorTable do
+				if Module.Settings.Colors ~= nil then
+					ColorTable = Module.Settings.Colors
+				else
+					ColorTable = Settings.Colors
+				end
+			end
+
+			LightFunction(light, 0, ColorTable)
+			if Connections.Lights[name] then
+				Connections.Lights[name]:Disconnect()
+			end
+		end
+	end)
 end
 
 -- User Input

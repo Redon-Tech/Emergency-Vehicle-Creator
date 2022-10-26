@@ -87,6 +87,17 @@ return {
 	-- ParkMode is planned for a future update, and will not work at this time
 	ParkMode = true,
 
+	-- The colors to be used in the "Light" function
+	-- These colors are a Color3
+	Colors = {
+		[1] = Color3.fromRGB(47, 71, 255),
+		[2] = Color3.fromRGB(185, 58, 60),
+		[3] = Color3.fromRGB(253, 194, 66),
+		[4] = Color3.fromRGB(255, 255, 255),
+		[5] = Color3.fromRGB(75, 255, 75),
+		[6] = Color3.fromRGB(188, 12, 211),
+	},
+
 	-- Do not change below unless you know what you are doing
 	Light = function(Light, Color, Colors)
 		if Color == 0 then
