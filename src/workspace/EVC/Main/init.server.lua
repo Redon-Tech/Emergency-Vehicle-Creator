@@ -150,6 +150,8 @@ Pointer:SetAttribute("count", 1)
 local SaveTemplate = MainFrame.SaveLoad.ScrollingFrame.Frame
 SaveTemplate.Parent = script
 SaveTemplate.TextBox.ClearTextOnFocus = false
+local StageTemplate = MainFrame.Export.SelectStage.ScrollingFrame.Frame
+StageTemplate.Parent = script
 
 MainFrame.Creator.ScrollingFrame:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
 	MainFrame.Creator.PointerHolder.CanvasPosition = Vector2.new(0, MainFrame.Creator.ScrollingFrame.CanvasPosition.Y)
@@ -564,7 +566,6 @@ local function ScrollingFrameChildrenChanged()
 	MainFrame.Creator.PointerHolder.UIGridLayout.CellPadding = Padding
 	MainFrame.Creator.PointerHolder.UIGridLayout.CellSize = Size
 	local y = largest.UIListLayout.AbsoluteContentSize.Y + (largest.UIListLayout.AbsoluteContentSize.Y - GUI.AbsoluteSize.Y)
-	print(y)
 	MainFrame.Creator.ScrollingFrame.CanvasSize = UDim2.fromOffset(MainFrame.Creator.ScrollingFrame.UIGridLayout.AbsoluteContentSize.X + Padding.X.Offset + Size.X.Offset, y)
 	MainFrame.Creator.PointerHolder.CanvasSize = UDim2.fromOffset(0, y)
 
@@ -1078,6 +1079,462 @@ MainFrame.Export.Select.Standard.MouseButton1Click:Connect(function()
 	end)
 end)
 
+MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
+	local connections = {}
+	local function cancel()
+		MainFrame.Export.Visible = false
+		for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+			if v:FindFirstChild("Top") and v.Top:FindFirstChild("TextBox") and not v:GetAttribute("spacer") then
+				v.Top.TextBox:Destroy()
+			end
+		end
+		for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
+			if v:IsA("GuiBase2d") and v.Name ~= "Title" then
+				v.Visible = true
+			end
+		end
+
+		for i,v in pairs(connections) do
+			v:Disconnect()
+		end
+
+		Usable = true
+	end
+
+	MainFrame.Export.Select.Visible = false
+	resetcounters()
+	for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+		if v:IsA("Frame") and v.Name ~= "Last" and not v:GetAttribute("spacer") then
+			v.Top.ImageColor3 = RepColors[0]
+			local TextBox = Instance.new("TextBox")
+			TextBox.Size = UDim2.new(1,0,1,0)
+			TextBox.AnchorPoint = Vector2.new(0.5,0.5)
+			TextBox.Position = UDim2.new(0.5,0,0.5,0)
+			TextBox.BackgroundTransparency = 1
+			TextBox.ZIndex = 4
+			TextBox.Font = Enum.Font.Arial
+			TextBox.TextScaled = true
+			TextBox.PlaceholderText = "Light".. v.Name
+			TextBox.Text = ""
+			TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+			TextBox.Parent = v.Top
+
+			TextBox.FocusLost:Connect(function(enterPressed)
+				if enterPressed then
+					if MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 1) and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
+						MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox:CaptureFocus()
+						game:GetService("RunService").Heartbeat:Wait()
+						MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text = ""
+					end
+				end
+			end)
+		end
+	end
+	MainFrame.Export.SelectName.Visible = true
+
+	local function installLights(Selection: Model, AG: boolean?)
+		local SelectStage = MainFrame.Export.SelectStage
+		local Settings, Lightbar
+		if AG then
+			Settings = require(Selection.Body.ELS.PTRNS.Settings)
+			Lightbar = Selection.Body.ELS
+		else
+			Settings = require(Selection["A-Chassis Tune"].Plugins.EVCPlugin_Client.EVCRemote.Settings)
+			Lightbar = Selection.Body[Settings.LightbarLocation]
+		end
+		if Lightbar and Lightbar:FindFirstChild("ModuleStore") then else
+			MainFrame.Export.Failed.Visible = true
+			MainFrame.Export.Failed.TextLabel.Text = "Unable to find ModuleStore. Canceling export."
+			task.wait(5)
+			MainFrame.Export.Failed.TextLabel.Text = "The model you selected was not a valid A-Chassis or AG-Chassis car. Canceling export."
+			MainFrame.Export.Failed.Visible = false
+			cancel()
+			return
+		end
+
+		local function finalInstall(Stage: Folder)
+			local CurrentPointer = MainFrame.Creator.PointerHolder.Pointer
+			local Data = {
+				[CurrentPointer] = {}
+			}
+			for i=1, #MainFrame.Creator.ScrollingFrame:GetChildren() - 2 do
+				local v = MainFrame.Creator.ScrollingFrame[i]
+				if v:GetAttribute("spacer") and tonumber(v.Top.TextBox.Text) ~= tonumber(MainFrame.Creator.Info.BPM) then
+					CurrentPointer = v
+					Data[CurrentPointer] = {}
+				elseif v:GetAttribute("spacer") then
+					CurrentPointer = MainFrame.Creator.PointerHolder.Pointer
+				else
+					Data[CurrentPointer][i] = {
+						LightName = if v.Top.TextBox.Text == nil or v.Top.TextBox.Text == "" then v.Top.TextBox.PlaceholderText else v.Top.TextBox.Text,
+						Rows = {}
+					}
+					for _,row in pairs(v:GetChildren()) do
+						if row:IsA("ImageLabel") and row.Name ~= "Top" then
+							Data[CurrentPointer][i].Rows[tonumber(row.Name)] = row:GetAttribute("Color")
+						end
+					end
+					v.Top.TextBox:Destroy()
+				end
+			end
+			
+			for pointer,value in pairs(Data) do
+				local Module = script.Parent.ChassisPlugin.Template:Clone()
+				Module.Name = "EVCExport|".. DateTime:now():FormatLocalTime("lll", "en-US") .. "|" .. if pointer == MainFrame.Creator.PointerHolder.Pointer then "1" else pointer.Name
+				local BPM = if pointer == MainFrame.Creator.PointerHolder.Pointer then MainFrame.Creator.Info.BPM.Text else pointer.Top.TextBox.Text
+				
+				local LightsString = ""
+				local TableLength = Functions.tablevaluelen(value)
+				-- for i=First Value In Table, Last Value In Table do
+				for i=TableLength-(Functions.tablelen(value)-1), TableLength do
+					local v = value[i]
+					LightsString = LightsString .. "\n\t[\"" .. v.LightName .. "\"] = {\n\t\t"
+					for _,row in pairs(v.Rows) do
+						LightsString = LightsString .. row .. ","
+					end
+					LightsString = LightsString .. "\n\t},"
+				end
+
+				local Source = Module.Source
+				Source = string.gsub(Source, "WaitTime = 0.1,", "WaitTime = ".. BPM ..",")
+				Source = string.gsub(Source, "Lights = {}", "Lights = {".. LightsString .."\n}")
+				if string.find(Stage.Name, "TA") then
+					Source = string.gsub(Source, "Weight = 1,", "Weight = 2,")
+				end
+				Module.Source = Source
+				Module.Parent = Stage
+			end
+			cancel()
+		end
+
+		local function clearStages()
+			for i,v in pairs(SelectStage.ScrollingFrame:GetChildren()) do
+				if v:IsA("ImageLabel") then
+					v:Destroy()
+				end
+			end
+		end
+		
+		local stageConnections = {}
+		local function selectStage(Stage: boolean)
+
+			local function loadStage(StageFolder: Folder)
+				for i,v in pairs(StageFolder:GetChildren()) do
+					local Template = StageTemplate:Clone()
+					Template.Name = v.Name
+					Template.TextBox.Text = v.Name
+					Template.Parent = SelectStage.ScrollingFrame
+					Template.Visible = true
+
+					Template.Add.MouseButton1Click:Connect(function()
+						SelectStage.Visible = false
+						finalInstall(StageFolder[v.Name])
+					end)
+
+					Template.Overwrite.MouseButton1Click:Connect(function()
+						SelectStage.Visible = false
+						MainFrame.Confirm.Visible = true
+						MainFrame.Confirm.TextLabel.Text = "Are you sure you want to overwrite stage ".. v.Name .."? <b>All patterns will be lost!</b>"
+						MainFrame.Confirm.Yes.MouseButton1Click:Connect(function()
+							MainFrame.Confirm.TextLabel.Text = "Are you sure you want to reset? <b>Any unsaved progress will be lost!</b>"
+							MainFrame.Confirm.Visible = false
+							for i,v in pairs(StageFolder[v.Name]:GetChildren()) do
+								if v:IsA("ModuleScript") then
+									v:Destroy()
+								end
+							end
+							finalInstall(StageFolder[v.Name])
+						end)
+						MainFrame.Confirm.No.MouseButton1Click:Connect(function()
+							MainFrame.Confirm.TextLabel.Text = "Are you sure you want to reset? <b>Any unsaved progress will be lost!</b>"
+							MainFrame.Confirm.Visible = false
+							SelectStage.Visible = true
+						end)
+					end)
+
+					Template.Delete.MouseButton1Click:Connect(function()
+						SelectStage.Visible = false
+						MainFrame.Confirm.Visible = true
+						MainFrame.Confirm.TextLabel.Text = "Are you sure you want to delete this stage ".. v.Name .."?"
+						MainFrame.Confirm.Yes.MouseButton1Click:Connect(function()
+							MainFrame.Confirm.TextLabel.Text = "Are you sure you want to reset? <b>Any unsaved progress will be lost!</b>"
+							MainFrame.Confirm.Visible = false
+							SelectStage.Visible = true
+							v:Destroy()
+							selectStage(Stage)
+						end)
+						MainFrame.Confirm.No.MouseButton1Click:Connect(function()
+							MainFrame.Confirm.TextLabel.Text = "Are you sure you want to reset? <b>Any unsaved progress will be lost!</b>"
+							MainFrame.Confirm.Visible = false
+							SelectStage.Visible = true
+						end)
+					end)
+				end
+
+				for i,v in pairs(stageConnections) do
+					v:Disconnect()
+				end
+
+				if AG then
+					SelectStage.PatternName.Visible = false
+					SelectStage.Save.Visible = false
+				else
+					SelectStage.PatternName.Visible = true
+					SelectStage.Save.Visible = true
+					-- Have to run on Up otherwise it will create a random folder in the "Stage" folder
+					connections.SaveStage = SelectStage.Save.MouseButton1Up:Connect(function()
+						if SelectStage.PatternName.Text ~= "" and tonumber(SelectStage.PatternName.Text) then
+							local NewFolder = Instance.new("Folder")
+							local Name = if Stage then "Stage" else "TA"
+							NewFolder.Name = Name .. tonumber(SelectStage.PatternName.Text)
+							NewFolder.Parent = StageFolder
+							SelectStage.PatternName.Text = ""
+							selectStage(Stage)
+						end
+					end)
+				end
+			end
+			if Stage then
+				clearStages()
+				SelectStage.Stage.TextColor3 = Color3.fromRGB(255, 255, 255)
+				SelectStage.TrafficAdvisor.TextColor3 = Color3.fromRGB(200, 200, 200)
+				loadStage(Lightbar.ModuleStore.Stages)
+			else
+				clearStages()
+				SelectStage.Stage.TextColor3 = Color3.fromRGB(200, 200, 200)
+				SelectStage.TrafficAdvisor.TextColor3 = Color3.fromRGB(255, 255, 255)
+				loadStage(Lightbar.ModuleStore.Traffic_Advisor)
+			end
+		end
+		selectStage(true)
+
+		connections.StageOption = SelectStage.Stage.MouseButton1Click:Connect(function()
+			selectStage(true)
+		end)
+
+		connections.TAOption = SelectStage.TrafficAdvisor.MouseButton1Click:Connect(function()
+			selectStage(false)
+		end)
+		
+
+		SelectStage.Visible = true
+	end
+
+	local function normalInstall(Selection: Model, AGInstall: boolean?)
+		if AGInstall then
+			if Selection.Body:FindFirstChild("ELS") and Selection.Body.ELS:FindFirstChild("PTRNS") and Selection.Body.ELS.PTRNS:FindFirstChild("EVCPlugin_AG") then
+				installLights(Selection, true)
+			else
+				MainFrame.Export.AGDetect.Visible = true
+				connections.AGDetectDone = MainFrame.Export.AGDetect.Done.MouseButton1Click:Connect(function()
+					-- ELS
+					if not Selection.Body:FindFirstChild("ELS") then
+						local ELS = Instance.new("Folder")
+						ELS.Name = "ELS"
+						ELS.Parent = Selection.Body
+						-- ModuleStore
+						local ModuleStore = Instance.new("Folder")
+						ModuleStore.Name = "ModuleStore"
+						ModuleStore.Parent = ELS
+						local Stages = Instance.new("Folder")
+						Stages.Name = "Stages"
+						Stages.Parent = ModuleStore
+						local Traffic_Advisor = Instance.new("Folder")
+						Traffic_Advisor.Name = "Traffic_Advisor"
+						Traffic_Advisor.Parent = ModuleStore
+						for i=1, 5 do
+							local Stage = Instance.new("Folder")
+							Stage.Name = "Stage" .. i
+							Stage.Parent = Stages
+						end
+						for i=1, 5 do
+							local Stage = Instance.new("Folder")
+							Stage.Name = "TA" .. i
+							Stage.Parent = Traffic_Advisor
+						end
+						-- PTRNS
+						local PTRNS = Instance.new("Folder")
+						PTRNS.Name = "PTRNS"
+						PTRNS.Parent = ELS
+						local ELSRunning = Instance.new("BoolValue")
+						ELSRunning.Name = "ELSRunning"
+						ELSRunning.Value = false
+						ELSRunning.Parent = PTRNS
+						local PatternNumber = Instance.new("IntValue")
+						PatternNumber.Name = "PatternNumber"
+						PatternNumber.Value = 0
+						PatternNumber.Parent = PTRNS
+						local TARunning = Instance.new("BoolValue")
+						TARunning.Name = "TARunning"
+						TARunning.Value = false
+						TARunning.Parent = PTRNS
+						local TAPatternNumber = Instance.new("IntValue")
+						TAPatternNumber.Name = "TAPatternNumber"
+						TAPatternNumber.Value = 0
+						TAPatternNumber.Parent = PTRNS
+						-- Colors
+						local Colors = Instance.new("Folder")
+						Colors.Name = "Colors"
+						Colors.Parent = ELS
+						local blue = Instance.new("Color3Value")
+						blue.Name = "blue"
+						blue.Value = Color3.fromRGB(47, 71, 255)
+						blue.Parent = Colors
+						local red = Instance.new("Color3Value")
+						red.Name = "red"
+						red.Value = Color3.fromRGB(185, 58, 60)
+						red.Parent = Colors
+						local yellow = Instance.new("Color3Value")
+						yellow.Name = "yellow"
+						yellow.Value = Color3.fromRGB(253, 194, 66)
+						yellow.Parent = Colors
+					else
+						if not Selection.Body.ELS:FindFirstChild("ModuleStore") then
+							local ModuleStore = Instance.new("Folder")
+							ModuleStore.Name = "ModuleStore"
+							ModuleStore.Parent = Selection.Body.ELS
+							local Stages = Instance.new("Folder")
+							Stages.Name = "Stages"
+							Stages.Parent = ModuleStore
+							local Traffic_Advisor = Instance.new("Folder")
+							Traffic_Advisor.Name = "Traffic_Advisor"
+							Traffic_Advisor.Parent = ModuleStore
+							for i=1, 5 do
+								local Stage = Instance.new("Folder")
+								Stage.Name = "Stage" .. i
+								Stage.Parent = Stages
+							end
+							for i=1, 5 do
+								local Stage = Instance.new("Folder")
+								Stage.Name = "TA" .. i
+								Stage.Parent = Traffic_Advisor
+							end
+						end
+					end
+					-- ELS.PTRNS
+					local Server = script.Parent.ChassisPlugin.EVCPlugin_AG:Clone()
+					Server.Parent = Selection.Body.ELS.PTRNS
+					local Settings = script.Parent.ChassisPlugin.Settings:Clone()
+					Settings.Parent = Selection.Body.ELS.PTRNS
+
+					MainFrame.Export.AGDetect.Visible = false
+					installLights(Selection, true)
+				end)
+
+				connections.AGDetectCancel = MainFrame.Export.AGDetect.Cancel.MouseButton1Click:Connect(function()
+					MainFrame.Export.AGDetect.Visible = false
+					normalInstall(Selection)
+				end)
+			end
+		else
+			if Selection["A-Chassis Tune"].Plugins:FindFirstChild("EVCPlugin_Client") then
+				installLights(Selection)
+			else
+				MainFrame.Export.InstallPlugin.Visible = true
+				MainFrame.Export.InstallPlugin.Done.MouseButton1Click:Connect(function()
+					local Client = script.Parent.ChassisPlugin.EVCPlugin_Client:Clone()
+					Client.Parent = Selection["A-Chassis Tune"].Plugins
+					Client.Enabled = true
+					local RemoteEvent = Instance.new("RemoteEvent")
+					RemoteEvent.Name = "EVCRemote"
+					RemoteEvent.Parent = Client
+					local Server = script.Parent.ChassisPlugin.EVCPlugin:Clone()
+					Server.Parent = RemoteEvent
+					Server.Enabled = false
+					local Settings = script.Parent.ChassisPlugin.Settings:Clone()
+					Settings.Parent = RemoteEvent
+					-- Lightbar
+					if not Selection.Body:FindFirstChild("Lightbar") then
+						local Lightbar = Instance.new("Model")
+						Lightbar.Name = "Lightbar"
+						Lightbar.Parent = Selection.Body
+						local ModuleStore = Instance.new("Folder")
+						ModuleStore.Name = "ModuleStore"
+						ModuleStore.Parent = Selection.Body.Lightbar
+						local Stages = Instance.new("Folder")
+						Stages.Name = "Stages"
+						Stages.Parent = ModuleStore
+						local Traffic_Advisor = Instance.new("Folder")
+						Traffic_Advisor.Name = "Traffic_Advisor"
+						Traffic_Advisor.Parent = ModuleStore
+					else
+						if not Selection.Body.Lightbar:FindFirstChild("ModuleStore") then
+							local ModuleStore = Instance.new("Folder")
+							ModuleStore.Name = "ModuleStore"
+							ModuleStore.Parent = Selection.Body.Lightbar
+							local Stages = Instance.new("Folder")
+							Stages.Name = "Stages"
+							Stages.Parent = ModuleStore
+							local Traffic_Advisor = Instance.new("Folder")
+							Traffic_Advisor.Name = "Traffic_Advisor"
+							Traffic_Advisor.Parent = ModuleStore
+						end
+					end
+	
+					MainFrame.Export.InstallPlugin.Visible = false
+					installLights(Selection)
+				end)
+	
+				MainFrame.Export.InstallPlugin.Cancel.MouseButton1Click:Connect(function()
+					MainFrame.Export.InstallPlugin.Visible = false
+					cancel()
+				end)
+			end
+		end
+	end
+
+	connections.SelectNameDone = MainFrame.Export.SelectName.Done.MouseButton1Click:Connect(function()
+		MainFrame.Export.SelectName.Visible = false
+		
+		if game:GetService("Selection"):Get()[1] then
+			MainFrame.Export.SelectCar.Car.Text = "Selecting: ".. game:GetService("Selection"):Get()[1].Name
+		else
+			MainFrame.Export.SelectCar.Car.Text = "Selecting: None"
+		end
+		connections.SelectionChanged = game:GetService("Selection").SelectionChanged:Connect(function()
+			if game:GetService("Selection"):Get()[1] then
+				MainFrame.Export.SelectCar.Car.Text = "Selecting: ".. game:GetService("Selection"):Get()[1].Name
+			else
+				MainFrame.Export.SelectCar.Car.Text = "Selecting: None"
+			end
+		end)
+		MainFrame.Export.SelectCar.Visible = true
+
+		connections.SelectCarDone = MainFrame.Export.SelectCar.Done.MouseButton1Click:Connect(function()
+			local Selection = game:GetService("Selection"):Get()[1]
+			MainFrame.Export.SelectCar.Visible = false
+			if (
+				Selection:FindFirstChild("A-Chassis Tune")
+				and Selection:FindFirstChild("DriveSeat")
+				and Selection:FindFirstChild("Body")
+				and Selection:IsA("Model")
+			) then
+				if Selection:FindFirstChild("A-Chassis Tune") and Selection["A-Chassis Tune"]:FindFirstChild("AG-Chassis [Loader]") then
+					normalInstall(Selection, true)
+				else
+					normalInstall(Selection)
+				end
+			else
+				MainFrame.Export.Failed.Visible = true
+				MainFrame.Export.Failed.TextLabel.Text = "The model you selected was not a valid A-Chassis or AG-Chassis car. Canceling export."
+				task.wait(5)
+				MainFrame.Export.Failed.Visible = false
+				cancel()
+			end
+		end)
+
+		connections.SelectCarCancel = MainFrame.Export.SelectCar.Cancel.MouseButton1Click:Connect(function()
+			MainFrame.Export.SelectCar.Visible = false
+			cancel()
+		end)
+	end)
+
+	connections.SelectNameCancel = MainFrame.Export.SelectName.Cancel.MouseButton1Click:Connect(function()
+		MainFrame.Export.SelectName.Visible = false
+		cancel()
+	end)
+end)
+
 -- Buttons
 for i,v in pairs(MainFrame.Creator.Info.Buttons:GetChildren()) do
 	if table.find(ButColors, v.Name) then
@@ -1121,7 +1578,7 @@ MainFrame.Creator.Info.Export.MouseButton1Click:Connect(function()
 	MainFrame.Export.Visible = not MainFrame.Export.Visible
 	MainFrame.Export.Select.Visible = true
 	MainFrame.Export.SelectName.Visible = false
-	MainFrame.Export.StandardComplete.Visible = false
+	MainFrame.Export.Complete.Visible = false
 end)
 
 MainFrame.Creator.Info.Buttons.Pause.MouseButton1Click:Connect(function()
