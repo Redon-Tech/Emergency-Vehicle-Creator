@@ -84,7 +84,19 @@ return {
 	-- Enable park mode
 	-- Requires exporting a pattern to "Park" folder in the ModuleStore
 	--		- Make sure to set the park modes weight to be higher then the normal patterns
+	-- ParkMode is planned for a future update, and will not work at this time
 	ParkMode = true,
+
+	-- The colors to be used in the "Light" function
+	-- These colors are a Color3
+	Colors = {
+		[1] = Color3.fromRGB(47, 71, 255),
+		[2] = Color3.fromRGB(185, 58, 60),
+		[3] = Color3.fromRGB(253, 194, 66),
+		[4] = Color3.fromRGB(255, 255, 255),
+		[5] = Color3.fromRGB(75, 255, 75),
+		[6] = Color3.fromRGB(188, 12, 211),
+	},
 
 	-- Do not change below unless you know what you are doing
 	Light = function(Light, Color, Colors)
@@ -115,4 +127,14 @@ return {
 			Light.Color = Colors[Color]
 		end
 	end,
+
+
+
+
+
+
+	-- DO NOT CHANGE
+	-- THIS IS AUTOMATICALLY GENERATED
+	PluginVersion = "1.0.0",
+	-- THIS IS FOR THE CHASSIS PLUGIN AND SHOULD NOT MATH THE STUDIO PLUGIN
 }
