@@ -14,6 +14,7 @@ local Selection = game:GetService("Selection")
 
 script.Parent.ChassisPlugin.EVCPlugin_Client.Disabled = true
 script.Parent.ChassisPlugin.EVCPlugin.Disabled = true
+script.Parent.ChassisPlugin.EVCPlugin_AG.Disabled = true
 
 local function getName(name: string)
 	if Is_RBXM then
@@ -940,10 +941,39 @@ end)
 
 -- Export
 MainFrame.Export.Select.Standard.MouseButton1Click:Connect(function()
+	MainFrame.Export.AGDetect.Visible = false
+	MainFrame.Export.Complete.Visible = false
+	MainFrame.Export.Failed.Visible = false
+	MainFrame.Export.InstallPlugin.Visible = false
+	MainFrame.Export.Select.Visible = false
+	MainFrame.Export.SelectCar.Visible = false
+	MainFrame.Export.SelectName.Visible = false
+	MainFrame.Export.SelectStage.Visible = false
 	for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
 		if v:IsA("GuiBase2d") and v.Name ~= "Title" then
 			v.Visible = false
 		end
+	end
+
+	local connections = {}
+	local function cancel()
+		MainFrame.Export.Visible = false
+		for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+			if v:FindFirstChild("Top") and v.Top:FindFirstChild("TextBox") and not v:GetAttribute("spacer") then
+				v.Top.TextBox:Destroy()
+			end
+		end
+		for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
+			if v:IsA("GuiBase2d") and v.Name ~= "Title" then
+				v.Visible = true
+			end
+		end
+
+		for i,v in pairs(connections) do
+			v:Disconnect()
+		end
+
+		Usable = true
 	end
 
 	MainFrame.Export.Select.Visible = false
@@ -964,12 +994,18 @@ MainFrame.Export.Select.Standard.MouseButton1Click:Connect(function()
 			TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 			TextBox.Parent = v.Top
 
-			TextBox.FocusLost:Connect(function(enterPressed)
+			connections[v] = TextBox.FocusLost:Connect(function(enterPressed)
 				if enterPressed then
 					if MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 1) and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
 						MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox:CaptureFocus()
 						game:GetService("RunService").Heartbeat:Wait()
 						MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text = ""
+					elseif MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 1) and MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
+						if MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 2) and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2]:GetAttribute("spacer") then
+							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox:CaptureFocus()
+							game:GetService("RunService").Heartbeat:Wait()
+							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox.Text = ""
+						end
 					end
 				end
 			end)
@@ -977,7 +1013,7 @@ MainFrame.Export.Select.Standard.MouseButton1Click:Connect(function()
 	end
 	MainFrame.Export.SelectName.Visible = true
 
-	MainFrame.Export.SelectName.Done.MouseButton1Click:Connect(function()
+	connections.SelectNameDone = MainFrame.Export.SelectName.Done.MouseButton1Click:Connect(function()
 		MainFrame.Export.SelectName.Visible = false
 
 		local CurrentPointer = MainFrame.Creator.PointerHolder.Pointer
@@ -1064,22 +1100,27 @@ MainFrame.Export.Select.Standard.MouseButton1Click:Connect(function()
 		Usable = true
 	end)
 
-	MainFrame.Export.SelectName.Cancel.MouseButton1Click:Connect(function()
-		MainFrame.Export.Visible = false
-		for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
-			if v:FindFirstChild("Top") and v.Top:FindFirstChild("TextBox") and not v:GetAttribute("spacer") then
-				v.Top.TextBox:Destroy()
-			end
-		end
-		for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
-			if v:IsA("GuiBase2d") and v.Name ~= "Title" then
-				v.Visible = true
-			end
-		end
+	connections.SelectNameCancel = MainFrame.Export.SelectName.Cancel.MouseButton1Click:Connect(function()
+		MainFrame.Export.SelectName.Visible = false
+		cancel()
 	end)
 end)
 
 MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
+	MainFrame.Export.AGDetect.Visible = false
+	MainFrame.Export.Complete.Visible = false
+	MainFrame.Export.Failed.Visible = false
+	MainFrame.Export.InstallPlugin.Visible = false
+	MainFrame.Export.Select.Visible = false
+	MainFrame.Export.SelectCar.Visible = false
+	MainFrame.Export.SelectName.Visible = false
+	MainFrame.Export.SelectStage.Visible = false
+	for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
+		if v:IsA("GuiBase2d") and v.Name ~= "Title" then
+			v.Visible = false
+		end
+	end
+
 	local connections = {}
 	local function cancel()
 		MainFrame.Export.Visible = false
@@ -1119,12 +1160,18 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 			TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 			TextBox.Parent = v.Top
 
-			TextBox.FocusLost:Connect(function(enterPressed)
+			connections[v] = TextBox.FocusLost:Connect(function(enterPressed)
 				if enterPressed then
 					if MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 1) and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
 						MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox:CaptureFocus()
 						game:GetService("RunService").Heartbeat:Wait()
 						MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text = ""
+					elseif MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 1) and MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
+						if MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 2) and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2]:GetAttribute("spacer") then
+							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox:CaptureFocus()
+							game:GetService("RunService").Heartbeat:Wait()
+							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox.Text = ""
+						end
 					end
 				end
 			end)
@@ -1182,7 +1229,7 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 				local Module = script.Parent.ChassisPlugin.Template:Clone()
 				Module.Name = "EVCExport|".. DateTime:now():FormatLocalTime("lll", "en-US") .. "|" .. if pointer == MainFrame.Creator.PointerHolder.Pointer then "1" else pointer.Name
 				local BPM = if pointer == MainFrame.Creator.PointerHolder.Pointer then MainFrame.Creator.Info.BPM.Text else pointer.Top.TextBox.Text
-				
+
 				local LightsString = ""
 				local TableLength = Functions.tablevaluelen(value)
 				-- for i=First Value In Table, Last Value In Table do
@@ -1226,19 +1273,19 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 					Template.Parent = SelectStage.ScrollingFrame
 					Template.Visible = true
 
-					Template.Add.MouseButton1Click:Connect(function()
+					connections[v.Name.. "Add"] = Template.Add.MouseButton1Click:Connect(function()
 						SelectStage.Visible = false
 						finalInstall(StageFolder[v.Name])
 					end)
 
-					Template.Overwrite.MouseButton1Click:Connect(function()
+					connections[v.Name.. "Overwrite"] = Template.Overwrite.MouseButton1Click:Connect(function()
 						SelectStage.Visible = false
 						MainFrame.Confirm.Visible = true
 						MainFrame.Confirm.TextLabel.Text = "Are you sure you want to overwrite stage ".. v.Name .."? <b>All patterns will be lost!</b>"
 						MainFrame.Confirm.Yes.MouseButton1Click:Connect(function()
 							MainFrame.Confirm.TextLabel.Text = "Are you sure you want to reset? <b>Any unsaved progress will be lost!</b>"
 							MainFrame.Confirm.Visible = false
-							for i,v in pairs(StageFolder[v.Name]:GetChildren()) do
+							for i,v in pairs(v:GetChildren()) do
 								if v:IsA("ModuleScript") then
 									v:Destroy()
 								end
@@ -1252,7 +1299,7 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 						end)
 					end)
 
-					Template.Delete.MouseButton1Click:Connect(function()
+					connections[v.Name.. "Delete"] = Template.Delete.MouseButton1Click:Connect(function()
 						SelectStage.Visible = false
 						MainFrame.Confirm.Visible = true
 						MainFrame.Confirm.TextLabel.Text = "Are you sure you want to delete this stage ".. v.Name .."?"
@@ -1414,6 +1461,7 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 					-- ELS.PTRNS
 					local Server = script.Parent.ChassisPlugin.EVCPlugin_AG:Clone()
 					Server.Parent = Selection.Body.ELS.PTRNS
+					Server.Enabled = true
 					local Settings = script.Parent.ChassisPlugin.Settings:Clone()
 					Settings.Parent = Selection.Body.ELS.PTRNS
 
@@ -1572,6 +1620,18 @@ MainFrame.Creator.Info.Save.MouseButton1Click:Connect(function()
 end)
 
 MainFrame.Creator.Info.Export.MouseButton1Click:Connect(function()
+	for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+		if v:FindFirstChild("Top") and v.Top:FindFirstChild("TextBox") and not v:GetAttribute("spacer") then
+			v.Top.TextBox:Destroy()
+		end
+	end
+	for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
+		if v:IsA("GuiBase2d") and v.Name ~= "Title" then
+			v.Visible = true
+		end
+	end
+
+	Usable = true
 	if not Usable and MainFrame.Export.Visible == false then
 		return
 	end

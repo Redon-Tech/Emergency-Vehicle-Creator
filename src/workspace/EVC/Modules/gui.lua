@@ -249,7 +249,6 @@ function GUI.CreateGui()
 	--Properties:
 
 	Gui.Main.Name = "Main"
-	Gui.Main.Parent = game.StarterGui.ScreenGui
 	Gui.Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 	Gui.Main.Size = UDim2.new(1, 0, 1, 0)
 
