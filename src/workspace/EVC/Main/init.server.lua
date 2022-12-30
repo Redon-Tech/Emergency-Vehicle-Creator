@@ -582,6 +582,28 @@ MainFrame.Creator.ScrollingFrame.ChildAdded:Connect(ScrollingFrameChildrenChange
 MainFrame.Creator.ScrollingFrame.ChildRemoved:Connect(ScrollingFrameChildrenChanged)
 GUI:GetPropertyChangedSignal("AbsoluteSize"):Connect(ScrollingFrameChildrenChanged)
 
+local function LoadSaveChildrenChange()
+	local Desired = Vector2.new(0.0112107623318386, 0.0200803212851406)
+	local Desired_Size = Vector2.new(1, 0.125)
+
+	MainFrame:WaitForChild("SaveLoad", 5) -- No comment, just errors without this
+
+	local AbsoluteSize = MainFrame.SaveLoad.ScrollingFrame.AbsoluteSize
+	local Padding = Desired * AbsoluteSize
+	Padding = UDim2.fromOffset(Padding.X, Padding.Y)
+	local Size = Desired_Size * AbsoluteSize
+	Size = UDim2.fromOffset(Size.X, Size.Y)
+	MainFrame.SaveLoad.ScrollingFrame.UIGridLayout.CellPadding = Padding
+	MainFrame.SaveLoad.ScrollingFrame.UIGridLayout.CellSize = Size
+	MainFrame.SaveLoad.ScrollingFrame.UIGridLayout.CellPadding = Padding
+	MainFrame.SaveLoad.ScrollingFrame.UIGridLayout.CellSize = Size
+	MainFrame.SaveLoad.ScrollingFrame.CanvasSize = UDim2.fromOffset(0, MainFrame.SaveLoad.ScrollingFrame.UIGridLayout.AbsoluteContentSize.Y + Padding.Y.Offset + Size.Y.Offset)
+end
+LoadSaveChildrenChange()
+MainFrame.SaveLoad.ScrollingFrame.ChildAdded:Connect(LoadSaveChildrenChange)
+MainFrame.SaveLoad.ScrollingFrame.ChildRemoved:Connect(LoadSaveChildrenChange)
+GUI:GetPropertyChangedSignal("AbsoluteSize"):Connect(LoadSaveChildrenChange)
+
 local function VisibilityChanged()
 	if (
 		MainFrame.Confirm.Visible

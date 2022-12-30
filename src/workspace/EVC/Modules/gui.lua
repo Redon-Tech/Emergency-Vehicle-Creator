@@ -2009,6 +2009,7 @@ function GUI.CreateGui()
 	Gui.ScrollingFrame_2.BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
 	Gui.ScrollingFrame_2.CanvasSize = UDim2.new(0, 0, 0, 0)
 	Gui.ScrollingFrame_2.ScrollBarThickness = 5
+	Gui.ScrollingFrame_2.ZIndex = 200
 	Gui.ScrollingFrame_2.TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
 
 	Gui.UIGridLayout_4.Parent = Gui.ScrollingFrame_2
