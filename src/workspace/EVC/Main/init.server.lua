@@ -441,7 +441,7 @@ end
 
 local function registercolumn(column)
 	local mypos = column.LayoutOrder
-	local highest = 0 -- Index, Value
+	local highest = 0
 	for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
 		if v.Name ~= "Last" and v:IsA("Frame") then
 			i = tonumber(v.LayoutOrder)
@@ -452,6 +452,17 @@ local function registercolumn(column)
 		end
 	end
 	column:SetAttribute("pointer", highest)
+	local pointhighest = 0
+	for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+		if v.Name ~= "Last" and v:IsA("Frame") then
+			i = tonumber(v.LayoutOrder)
+
+			if i < mypos and not v:GetAttribute("spacer") and i > highest then
+				pointhighest = v:GetAttribute("point")
+			end
+		end
+	end
+	column:SetAttribute("point", pointhighest + 1)
 
 	local count = #column:GetChildren() - 3
 	local pointer do
@@ -509,6 +520,8 @@ MainFrame.Creator.ScrollingFrame.Last.Devider.add.MouseButton1Click:Connect(func
 	local clone = MainFrame.Creator.ScrollingFrame["1"]:Clone()
 	clone.Name = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
 	clone.LayoutOrder = #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
+	clone.Top.TextBox.PlaceholderText = "Light".. #MainFrame.Creator.ScrollingFrame:GetChildren() - 1
+	clone.Top.TextBox.Text = ""
 	-- for i,v in pairs(clone:GetChildren()) do
 	--     addbutton(v, clone)
 	-- end
@@ -790,6 +803,7 @@ local function SavesUpdate()
 								Data[v.Name].Size = #v:GetChildren() - 5
 							else
 								Data[v.Name].Spacer = false
+								Data[v.Name].TopText = v.Top.TextBox.Text
 								Data[v.Name].Rows = {}
 								for _,row in pairs(v:GetChildren()) do
 									if row:IsA("ImageLabel") and row.Name ~= "Top" then
@@ -857,21 +871,35 @@ local function SavesUpdate()
 						end
 					end
 
+					local Amount = 0
 					for i,v in pairs(Data) do
 						if i == "BPM" then
 							MainFrame.Creator.Info.BPM.Text = v
-						elseif i == "1" then
+							Data[i] = nil
+						else
+							Amount += 1
+						end
+					end
+					for i=1,Amount do
+						-- if i == "BPM" then
+						-- 	MainFrame.Creator.Info.BPM.Text = v
+						local v = Data[tostring(i)]
+						local i = tostring(i)
+						if i == "1" then
 							local Column = MainFrame.Creator.ScrollingFrame:FindFirstChild("1")
+							Column.Top.TextBox.Text = if v.TopText ~= nil then v.TopText else ""
 							registercolumn(Column)
 							for rownum,row in pairs(v.Rows) do
 								Column[rownum]:SetAttribute("Color", row)
 								Column[rownum].ImageColor3 = RepColors[row]
 							end
-						else
+						elseif i ~= "BPM" then
 							if not v.Spacer then
 								local clone = MainFrame.Creator.ScrollingFrame["1"]:Clone()
 								clone.Name = tonumber(i)
 								clone.LayoutOrder = tonumber(i)
+								clone.Top.TextBox.PlaceholderText = "Light".. tonumber(i)
+								clone.Top.TextBox.Text = if v.TopText ~= nil then v.TopText else ""
 								clone.Parent = MainFrame.Creator.ScrollingFrame
 								registercolumn(clone)
 								for rownum,row in pairs(v.Rows) do
@@ -982,7 +1010,7 @@ MainFrame.Export.Select.Standard.MouseButton1Click:Connect(function()
 		MainFrame.Export.Visible = false
 		for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
 			if v:FindFirstChild("Top") and v.Top:FindFirstChild("TextBox") and not v:GetAttribute("spacer") then
-				v.Top.TextBox:Destroy()
+				v.Top.TextBox.Visible = false
 			end
 		end
 		for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
@@ -1003,30 +1031,47 @@ MainFrame.Export.Select.Standard.MouseButton1Click:Connect(function()
 	for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
 		if v:IsA("Frame") and v.Name ~= "Last" and not v:GetAttribute("spacer") then
 			v.Top.ImageColor3 = RepColors[0]
-			local TextBox = Instance.new("TextBox")
-			TextBox.Size = UDim2.new(1,0,1,0)
-			TextBox.AnchorPoint = Vector2.new(0.5,0.5)
-			TextBox.Position = UDim2.new(0.5,0,0.5,0)
-			TextBox.BackgroundTransparency = 1
-			TextBox.ZIndex = 4
-			TextBox.Font = Enum.Font.Arial
-			TextBox.TextScaled = true
-			TextBox.PlaceholderText = "Light".. v.Name
-			TextBox.Text = ""
-			TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-			TextBox.Parent = v.Top
+			-- local TextBox = Instance.new("TextBox")
+			-- TextBox.Size = UDim2.new(1,0,1,0)
+			-- TextBox.AnchorPoint = Vector2.new(0.5,0.5)
+			-- TextBox.Position = UDim2.new(0.5,0,0.5,0)
+			-- TextBox.BackgroundTransparency = 1
+			-- TextBox.ZIndex = 4
+			-- TextBox.Font = Enum.Font.Arial
+			-- TextBox.TextScaled = true
+			-- TextBox.PlaceholderText = "Light".. v.Name
+			-- TextBox.Text = ""
+			-- TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+			-- TextBox.Parent = v.Top
+			v.Top.TextBox.Visible = true
 
-			connections[v] = TextBox.FocusLost:Connect(function(enterPressed)
+			connections[v] = v.Top.TextBox.FocusLost:Connect(function(enterPressed)
 				if enterPressed then
+					if v:GetAttribute("point") == 1 and v.Top.TextBox.Text ~= nil and v.Top.TextBox.Text ~= "" and v.Top.TextBox.Text:match("%d+$") then
+						local Pattern = v.Top.TextBox.Text:gsub("%d+$", "")
+
+						for _,newv in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+							if newv:IsA("Frame") and newv:GetAttribute("pointer") == v:GetAttribute("pointer") and newv ~= v and newv.Name ~= "Last" and not newv:GetAttribute("spacer") then
+								if newv.Top.TextBox.Text == "" or newv.Top.TextBox.Text == nil then
+									newv.Top.TextBox.Text = Pattern .. tostring(newv:GetAttribute("point"))
+								end
+							end
+						end
+					end
+
 					if MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 1) and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
-						MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox:CaptureFocus()
-						game:GetService("RunService").Heartbeat:Wait()
-						MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text = ""
+						if MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text == "" or MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text == nil then
+							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox:CaptureFocus()
+							game:GetService("RunService").Heartbeat:Wait()
+							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text = ""
+						end
 					elseif MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 1) and MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
 						if MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 2) and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2]:GetAttribute("spacer") then
-							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox:CaptureFocus()
-							game:GetService("RunService").Heartbeat:Wait()
-							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox.Text = ""
+							if MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox.Text == "" or MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox.Text == nil then
+								MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox:CaptureFocus()
+								game:GetService("RunService").Heartbeat:Wait()
+								MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox.Text = ""
+							end
 						end
 					end
 				end
@@ -1059,7 +1104,7 @@ MainFrame.Export.Select.Standard.MouseButton1Click:Connect(function()
 						Data[CurrentPointer][i].Rows[tonumber(row.Name)] = row:GetAttribute("Color")
 					end
 				end
-				v.Top.TextBox:Destroy()
+				v.Top.TextBox.Visible = false
 			end
 		end
 
@@ -1148,7 +1193,7 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 		MainFrame.Export.Visible = false
 		for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
 			if v:FindFirstChild("Top") and v.Top:FindFirstChild("TextBox") and not v:GetAttribute("spacer") then
-				v.Top.TextBox:Destroy()
+				v.Top.TextBox.Visible = false
 			end
 		end
 		for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do
@@ -1169,30 +1214,47 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 	for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
 		if v:IsA("Frame") and v.Name ~= "Last" and not v:GetAttribute("spacer") then
 			v.Top.ImageColor3 = RepColors[0]
-			local TextBox = Instance.new("TextBox")
-			TextBox.Size = UDim2.new(1,0,1,0)
-			TextBox.AnchorPoint = Vector2.new(0.5,0.5)
-			TextBox.Position = UDim2.new(0.5,0,0.5,0)
-			TextBox.BackgroundTransparency = 1
-			TextBox.ZIndex = 4
-			TextBox.Font = Enum.Font.Arial
-			TextBox.TextScaled = true
-			TextBox.PlaceholderText = "Light".. v.Name
-			TextBox.Text = ""
-			TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-			TextBox.Parent = v.Top
+			-- local TextBox = Instance.new("TextBox")
+			-- TextBox.Size = UDim2.new(1,0,1,0)
+			-- TextBox.AnchorPoint = Vector2.new(0.5,0.5)
+			-- TextBox.Position = UDim2.new(0.5,0,0.5,0)
+			-- TextBox.BackgroundTransparency = 1
+			-- TextBox.ZIndex = 4
+			-- TextBox.Font = Enum.Font.Arial
+			-- TextBox.TextScaled = true
+			-- TextBox.PlaceholderText = "Light".. v.Name
+			-- TextBox.Text = ""
+			-- TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+			-- TextBox.Parent = v.Top
+			v.Top.TextBox.Visible = true
 
-			connections[v] = TextBox.FocusLost:Connect(function(enterPressed)
+			connections[v] = v.Top.TextBox.FocusLost:Connect(function(enterPressed)
 				if enterPressed then
+					if v:GetAttribute("point") == 1 and v.Top.TextBox.Text ~= nil and v.Top.TextBox.Text ~= "" and v.Top.TextBox.Text:match("%d+$") then
+						local Pattern = v.Top.TextBox.Text:gsub("%d+$", "")
+
+						for _,newv in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
+							if newv:IsA("Frame") and newv:GetAttribute("pointer") == v:GetAttribute("pointer") and newv ~= v and newv.Name ~= "Last" and not newv:GetAttribute("spacer") then
+								if newv.Top.TextBox.Text == "" or newv.Top.TextBox.Text == nil then
+									newv.Top.TextBox.Text = Pattern .. tostring(newv:GetAttribute("point"))
+								end
+							end
+						end
+					end
+
 					if MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 1) and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
-						MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox:CaptureFocus()
-						game:GetService("RunService").Heartbeat:Wait()
-						MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text = ""
+						if MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text == "" or MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text == nil then
+							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox:CaptureFocus()
+							game:GetService("RunService").Heartbeat:Wait()
+							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1].Top.TextBox.Text = ""
+						end
 					elseif MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 1) and MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 1]:GetAttribute("spacer") then
 						if MainFrame.Creator.ScrollingFrame:FindFirstChild(tonumber(v.Name) + 2) and not MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2]:GetAttribute("spacer") then
-							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox:CaptureFocus()
-							game:GetService("RunService").Heartbeat:Wait()
-							MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox.Text = ""
+							if MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox.Text == "" or MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox.Text == nil then
+								MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox:CaptureFocus()
+								game:GetService("RunService").Heartbeat:Wait()
+								MainFrame.Creator.ScrollingFrame[tonumber(v.Name) + 2].Top.TextBox.Text = ""
+							end
 						end
 					end
 				end
@@ -1243,7 +1305,7 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 							Data[CurrentPointer][i].Rows[tonumber(row.Name)] = row:GetAttribute("Color")
 						end
 					end
-					v.Top.TextBox:Destroy()
+					v.Top.TextBox.Visible = false
 				end
 			end
 			
@@ -1644,7 +1706,7 @@ end)
 MainFrame.Creator.Info.Export.MouseButton1Click:Connect(function()
 	for i,v in pairs(MainFrame.Creator.ScrollingFrame:GetChildren()) do
 		if v:FindFirstChild("Top") and v.Top:FindFirstChild("TextBox") and not v:GetAttribute("spacer") then
-			v.Top.TextBox:Destroy()
+			v.Top.TextBox.Visible = false
 		end
 	end
 	for i,v in pairs(MainFrame.Creator.Info:GetChildren()) do

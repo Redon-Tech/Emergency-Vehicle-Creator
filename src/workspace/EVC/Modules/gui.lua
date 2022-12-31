@@ -54,6 +54,7 @@ function GUI.CreateGui()
 		_1 = Instance.new("Frame"),
 		UIListLayout = Instance.new("UIListLayout"),
 		Top = Instance.new("ImageLabel"),
+		TopTextBox = Instance.new("TextBox"),
 		Light = Instance.new("ImageLabel"),
 		Light2 = Instance.new("ImageLabel"),
 		Light1 = Instance.new("ImageLabel"),
@@ -846,6 +847,19 @@ function GUI.CreateGui()
 	Gui.Top.ScaleType = Enum.ScaleType.Slice
 	Gui.Top.SliceCenter = Rect.new(100, 100, 100, 100)
 	Gui.Top.SliceScale = 0.050
+
+	Gui.TopTextBox.Parent = Gui.Top
+	Gui.TopTextBox.Size = UDim2.new(1,0,1,0)
+	Gui.TopTextBox.AnchorPoint = Vector2.new(0.5,0.5)
+	Gui.TopTextBox.Position = UDim2.new(0.5,0,0.5,0)
+	Gui.TopTextBox.BackgroundTransparency = 1
+	Gui.TopTextBox.ZIndex = 4
+	Gui.TopTextBox.Font = Enum.Font.Arial
+	Gui.TopTextBox.TextScaled = true
+	Gui.TopTextBox.PlaceholderText = "Light1"
+	Gui.TopTextBox.Text = ""
+	Gui.TopTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Gui.TopTextBox.Visible = false
 
 	Gui.Light.Name = "Light"
 	Gui.Light.Parent = Gui.Top
