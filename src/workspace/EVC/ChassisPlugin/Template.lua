@@ -10,7 +10,7 @@ EVC
 -- Init --
 --------------------------------------------------------------------------------
 
-local Settings, Lights
+local Settings, Lights, SpecialtyLights
 
 --------------------------------------------------------------------------------
 -- Data --
@@ -33,6 +33,11 @@ Settings = {
 	-- If for whatever reason you need to override the light function change nil to the new function
 	-- You can find a template for the function in the settings under the plugin
 	Light = nil,
+
+	-- DO NOT CHANGE
+	-- THIS IS AUTOMATICALLY GENERATED
+	PluginVersion = "1.1.0",
+	-- THIS IS FOR THE CHASSIS PLUGIN AND SHOULD NOT MATCH THE STUDIO PLUGIN
 }
 
 --[[
@@ -42,6 +47,37 @@ Settings = {
 	},
 ]]
 Lights = {}
+
+
+--[[
+	Example of how specialty lights should look
+	["LightName"] = { -- Rotators
+		type = "Rotator",
+		speed = 1,
+		function = "Limited", -- Limited or Unlmited
+		settings = { -- Only modify if Limited
+			reverse = true,
+			angles = {[1] = 15, [2] = 15}, -- Degrees left, Degrees right
+			-- TODO: Add more settings (I forgot the rest)
+		},
+	},
+
+	["LightName"] = { -- Faders
+		type = "Faders",
+		fadetime = 1,
+		delaytime = 0,
+		easingstyle = Enum.EasingStyle.Linear,
+		easingdirection = Enum.EasingDirection.InOut,
+		offinfo = {
+			Transparency = 1,
+			Color = Color3.fromRGB(47, 71, 255),
+		},
+		goal = {
+			Transparency = 0,
+		},
+	}
+]]
+SpecialtyLights = {}
 
 --------------------------------------------------------------------------------
 -- Return Value --
