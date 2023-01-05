@@ -37,8 +37,7 @@ The "build" branch is only for full releases, any development should go onto the
 
 ## To Do
 
-### V1.1
+### V1.2
 | Status           | Name             | Description                                                                                                                  |
 | ---------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Work In Progress | A-Chassis Plugin | The plugin that will be used with the "Our Plugin" export option to simplify the exporting and using of patterns within cars |
 | Not Started      | Specialty Lights | Support the usage of specialty lights such as rotators and faders                                                            |
