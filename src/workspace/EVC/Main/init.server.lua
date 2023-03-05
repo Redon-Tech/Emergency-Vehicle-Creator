@@ -10,6 +10,7 @@ EVC
 local Studio = settings():GetService("Studio")
 local Is_RBXM = plugin.Name:find(".rbxm") ~= nil
 local Functions = require(script.Parent.Modules.functions)
+local pluginUpdate = require(script.Parent.Modules.pluginupdate)
 local Selection = game:GetService("Selection")
 
 script.Parent.ChassisPlugin.EVCPlugin_Client.Disabled = true
@@ -1369,7 +1370,7 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 						MainFrame.Confirm.Yes.MouseButton1Click:Connect(function()
 							MainFrame.Confirm.TextLabel.Text = "Are you sure you want to reset? <b>Any unsaved progress will be lost!</b>"
 							MainFrame.Confirm.Visible = false
-							for i,v in pairs(v:GetChildren()) do
+							for i,v in pairs(StageFolder[v.Name]:GetChildren()) do
 								if v:IsA("ModuleScript") then
 									v:Destroy()
 								end
@@ -1454,7 +1455,32 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 	local function normalInstall(Selection: Model, AGInstall: boolean?)
 		if AGInstall then
 			if Selection.Body:FindFirstChild("ELS") and Selection.Body.ELS:FindFirstChild("PTRNS") and Selection.Body.ELS.PTRNS:FindFirstChild("EVCPlugin_AG") then
-				installLights(Selection, true)
+				local sett = Selection.Body.ELS.PTRNS:FindFirstChild("Settings")
+				if sett then
+					local requiredsett = require(sett)
+					if requiredsett.PluginVersion ~= require(script.Parent.ChassisPlugin.Settings).PluginVersion then
+						MainFrame.Export.InstallPlugin.TextLabel.Text = "Plugin version mismatch! Would you like to update the plugin?"
+						MainFrame.Export.InstallPlugin.Visible = true
+						MainFrame.Export.InstallPlugin.Done.MouseButton1Click:Connect(function()
+							if MainFrame.Export.InstallPlugin.TextLabel.Text ~= "Plugin version mismatch! Would you like to update the plugin?" then return end
+							pluginUpdate.UpdatePlugin(Selection, sett)
+			
+							MainFrame.Export.InstallPlugin.Visible = false
+							MainFrame.Export.InstallPlugin.TextLabel.Text = "The car you have selected does not already have the plugin installed. Would you like to install it?"
+							installLights(Selection, true)
+						end)
+						MainFrame.Export.InstallPlugin.Cancel.MouseButton1Click:Connect(function()
+							if MainFrame.Export.InstallPlugin.TextLabel.Text ~= "Plugin version mismatch! Would you like to update the plugin?" then return end
+							MainFrame.Export.InstallPlugin.Visible = false
+							MainFrame.Export.InstallPlugin.TextLabel.Text = "The car you have selected does not already have the plugin installed. Would you like to install it?"
+							installLights(Selection, true)
+						end)
+					else
+						installLights(Selection, true)
+					end
+				else
+					installLights(Selection, true)
+				end
 			else
 				MainFrame.Export.AGDetect.Visible = true
 				connections.AGDetectDone = MainFrame.Export.AGDetect.Done.MouseButton1Click:Connect(function()
@@ -1560,10 +1586,36 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 			end
 		else
 			if Selection["A-Chassis Tune"].Plugins:FindFirstChild("EVCPlugin_Client") then
-				installLights(Selection)
+				local sett = Selection["A-Chassis Tune"].Plugins.EVCPlugin_Client.EVCRemote:FindFirstChild("Settings")
+				if sett then
+					local requiredsett = require(sett)
+					if requiredsett.PluginVersion ~= require(script.Parent.ChassisPlugin.Settings).PluginVersion then
+						MainFrame.Export.InstallPlugin.TextLabel.Text = "Plugin version mismatch! Would you like to update the plugin?"
+						MainFrame.Export.InstallPlugin.Visible = true
+						MainFrame.Export.InstallPlugin.Done.MouseButton1Click:Connect(function()
+							if MainFrame.Export.InstallPlugin.TextLabel.Text ~= "Plugin version mismatch! Would you like to update the plugin?" then return end
+							pluginUpdate.UpdatePlugin(Selection, sett)
+			
+							MainFrame.Export.InstallPlugin.Visible = false
+							MainFrame.Export.InstallPlugin.TextLabel.Text = "The car you have selected does not already have the plugin installed. Would you like to install it?"
+							installLights(Selection)
+						end)
+						MainFrame.Export.InstallPlugin.Cancel.MouseButton1Click:Connect(function()
+							if MainFrame.Export.InstallPlugin.TextLabel.Text ~= "Plugin version mismatch! Would you like to update the plugin?" then return end
+							MainFrame.Export.InstallPlugin.Visible = false
+							MainFrame.Export.InstallPlugin.TextLabel.Text = "The car you have selected does not already have the plugin installed. Would you like to install it?"
+							installLights(Selection)
+						end)
+					else
+						installLights(Selection)
+					end
+				else
+					installLights(Selection)
+				end
 			else
 				MainFrame.Export.InstallPlugin.Visible = true
 				MainFrame.Export.InstallPlugin.Done.MouseButton1Click:Connect(function()
+					if MainFrame.Export.InstallPlugin.TextLabel.Text ~= "The car you have selected does not already have the plugin installed. Would you like to install it?" then return end
 					local Client = script.Parent.ChassisPlugin.EVCPlugin_Client:Clone()
 					Client.Parent = Selection["A-Chassis Tune"].Plugins
 					Client.Enabled = true
@@ -1608,6 +1660,7 @@ MainFrame.Export.Select.Plugin.MouseButton1Click:Connect(function()
 				end)
 	
 				MainFrame.Export.InstallPlugin.Cancel.MouseButton1Click:Connect(function()
+					if MainFrame.Export.InstallPlugin.TextLabel.Text ~= "The car you have selected does not already have the plugin installed. Would you like to install it?" then return end
 					MainFrame.Export.InstallPlugin.Visible = false
 					cancel()
 				end)
