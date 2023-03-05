@@ -16,9 +16,9 @@ local Lightbar = Body:WaitForChild(Settings.LightbarLocation)
 if not Lightbar then
 	error("EVC: No lightbar avaliable on car ".. Car.Name)
 end
-local Sounds = Lightbar:WaitForChild(Settings.SirenLocation)
+local Sounds = Lightbar:FindFirstChild(Settings.SirenLocation)
 if not Sounds then
-	error("EVC: No sound location avaliable on car ".. Car.Name)
+	warn("EVC: No sound location avaliable on car ".. Car.Name)
 end
 
 local Coros = {
@@ -72,7 +72,7 @@ function stageChange(calledBy: boolean?)
 				local Module = require(v)
 				for name,colors in pairs(Module.Lights) do
 					local light = Lights[name]
-					if light.running_module.Value ~= nil then
+					if light ~= nil and light.running_module.Value ~= nil then
 						light.running_module.Value = nil
 					end
 				end
@@ -89,7 +89,7 @@ function stageChange(calledBy: boolean?)
 				local Module = require(v)
 				for name,colors in pairs(Module.Lights) do
 					local light = Lights[name]
-					if (
+					if light ~= nil and (
 						light.running_module.Value == nil
 						or require(light.running_module.Value).Settings.Weight < Module.Settings.Weight
 					) then
@@ -128,7 +128,7 @@ function TAChange(calledBy: boolean?)
 				local Module = require(v)
 				for name,colors in pairs(Module.Lights) do
 					local light = Lights[name]
-					if light.running_module.Value ~= nil then
+					if light ~= nil and light.running_module.Value ~= nil then
 						light.running_module.Value = nil
 					end
 				end
@@ -145,7 +145,7 @@ function TAChange(calledBy: boolean?)
 				local Module = require(v)
 				for name,colors in pairs(Module.Lights) do
 					local light = Lights[name]
-					if (
+					if light ~= nil and (
 						light.running_module.Value == nil
 						or require(light.running_module.Value).Settings.Weight < Module.Settings.Weight
 					) then
@@ -196,8 +196,8 @@ for i,v in pairs(Lightbar.ModuleStore:GetDescendants()) do
 		local size = 0
 		for name,colors in pairs(Module.Lights) do
 			size = #colors
-			local light = Lightbar[name]
-			if not Lights[name] then
+			local light = Lightbar:FindFirstChild(name)
+			if light and not Lights[name] then
 				Lights[name] = {
 					running_module = Instance.new("ObjectValue"),
 					last_running_module = Instance.new("ObjectValue"),
