@@ -1,0 +1,129 @@
+--[[
+Redon Tech 2022
+WS V2
+--]]
+
+--------------------------------------------------------------------------------
+-- Init --
+--------------------------------------------------------------------------------
+
+local Is_RBXM = plugin.Name:find(".rbxm") ~= nil
+local Selection = game:GetService("Selection")
+local pluginRoot = script.Parent.Parent
+
+local function getName(name: string)
+	if Is_RBXM then
+		name ..= " (RBXM)"
+	end
+	return name
+end
+
+local Plugin_Name = getName("Emergency Vehicle Creator V2")
+local Plugin_Description = "Easily create amazing ELS for emergency vehicles!"
+local Plugin_Icon = "http://www.roblox.com/asset/?id=9953243250"
+local Widget_Name = getName("EVC V2")
+local Button_Name = getName("EVC Menu V2")
+local Packages = pluginRoot:WaitForChild("packages")
+local Components = script.Parent:WaitForChild("Components")
+local Modules = script.Parent:WaitForChild("Modules")
+local Utils = script.Parent:WaitForChild("Utils")
+
+
+if _G.RTPlugins and typeof(_G.RTPlugins) == "table" then
+	if _G.RTPlugins.Buttons[Plugin_Name] then
+		Button = _G.RTPlugins.Buttons[Plugin_Name]
+	else
+		_G.RTPlugins.Buttons[Plugin_Name] = _G.RTPlugins.ToolBar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
+		Button = _G.RTPlugins.Buttons[Plugin_Name]
+	end
+else
+	_G.RTPlugins = {
+		ToolBar = plugin:CreateToolbar("Redon Tech Plugins"),
+		Buttons = {}
+	}
+
+	_G.RTPlugins.Buttons[Plugin_Name] = _G.RTPlugins.ToolBar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
+	Button = _G.RTPlugins.Buttons[Plugin_Name]
+end
+
+--------------------------------------------------------------------------------
+-- UI Setup --
+--------------------------------------------------------------------------------
+
+local Config = DockWidgetPluginGuiInfo.new(Enum.InitialDockState.Float, false, false, 1280, 720)
+local GUI = plugin:CreateDockWidgetPluginGui(Widget_Name, Config)
+GUI.Title = Plugin_Name
+GUI.Name = Widget_Name
+Button:SetActive(GUI.Enabled)
+
+GUI:GetPropertyChangedSignal("Enabled"):Connect(function()
+	Button:SetActive(GUI.Enabled)
+end)
+
+local Container = require(Components.container)()
+Container.Parent = GUI
+Container:WaitForChild("TopBar"):WaitForChild("Title").Text = Plugin_Name
+Container:WaitForChild("Content")
+
+--------------------------------------------------------------------------------
+-- Plugin Functions --
+--------------------------------------------------------------------------------
+
+-- Containers
+local containers = {}
+containers["elsCreator"] = require(Modules.elsCreator)
+containers["elsCreator"].topBarButton.TextButton.Parent = Container.TopBar.CenterContainer
+
+local function hideContainers()
+	for i,v in pairs(containers) do
+		v.StopDisplay()
+		v.topBarButton.setEnabled(false)
+	end
+end
+
+local function enableContainer(container: table)
+	hideContainers()
+	container.Display(Container.Content)
+	container.topBarButton.setEnabled(true)
+end
+
+-- Container Buttons
+for i,v in pairs(containers) do
+	v.topBarButton.TextButton.MouseButton1Click:Connect(function()
+		enableContainer(v)
+	end)
+end
+
+-- Handle Input
+Container.InputBegan:Connect(function(input: InputObject)
+	for i,v in pairs(containers) do
+		if v["InputBegan"] then
+			v.InputBegan(input)
+		end
+	end
+end)
+
+Container.InputChanged:Connect(function(input: InputObject)
+	for i,v in pairs(containers) do
+		if v["InputChanged"] then
+			v.InputChanged(input)
+		end
+	end
+end)
+
+Container.InputEnded:Connect(function(input: InputObject)
+	for i,v in pairs(containers) do
+		if v["InputEnded"] then
+			v.InputEnded(input)
+		end
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- Plugin Starup --
+--------------------------------------------------------------------------------
+
+enableContainer(containers["elsCreator"])
+Button.Click:Connect(function()
+	GUI.Enabled = not GUI.Enabled
+end)

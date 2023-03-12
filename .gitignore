@@ -1,3 +1,6 @@
+# Packages
+/Packages
+
 # Roblox Studio lock files
 /*.rbxlx.lock
 /*.rbxl.lock
