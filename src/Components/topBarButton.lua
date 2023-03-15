@@ -1,6 +1,6 @@
 --[[
 Redon Tech 2022
-WS V2
+EVC V2
 --]]
 
 return function(Name: string, Position: number, Text: string, Size: number, Underline: boolean)

@@ -1,6 +1,6 @@
 --[[
 Redon Tech 2022
-WS V2
+EVC V2
 --]]
 
 local topBar = require(script.Parent.topBar)

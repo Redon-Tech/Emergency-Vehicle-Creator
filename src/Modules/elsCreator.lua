@@ -1,6 +1,6 @@
 --[[
 Redon Tech 2022
-WS V2
+EVC V2
 --]]
 
 --------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ elsCreator["topBarButton"] = require(Components:WaitForChild("topBarButton"))("e
 local elsCreatorComponents = Components:WaitForChild("elsCreator")
 
 local controls = require(elsCreatorComponents:WaitForChild("controls"))()
+local elsContainer = require(elsCreatorComponents:WaitForChild("container"))()
 
 local pauseButton = require(elsCreatorComponents:WaitForChild("iconButton"))("Pause", 7, "rbxassetid://12758044683")
 local lockButton = require(elsCreatorComponents:WaitForChild("iconButton"))("Lock", 8, "rbxassetid://12758042236")
@@ -97,10 +98,12 @@ end
 
 elsCreator.Display = function(container: Frame)
 	controls.Parent = container
+	elsContainer.Parent = container
 end
 
 elsCreator.StopDisplay = function()
 	controls.Parent = nil
+	elsContainer.Parent = nil
 end
 
 return elsCreator

@@ -1,3 +1,8 @@
+--[[
+Redon Tech 2022
+EVC V2
+--]]
+
 return function(Name: string, Position: number, Text: string, Color: Color3)
 	local frame = Instance.new("Frame")
 	frame.Name = Name
