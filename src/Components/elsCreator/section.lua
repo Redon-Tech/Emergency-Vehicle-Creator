@@ -62,7 +62,7 @@ return function(sectionNumer: number)
 
 	waitTime.Parent = sectionControls
 
-	local add = Instance.new("ImageLabel")
+	local add = Instance.new("ImageButton")
 	add.Name = "Add"
 	add.Image = "rbxassetid://12788800986"
 	add.ScaleType = Enum.ScaleType.Fit
@@ -73,11 +73,12 @@ return function(sectionNumer: number)
 	add.Size = UDim2.fromOffset(11.5, 11.5) -- 23, 23
 	add.Parent = sectionControls
 
-	local remove = Instance.new("ImageLabel")
-	remove.Name = "Remove"
+	local remove = Instance.new("ImageButton")
+	remove.Name = "RemoveButton"
 	remove.Image = "rbxassetid://12788801841"
 	remove.ScaleType = Enum.ScaleType.Fit
 	remove.ImageColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	remove.ImageTransparency = 0.5
 	remove.BackgroundTransparency = 1
 	remove.BorderSizePixel = 0
 	remove.LayoutOrder = 1

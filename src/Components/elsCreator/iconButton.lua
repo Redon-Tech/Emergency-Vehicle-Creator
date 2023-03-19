@@ -3,7 +3,7 @@ Redon Tech 2022
 EVC V2
 --]]
 
-return function(Name: string, Position: number, Icon: string)
+return function(Name: string, Position: number, Icon: string, IconActive: string)
 	local frame = Instance.new("Frame")
 	frame.Name = Name
 	frame.LayoutOrder = Position
@@ -29,7 +29,7 @@ return function(Name: string, Position: number, Icon: string)
 	image.Image = Icon
 	image.ScaleType = Enum.ScaleType.Fit
 	image.AnchorPoint = Vector2.new(0.5, 0.5)
-	image.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	image.ImageColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
 	image.BackgroundTransparency = 1
 	image.Position = UDim2.fromScale(0.5, 0.5)
 	image.Size = UDim2.fromScale(0.75, 0.75)
@@ -46,6 +46,15 @@ return function(Name: string, Position: number, Icon: string)
 		if frame:GetAttribute("Active") ~= true then
 			frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
 		end
+	end)
+
+	frame:GetAttributeChangedSignal("Active"):Connect(function()
+		frame.BackgroundColor3 = if frame:GetAttribute("Active") == true then settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Selected) else settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+		image.ImageColor3 = if frame:GetAttribute("Active") == true then settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Selected) else settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	end)
+
+	frame:GetAttributeChangedSignal("Icon"):Connect(function()
+		image.Image = if frame:GetAttribute("Icon") == true then IconActive else Icon
 	end)
 
 	return frame

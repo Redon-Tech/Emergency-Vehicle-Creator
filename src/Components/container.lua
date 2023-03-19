@@ -27,5 +27,15 @@ return function()
 	content.ZIndex = 2
 	content.Parent = Container
 
+	local popUps = Instance.new("Frame")
+	popUps.Name = "PopUps"
+	popUps.AnchorPoint = Vector2.new(0.5, 0.5)
+	popUps.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	popUps.BackgroundTransparency = 1
+	popUps.Position = UDim2.fromScale(0.5, 0.5)
+	popUps.Size = UDim2.fromScale(1, 1)
+	popUps.ZIndex = 100000
+	popUps.Parent = Container
+
 	return Container
 end

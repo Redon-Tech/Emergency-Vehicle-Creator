@@ -18,7 +18,7 @@ return function()
 	columns.AnchorPoint = Vector2.new(0.5, 0)
 	columns.BackgroundTransparency = 1
 	columns.BorderSizePixel = 0
-	columns.Position = UDim2.new(0.5, -20, 0, 75) -- -40, 150
+	columns.Position = UDim2.new(0.5, -19, 0, 75) -- -40, 150
 	columns.Selectable = false
 	columns.Size = UDim2.fromOffset(62.5, 500) -- 165, 700
 
@@ -34,7 +34,7 @@ return function()
 	indicatorHolder.CanvasSize = columns.CanvasSize
 	indicatorHolder.CanvasPosition = columns.CanvasPosition
 	indicatorHolder.AnchorPoint = columns.AnchorPoint
-	indicatorHolder.Position = UDim2.new(0.5, -1, 0, 75)
+	indicatorHolder.Position = UDim2.new(0.5, -2, 0, 75)
 	indicatorHolder.Size = columns.Size
 	indicatorHolder.ScrollBarThickness = 0
 	indicatorHolder.ScrollingDirection = Enum.ScrollingDirection.Y
@@ -49,7 +49,8 @@ return function()
 	indicator.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainButton, Enum.StudioStyleGuideModifier.Pressed)
 	indicator.BackgroundTransparency = 0.7
 	indicator.Position = UDim2.fromScale(0.5, 0)
-	indicator.Size = UDim2.fromOffset(42.5, 21) -- 85, 40
+	-- indicator.Size = UDim2.fromOffset(42.5, 21) -- 85, 40
+	indicator.Size = UDim2.new(1, 6, 0, 21)
 	indicator.Parent = indicatorHolder
 	indicator.ZIndex = 0
 
@@ -61,36 +62,41 @@ return function()
 	local function changeSize()
 		-- 75, 10, 700
 		columns.Size = UDim2.fromOffset((37.5 * (#columns:GetChildren() - 1)) + (5 * (#columns:GetChildren() - 2)) + 5, 500)
-		columns.Position = UDim2.new(0.5, -((37.5 * (#columns:GetChildren() - 2)) + (5 * (#columns:GetChildren() - 2)) - 5)/2, 0, 75)
+		-- columns.Position = UDim2.new(0.5, -((37.5 * (#columns:GetChildren() - 2)) + (5 * (#columns:GetChildren() - 2)) - 5)/2, 0, 75)
 
-		indicatorHolder.Size = UDim2.fromOffset((37.5 * (#columns:GetChildren() - 2)) + (5 * (#columns:GetChildren() - 2)), 500)
+		-- indicatorHolder.Size = UDim2.fromOffset((37 * (#columns:GetChildren() - 2)) + (5 * (#columns:GetChildren() - 3)), 500)
+		indicatorHolder.Size = UDim2.fromOffset(uIListLayout.AbsoluteContentSize.X-37, 500)
+		-- indicator.Size = UDim2.fromOffset((37 * (#columns:GetChildren() - 2)) + (5 * (#columns:GetChildren() - 2)) + 5, 20) -- 75, 10, 40
 
-		indicator.Size = UDim2.fromOffset((37.5 * (#columns:GetChildren() - 2)) + 5, 20) -- 75, 10, 40
 		if columns:FindFirstChild("Buttons") then
-			columns.CanvasSize = UDim2.fromOffset(0, columns["Buttons"].UIListLayout.AbsoluteContentSize.Y)
+			columns.CanvasSize = UDim2.fromOffset(0, ((#columns.Buttons:GetChildren() - 1) * 15) + ((#columns.Buttons:GetChildren() - 2) * 5) + 40)
 		end
 	end
 
 	columns.ChildAdded:Connect(changeSize)
 	columns.ChildRemoved:Connect(changeSize)
 	columns:GetPropertyChangedSignal("AbsoluteSize"):Connect(changeSize)
-
-	local function updateCanvis()
+	uIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(changeSize)
+	
+	local function updateCanvas()
 		indicatorHolder.CanvasSize = columns.CanvasSize
 		indicatorHolder.CanvasPosition = columns.CanvasPosition
-
+		
 		if indicatorHolder.CanvasPosition.Y > 0.5 then
 			indicatorHolder.ClipsDescendants = true
 		else
 			indicatorHolder.ClipsDescendants = false
 		end
 	end
-
-	columns:GetPropertyChangedSignal("CanvasSize"):Connect(updateCanvis)
-	columns:GetPropertyChangedSignal("CanvasPosition"):Connect(updateCanvis)
-
+	
+	columns:GetPropertyChangedSignal("CanvasSize"):Connect(updateCanvas)
+	columns:GetPropertyChangedSignal("CanvasPosition"):Connect(updateCanvas)
+	
 	column(1, 20).Parent = columns
 	columnButtons(20).Parent = columns
+
+	columns:WaitForChild("Buttons").ChildAdded:Connect(changeSize)
+	columns.Buttons.ChildRemoved:Connect(changeSize)
 
 	return columns, indicatorHolder
 end

@@ -21,16 +21,16 @@ return function()
 
 	local holder = Instance.new("Frame")
 	holder.Name = "RemoveHolder"
-	holder.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	holder.BackgroundTransparency = 1
 	holder.Size = UDim2.new(1, 0, 0, 15) -- 30
 
-	local remove = Instance.new("ImageLabel")
-	remove.Name = "Remove"
+	local remove = Instance.new("ImageButton")
+	remove.Name = "RemoveButton"
 	remove.Image = "rbxassetid://12788801841"
 	remove.ScaleType = Enum.ScaleType.Fit
 	remove.AnchorPoint = Vector2.new(0.5, 0.5)
-	remove.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	remove.ImageColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	remove.ImageTransparency = 0.5
 	remove.BackgroundTransparency = 1
 	remove.BorderSizePixel = 0
 	remove.LayoutOrder = 1
@@ -42,16 +42,15 @@ return function()
 
 	local holder1 = Instance.new("Frame")
 	holder1.Name = "AddHolder"
-	holder1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	holder1.BackgroundTransparency = 1
 	holder1.Size = UDim2.new(1, 0, 0, 15)
 
-	local add = Instance.new("ImageLabel")
+	local add = Instance.new("ImageButton")
 	add.Name = "Add"
 	add.Image = "rbxassetid://12788800986"
 	add.ScaleType = Enum.ScaleType.Fit
 	add.AnchorPoint = Vector2.new(0.5, 0.5)
-	add.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	add.ImageColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
 	add.BackgroundTransparency = 1
 	add.BorderSizePixel = 0
 	add.LayoutOrder = 3

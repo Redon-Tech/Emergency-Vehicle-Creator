@@ -22,7 +22,7 @@ return function()
 
 	local uIListLayout = Instance.new("UIListLayout")
 	uIListLayout.Name = "UIListLayout"
-	uIListLayout.Padding = UDim.new(0, 10)
+	uIListLayout.Padding = UDim.new(0, 5)
 	uIListLayout.FillDirection = Enum.FillDirection.Horizontal
 	uIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	uIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -40,10 +40,9 @@ return function()
 	local function changeSize()
 		mainContainer.CanvasSize = UDim2.fromOffset(uIListLayout.AbsoluteContentSize.X, uIListLayout.AbsoluteContentSize.Y)
 	end
-
-	mainContainer.ChildAdded:Connect(changeSize)
-	mainContainer.ChildRemoved:Connect(changeSize)
+	
 	mainContainer:GetPropertyChangedSignal("AbsoluteSize"):Connect(changeSize)
+	uIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(changeSize)
 
 	section(1).Parent = mainContainer
 

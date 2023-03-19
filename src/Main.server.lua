@@ -56,6 +56,7 @@ GUI.Title = Plugin_Name
 GUI.Name = Widget_Name
 Button:SetActive(GUI.Enabled)
 
+
 GUI:GetPropertyChangedSignal("Enabled"):Connect(function()
 	Button:SetActive(GUI.Enabled)
 end)
@@ -64,6 +65,10 @@ local Container = require(Components.container)()
 Container.Parent = GUI
 Container:WaitForChild("TopBar"):WaitForChild("Title").Text = Plugin_Name
 Container:WaitForChild("Content")
+local ContainerObjectValue = Instance.new("ObjectValue")
+ContainerObjectValue.Name = "Container"
+ContainerObjectValue.Value = Container
+ContainerObjectValue.Parent = pluginRoot
 
 --------------------------------------------------------------------------------
 -- Plugin Functions --
@@ -115,6 +120,18 @@ Container.InputEnded:Connect(function(input: InputObject)
 	for i,v in pairs(containers) do
 		if v["InputEnded"] then
 			v.InputEnded(input)
+		end
+	end
+end)
+
+-- Handle Theme Changes
+local originalTheme = settings().Studio.Theme
+
+settings().Studio.ThemeChanged:Connect(function()
+	if settings().Studio.Theme ~= originalTheme then
+		local newTheme = settings().Studio.Theme
+		for i,v in pairs(GUI:GetDescendants()) do
+			
 		end
 	end
 end)

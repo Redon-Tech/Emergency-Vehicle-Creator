@@ -38,6 +38,7 @@ return function(ColumnNumber: number)
 	top.AnchorPoint = Vector2.new(0.5, 0.5)
 	top.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Titlebar)
 	top.BorderSizePixel = 0
+	top.LayoutOrder = 0
 	top.Size = UDim2.new(1, 0, 0, 15) -- 30
 
 	local textBox = Instance.new("TextBox")
