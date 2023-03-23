@@ -20,11 +20,11 @@ The Redon Tech Emergency Vehcile Creator is a plugin for Roblox inspired by Sire
 - Exporting as a standard ELS controller
 - Custom A-Chassis plugin for ELS controlling
 - AG-Chassis support
+- Rotators
+- Fading Light Support
 
 ## Planned Features
 
-- Rotators
-- Fading Light Support
 - And much more features yet to be disclosed!
 
 ## Installation
@@ -37,13 +37,4 @@ The "build" branch is only for full releases, any development should go onto the
 
 ## To Do
 
-### V1.2
-| Status           | Name             | Description                                                                                                                  |
-| ---------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| In Progress      | Specialty Lights | Support the usage of specialty lights such as rotators and faders                                                            |
-
-### Unknown Version
-
-| Status           | Name             | Description                                                                                                                  |
-| ---------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Not Started      | Multiple Lightbar Locations | Support the usage of multiple lightbar locations with the "Out Plugin" export option.  |
+**To Be Updated**
