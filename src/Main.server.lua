@@ -84,6 +84,8 @@ containers["elsCreator"] = require(Modules.elsCreator)
 containers["elsCreator"].topBarButton.TextButton.Parent = Container.TopBar.CenterContainer
 containers["rotators"] = require(Modules.rotators)
 containers["rotators"].topBarButton.TextButton.Parent = Container.TopBar.CenterContainer
+containers["faders"] = require(Modules.faders)
+containers["faders"].topBarButton.TextButton.Parent = Container.TopBar.CenterContainer
 
 local function hideContainers()
 	for i,v in pairs(containers) do
