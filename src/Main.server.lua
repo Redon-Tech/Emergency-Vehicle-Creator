@@ -87,6 +87,10 @@ containers["rotators"].topBarButton.TextButton.Parent = Container.TopBar.CenterC
 containers["faders"] = require(Modules.faders)
 containers["faders"].topBarButton.TextButton.Parent = Container.TopBar.CenterContainer
 
+containers["loadSave"] = require(Modules.loadSave)
+containers["loadSave"].topBarButton.TextButton.Parent = Container.TopBar.RightContainer
+containers["loadSave"].modules = containers
+
 local function hideContainers()
 	for i,v in pairs(containers) do
 		v.StopDisplay()
