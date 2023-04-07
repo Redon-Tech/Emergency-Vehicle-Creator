@@ -10,6 +10,10 @@ if not game:GetService("RunService"):IsEdit() then return end
 local Is_RBXM = plugin.Name:find(".rbxm") ~= nil
 local Selection = game:GetService("Selection")
 local pluginRoot = script.Parent.Parent
+local pluginValue = Instance.new("ObjectValue")
+pluginValue.Name = "Plugin"
+pluginValue.Value = plugin
+pluginValue.Parent = pluginRoot
 
 local function getName(name: string)
 	if Is_RBXM then
@@ -78,6 +82,8 @@ ContainerObjectValue.Parent = pluginRoot
 local containers = {}
 containers["elsCreator"] = require(Modules.elsCreator)
 containers["elsCreator"].topBarButton.TextButton.Parent = Container.TopBar.CenterContainer
+containers["rotators"] = require(Modules.rotators)
+containers["rotators"].topBarButton.TextButton.Parent = Container.TopBar.CenterContainer
 
 local function hideContainers()
 	for i,v in pairs(containers) do
