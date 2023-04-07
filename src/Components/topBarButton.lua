@@ -1,5 +1,5 @@
 --[[
-Redon Tech 2022
+Redon Tech 2023
 EVC V2
 --]]
 
@@ -20,7 +20,6 @@ return function(Name: string, Position: number, Text: string, Size: number, Unde
 	TextButton.TextSize = 14
 	TextButton.TextWrapped = true
 	TextButton.BackgroundTransparency = 1
-	TextButton.LayoutOrder = 1
 	TextButton.Size = UDim2.fromScale(if Size then Size else 0.104, 0.6)
 	TextButton.ZIndex = 4
 
@@ -51,14 +50,14 @@ return function(Name: string, Position: number, Text: string, Size: number, Unde
 	end
 
 	TextButton.MouseEnter:Connect(function()
-		TextButton.BackgroundColor3 = if active then settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainButton, Enum.StudioStyleGuideModifier.Hover) else settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Hover)
+		TextButton.TextColor3 = if active then settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainButton, Enum.StudioStyleGuideModifier.Hover) else settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
 		if Underline then
 			TextButton.Underline.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainButton, Enum.StudioStyleGuideModifier.Hover)
 		end
 	end)
 
 	TextButton.MouseLeave:Connect(function()
-		TextButton.BackgroundColor3 = if active then settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainButton) else settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+		TextButton.TextColor3 = if active then settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainButton) else settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
 		if Underline then
 			TextButton.Underline.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainButton)
 		end

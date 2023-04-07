@@ -1,14 +1,15 @@
 --[[
-Redon Tech 2022
-EVC V2
+	Redon Tech 2023
+	EVC V2
 --]]
 
 --------------------------------------------------------------------------------
 -- Init --
 --------------------------------------------------------------------------------
 
+local RunService = game:GetService("RunService")
 local pluginRoot = script.Parent.Parent.Parent
-local elsCreator = {enabled = false, canExport = false, container = nil}
+local elsCreator = {enabled = false, canExport = true, container = nil}
 
 local colors = {
 	[0] = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),

@@ -1,5 +1,5 @@
 --[[
-Redon Tech 2022
+Redon Tech 2023
 EVC V2
 --]]
 
@@ -45,12 +45,20 @@ return function(Name: string, Position: number, Text: string, Color: Color3)
 	frame.MouseEnter:Connect(function()
 		if frame:GetAttribute("Active") ~= true then
 			frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Hover)
+			text.TextColor3 = Color3.new(Color.R + 0.1, Color.G + 0.1, Color.B + 0.1)
+		else
+			frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainButton, Enum.StudioStyleGuideModifier.Hover)
+			text.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
 		end
 	end)
 
 	frame.MouseLeave:Connect(function()
 		if frame:GetAttribute("Active") ~= true then
 			frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+			text.TextColor3 = Color
+		else
+			frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Selected)
+			text.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Selected)
 		end
 	end)
 

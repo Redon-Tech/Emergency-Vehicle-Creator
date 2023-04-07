@@ -1,5 +1,5 @@
 --[[
-Redon Tech 2022
+Redon Tech 2023
 EVC V2
 --]]
 
@@ -67,7 +67,7 @@ return function(promptText: string, callback)
 	)
 	confirm1.Text = "Confirm"
 	confirm1.AutoButtonColor = false
-	confirm1.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	confirm1.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
 	confirm1.TextScaled = true
 	confirm1.TextSize = 14
 	confirm1.TextWrapped = true
@@ -160,9 +160,11 @@ return function(promptText: string, callback)
 	end)
 	connections[#connections+1] = cancel.MouseEnter:Connect(function()
 		cancel.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Hover)
+		cancel.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
 	end)
 	connections[#connections+1] = cancel.MouseLeave:Connect(function()
 		cancel.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+		cancel.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
 	end)
 
 	return confirm

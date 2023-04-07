@@ -1,5 +1,5 @@
 --[[
-Redon Tech 2022
+Redon Tech 2023
 EVC V2
 --]]
 
@@ -39,12 +39,20 @@ return function(Name: string, Position: number, Icon: string, IconActive: string
 	frame.MouseEnter:Connect(function()
 		if frame:GetAttribute("Active") ~= true then
 			frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Hover)
+			image.ImageColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
+		elseif frame:GetAttribute("Active") == true and IconActive == nil then
+			frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainButton, Enum.StudioStyleGuideModifier.Hover)
+			image.ImageColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Hover)
 		end
 	end)
 
 	frame.MouseLeave:Connect(function()
 		if frame:GetAttribute("Active") ~= true then
 			frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
+			image.ImageColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+		elseif frame:GetAttribute("Active") == true and IconActive == nil then
+			frame.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Selected)
+			image.ImageColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Selected)
 		end
 	end)
 
