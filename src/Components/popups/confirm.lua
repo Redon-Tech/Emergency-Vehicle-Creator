@@ -140,8 +140,8 @@ return function(promptText: string, callback)
 		for i,v in pairs(connections) do
 			v:Disconnect()
 		end
-		callback(true)
 		confirm:Destroy()
+		callback(true)
 	end)
 
 	connections[#connections+1] = confirm1.MouseEnter:Connect(function()
@@ -155,8 +155,8 @@ return function(promptText: string, callback)
 		for i,v in pairs(connections) do
 			v:Disconnect()
 		end
-		callback(false)
 		confirm:Destroy()
+		callback(false)
 	end)
 	connections[#connections+1] = cancel.MouseEnter:Connect(function()
 		cancel.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Hover)
