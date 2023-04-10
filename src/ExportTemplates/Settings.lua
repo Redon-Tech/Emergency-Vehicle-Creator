@@ -96,7 +96,7 @@ return {
 					v.Visible = false
 				elseif v:IsA("Light") or v:IsA("SurfaceGui") then
 					v.Enabled = false
-				elseif v:IsA("PartticleEmitter") then
+				elseif v:IsA("ParticleEmitter") then
 					v.Transparency = NumberSequence.new(1)
 				end
 			end
@@ -106,10 +106,12 @@ return {
 				if v:IsA("GuiObject") then
 					v.Visible = true
 					v.ImageColor3 = Colors[Color]
-				elseif v:IsA("Light") or v:IsA("SurfaceGui") then
+				elseif v:IsA("Light") then
 					v.Enabled = true
 					v.Color = Colors[Color]
-				elseif v:IsA("PartticleEmitter") then
+				elseif v:IsA("SurfaceGui") then
+					v.Enabled = true
+				elseif v:IsA("ParticleEmitter") then
 					v.Transparency = NumberSequence.new(0)
 					v.Color = ColorSequence.new(Colors[Color])
 				end

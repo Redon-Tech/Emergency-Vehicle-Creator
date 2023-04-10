@@ -614,17 +614,19 @@ elsCreator.loadFromTable = function(data: {number:{string:any}})
 					-- for row,rowData in pairs(columnData["Rows"]) do
 					sectionFrame:SetAttribute("Rows", numberOfRows)
 					for row=1,numberOfRows do
-						local rowData = columnData["Rows"][row]
-						if typeof(rowData) == "number" then
-							local rowFrame = columnFrame:FindFirstChild(tostring(row))
-							if rowFrame == nil then
-								rowFrame = require(elsCreatorComponents:WaitForChild("columnRow"))(row)
-								rowFrame.Parent = columnFrame
-								registerRow(rowFrame)
+						task.spawn(function()
+							local rowData = columnData["Rows"][row]
+							if typeof(rowData) == "number" then
+								local rowFrame = columnFrame:FindFirstChild(tostring(row))
+								if rowFrame == nil then
+									rowFrame = require(elsCreatorComponents:WaitForChild("columnRow"))(row)
+									rowFrame.Parent = columnFrame
+									registerRow(rowFrame)
+								end
+								RunService.Heartbeat:Wait()
+								rowFrame:SetAttribute("Color", rowData)
 							end
-							RunService.Heartbeat:Wait()
-							rowFrame:SetAttribute("Color", rowData)
-						end
+						end)
 					end
 
 					for _,row in pairs(columnFrame:GetChildren()) do

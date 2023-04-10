@@ -7,6 +7,7 @@
 -- Init --
 --------------------------------------------------------------------------------
 
+local StudioService = game:GetService("StudioService")
 local Selection = game:GetService("Selection")
 local pluginRoot = script.Parent.Parent.Parent
 local export = {enabled = false, canExport = false, container = nil}
@@ -57,17 +58,17 @@ local function chassisExport(model: Model, isAG: true)
 	local function normalInstall()
 		local EVCPlugin_Client = Instance.new("LocalScript")
 		EVCPlugin_Client.Name = "EVCPlugin_Client"
-		EVCPlugin_Client.Source = pluginRoot.src.ChassisPlugin.EVCPlugin_Client.Source
+		EVCPlugin_Client.Source = pluginRoot.src.ExportTemplates.EVCPlugin_Client.Source
 		EVCPlugin_Client.Parent = model["A-Chassis Tune"].Plugins
 		local EVCRemote = Instance.new("RemoteEvent")
 		EVCRemote.Name = "EVCRemote"
 		EVCRemote.Parent = EVCPlugin_Client
 		local EVCPlugin = Instance.new("Script")
 		EVCPlugin.Name = "EVCPlugin"
-		EVCPlugin.Source = pluginRoot.src.ChassisPlugin.EVCPlugin.Source
+		EVCPlugin.Source = pluginRoot.src.ExportTemplates.EVCPlugin.Source
 		EVCPlugin.Parent = EVCRemote
 		EVCPlugin.Enabled = false
-		local Settings = pluginRoot.src.ChassisPlugin.Settings:Clone()
+		local Settings = pluginRoot.src.ExportTemplates.Settings:Clone()
 		Settings.Parent = EVCRemote
 
 		if model:FindFirstChild("Body") and model.Body:FindFirstChild("Lightbar") then
@@ -111,9 +112,9 @@ local function chassisExport(model: Model, isAG: true)
 
 		local EVCPlugin = Instance.new("Script")
 		EVCPlugin.Name = "EVCPlugin_AG"
-		EVCPlugin.Source = pluginRoot.src.ChassisPlugin.EVCPlugin_AG.Source
+		EVCPlugin.Source = pluginRoot.src.ExportTemplates.EVCPlugin_AG.Source
 		EVCPlugin.Parent = PTRNS
-		local Settings = pluginRoot.src.ChassisPlugin.Settings:Clone()
+		local Settings = pluginRoot.src.ExportTemplates.Settings:Clone()
 		Settings.Parent = PTRNS
 
 		if model.Body.ELS:FindFirstChild("ModuleStore") == nil then
@@ -271,7 +272,7 @@ local function chassisExport(model: Model, isAG: true)
 		end
 		print(data, sectionsDevidedByWaitTimes)
 		for i,v in pairs(sectionsDevidedByWaitTimes) do
-			local module = pluginRoot.src.ChassisPlugin.Template:Clone()
+			local module = pluginRoot.src.ExportTemplates.Template:Clone()
 			module.Name = `EVCExport|{DateTime:now():FormatLocalTime("lll", "en-US")}`
 
 			local lightsString = ""
@@ -473,12 +474,13 @@ local function chassisExport(model: Model, isAG: true)
 	exportContainer.ChassisPluginExports.Visible = true
 end
 
+
 exportContainer.SelectExportOption.Options.ChassisPlugin.MouseButton1Click:Connect(function()
 	resetChassisExport()
-
+	
 	exportContainer.SelectExportOption.Visible = false
 	exportContainer.Selection.Visible = true
-
+	
 	chassisExportConnections[#chassisExportConnections+1] = Selection.SelectionChanged:Connect(function()
 		if #Selection:Get() > 0 then
 			exportContainer.Selection.Selection.Text = `<b>Currently Selecting:</b> {Selection:Get()[1].Name}`
@@ -491,7 +493,7 @@ exportContainer.SelectExportOption.Options.ChassisPlugin.MouseButton1Click:Conne
 	else
 		exportContainer.Selection.Selection.Text = "<b>Currently Selecting:</b> Nothing"
 	end
-
+	
 	chassisExportConnections[#chassisExportConnections+1] = exportContainer.Selection.Options.SelectButton.MouseButton1Click:Connect(function()
 		if #Selection:Get() > 0 then
 			local selection = Selection:Get()[1]
@@ -499,27 +501,100 @@ exportContainer.SelectExportOption.Options.ChassisPlugin.MouseButton1Click:Conne
 				for _, connection in pairs(chassisExportConnections) do
 					connection:Disconnect()
 				end
-
+				
 				chassisExport(selection, true)
-			elseif selection:FindFirstChild("A-Chassis Tune") and selection["A-Chassis Tune"]:FindFirstChild("Plugins") then
-				for _, connection in pairs(chassisExportConnections) do
-					connection:Disconnect()
-				end
-
-				chassisExport(selection, false)
+				elseif selection:FindFirstChild("A-Chassis Tune") and selection["A-Chassis Tune"]:FindFirstChild("Plugins") then
+					for _, connection in pairs(chassisExportConnections) do
+						connection:Disconnect()
+					end
+					
+					chassisExport(selection, false)
 			end
 		end
 	end)
-
+	
 	chassisExportConnections[#chassisExportConnections+1] = exportContainer.Selection.Options.CancelButton.MouseButton1Click:Connect(function()
 		resetChassisExport()
 	end)
-
+	
 	chassisExportConnections[#chassisExportConnections+1] = exportContainer.Selection.Destroying:Connect(function()
 		for _, connection in pairs(chassisExportConnections) do
 			connection:Disconnect()
 		end
 	end)
+end)
+
+exportContainer.SelectExportOption.Options.CustomCode.MouseButton1Click:Connect(function()
+	local success, message = pcall(function()
+		local data = {}
+
+		for module,moduleData in pairs(export.modules) do
+			if typeof(moduleData["toTable"]) == "function" then
+				data[module] = moduleData["toTable"]()
+			end
+		end
+		print(data)
+		local model = Instance.new("Model")
+		model.Parent = workspace
+		model.Name = "EVC Custom Code Export"
+		local offset = Vector3.new(0, 10, 0)
+
+		if data.elsCreator ~= nil then
+			for sectionNumber,sectionData in pairs(data.elsCreator) do
+				local newScript = Instance.new("Script")
+				newScript.Name = `EmergencyLights{sectionNumber}`
+				newScript.Parent = model
+				newScript.Source = pluginRoot.src.ExportTemplates.CustomCode.lights.Source
+				local scriptSource = newScript.Source
+				scriptSource = scriptSource:gsub("%[username%]", StudioService:GetUserId())
+				scriptSource = scriptSource:gsub("local Lightbar = script.Parent", `local waitTime = {sectionData.WaitTime}\nlocal Lightbar = script.Parent`)
+
+				local lights = {}
+				local maxRows = {}
+				for columnNumber,columnData in pairs(sectionData.Columns) do
+					if columnData.Name == "" then
+						columnData.Name = if sectionNumber > 1 then `{sectionNumber}Light{columnNumber}` else `Light{columnNumber}`
+						sectionData.Columns[columnNumber].Name = columnData.Name
+					end
+					if table.find(lights, columnData.Name) == nil then
+						table.insert(lights, columnData.Name)
+					end
+					maxRows = rawlen(columnData.Rows)
+				end
+
+				local lightLoopString = ""
+				for row=1,maxRows do
+					lightLoopString ..= `\n\t-- {row}`
+					for column=1,rawlen(sectionData.Columns) do
+						lightLoopString ..= `\n\tlight("{sectionData.Columns[column].Name}", {sectionData.Columns[column].Rows[row]})`
+					end
+					lightLoopString ..= `\n\ttask.wait(waitTime)`
+				end
+
+				scriptSource = scriptSource:gsub("--%[lights%]", lightLoopString)
+
+				for _,lightname in pairs(lights) do
+					local part = Instance.new("Part")
+					part.Parent = model
+					part.Name = lightname
+					part.TopSurface = Enum.SurfaceType.Smooth
+					part.BottomSurface = Enum.SurfaceType.Smooth
+					part.Material = Enum.Material.Neon
+					part.BrickColor = BrickColor.new("Institutional white")
+					part.Anchored = true
+					part.CanCollide = false
+					part.Size = Vector3.new(0.75, 0.3, 0.1)
+					offset += Vector3.new(0.85, 0, 0)
+					part.Position = offset
+				end
+
+				newScript.Source = scriptSource
+			end
+		end
+	end)
+	if not success then
+		warn(message, "\n", debug.traceback())
+	end
 end)
 
 export.Display = function(container: Frame)
