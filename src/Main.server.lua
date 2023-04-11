@@ -140,16 +140,16 @@ Container.InputEnded:Connect(function(input: InputObject)
 end)
 
 -- Handle Theme Changes
-local originalTheme = settings().Studio.Theme
+-- local originalTheme = settings().Studio.Theme
 
-settings().Studio.ThemeChanged:Connect(function()
-	if settings().Studio.Theme ~= originalTheme then
-		local newTheme = settings().Studio.Theme
-		for i,v in pairs(GUI:GetDescendants()) do
+-- settings().Studio.ThemeChanged:Connect(function()
+-- 	if settings().Studio.Theme ~= originalTheme then
+-- 		local newTheme = settings().Studio.Theme
+-- 		for i,v in pairs(GUI:GetDescendants()) do
 			
-		end
-	end
-end)
+-- 		end
+-- 	end
+-- end)
 
 --------------------------------------------------------------------------------
 -- Plugin Starup --

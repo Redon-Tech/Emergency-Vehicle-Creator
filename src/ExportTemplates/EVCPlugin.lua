@@ -197,7 +197,6 @@ local function registerRotator(lightName:string)
 		motorPart.Size = Vector3.new(.1,.1,.1)
 		motorPart.CFrame = lightbar[lightName].CFrame
 		motorPart.Transparency = 1
-		print(motorPart)
 		local weld = Instance.new("Weld")
 		weld.Part0 = car.DriveSeat
 		weld.Part1 = motorPart

@@ -182,11 +182,11 @@ local function chassisExport(model: Model, isAG: true)
 		end
 	elseif model.Body:FindFirstChild("ELS") and model.Body.ELS:FindFirstChild("PTRNS") and model.Body.ELS.PTRNS:FindFirstChild("Settings") then
 		local currentSettings = require(model.Body.ELS.PTRNS:WaitForChild("Settings"))
-		print(currentSettings.PluginVersion)
+		-- print(currentSettings.PluginVersion)
 		local ver = currentSettings.PluginVersion
 		local numberstring = string.gsub(ver, "%.", "")
 
-		print(tonumber(numberstring))
+		-- print(tonumber(numberstring))
 		if tonumber(numberstring) < 200 then
 			export.container.Parent.PopUps.BackgroundTransparency = 0.5
 			confirmPrompt("The currently installed plugin on this chassis is still on version 1.\nWould you like to replace it with version 2?\n<b>Settings will be overwritten</b>", function(confirm)
@@ -270,7 +270,7 @@ local function chassisExport(model: Model, isAG: true)
 				sectionsDevidedByWaitTimes[firstWaitTime].faders[sectionNumber] = sectionData
 			end
 		end
-		print(data, sectionsDevidedByWaitTimes)
+		-- print(data, sectionsDevidedByWaitTimes)
 		for i,v in pairs(sectionsDevidedByWaitTimes) do
 			local module = pluginRoot.src.ExportTemplates.Template:Clone()
 			module.Name = `EVCExport|{DateTime:now():FormatLocalTime("lll", "en-US")}`
@@ -328,7 +328,7 @@ local function chassisExport(model: Model, isAG: true)
 			end
 
 			local source = module.Source
-			print(i, weight, lightsString, rotatorsString, fadersString)
+			-- print(i, weight, lightsString, rotatorsString, fadersString)
 			source = source:gsub("WaitTime = 0.1", `WaitTime = {v.waitTime}`)
 			source = source:gsub("Weight = 1", `Weight = {weight}`)
 			source = source:gsub("Lights = {}", "Lights = {"..lightsString.."\n}")
@@ -533,7 +533,7 @@ exportContainer.SelectExportOption.Options.CustomCode.MouseButton1Click:Connect(
 				data[module] = moduleData["toTable"]()
 			end
 		end
-		print(data)
+		-- print(data)
 		local model = Instance.new("Model")
 		model.Parent = workspace
 		model.Name = "EVC Custom Code Export"

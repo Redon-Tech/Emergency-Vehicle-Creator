@@ -513,18 +513,29 @@ local function reset()
 		local rows = #frame:GetChildren() - 1
 
 		if rows ~= elsContainer.Section1:GetAttribute("Rows") then
-			if rows > elsContainer.Section1:GetAttribute("Rows") then
-				for i,v in pairs(frame:GetChildren()) do
-					if v:IsA("Frame") and v.LayoutOrder > elsContainer.Section1:GetAttribute("Rows") then
-						v:Destroy()
-					end
+			-- if rows > elsContainer.Section1:GetAttribute("Rows") then
+			-- 	for i,v in pairs(frame:GetChildren()) do
+			-- 		if v:IsA("Frame") and v.LayoutOrder > elsContainer.Section1:GetAttribute("Rows") then
+			-- 			v:Destroy()
+			-- 		end
+			-- 	end
+			-- elseif rows < elsContainer.Section1:GetAttribute("Rows") then
+			-- 	for i = 1, elsContainer.Section1:GetAttribute("Rows")-rows do
+			-- 		local row = require(elsCreatorComponents:WaitForChild("columnRow"))(i)
+			-- 		row.Parent = frame
+			-- 		registerRow(row)
+			-- 	end
+			-- end
+			for i,v in pairs(frame:GetChildren()) do
+				if v:IsA("Frame") then
+					v:Destroy()
 				end
-			elseif rows < elsContainer.Section1:GetAttribute("Rows") then
-				for i = 1, elsContainer.Section1:GetAttribute("Rows")-rows do
-					local row = require(elsCreatorComponents:WaitForChild("columnRow"))(i)
-					row.Parent = frame
-					registerRow(row)
-				end
+			end
+			
+			for i = 1, elsContainer.Section1:GetAttribute("Rows")-rows do
+				local row = require(elsCreatorComponents:WaitForChild("columnRow"))(i)
+				row.Parent = frame
+				registerRow(row)
 			end
 		end
 
@@ -539,20 +550,33 @@ local function reset()
 		local rows = #frame:GetChildren() - 1
 
 		if rows ~= elsContainer.Section1:GetAttribute("Rows") then
-			if rows > elsContainer.Section1:GetAttribute("Rows") then
-				for i,v in pairs(frame:GetChildren()) do
-					if v:IsA("Frame") and v.LayoutOrder + 1 > elsContainer.Section1:GetAttribute("Rows") and v.Name ~= "Controls" then
-						v:Destroy()
-					end
+			-- if rows > elsContainer.Section1:GetAttribute("Rows") then
+			-- 	for i,v in pairs(frame:GetChildren()) do
+			-- 		if v:IsA("Frame") and v.LayoutOrder + 1 > elsContainer.Section1:GetAttribute("Rows") and v.Name ~= "Controls" then
+			-- 			v:Destroy()
+			-- 		end
+			-- 	end
+			-- elseif rows < elsContainer.Section1:GetAttribute("Rows") then
+			-- 	for i = 1, elsContainer.Section1:GetAttribute("Rows")-rows do
+			-- 		local row = require(elsCreatorComponents:WaitForChild("columnRow"))(i)
+			-- 		row.Parent = frame
+			-- 		row.BackgroundTransparency = 1
+			-- 		row.UICorner:Destroy()
+			-- 		registerRow(row)
+			-- 	end
+			-- end
+			for i,v in pairs(frame:GetChildren()) do
+				if v:IsA("Frame") and v.Name ~= "Controls" then
+					v:Destroy()
 				end
-			elseif rows < elsContainer.Section1:GetAttribute("Rows") then
-				for i = 1, elsContainer.Section1:GetAttribute("Rows")-rows do
-					local row = require(elsCreatorComponents:WaitForChild("columnRow"))(i)
-					row.Parent = frame
-					row.BackgroundTransparency = 1
-					row.UICorner:Destroy()
-					registerRow(row)
-				end
+			end
+			
+			for i = 1, elsContainer.Section1:GetAttribute("Rows")-rows do
+				local row = require(elsCreatorComponents:WaitForChild("columnRow"))(i)
+				row.Parent = frame
+				row.BackgroundTransparency = 1
+				row.UICorner:Destroy()
+				registerRow(row)
 			end
 		end
 	end
@@ -598,7 +622,7 @@ elsCreator.loadFromTable = function(data: {number:{string:any}})
 				if typeof(columnData) == "table" and typeof(columnData["Name"]) == "string" and typeof(columnData["Rows"]) == "table" then
 					local columnFrame = sectionFrame.Columns:FindFirstChild(tostring(column))
 					local columnHeader = sectionFrame.ColumnHeaders:FindFirstChild(tostring(column))
-					numberOfRows = #columnData["Rows"]
+					numberOfRows = rawlen(columnData["Rows"])
 					if columnFrame == nil then
 						columnFrame = require(elsCreatorComponents:WaitForChild("column"))(column, numberOfRows)
 						columnFrame.Parent = sectionFrame.Columns
@@ -714,7 +738,9 @@ elsCreator.InputBegan = function(input: InputObject)
 	elseif input.KeyCode == Enum.KeyCode.P then
 		setPause(not pause)
 		pauseButton:SetAttribute("Icon", pause)
-	elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+	end
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		mouseDown = true
 		mouse2Down = false
 	elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
@@ -740,7 +766,7 @@ elsCreator.InputEnded = function(input: InputObject)
 		mouseDown = false
 		mouse2Down = false
 		startingColumn = nil
-	elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+	elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
 		mouseDown = false
 		mouse2Down = false
 		startingColumn = nil

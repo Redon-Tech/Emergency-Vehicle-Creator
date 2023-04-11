@@ -575,7 +575,7 @@ faders.toTable = function()
 			data[section.LayoutOrder] = sectionTable
 		end
 	end
-	print(data)
+	-- print(data)
 
 	return data
 end
