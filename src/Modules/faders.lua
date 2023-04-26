@@ -39,7 +39,7 @@ local colorLabels = {
 	[5] = "Green",
 	[6] = "Purple",
 }
-local pause = true
+local pause, pauseLocked = true, false
 local tweenPreviews, tweenPreviewCompletedConnections, coroutines = {}, {}, {}
 
 --------------------------------------------------------------------------------
@@ -95,9 +95,11 @@ local function registerTween(sectionFrame: Frame, tween: number)
 	local function pauseFocus()
 		didSetPause = if pause == false then true else false
 		setPause(true)
+		pauseLocked = true
 	end
 
 	local function pauseFocusLost()
+		pauseLocked = false
 		if didSetPause then
 			setPause(false)
 			didSetPause = false
@@ -283,6 +285,18 @@ local function update(coro: table, section: number)
 					end
 	
 					local tweenFrame = sectionFrame.Options:WaitForChild(`Tween{currentTween}`)
+					if
+						tonumber(tweenFrame.Time.TextBox.Text) == nil
+						or tonumber(tweenFrame.RepeatCount.TextBox.Text) == nil
+						or tonumber(tweenFrame.DelayTime.TextBox.Text) == nil
+						or tonumber(tweenFrame.TransparencyGoal.TextBox.Text) == nil
+					then
+						tweenPreviews[section] = nil
+						tweenPreviewCompletedConnections[section] = nil
+						currentTween += 1
+						RunService.Heartbeat:Wait()
+						return
+					end
 					local tweenInfo = TweenInfo.new(
 						tonumber(tweenFrame.Time.TextBox.Text),
 						Enum.EasingStyle[tweenFrame.EasingStyle:GetAttribute("EasingStyle")],
@@ -448,6 +462,7 @@ registerSection(1)
 -- Reset Handler
 local function reset()
 	setPause(true)
+	pauseLocked = false
 
 	for _,v in pairs(tweenPreviews) do
 		v:Cancel()
@@ -539,6 +554,13 @@ faders.loadFromTable = function(data: {number:{string:any}})
 					tweenFrame.EasingStyle:SetAttribute("EasingStyle", tweenData.EasingStyle)
 					tweenFrame.EasingDirection:SetAttribute("EasingDirection", tweenData.EasingDirection)
 					tweenFrame.Reverses:SetAttribute("Checked", tweenData.Reverses)
+				elseif typeof(tweenData) == "table" then
+					local tweenFrame = sectionFrame.Options:FindFirstChild(`Tween{tween}`)
+					if tweenFrame == nil then
+						tweenFrame = require(faderComponents:WaitForChild("tweenFrame"))(tween)
+						tweenFrame.Parent = sectionFrame.Options
+						registerTween(sectionFrame, tween)
+					end
 				end
 			end
 		end
@@ -585,6 +607,7 @@ faders.InputBegan = function(input: InputObject)
 	if faders.enabled == false then return end
 
 	if input.KeyCode == Enum.KeyCode.P then
+		if pauseLocked then return end
 		setPause(not pause)
 	elseif input.KeyCode == Enum.KeyCode.R then
 		confirmReset()
@@ -592,6 +615,7 @@ faders.InputBegan = function(input: InputObject)
 end
 
 pauseButton.Image.MouseButton1Click:Connect(function()
+	if pauseLocked then return end
 	setPause(not pause)
 end)
 
