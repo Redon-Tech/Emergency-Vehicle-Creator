@@ -380,6 +380,11 @@ local function registerSection(section: number)
 		else
 			sectionFrame.Columns.Buttons.Controls.RemoveHolder.Visible = true
 		end
+
+		if sectionFrame:GetAttribute("Count") > sectionFrame:GetAttribute("Rows") then
+			sectionFrame:SetAttribute("Count", sectionFrame:GetAttribute("Rows"))
+			sectionFrame.IndicatorHolder.Indicator.Position = UDim2.new(0.5, 1, 0, ((sectionFrame:GetAttribute("Count")-1)*20)-3)
+		end
 	end
 	removeRowVisible()
 	connections[#connections+1] = sectionFrame:GetAttributeChangedSignal("Rows"):Connect(removeRowVisible)
