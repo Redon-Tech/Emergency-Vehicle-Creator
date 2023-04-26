@@ -71,7 +71,12 @@ local function chassisExport(model: Model, isAG: true)
 		local Settings = pluginRoot.src.ExportTemplates.Settings:Clone()
 		Settings.Parent = EVCRemote
 
-		if model:FindFirstChild("Body") and model.Body:FindFirstChild("Lightbar") then
+		if model:FindFirstChild("Body") then
+			if model.Body:FindFirstChild("Lightbar") == nil then
+				local Lightbar = Instance.new("Model")
+				Lightbar.Name = "Lightbar"
+				Lightbar.Parent = model.Body
+			end
 			if model.Body.Lightbar:FindFirstChild("ModuleStore") == nil then
 				local ModuleStore = Instance.new("Folder")
 				ModuleStore.Name = "ModuleStore"
