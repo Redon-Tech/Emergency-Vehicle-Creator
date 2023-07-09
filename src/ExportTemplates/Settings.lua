@@ -89,37 +89,107 @@ return {
 	},
 
 	-- Do not change below unless you know what you are doing
-	Light = function(Light, Color, Colors)
-		if Color == 0 then
-			for i,v in pairs(Light:GetDescendants()) do
-				if v:IsA("GuiObject") then
-					v.Visible = false
-				elseif v:IsA("Light") or v:IsA("SurfaceGui") then
-					v.Enabled = false
-				elseif v:IsA("ParticleEmitter") then
-					v.Transparency = NumberSequence.new(1)
+	-- Light = function(Light, Color, Colors)
+	-- 	if Color == 0 then
+	-- 		for i,v in pairs(Light:GetDescendants()) do
+	-- 			if v:IsA("GuiObject") then
+	-- 				v.Visible = false
+	-- 			elseif v:IsA("Light") or v:IsA("SurfaceGui") then
+	-- 				v.Enabled = false
+	-- 			elseif v:IsA("ParticleEmitter") then
+	-- 				v.Transparency = NumberSequence.new(1)
+	-- 			end
+	-- 		end
+	-- 		Light.Transparency = 1
+	-- 	else
+	-- 		for i,v in pairs(Light:GetDescendants()) do
+	-- 			if v:IsA("GuiObject") then
+	-- 				v.Visible = true
+	-- 				v.ImageColor3 = Colors[Color]
+	-- 			elseif v:IsA("Light") then
+	-- 				v.Enabled = true
+	-- 				v.Color = Colors[Color]
+	-- 			elseif v:IsA("SurfaceGui") then
+	-- 				v.Enabled = true
+	-- 			elseif v:IsA("ParticleEmitter") then
+	-- 				v.Transparency = NumberSequence.new(0)
+	-- 				v.Color = ColorSequence.new(Colors[Color])
+	-- 			end
+	-- 		end
+	-- 		Light.Transparency = 0
+	-- 		Light.Color = Colors[Color]
+	-- 	end
+	-- end,
+	Light = {
+		BasePart = {
+			Init = function(Light: BasePart)
+				Light.Transparency = 1
+			end,
+
+			Flash = function(Light: BasePart, Color: Color3|number)
+				if Color == 0 then
+					Light.Transparency = 1
+				else
+					Light.Transparency = 0.011
+					Light.Color = Color
 				end
-			end
-			Light.Transparency = 1
-		else
-			for i,v in pairs(Light:GetDescendants()) do
-				if v:IsA("GuiObject") then
-					v.Visible = true
-					v.ImageColor3 = Colors[Color]
-				elseif v:IsA("Light") then
-					v.Enabled = true
-					v.Color = Colors[Color]
-				elseif v:IsA("SurfaceGui") then
-					v.Enabled = true
-				elseif v:IsA("ParticleEmitter") then
-					v.Transparency = NumberSequence.new(0)
-					v.Color = ColorSequence.new(Colors[Color])
+			end,
+		},
+
+		Light = {
+			Init = function(Light: Light)
+				Light.Enabled = true
+			end,
+
+			Flash = function(Light: Light, Color: Color3|number)
+				if Color == 0 then
+					Light.Enabled = false
+				else
+					Light.Enabled = true
+					Light.Color = Color
 				end
-			end
-			Light.Transparency = 0
-			Light.Color = Colors[Color]
-		end
-	end,
+			end,
+		},
+
+		LayerCollector = {
+			Init = function(Light: LayerCollector)
+				Light.Enabled = true
+			end,
+
+			Flash = nil,
+		},
+
+
+		ImageLabel = {
+			Init = function(Light: ImageLabel)
+				Light.Visible = false
+			end,
+
+			Flash = function(Light: ImageLabel, Color: Color3|number)
+				if Color == 0 then
+					Light.Visible = false
+				else
+					Light.Visible = true
+					Light.ImageColor3 = Color
+				end
+			end,
+		},
+
+		ParticleEmitter = {
+			Init = function(Light: ParticleEmitter)
+				Light.Transparency = NumberSequence.new(1)
+			end,
+
+			Flash = function(Light: ParticleEmitter, Color: Color3|number)
+				if Color == 0 then
+					Light.Transparency = NumberSequence.new(1)
+				else
+					Light.Transparency = NumberSequence.new(0)
+					Light.Color = ColorSequence.new(Color)
+				end
+			end,
+		},
+	},
 
 
 
@@ -128,6 +198,6 @@ return {
 
 	-- DO NOT CHANGE
 	-- THIS IS AUTOMATICALLY GENERATED
-	PluginVersion = "2.0.0",
+	PluginVersion = "2.1.0",
 	-- THIS IS FOR THE CHASSIS PLUGIN AND SHOULD NOT MATH THE STUDIO PLUGIN
 }

@@ -54,7 +54,8 @@ type lightbarFunction = {
 
 type lightInstance = {
 	running_module: patternModule?,
-	possible_modules: {patternModule}
+	possible_modules: {patternModule},
+	lights: {Instance:string}
 }
 
 type runningCoroutine = {
@@ -131,8 +132,11 @@ local function spinupCoroutine(waitTime:number, patterns:{})
 							end
 
 							for lightName,lightData in pairs(pattern.lights) do
-								if lights[lightName].running_module == pattern and lightData[pattern.count] ~= nil and lightbar:FindFirstChild(lightName) then
-									pattern.moduleSettings.light(lightbar[lightName], lightData[pattern.count], pattern.moduleSettings.colors)
+								if lights[lightName].running_module == pattern and lightData[pattern.count] ~= nil then--and lightbar:FindFirstChild(lightName) then
+									-- pattern.moduleSettings.light(lightbar[lightName], lightData[pattern.count], pattern.moduleSettings.colors)
+									for light,lightType in pairs(lights[lightName].lights) do
+										pattern.moduleSettings.light[lightType].Flash(light, pattern.moduleSettings.colors[lightData[pattern.count]])--lightData[pattern.count], pattern.moduleSettings.colors)
+									end
 								end
 							end
 						end
@@ -153,8 +157,33 @@ local function registerLight(lightName:string)
 	if lights[lightName] == nil then
 		lights[lightName] = {
 			running_module = nil,
-			possible_modules = {}
+			possible_modules = {},
+			lights = {}
 		}
+
+		local lightInstance = lightbar:FindFirstChild(lightName, true)
+		if lightInstance ~= nil then
+			for i,v in pairs(lightInstance:GetDescendants()) do
+				if v:IsA("BasePart") then
+					lights[lightName].lights[v] = "BasePart"
+					pluginSettings.Light.BasePart.Init(v)
+				elseif v:IsA("Light") then
+					lights[lightName].lights[v] = "Light"
+					pluginSettings.Light.Light.Init(v)
+				elseif v:IsA("LayerCollector") then
+					pluginSettings.Light.LayerCollector.Init(v)
+				elseif v:IsA("ImageLabel") then
+					lights[lightName].lights[v] = "ImageLabel"
+					pluginSettings.Light.ImageLabel.Init(v)
+				elseif v:IsA("ParticleEmitter") then
+					lights[lightName].lights[v] = "ParticleEmitter"
+					pluginSettings.Light.ParticleEmitter.Init(v)
+				end
+			end
+
+			lights[lightName].lights[lightInstance] = "BasePart"
+			pluginSettings.Light.BasePart.Init(lightInstance)
+		end
 	end
 end
 
@@ -168,12 +197,12 @@ local function registerRotator(lightName:string)
 		local weld = Instance.new("Weld")
 		weld.Part0 = car.DriveSeat
 		weld.Part1 = motorPart
-		weld.C0 = car.DriveSeat.CFrame:Inverse()*car.DriveSeat.CFrame 
-		weld.C1 = motorPart.CFrame:Inverse()*car.DriveSeat.CFrame 
+		weld.C0 = car.DriveSeat.CFrame:Inverse()*car.DriveSeat.CFrame
+		weld.C1 = motorPart.CFrame:Inverse()*car.DriveSeat.CFrame
 		weld.Parent = car.DriveSeat
 
-		local Center = if lightbar[lightName]:FindFirstChild("inverse") ~= nil then CFrame.new(lightbar[lightName].inverse.Position) else CFrame.new(lightbar[lightName].Position)
-		local XYZ = if lightbar[lightName]:FindFirstChild("inverse") ~= nil then CFrame.Angles(lightbar[lightName].inverse.CFrame:toEulerAnglesXYZ()) else CFrame.Angles(lightbar[lightName].CFrame:toEulerAnglesXYZ())
+		local Center = if lightbar[lightName]:FindFirstChild("inverse") ~= nil then CFrame.new(lightbar[lightName].Inverse.Position) else CFrame.new(lightbar[lightName].Position)
+		local XYZ = if lightbar[lightName]:FindFirstChild("inverse") ~= nil then CFrame.Angles(lightbar[lightName].Inverse.CFrame:ToEulerAnglesXYZ()) else CFrame.Angles(lightbar[lightName].CFrame:ToEulerAnglesXYZ())
 		local motor = Instance.new("Motor6D")
 		motor.Name = "Motor"
 		motor.Part0 = motorPart
@@ -183,6 +212,12 @@ local function registerRotator(lightName:string)
 		motor.Parent = motorPart
 
 		for i,v in pairs(car.DriveSeat:GetChildren()) do
+			if v:IsA("Weld") and v.Part1 == lightbar[lightName] then
+				v:Destroy()
+			end
+		end
+
+		for i,v in pairs(game.JointsService:GetDescendants()) do
 			if v:IsA("Weld") and v.Part1 == lightbar[lightName] then
 				v:Destroy()
 			end

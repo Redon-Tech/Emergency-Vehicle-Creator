@@ -30,8 +30,8 @@ Settings = {
 	-- You can find a template for the table in the settings under the plugin
 	Colors = nil,
 
-	-- If for whatever reason you need to override the light function change nil to the new function
-	-- You can find a template for the function in the settings under the plugin
+	-- If for whatever reason you need to override the light table change nil to the new table
+	-- You can find a template for the table in the settings under the plugin
 	Light = nil,
 }
 
