@@ -113,11 +113,14 @@ local car:Model = script.Parent.Parent
 local event:RemoteEvent = script.Parent
 local pluginSettings = require(script.Parent.Settings)
 local body:Model = car:WaitForChild("Body")
+local misc:Model = car:WaitForChild("Misc")
 local lightbar:Model = body:WaitForChild(pluginSettings.LightbarName)
 local soundPart:BasePart = lightbar:FindFirstChild(pluginSettings.SirenName)
+local soundPart:BasePart? = nil
 
 local TweenService = game:GetService("TweenService")
 
+local lightParts:{string:BasePart} = {}
 local lights:{string:lightInstance} = {}
 local lightbarFunctions:{name:lightbarFunction} = {}
 local coroutines = {}
@@ -142,6 +145,40 @@ if soundPart == nil then
 	warn(`No soundpart found will be unable to play any sirens`)
 end
 
+for _,part in pairs(lightbar:GetChildren()) do
+	if part:IsA("BasePart") and lightParts[part.Name] == nil then
+		lightParts[part.Name] = part
+	elseif part:IsA("BasePart") then
+		warn(`Duplicate lightPart ({part.Name}) in {lightbar.Name} (Body)`)
+	end
+end
+
+for _,v in pairs(pluginSettings.LightbarLocations.Body) do
+	local model = body:FindFirstChild(v)
+	if model ~= nil then
+		for _,part in pairs(model:GetChildren()) do
+			if part:IsA("BasePart") and lightParts[part.Name] == nil then
+				lightParts[part.Name] = part
+			elseif part:IsA("BasePart") then
+				warn(`Duplicate lightPart ({part.Name}) in {model.Name} (Body)`)
+			end
+		end
+	end
+end
+
+for _,v in pairs(pluginSettings.LightbarLocations.Misc) do
+	local model = misc:FindFirstChild(v)
+	if model ~= nil then
+		for _,part in pairs(model:GetChildren()) do
+			if part:IsA("BasePart") and lightParts[part.Name] == nil then
+				lightParts[part.Name] = part
+			elseif part:IsA("BasePart") then
+				warn(`Duplicate lightPart ({part.Name}) in {model.Name} (Misc)`)
+			end
+		end
+	end
+end
+
 -- Spinup Coroutine
 local function spinupCoroutine(waitTime:number, patterns:{})
 	if patterns == nil or waitTime == nil then return end
@@ -163,8 +200,8 @@ local function spinupCoroutine(waitTime:number, patterns:{})
 							end
 
 							for lightName,lightData in pairs(pattern.lights) do
-								if lights[lightName].running_module == pattern and lightData[pattern.count] ~= nil and lightbar:FindFirstChild(lightName) then
-									pattern.moduleSettings.light(lightbar[lightName], lightData[pattern.count], pattern.moduleSettings.colors)
+								if lights[lightName].running_module == pattern and lightData[pattern.count] ~= nil and lightParts:FindFirstChild(lightName) then
+									pattern.moduleSettings.light(lightParts[lightName], lightData[pattern.count], pattern.moduleSettings.colors)
 								end
 							end
 						end
@@ -191,11 +228,11 @@ local function registerLight(lightName:string)
 end
 
 local function registerRotator(lightName:string)
-	if lightbar:FindFirstChild(`motor{lightName}`) == nil and lightbar:FindFirstChild(lightName) then
+	if lightbar:FindFirstChild(`motor{lightName}`) == nil and lightParts[lightName] then
 		local motorPart = Instance.new("Part")
 		motorPart.Name = `motor{lightName}`
 		motorPart.Size = Vector3.new(.1,.1,.1)
-		motorPart.CFrame = lightbar[lightName].CFrame
+		motorPart.CFrame = lightParts[lightName].CFrame
 		motorPart.Transparency = 1
 		local weld = Instance.new("Weld")
 		weld.Part0 = car.DriveSeat
@@ -204,24 +241,24 @@ local function registerRotator(lightName:string)
 		weld.C1 = motorPart.CFrame:Inverse()*car.DriveSeat.CFrame 
 		weld.Parent = car.DriveSeat
 
-		local Center = if lightbar[lightName]:FindFirstChild("inverse") ~= nil then CFrame.new(lightbar[lightName].inverse.Position) else CFrame.new(lightbar[lightName].Position)
-		local XYZ = if lightbar[lightName]:FindFirstChild("inverse") ~= nil then CFrame.Angles(lightbar[lightName].inverse.CFrame:toEulerAnglesXYZ()) else CFrame.Angles(lightbar[lightName].CFrame:toEulerAnglesXYZ())
+		local Center = if lightParts[lightName]:FindFirstChild("inverse") ~= nil then CFrame.new(lightParts[lightName].inverse.Position) else CFrame.new(lightParts[lightName].Position)
+		local XYZ = if lightParts[lightName]:FindFirstChild("inverse") ~= nil then CFrame.Angles(lightParts[lightName].inverse.CFrame:toEulerAnglesXYZ()) else CFrame.Angles(lightParts[lightName].CFrame:toEulerAnglesXYZ())
 		local motor = Instance.new("Motor6D")
 		motor.Name = "Motor"
 		motor.Part0 = motorPart
-		motor.Part1 = lightbar[lightName]
+		motor.Part1 = lightParts[lightName]
 		motor.C0 = (motorPart.CFrame:Inverse() * Center) * XYZ
-		motor.C1 = (lightbar[lightName].CFrame:Inverse() * Center) * XYZ
+		motor.C1 = (lightParts[lightName].CFrame:Inverse() * Center) * XYZ
 		motor.Parent = motorPart
 
 		for i,v in pairs(car.DriveSeat:GetChildren()) do
-			if v:IsA("Weld") and v.Part1 == lightbar[lightName] then
+			if v:IsA("Weld") and v.Part1 == lightParts[lightName] then
 				v:Destroy()
 			end
 		end
 
 		for i,v in pairs(game.JointsService:GetDescendants()) do
-			if v:IsA("Weld") and v.Part1 == lightbar[lightName] then
+			if v:IsA("Weld") and v.Part1 == lightParts[lightName] then
 				v:Destroy()
 			end
 		end
@@ -246,7 +283,7 @@ local function setLightRunningModule(lightName:string, module:patternModule, ski
 	end
 end
 
-for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
+for _,func:Folder in pairs(lightParts.ModuleStore:GetChildren()) do
 	if func:IsA("Folder") and lightbarFunctions[func.Name] == nil then
 		local funcTable:lightbarFunction = {
 			patterns = {},
@@ -338,14 +375,14 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 											rotatorTable.currentRunner += 1
 										end
 
-										patternModule.moduleSettings.light(lightbar[lightName], lightData[rotatorTable.currentRunner].color, patternModule.moduleSettings.colors)
+										patternModule.moduleSettings.light(lightParts[lightName], lightData[rotatorTable.currentRunner].color, patternModule.moduleSettings.colors)
 										motor.Motor.MaxVelocity = lightData[rotatorTable.currentRunner].velocity
 										motor.Motor.DesiredAngle = math.rad(lightData[rotatorTable.currentRunner].angle)
 									end
 								end
 							end
 
-							patternModule.moduleSettings.light(lightbar[lightName], 0, patternModule.moduleSettings.colors)
+							patternModule.moduleSettings.light(lightParts[lightName], 0, patternModule.moduleSettings.colors)
 							motor.Motor.MaxVelocity = 5555555555555
 							motor.Motor.DesiredAngle = 0
 							rotatorThreads[lightName] = nil
@@ -372,7 +409,7 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 
 									local lightData:faderLight = lightData[faderTable.currentRunner]
 									if lightData.color ~= 0 then
-										lightbar[lightName].Color = patternModule.moduleSettings.colors[lightData.color]
+										lightParts[lightName].Color = patternModule.moduleSettings.colors[lightData.color]
 									end
 									-- patternModule.moduleSettings.light(lightbar[lightName], lightData.color, patternModule.moduleSettings.colors)
 									local tweenInfo = TweenInfo.new(
@@ -382,13 +419,13 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 										lightData.repeatCount,
 										lightData.reverses
 									)
-									faderTable.tween = TweenService:Create(lightbar[lightName], tweenInfo, {Transparency = lightData.transparency})
+									faderTable.tween = TweenService:Create(lightParts[lightName], tweenInfo, {Transparency = lightData.transparency})
 									faderTable.tween:Play()
 									faderTable.tween.Completed:Wait()
 								end
 							end
 
-							patternModule.moduleSettings.light(lightbar[lightName], 0, patternModule.moduleSettings.colors)
+							patternModule.moduleSettings.light(lightParts[lightName], 0, patternModule.moduleSettings.colors)
 							tweenThreads[lightName] = nil
 							return "Killed"
 						end)
@@ -404,18 +441,18 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 				for _,pattern in pairs(funcTable.patterns) do
 					for _,patternModule:patternModule in pairs(pattern.modules) do
 						for lightName,lightData in pairs(patternModule.lights) do
-							if lightbar:FindFirstChild(lightName) then
-								patternModule.moduleSettings.light(lightbar[lightName], 0, patternModule.moduleSettings.colors)
+							if lightParts[lightName] then
+								patternModule.moduleSettings.light(lightParts[lightName], 0, patternModule.moduleSettings.colors)
 							end
 						end
 						for lightName,lightData in pairs(patternModule.rotators) do
-							if lightbar:FindFirstChild(lightName) then
-								patternModule.moduleSettings.light(lightbar[lightName], 0, patternModule.moduleSettings.colors)
+							if lightParts[lightName] then
+								patternModule.moduleSettings.light(lightParts[lightName], 0, patternModule.moduleSettings.colors)
 							end
 						end
 						for lightName,lightData in pairs(patternModule.faders) do
-							if lightbar:FindFirstChild(lightName) then
-								patternModule.moduleSettings.light(lightbar[lightName], 0, patternModule.moduleSettings.colors)
+							if lightParts[lightName] then
+								patternModule.moduleSettings.light(lightParts[lightName], 0, patternModule.moduleSettings.colors)
 							end
 						end
 					end
@@ -474,7 +511,7 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 							if data["Lights"] ~= nil then
 								for lightName,lightData in pairs(data.Lights) do
 									registerLight(lightName)
-									if patternModuleTable.lights[lightName] == nil and typeof(lightData) == "table" and lightbar:FindFirstChild(lightName) then
+									if patternModuleTable.lights[lightName] == nil and typeof(lightData) == "table" and lightParts[lightName] then
 										patternModuleTable.lights[lightName] = lightData
 										patternModuleTable.max_count = rawlen(lightData)
 									else
@@ -487,7 +524,7 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 								for lightName,lightData in pairs(data.Rotators) do
 									registerLight(lightName)
 									registerRotator(lightName)
-									if patternModuleTable.rotators[lightName] == nil and typeof(lightData) == "table" and lightbar:FindFirstChild(lightName) then
+									if patternModuleTable.rotators[lightName] == nil and typeof(lightData) == "table" and lightParts[lightName] then
 										local lightDataTable = {}
 										for i,v in pairs(lightData) do
 											lightDataTable[i] = {
@@ -506,7 +543,7 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 							if data["Faders"] ~= nil then
 								for lightName,lightData in pairs(data.Faders) do
 									registerLight(lightName)
-									if patternModuleTable.faders[lightName] == nil and typeof(lightData) == "table" and lightbar:FindFirstChild(lightName) then
+									if patternModuleTable.faders[lightName] == nil and typeof(lightData) == "table" and lightParts[lightName] then
 										local lightDataTable = {}
 										for i,v in pairs(lightData) do
 											lightDataTable[i] = {

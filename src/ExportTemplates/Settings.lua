@@ -11,11 +11,26 @@ return {
 	-- The name of the lightbar in body
 	LightbarName = "Lightbar",
 
-	-- The name of the siren location inside the lightbar location
+	-- The location of the lightbar models
+	-- For models inside Body add the name of the model
+	-- For models inside Misc add the name of the model
+	-- For example:
+	--[[
+		Misc = {
+			"Lights",
+		}
+	--]]
+	AdditionalLightbarLocations = {
+		Body = {
+		},
+		Misc = {
+		}
+	},
+
+	-- The name of the siren location inside one of the lightbar locations
 	SirenName = "middle",
 
 	-- All the selectable sirens and there respected keybinds
-	-- Modifier keys are planned for a future update
 	Sirens = {
 		[Enum.KeyCode.H] = {
 			_Type = "Hold",
