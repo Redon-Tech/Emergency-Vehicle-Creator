@@ -116,7 +116,6 @@ local body:Model = car:WaitForChild("Body")
 local misc:Model = car:WaitForChild("Misc")
 local lightbar:Model = body:WaitForChild(pluginSettings.LightbarName)
 local soundPart:BasePart = lightbar:FindFirstChild(pluginSettings.SirenName)
-local soundPart:BasePart? = nil
 
 local TweenService = game:GetService("TweenService")
 

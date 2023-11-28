@@ -27,7 +27,7 @@ return {
 		}
 	},
 
-	-- The name of the siren location inside one of the lightbar locations
+	-- The name of the siren location the lightbar location
 	SirenName = "middle",
 
 	-- All the selectable sirens and there respected keybinds
