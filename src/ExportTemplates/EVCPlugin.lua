@@ -637,6 +637,11 @@ local function playSiren(name)
 		sound.Volume = sound:GetAttribute("OriginalVolume")
 	end
 	sound:Play()
+
+	if pluginSettings.Overrides.Sirens[sirenData.name] ~= nil then
+		lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 1)
+	end
+
 	for modifiedName,data:sirenModifier in pairs(sirenData.modifiers) do
 		if soundPart:FindFirstChild(data.name) then
 			playStopModified(name,modifiedName)
@@ -659,6 +664,11 @@ local function stopSiren(name)
 	end
 	
 	sound:Stop()
+
+	if pluginSettings.Overrides.Sirens[sirenData.name] ~= nil then
+		lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 0)
+	end
+
 	for modifiedName,data:sirenModifier in pairs(sirenData.modifiers) do
 		if soundPart:FindFirstChild(data.name) then
 			playStopModified(name,modifiedName)
@@ -694,6 +704,10 @@ event.OnServerEvent:Connect(function(player, eventType:string, ...)
 				elseif sirenData._type == "modifier" then
 					if sirenData.enabled then
 						sirenData.enabled = false
+						if pluginSettings.Overrides.Sirens[sirenData.name] ~= nil then
+							lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 0)
+						end
+
 						for _,v:siren in pairs(sirensByName) do
 							if v.modifiers[sirenData.name] then
 								playStopModified(v.name, sirenData.name)
@@ -701,6 +715,10 @@ event.OnServerEvent:Connect(function(player, eventType:string, ...)
 						end
 					else
 						sirenData.enabled = true
+						if pluginSettings.Overrides.Sirens[sirenData.name] ~= nil then
+							lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 1)
+						end
+
 						for _,v:siren in pairs(sirensByName) do
 							if v.modifiers[sirenData.name] then
 								playStopModified(v.name, sirenData.name)
@@ -722,8 +740,14 @@ event.OnServerEvent:Connect(function(player, eventType:string, ...)
 	elseif eventType == "UpdateFunction" then
 		local functionName, value = ...
 		lightbar:SetAttribute(functionName, value)
-		--elseif eventType == "ParkMode" then
-		--	local state:boolean = ...
-		--	I still haven't decided on how to do this
+	elseif eventType == "DoOverride" then
+		local overrideType, value = ...
+		if overrideType == "PBrake" and pluginSettings.Overrides.Chassis.ParkBrake ~= false then
+			lightbar:SetAttribute(pluginSettings.Overrides.Chassis.ParkBrake, if value == true then 1 else 0)
+		elseif overrideType == "Brake" and pluginSettings.Overrides.Chassis.Brake ~= false then
+			lightbar:SetAttribute(pluginSettings.Overrides.Chassis.Brake, if value > 0 then 1 else 0)
+		elseif overrideType == "Gear" and pluginSettings.Overrides.Chassis.Reverse ~= false then
+			lightbar:SetAttribute(pluginSettings.Overrides.Chassis.Reverse, if value == -1 then 1 else 0)
+		end
 	end
 end)

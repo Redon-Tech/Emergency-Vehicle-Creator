@@ -79,11 +79,26 @@ return {
 	DefaultFunctionState = {
 	},
 
-	-- Enable park mode
-	-- Requires exporting a pattern to "Park" folder in the ModuleStore
-	--		- Make sure to set the park modes weight to be higher then the normal patterns
-	-- ParkMode is planned for a future update, and will not work at this time
-	ParkMode = true,
+	-- **A-Chassis Only**
+	-- Overrides for the chassis plugin
+	-- This allows you to control functions without the use of keybinds
+	-- or external scripts
+	-- Sirens overrides can be done by settings the name equal to the function name
+	-- For example:
+	-- ["Yelp"] = "YelpOverride",
+	-- Chassis overrides can be done by settings the type equal to the function name or false
+	-- For example:
+	-- ParkBrake = "PBrakeOverride",
+	-- Brake = false,
+	Overrides = {
+		Sirens = {
+		},
+		Chassis = {
+			ParkBrake = "ParkBrakeOverride",
+			Brake = false,
+			Reverse = false,
+		}
+	},
 
 	-- The colors to be used in the "Light" function
 	-- These colors are a Color3
