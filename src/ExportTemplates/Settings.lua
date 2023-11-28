@@ -71,6 +71,14 @@ return {
 		[Enum.KeyCode.K] = "Traffic_Advisor"
 	},
 
+	-- Default function state
+	-- To setup this up, set the function name equal to the state you want it to start at
+	-- If this is not set it will default to 0
+	-- So for example:
+	-- ["CruiseLights"] = 1,
+	DefaultFunctionState = {
+	},
+
 	-- Enable park mode
 	-- Requires exporting a pattern to "Park" folder in the ModuleStore
 	--		- Make sure to set the park modes weight to be higher then the normal patterns
@@ -128,6 +136,6 @@ return {
 
 	-- DO NOT CHANGE
 	-- THIS IS AUTOMATICALLY GENERATED
-	PluginVersion = "2.0.0",
-	-- THIS IS FOR THE CHASSIS PLUGIN AND SHOULD NOT MATH THE STUDIO PLUGIN
+	PluginVersion = "2.1.0",
+	-- THIS IS FOR THE CHASSIS PLUGIN AND WILL NOT ALWAYS MATCH THE STUDIO PLUGIN
 }

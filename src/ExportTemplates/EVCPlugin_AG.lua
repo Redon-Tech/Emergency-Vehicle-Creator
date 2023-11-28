@@ -520,3 +520,14 @@ local function taChange()
 end
 script.Parent.TAPatternNumber:GetPropertyChangedSignal("Value"):Connect(taChange)
 script.Parent.TARunning:GetPropertyChangedSignal("Value"):Connect(taChange)
+
+-- Default State
+if pluginSettings.DefaultFunctionState["Stages"] ~= nil then
+	script.Parent.PatternNumber.Value = pluginSettings.DefaultFunctionState["Stages"]
+	script.Parent.ELSRunning.Value = if pluginSettings.DefaultFunctionState["Stages"] > 0 then true else false
+end
+
+if pluginSettings.DefaultFunctionState["Traffic_Advisor"] ~= nil then
+	script.Parent.TAPatternNumber.Value = pluginSettings.DefaultFunctionState["Traffic_Advisor"]
+	script.Parent.TARunning.Value = if pluginSettings.DefaultFunctionState["Traffic_Advisor"] > 0 then true else false
+end

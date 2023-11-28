@@ -220,6 +220,12 @@ local function registerRotator(lightName:string)
 			end
 		end
 
+		for i,v in pairs(game.JointsService:GetDescendants()) do
+			if v:IsA("Weld") and v.Part1 == lightbar[lightName] then
+				v:Destroy()
+			end
+		end
+
 		motorPart.Parent = lightbar
 	end
 end
@@ -656,6 +662,11 @@ local function stopSiren(name)
 			playStopModified(name,modifiedName)
 		end
 	end
+end
+
+-- Default State
+for functionName,state in pairs(pluginSettings.DefaultFunctionState) do
+	lightbar:SetAttribute(functionName, state)
 end
 
 -- Input Handler
