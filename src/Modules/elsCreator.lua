@@ -540,7 +540,7 @@ local function reset()
 				end
 			end
 			
-			for i = 1, elsContainer.Section1:GetAttribute("Rows")-rows do
+			for i = 1, elsContainer.Section1:GetAttribute("Rows") do
 				local row = require(elsCreatorComponents:WaitForChild("columnRow"))(i)
 				row.Parent = frame
 				registerRow(row)
@@ -555,7 +555,7 @@ local function reset()
 	end
 	do
 		local frame = elsContainer.Section1.Columns["Buttons"]
-		local rows = #frame:GetChildren() - 1
+		local rows = #frame:GetChildren() - 2
 
 		if rows ~= elsContainer.Section1:GetAttribute("Rows") then
 			-- if rows > elsContainer.Section1:GetAttribute("Rows") then
@@ -579,12 +579,11 @@ local function reset()
 				end
 			end
 			
-			for i = 1, elsContainer.Section1:GetAttribute("Rows")-rows do
+			for i = 1, elsContainer.Section1:GetAttribute("Rows")-1 do
 				local row = require(elsCreatorComponents:WaitForChild("columnRow"))(i)
 				row.Parent = frame
 				row.BackgroundTransparency = 1
 				row.UICorner:Destroy()
-				registerRow(row)
 			end
 		end
 	end
