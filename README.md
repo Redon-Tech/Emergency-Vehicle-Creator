@@ -2,10 +2,10 @@
 
 <div align="center">
   
-  [![Discord](https://img.shields.io/discord/536555061510144020?label=discord&logo=discord&style=for-the-badge)](https://discord.gg/Eb384Xw)
-  [![GitHub](https://img.shields.io/github/license/redon-tech/Emergency-Vehicle-Creator?style=for-the-badge)](https://mit-license.org/)
-  [![Latest Release](https://img.shields.io/github/v/release/redon-tech/Emergency-Vehicle-Creator?style=for-the-badge)](https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases)
-  [![Commits Since Latest](https://img.shields.io/github/commits-since/redon-tech/Emergency-Vehicle-Creator/latest?include_prereleases&style=for-the-badge)](https://github.com/Redon-Tech/Emergency-Vehicle-Creator/commits/main)
+  [![Discord](https://img.shields.io/discord/536555061510144020?label=discord&logo=discord&logoColor=rgb(255,255,255)&labelColor=302d41&style=for-the-badge)](https://discord.gg/Eb384Xw)
+  [![GitHub](https://img.shields.io/github/license/redon-tech/Emergency-Vehicle-Creator?&logoColor=rgb(255,255,255)&labelColor=302d41&style=for-the-badge)](https://mit-license.org/)
+  [![Latest Release](https://img.shields.io/github/v/release/redon-tech/Emergency-Vehicle-Creator?&logoColor=rgb(255,255,255)&labelColor=302d41&style=for-the-badge)](https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases)
+  [![Commits Since Latest](https://img.shields.io/github/commits-since/redon-tech/Emergency-Vehicle-Creator/latest?include_prereleases&&logoColor=rgb(255,255,255)&labelColor=302d41&style=for-the-badge)](https://github.com/Redon-Tech/Emergency-Vehicle-Creator/commits/main)
   
 </div>
 
