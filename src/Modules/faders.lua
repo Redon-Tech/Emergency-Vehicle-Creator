@@ -419,6 +419,7 @@ local function registerSection(section: number)
 	-- Remove Section
 	connections[#connections+1] = sectionFrame.Buttons.TopControls.RemoveHolder.RemoveButton.MouseButton1Click:Connect(function()
 		if section == 1 then return end
+		if faders.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then return end
 		faders.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
 		confirmPrompt("Are you sure you want to remove this section? <b>Any unsaved progress will be lost!</b>", function(confirm)
 			faders.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
@@ -439,6 +440,7 @@ local function registerSection(section: number)
 	-- Remove Angle
 	connections[#connections+1] = sectionFrame.Buttons.Controls.RemoveHolder.RemoveButton.MouseButton1Click:Connect(function()
 		if sectionFrame:GetAttribute("Tweens") == 1 then return end
+		if confirmPrompt.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then return end
 		faders.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
 		confirmPrompt("Are you sure you want to remove this tween? <b>Any unsaved progress will be lost!</b>", function(confirm)
 			faders.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
@@ -499,6 +501,7 @@ end
 
 local function confirmReset()
 	if faders.container == nil then return end
+	if faders.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then return end
 	faders.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
 	confirmPrompt("Are you sure you want to reset? \n<b>Any unsaved progress will be lost!</b>", function(confirm)
 		if confirm then
