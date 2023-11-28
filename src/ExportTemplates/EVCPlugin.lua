@@ -191,7 +191,7 @@ local function registerLight(lightName:string)
 end
 
 local function registerRotator(lightName:string)
-	if lightbar:FindFirstChild(`motor{lightName}`) == nil then
+	if lightbar:FindFirstChild(`motor{lightName}`) == nil and lightbar:FindFirstChild(lightName) then
 		local motorPart = Instance.new("Part")
 		motorPart.Name = `motor{lightName}`
 		motorPart.Size = Vector3.new(.1,.1,.1)
