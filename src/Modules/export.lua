@@ -9,7 +9,7 @@
 
 local StudioService = game:GetService("StudioService")
 local Selection = game:GetService("Selection")
-local pluginRoot = script.Parent.Parent.Parent
+
 local export = {enabled = false, canExport = false, container = nil}
 
 local chassisExportConnections = {}
