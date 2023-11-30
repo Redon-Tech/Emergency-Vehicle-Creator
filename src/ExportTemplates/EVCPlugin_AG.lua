@@ -333,8 +333,10 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 									end
 
 									local lightData:faderLight = lightData[faderTable.currentRunner]
-									--lightbar[lightName].Color = patternModule.moduleSettings.colors[lightData.color]
-									patternModule.moduleSettings.light(lightbar[lightName], lightData.color, patternModule.moduleSettings.colors)
+									if lightData.color ~= 0 then
+										lightbar[lightName].Color = patternModule.moduleSettings.colors[lightData.color]
+									end
+									-- patternModule.moduleSettings.light(lightbar[lightName], lightData.color, patternModule.moduleSettings.colors)
 									local tweenInfo = TweenInfo.new(
 										lightData.timeTaken,
 										lightData.easingStyle,
