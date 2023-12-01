@@ -134,6 +134,15 @@ local dependentOverrides:{string:{string}} = {}
 -- Functions --
 --------------------------------------------------------------------------------
 
+local function findFirstDescendant(instance: Instance, name: string): Instance?
+	for _, child in pairs(instance:GetDescendants()) do
+		if child.Name == name then
+			return child
+		end
+	end
+	return nil
+end
+
 -- Checks
 if lightbar == nil then
 	error(`No lightbar found`)
@@ -153,8 +162,8 @@ for _,part in pairs(lightbar:GetChildren()) do
 	end
 end
 
-for _,v in pairs(pluginSettings.LightbarLocations.Body) do
-	local model = body:FindFirstChild(v)
+for _,v in pairs(pluginSettings.AdditionalLightbarLocations.Body) do
+	local model = findFirstDescendant(body, v)
 	if model ~= nil then
 		for _,part in pairs(model:GetChildren()) do
 			if part:IsA("BasePart") and lightParts[part.Name] == nil then
@@ -166,8 +175,8 @@ for _,v in pairs(pluginSettings.LightbarLocations.Body) do
 	end
 end
 
-for _,v in pairs(pluginSettings.LightbarLocations.Misc) do
-	local model = misc:FindFirstChild(v)
+for _,v in pairs(pluginSettings.AdditionalLightbarLocations.Misc) do
+	local model = findFirstDescendant(misc, v)
 	if model ~= nil then
 		for _,part in pairs(model:GetChildren()) do
 			if part:IsA("BasePart") and lightParts[part.Name] == nil then
@@ -200,7 +209,7 @@ local function spinupCoroutine(waitTime:number, patterns:{})
 							end
 
 							for lightName,lightData in pairs(pattern.lights) do
-								if lights[lightName].running_module == pattern and lightData[pattern.count] ~= nil and lightParts:FindFirstChild(lightName) then
+								if lights[lightName].running_module == pattern and lightData[pattern.count] ~= nil and lightParts[lightName] then
 									pattern.moduleSettings.light(lightParts[lightName], lightData[pattern.count], pattern.moduleSettings.colors)
 								end
 							end
@@ -283,7 +292,7 @@ local function setLightRunningModule(lightName:string, module:patternModule, ski
 	end
 end
 
-for _,func:Folder in pairs(lightParts.ModuleStore:GetChildren()) do
+for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 	if func:IsA("Folder") and lightbarFunctions[func.Name] == nil then
 		local funcTable:lightbarFunction = {
 			patterns = {},
