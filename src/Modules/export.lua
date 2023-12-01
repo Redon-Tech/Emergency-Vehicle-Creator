@@ -9,10 +9,13 @@
 
 local StudioService = game:GetService("StudioService")
 local Selection = game:GetService("Selection")
+local pluginRoot = script.Parent.Parent.Parent
 
 local export = {enabled = false, canExport = false, container = nil}
 
 local chassisExportConnections = {}
+local chassisVersion = require(pluginRoot.src.ExportTemplates.Settings).PluginVersion
+local settingsConverter = require(pluginRoot.src.Utils.settingsConverter)
 
 --------------------------------------------------------------------------------
 -- UI Setup --
@@ -230,6 +233,38 @@ local function chassisExport(model: Model, isAG: true)
 	else
 		pluginSettings = require(model["A-Chassis Tune"].Plugins.EVCPlugin_Client.EVCRemote:WaitForChild("Settings"))
 		lightbar = model.Body[pluginSettings.LightbarName]
+	end
+
+	if pluginSettings.PluginVersion ~= chassisVersion then
+		export.container.Parent.PopUps.BackgroundTransparency = 0.5
+		confirmPrompt("The currently installed plugin on this chassis is out of date.\nWould you like to update it?", function(confirm)
+			if confirm then
+				if installedAsAG then
+					local originalSettings = model.Body.ELS.PTRNS.Settings
+					local newSettings = settingsConverter.convert(originalSettings)
+					model.Body.ELS.PTRNS:Destroy()
+					agInstall()
+					model.Body.ELS.PTRNS.Settings:Destroy()
+					newSettings.Parent = model.Body.ELS.PTRNS
+					newSettings.Name = "Settings"
+					export.container.Parent.PopUps.BackgroundTransparency = 1
+				else
+					local originalSettings = model["A-Chassis Tune"].Plugins.EVCPlugin_Client.EVCRemote.Settings
+					local newSettings = settingsConverter.convert(originalSettings)
+					model["A-Chassis Tune"].Plugins.EVCPlugin_Client:Destroy()
+					normalInstall()
+					model["A-Chassis Tune"].Plugins.EVCPlugin_Client.EVCRemote.Settings:Destroy()
+					newSettings.Parent = model["A-Chassis Tune"].Plugins.EVCPlugin_Client.EVCRemote
+					newSettings.Name = "Settings"
+					export.container.Parent.PopUps.BackgroundTransparency = 1
+				end
+			else
+				export.container.Parent.PopUps.BackgroundTransparency = 1
+			end
+		end).Parent = export.container.Parent.PopUps
+		repeat
+			task.wait(.1)
+		until export.container.Parent.PopUps.BackgroundTransparency == 1
 	end
 
 	local function exportToPattern(folder: Folder, weight: number)
