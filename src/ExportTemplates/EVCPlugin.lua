@@ -318,9 +318,17 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 							lights[lightName].running_module = nil
 
 							if rawlen(lights[lightName].possible_modules) > 0 then
-								for _,module in pairs(lights[lightName].possible_modules) do
-									setLightRunningModule(lightName, module, true)
+								local highestWeight = {
+									weight = 0,
+									module = nil
+								}
+								for _,module in ipairs(lights[lightName].possible_modules) do
+									if module.moduleSettings.weight > highestWeight.weight then
+										highestWeight.weight = module.moduleSettings.weight
+										highestWeight.module = module
+									end
 								end
+								setLightRunningModule(lightName, highestWeight.module)
 							end
 						else
 							table.remove(lights[lightName].possible_modules, table.find(lights[lightName].possible_modules, patternModule))
@@ -332,9 +340,17 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 							lights[lightName].running_module = nil
 
 							if rawlen(lights[lightName].possible_modules) > 0 then
-								for _,module in pairs(lights[lightName].possible_modules) do
-									setLightRunningModule(lightName, module, true)
+								local highestWeight = {
+									weight = 0,
+									module = nil
+								}
+								for _,module in ipairs(lights[lightName].possible_modules) do
+									if module.moduleSettings.weight > highestWeight.weight then
+										highestWeight.weight = module.moduleSettings.weight
+										highestWeight.module = module
+									end
 								end
+								setLightRunningModule(lightName, highestWeight.module)
 							end
 						else
 							table.remove(lights[lightName].possible_modules, table.find(lights[lightName].possible_modules, patternModule))
@@ -346,9 +362,17 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 							lights[lightName].running_module = nil
 
 							if rawlen(lights[lightName].possible_modules) > 0 then
-								for _,module in pairs(lights[lightName].possible_modules) do
-									setLightRunningModule(lightName, module, true)
+								local highestWeight = {
+									weight = 0,
+									module = nil
+								}
+								for _,module in ipairs(lights[lightName].possible_modules) do
+									if module.moduleSettings.weight > highestWeight.weight then
+										highestWeight.weight = module.moduleSettings.weight
+										highestWeight.module = module
+									end
 								end
+								setLightRunningModule(lightName, highestWeight.module)
 							end
 						else
 							table.remove(lights[lightName].possible_modules, table.find(lights[lightName].possible_modules, patternModule))
