@@ -1,6 +1,18 @@
+--[[
+	Redon Tech 2023
+	EVC V2
+--]]
+
+--------------------------------------------------------------------------------
+-- Init --
+--------------------------------------------------------------------------------
+
 local settingsConverter = {converters = {}}
 local pluginRoot = script.Parent.Parent.Parent
 
+--------------------------------------------------------------------------------
+-- Types --
+--------------------------------------------------------------------------------
 type v2_0_0 = {
 	LightbarName: string,
 	SirenName: string,
@@ -45,50 +57,39 @@ type v2_1_0 = {
 	PluginVersion: string,
 }
 
-settingsConverter.converters["2_0_0"] = function(settings: ModuleScript, pluginSettings: v2_0_0): ModuleScript
-	local newSettings: v2_1_0 = {
-		LightbarName = pluginSettings.LightbarName,
-		AdditionalLightbarLocations = {},
-		SirenName = pluginSettings.SirenName,
-		Sirens = pluginSettings.Sirens,
-		Keybinds = pluginSettings.Keybinds,
-		DefaultFunctionState = {},
-		Overrides = {},
-		Colors = pluginSettings.Colors,
-		Light = pluginSettings.Light,
-		PluginVersion = "2.1.0",
-	}
+--------------------------------------------------------------------------------
+-- Module Functions --
+--------------------------------------------------------------------------------
 
-	local newSettingsModule = pluginRoot.src.ExportTemplates.Settings:Clone()
+settingsConverter.converters["2_0_0"] = function(settings: ModuleScript, pluginSettings: v2_0_0): ModuleScript
+	local newSettingsModule = pluginRoot.src.ExportTemplates.BlankSettings:Clone()
+	local originalSource = settings.Source
 	local source = newSettingsModule.Source
-	source = source:gsub("LightbarName = \"Lightbar\"", "LightbarName = \"" .. newSettings.LightbarName .. "\"")
-	source = source:gsub("SirenName = \"middle\"", "SirenName = \"" .. newSettings.SirenName .. "\"")
-	local sirensString = "Sirens = {\n"
-	for key, siren in pairs(newSettings.Sirens) do
-		sirensString ..= "\t[Enum.KeyCode." .. key.Name .. "] = {\n"
-		sirensString ..= "\t\t_Type = \"" .. siren._Type .. "\",\n"
-		sirensString ..= "\t\tName = \"" .. siren.Name .. "\",\n"
-		sirensString ..= "\t\tOverrideOtherSounds = " .. tostring(siren.OverrideOtherSounds) .. ",\n"
-		sirensString ..= "\t\tModifiers = {\n"
-		if siren.Modifiers then
-			for modifierName, modifier in pairs(siren.Modifiers) do
-				sirensString ..= "\t\t\t" .. modifierName .. " = {\n"
-				sirensString ..= "\t\t\t\tName = \"" .. modifier.Name .. "\",\n"
-				sirensString ..= "\t\t\t\tPlayNonModified = " .. tostring(modifier.PlayNonModified) .. ",\n"
-				sirensString ..= "\t\t\t\tPlayOnModifierChange = " .. tostring(modifier.PlayOnModifierChange) .. ",\n"
-				sirensString ..= "\t\t\t\tDelay = " .. tostring(modifier.Delay) .. ",\n"
-				sirensString ..= "\t\t\t},\n"
-			end
-		end
-		sirensString ..= "\t\t}\n"
-		sirensString ..= "\t},\n"
-	end
+	source = source:gsub("LightbarName = nil,", `LightbarName = \"{pluginSettings.LightbarName}\",`)
+	source = source:gsub("SirenName = nil,", `SirenName = \"{pluginSettings.SirenName}\",`)
+	source = source:gsub("Sirens = nil,", "Sirens = {".. originalSource:split("Sirens = {")[2]:split("--")[1])
+	source = source:gsub("Keybinds = nil,", "Keybinds = {".. originalSource:split("Keybinds = {")[2]:split("--")[1])
+	source = source:gsub("Colors = nil,", "Colors = {".. originalSource:split("Colors = {")[2]:split("--")[1])
+	source = source:gsub("Light = nil,", "Light = function".. originalSource:split("Light = function")[2]:split("--")[1])
+
+	source = source:gsub("AdditionalLightbarLocations = nil,", "AdditionalLightbarLocations = {\n\t\tBody = {\n\t\t},\n\t\tMisc = {\n\t\t}\n\t},")
+	source = source:gsub("DefaultFunctionState = nil,", "DefaultFunctionState = {\n\t},")
+	source = source:gsub("Overrides = nil,", "Overrides = {\n\t\tSirens = {\n\t\t},\n\t\tChassis = {\n\t\t\tParkBrake = \"ParkBrakeOverride\",\n\t\t\tBrake = false,\n\t\t\tReverse = false,\n\t\t}\n\t},")
+
+	newSettingsModule.Source = source
+	return newSettingsModule
 end
 
-function settingsConverter.updateSettings(settings: ModuleScript)
+function settingsConverter.convert(settings: ModuleScript)
 	local pluginSettings = require(settings)
+	local formattedVersion = pluginSettings.PluginVersion:gsub("%.", "_")
+	print(formattedVersion, settingsConverter.converters[formattedVersion])
 
-	-- Uhhhhhh idk how I am gonna make this
+	if settingsConverter.converters[formattedVersion] then
+		return settingsConverter.converters[formattedVersion](settings, pluginSettings)
+	end
+
+	return
 end
 
 return settingsConverter
