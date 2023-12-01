@@ -14,6 +14,7 @@ return {
 	-- The location of the lightbar models
 	-- For models inside Body add the name of the model
 	-- For models inside Misc add the name of the model
+	-- This will search all descendants (so make names unique)
 	-- For example:
 	--[[
 		Misc = {
@@ -97,20 +98,25 @@ return {
 	-- **A-Chassis Only**
 	-- Overrides for the chassis plugin
 	-- This allows you to control functions without the use of keybinds
-	-- or external scripts
-	-- Sirens overrides can be done by settings the name equal to the function name
-	-- For example:
-	-- ["Yelp"] = "YelpOverride",
-	-- Chassis overrides can be done by settings the type equal to the function name or false
-	-- For example:
-	-- ParkBrake = "PBrakeOverride",
+	--  or external scripts
+	--
+	-- Sirens overrides can be done like this
+	-- ["Yelp"] = {"YelpOverride", "Stages"},
+	-- ["Priority"] = "PriorityOverride"
+	--
+	-- Chassis overrides can be done like this
+	-- ParkBrake = {"PBrakeOverride", "Stages"},
 	-- Brake = false,
+	-- Reverse = "ReverseOverride",
+	--
+	-- The second value is used to disallow the override
+	--  if the second value is not active
 	Overrides = {
 		Sirens = {
 		},
 		Chassis = {
-			ParkBrake = "ParkBrakeOverride",
-			Brake = false,
+			ParkBrake = {"ParkBrakeOverride", "Stages"},
+			Brake = "BrakeOverride",
 			Reverse = false,
 		}
 	},

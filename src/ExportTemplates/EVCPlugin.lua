@@ -128,6 +128,7 @@ local tweenThreads:{string:tweenLightThread} = {}
 local sirensByKeybind:{EnumItem:siren|modifier} = {}
 local sirensByName:{EnumItem:siren} = {}
 local modifiers:{string:modifier} = {}
+local dependentOverrides:{string:{string}} = {}
 
 --------------------------------------------------------------------------------
 -- Functions --
@@ -436,6 +437,14 @@ for _,func:Folder in pairs(lightParts.ModuleStore:GetChildren()) do
 						spinupCoroutine(patternModule.moduleSettings.waitTime, {patternModule})
 					end
 				end
+
+				if dependentOverrides[func.Name] ~= nil then
+					for _,override in pairs(dependentOverrides[func.Name]) do
+						if lightbar:GetAttribute(override) == 0 and lightbar:GetAttribute(`should{override}`) == true then
+							lightbar:SetAttribute(override, 1)
+						end
+					end
+				end
 			else
 				for _,pattern in pairs(funcTable.patterns) do
 					for _,patternModule:patternModule in pairs(pattern.modules) do
@@ -454,6 +463,12 @@ for _,func:Folder in pairs(lightParts.ModuleStore:GetChildren()) do
 								patternModule.moduleSettings.light(lightParts[lightName], 0, patternModule.moduleSettings.colors)
 							end
 						end
+					end
+				end
+
+				if dependentOverrides[func.Name] ~= nil then
+					for _,override in pairs(dependentOverrides[func.Name]) do
+						lightbar:SetAttribute(override, 0)
 					end
 				end
 			end
@@ -577,6 +592,29 @@ for _,func:Folder in pairs(lightParts.ModuleStore:GetChildren()) do
 	end
 end
 
+-- Dependent Overrides
+for _,override in pairs(pluginSettings.Overrides.Chassis) do
+	if typeof(override) == "table" then
+		if override[1] ~= nil and override[2] ~= nil then
+			if dependentOverrides[override[2]] == nil then
+				dependentOverrides[override[2]] = {}
+			end
+			table.insert(dependentOverrides[override[2]], override[1])
+		end
+	end
+end
+
+for _,override in pairs(pluginSettings.Overrides.Sirens) do
+	if typeof(override) == "table" then
+		if override[1] ~= nil and override[2] ~= nil then
+			if dependentOverrides[override[2]] == nil then
+				dependentOverrides[override[2]] = {}
+			end
+			table.insert(dependentOverrides[override[2]], override[1])
+		end
+	end
+end
+
 -- Siren System
 for keybind:EnumItem,siren:{} in pairs(pluginSettings.Sirens) do
 	if siren._Type ~= nil and (siren._Type == "Siren" or siren._Type == "Hold") and siren.Name ~= nil and siren.OverrideOtherSounds ~= nil then
@@ -675,7 +713,15 @@ local function playSiren(name)
 	sound:Play()
 
 	if pluginSettings.Overrides.Sirens[sirenData.name] ~= nil then
-		lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 1)
+		if typeof(pluginSettings.Overrides.Sirens[sirenData.name]) == "string" then
+			lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 1)
+		elseif typeof(pluginSettings.Overrides.Sirens[sirenData.name]) == "table" then
+			lightbar:SetAttribute(`should{pluginSettings.Overrides.Sirens[sirenData.name][1]}`, true)
+			lightbar:SetAttribute(
+				pluginSettings.Overrides.Sirens[sirenData.name][1],
+				if lightbar:GetAttribute(pluginSettings.Overrides.Sirens[sirenData.name][2]) > 0 then 1 else 0
+			)
+		end
 	end
 
 	for modifiedName,data:sirenModifier in pairs(sirenData.modifiers) do
@@ -702,7 +748,12 @@ local function stopSiren(name)
 	sound:Stop()
 
 	if pluginSettings.Overrides.Sirens[sirenData.name] ~= nil then
-		lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 0)
+		if typeof(pluginSettings.Overrides.Sirens[sirenData.name]) == "string" then
+			lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 0)
+		elseif typeof(pluginSettings.Overrides.Sirens[sirenData.name]) == "table" then
+			lightbar:SetAttribute(`should{pluginSettings.Overrides.Sirens[sirenData.name][1]}`, false)
+			lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name][1], 0)
+		end
 	end
 
 	for modifiedName,data:sirenModifier in pairs(sirenData.modifiers) do
@@ -779,11 +830,50 @@ event.OnServerEvent:Connect(function(player, eventType:string, ...)
 	elseif eventType == "DoOverride" then
 		local overrideType, value = ...
 		if overrideType == "PBrake" and pluginSettings.Overrides.Chassis.ParkBrake ~= false then
-			lightbar:SetAttribute(pluginSettings.Overrides.Chassis.ParkBrake, if value == true then 1 else 0)
+			if typeof(pluginSettings.Overrides.Chassis.ParkBrake) == "string" then
+				lightbar:SetAttribute(pluginSettings.Overrides.Chassis.ParkBrake, if value == true then 1 else 0)
+			elseif typeof(pluginSettings.Overrides.Chassis.ParkBrake) == "table" then
+				if value == true then
+					lightbar:SetAttribute(`should{pluginSettings.Overrides.Chassis.ParkBrake[1]}`, true)
+					lightbar:SetAttribute(
+						pluginSettings.Overrides.Chassis.ParkBrake[1],
+						if lightbar:GetAttribute(pluginSettings.Overrides.Chassis.ParkBrake[2]) > 0 then 1 else 0
+					)
+				else
+					lightbar:SetAttribute(`should{pluginSettings.Overrides.Chassis.ParkBrake[1]}`, false)
+					lightbar:SetAttribute(pluginSettings.Overrides.Chassis.ParkBrake[1], 0)
+				end
+			end
 		elseif overrideType == "Brake" and pluginSettings.Overrides.Chassis.Brake ~= false then
-			lightbar:SetAttribute(pluginSettings.Overrides.Chassis.Brake, if value > 0 then 1 else 0)
+			if typeof(pluginSettings.Overrides.Chassis.Brake) == "string" then
+				lightbar:SetAttribute(pluginSettings.Overrides.Chassis.Brake, if value > 0 then 1 else 0)
+			elseif typeof(pluginSettings.Overrides.Chassis.Brake) == "table" then
+				if value > 0 then
+					lightbar:SetAttribute(`should{pluginSettings.Overrides.Chassis.Brake[1]}`, true)
+					lightbar:SetAttribute(
+						pluginSettings.Overrides.Chassis.Brake[1],
+						if lightbar:GetAttribute(pluginSettings.Overrides.Chassis.Brake[2]) > 0 then 1 else 0
+					)
+				else
+					lightbar:SetAttribute(`should{pluginSettings.Overrides.Chassis.Brake[1]}`, false)
+					lightbar:SetAttribute(pluginSettings.Overrides.Chassis.Brake[1], 0)
+				end
+			end
 		elseif overrideType == "Gear" and pluginSettings.Overrides.Chassis.Reverse ~= false then
-			lightbar:SetAttribute(pluginSettings.Overrides.Chassis.Reverse, if value == -1 then 1 else 0)
+			if typeof(pluginSettings.Overrides.Chassis.Reverse) == "string" then
+				lightbar:SetAttribute(pluginSettings.Overrides.Chassis.Reverse, if value == -1 then 1 else 0)
+			elseif typeof(pluginSettings.Overrides.Chassis.Reverse) == "table" then
+				if value > -1 then
+					lightbar:SetAttribute(`should{pluginSettings.Overrides.Chassis.Reverse[1]}`, true)
+					lightbar:SetAttribute(
+						pluginSettings.Overrides.Chassis.Reverse[1],
+						if lightbar:GetAttribute(pluginSettings.Overrides.Chassis.Reverse[2]) > 0 then 1 else 0
+					)
+				else
+					lightbar:SetAttribute(`should{pluginSettings.Overrides.Chassis.Reverse[1]}`, false)
+					lightbar:SetAttribute(pluginSettings.Overrides.Chassis.Reverse[1], 0)
+				end
+			end
 		end
 	end
 end)
