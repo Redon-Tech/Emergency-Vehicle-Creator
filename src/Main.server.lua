@@ -8,7 +8,7 @@ if not game:GetService("RunService"):IsEdit() then return end
 --------------------------------------------------------------------------------
 
 local Is_RBXM = plugin.Name:find(".rbxm") ~= nil
-local Selection = game:GetService("Selection")
+local HttpService = game:GetService("HttpService")
 local pluginRoot = script.Parent.Parent
 local pluginValue = Instance.new("ObjectValue")
 pluginValue.Name = "Plugin"
@@ -22,6 +22,7 @@ local function getName(name: string)
 	return name
 end
 
+local Plugin_Version = "2.1.0"
 local Plugin_Name = getName("Emergency Vehicle Creator V2")
 local Plugin_Description = "Easily create amazing ELS for emergency vehicles!"
 local Plugin_Icon = "http://www.roblox.com/asset/?id=9953243250"
@@ -73,6 +74,8 @@ local ContainerObjectValue = Instance.new("ObjectValue")
 ContainerObjectValue.Name = "Container"
 ContainerObjectValue.Value = Container
 ContainerObjectValue.Parent = pluginRoot
+
+local versionWarning = Container.VersionWarning
 
 --------------------------------------------------------------------------------
 -- Plugin Functions --
@@ -138,6 +141,27 @@ Container.InputEnded:Connect(function(input: InputObject)
 		end
 	end
 end)
+
+-- Version Check
+local latestVersion = HttpService:RequestAsync({
+	Url = "https://api.github.com/repos/Redon-Tech/Emergency-Vehicle-Creator/releases/latest",
+	Method = "GET"
+})
+
+if latestVersion.Success then
+	local latestVersionJSON = HttpService:JSONDecode(latestVersion.Body)
+	if latestVersionJSON.tag_name ~= Plugin_Version and plugin:GetSetting("VersionWarning") ~= latestVersionJSON.tag_name then
+		versionWarning.Text = `Plugin version out of date. Latest {latestVersionJSON.tag_name}, Current {Plugin_Version}. Click to dismiss warning.`
+		versionWarning.Visible = true
+		
+		versionWarning.MouseButton1Click:Connect(function()
+			versionWarning.Visible = false
+			plugin:SetSetting("VersionWarning", latestVersionJSON.tag_name)
+		end)
+	end
+else
+	warn("[EVC]: Failed to check for latest version.")
+end
 
 -- Handle Theme Changes
 -- local originalTheme = settings().Studio.Theme

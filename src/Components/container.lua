@@ -37,5 +37,24 @@ return function()
 	popUps.ZIndex = 100000
 	popUps.Parent = Container
 
+	local versionWarning = Instance.new("TextButton")
+	versionWarning.Name = "VersionWarning"
+	versionWarning.FontFace = Font.new(
+		"rbxasset://fonts/families/Arial.json",
+		Enum.FontWeight.Bold,
+		Enum.FontStyle.Normal
+	)
+	versionWarning.Text = "Plugin version out of date. Click to dismiss warning."
+	versionWarning.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+	versionWarning.TextScaled = true
+	versionWarning.TextSize = 30
+	versionWarning.AnchorPoint = Vector2.new(0.5, 1)
+	versionWarning.BackgroundTransparency = 1
+	versionWarning.Position = UDim2.fromScale(0.5, 1)
+	versionWarning.Size = UDim2.fromScale(1, 0.05)
+	versionWarning.ZIndex = 100001
+	versionWarning.Visible = false
+	versionWarning.Parent = Container
+
 	return Container
 end
