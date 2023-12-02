@@ -154,7 +154,7 @@ if soundPart == nil then
 	warn(`No soundpart found will be unable to play any sirens`)
 end
 
-for _,part in pairs(lightbar:GetChildren()) do
+for _,part in pairs(lightbar:GetDescendants()) do
 	if part:IsA("BasePart") and lightParts[part.Name] == nil then
 		lightParts[part.Name] = part
 	elseif part:IsA("BasePart") then
@@ -165,7 +165,7 @@ end
 for _,v in pairs(pluginSettings.AdditionalLightbarLocations.Body) do
 	local model = findFirstDescendant(body, v)
 	if model ~= nil then
-		for _,part in pairs(model:GetChildren()) do
+		for _,part in pairs(model:GetDescendants()) do
 			if part:IsA("BasePart") and lightParts[part.Name] == nil then
 				lightParts[part.Name] = part
 			elseif part:IsA("BasePart") then
@@ -178,7 +178,7 @@ end
 for _,v in pairs(pluginSettings.AdditionalLightbarLocations.Misc) do
 	local model = findFirstDescendant(misc, v)
 	if model ~= nil then
-		for _,part in pairs(model:GetChildren()) do
+		for _,part in pairs(model:GetDescendants()) do
 			if part:IsA("BasePart") and lightParts[part.Name] == nil then
 				lightParts[part.Name] = part
 			elseif part:IsA("BasePart") then
