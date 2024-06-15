@@ -264,13 +264,20 @@ return function()
 	
 	textLabel.Parent = chassisPluginExports
 
-	local functionsHolder = Instance.new("Frame")
+	local functionsHolder = Instance.new("ScrollingFrame")
 	functionsHolder.Name = "FunctionsHolder"
 	functionsHolder.AnchorPoint = Vector2.new(0.5, 0)
 	functionsHolder.BackgroundTransparency = 1
+	functionsHolder.BorderSizePixel = 0
 	functionsHolder.Position = UDim2.fromScale(0.5, 0.16)
-	functionsHolder.Size = UDim2.new(1, 0, 0, 33)
+	functionsHolder.Size = UDim2.new(1, 0, 0, 38)
 	functionsHolder.Parent = chassisPluginExports
+	functionsHolder.AutomaticCanvasSize = Enum.AutomaticSize.X
+	functionsHolder.ClipsDescendants = true
+	functionsHolder.CanvasSize = UDim2.new(0, 0, 0, 0)
+	functionsHolder.TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
+	functionsHolder.BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
+	functionsHolder.ScrollBarThickness = 5
 
 	local uIListLayout_10 = Instance.new("UIListLayout")
 	uIListLayout_10.Padding = UDim.new(0, 7)
