@@ -19,8 +19,8 @@ type faderLight = {
 	color: number,
 	transparency: number,
 	timeTaken: number,
-	easingStyle: EnumItem,
-	easingDirection: EnumItem,
+	easingStyle: Enum.EasingStyle,
+	easingDirection: Enum.EasingDirection,
 	repeatCount: number,
 	reverses: boolean,
 	timeDelay: number,
@@ -32,12 +32,12 @@ type patternModule = {
 	moduleSettings: {
 		waitTime: number,
 		weight: number,
-		colors: {}?,
-		light: any?,
+		colors: {[number]:Color3},
+		light: (BasePart, number, {[number]:Color3}) -> nil,
 	},
-	lights: {string:{elsLight}},
-	rotators: {string:{number:{rotatorLight}}},
-	faders: {string:{number:{faderLight}}},
+	lights: {[string]:{elsLight}},
+	rotators: {[string]:{[number]:{rotatorLight}}},
+	faders: {[string]:{[number]:{faderLight}}},
 	count: number,
 	max_count: number,
 }
@@ -47,7 +47,7 @@ type pattern = {
 }
 
 type lightbarFunction = {
-	patterns: {number:pattern},
+	patterns: {[number]:pattern},
 	currentPattern: number,
 	maxPattern: number,
 }
@@ -63,14 +63,14 @@ type runningCoroutine = {
 }
 
 type rotatorLightThread = {
-	thread: thread,
+	thread: thread?,
 	currentRunner: number,
 	run: boolean
 }
 
 type tweenLightThread = {
-	thread: thread,
-	tween: Tween,
+	thread: thread?,
+	tween: Tween?,
 	currentRunner: number,
 	run: boolean
 }
@@ -88,7 +88,14 @@ type siren = {
 	keybind: EnumItem,
 	name: string,
 	overrideOtherSounds: boolean,
-	modifiers: {string:sirenModifier}
+	modifiers: {[string]:sirenModifier}
+}
+
+type sirenSetting = {
+	_Type: string,
+	Name: string,
+	OverrideOtherSounds: boolean,
+	Modifiers: {[string]:sirenModifier}?
 }
 
 type modifier = {
@@ -109,26 +116,40 @@ local warn = function(...)
 	warn("[EVC]", ...)
 end
 
-local car:Model = script.Parent.Parent
-local event:RemoteEvent = script.Parent
-local pluginSettings = require(script.Parent.Settings)
+if script.Parent == nil or script.Parent:IsA("RemoteEvent") == false then
+	error("EVCPlugin must be a child of a RemoteEvent under EVCPlugin_Client inside Plugins on a A-Chassis Vehicle")
+end
+local event = script.Parent :: RemoteEvent
+
+if event.Parent == nil or event.Parent:IsA("Model") == false then
+	error("EVCPlugin must be a child of a RemoteEvent under EVCPlugin_Client inside Plugins on a A-Chassis Vehicle")
+end
+local car = event.Parent :: Model
+
+local pluginSettings = require(event:WaitForChild("Settings"))
 local body:Model = car:WaitForChild("Body")
 local misc:Model = car:WaitForChild("Misc")
-local lightbar:Model = body:WaitForChild(pluginSettings.LightbarName)
-local soundPart:BasePart = lightbar:FindFirstChild(pluginSettings.SirenName)
+local lightbarInstance:Instance? = body:WaitForChild(pluginSettings.LightbarName)
+if lightbarInstance == nil or lightbarInstance:IsA("Model") == false then
+	error(`No lightbar found`)
+end
+local lightbar:Model = lightbarInstance :: Model
+
+local soundPart:Instance? = lightbar:FindFirstChild(pluginSettings.SirenName) :: Instance?
 
 local TweenService = game:GetService("TweenService")
+local JointsService = game:GetService("JointsService")
 
-local lightParts:{string:BasePart} = {}
-local lights:{string:lightInstance} = {}
-local lightbarFunctions:{name:lightbarFunction} = {}
+local lightParts:{[string]:BasePart} = {}
+local lights:{[string]:lightInstance} = {}
+local lightbarFunctions:{[string]:lightbarFunction} = {}
 local coroutines = {}
-local rotatorThreads:{string:rotatorLightThread} = {}
-local tweenThreads:{string:tweenLightThread} = {}
-local sirensByKeybind:{EnumItem:siren|modifier} = {}
-local sirensByName:{EnumItem:siren} = {}
-local modifiers:{string:modifier} = {}
-local dependentOverrides:{string:{string}} = {}
+local rotatorThreads:{[string]:rotatorLightThread} = {}
+local tweenThreads:{[string]:tweenLightThread} = {}
+local sirensByKeybind:{[EnumItem]:siren|modifier} = {}
+local sirensByName:{[string]:siren} = {}
+local modifiers:{[string]:modifier} = {}
+local dependentOverrides:{[string]:{string}} = {}
 
 --------------------------------------------------------------------------------
 -- Functions --
@@ -144,12 +165,12 @@ local function findFirstDescendant(instance: Instance, name: string): Instance?
 end
 
 -- Checks
-if lightbar == nil then
-	error(`No lightbar found`)
-end
-if lightbar:FindFirstChild("ModuleStore") == nil then
+
+local moduleStoreFolder:Instance? = lightbar:FindFirstChild("ModuleStore")
+if moduleStoreFolder == nil or moduleStoreFolder:IsA("Folder") == false then
 	error(`No modulestore found`)
 end
+local moduleStore:Folder = moduleStoreFolder :: Folder
 if soundPart == nil then
 	warn(`No soundpart found will be unable to play any sirens`)
 end
@@ -250,8 +271,14 @@ local function registerRotator(lightName:string)
 		weld.C1 = motorPart.CFrame:Inverse()*car.DriveSeat.CFrame 
 		weld.Parent = car.DriveSeat
 
-		local Center = if lightParts[lightName]:FindFirstChild("inverse") ~= nil then CFrame.new(lightParts[lightName].inverse.Position) else CFrame.new(lightParts[lightName].Position)
-		local XYZ = if lightParts[lightName]:FindFirstChild("inverse") ~= nil then CFrame.Angles(lightParts[lightName].inverse.CFrame:toEulerAnglesXYZ()) else CFrame.Angles(lightParts[lightName].CFrame:toEulerAnglesXYZ())
+		local inversePart: Instance? = lightParts[lightName]:FindFirstChild("inverse")
+		local inverse:BasePart? = nil
+		if inversePart ~= nil and inversePart:IsA("BasePart") then
+			inverse = inversePart
+		end
+		
+		local Center = if inverse ~= nil then CFrame.new(inverse.Position) else CFrame.new(lightParts[lightName].Position)
+		local XYZ = if inverse ~= nil then CFrame.Angles(inverse.CFrame:ToEulerAnglesXYZ()) else CFrame.Angles(lightParts[lightName].CFrame:ToEulerAnglesXYZ())
 		local motor = Instance.new("Motor6D")
 		motor.Name = "Motor"
 		motor.Part0 = motorPart
@@ -266,7 +293,7 @@ local function registerRotator(lightName:string)
 			end
 		end
 
-		for i,v in pairs(game.JointsService:GetDescendants()) do
+		for i,v in pairs(JointsService:GetDescendants()) do
 			if v:IsA("Weld") and v.Part1 == lightParts[lightName] then
 				v:Destroy()
 			end
@@ -276,12 +303,19 @@ local function registerRotator(lightName:string)
 	end
 end
 
-local function setLightRunningModule(lightName:string, module:patternModule, skipPossibleModules:boolean)
+local function setLightRunningModule(lightName:string, module:patternModule, skipPossibleModules:boolean?)
 	local light:lightInstance = lights[lightName]
 
 	if light.running_module == nil or light.running_module.moduleSettings.weight < module.moduleSettings.weight then
-		if light.running_module ~= nil and light.running_module.instance.Parent.Parent ~= module.instance.Parent.Parent then
-			table.insert(light.possible_modules, light.running_module)
+		if light.running_module ~= nil then
+			local runningModuleParent = light.running_module.instance.Parent
+			local moduleParent = module.instance.Parent
+			local runningModuleParentParent = runningModuleParent.Parent
+			local moduleParentParent = moduleParent.Parent
+
+			if runningModuleParentParent ~= moduleParentParent then
+				table.insert(light.possible_modules, light.running_module)
+			end
 		end
 		light.running_module = module
 		if table.find(light.possible_modules, module) then
@@ -292,7 +326,7 @@ local function setLightRunningModule(lightName:string, module:patternModule, ski
 	end
 end
 
-for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
+for _,func in pairs(moduleStore:GetChildren()) do
 	if func:IsA("Folder") and lightbarFunctions[func.Name] == nil then
 		local funcTable:lightbarFunction = {
 			patterns = {},
@@ -453,8 +487,10 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 										lightData.reverses
 									)
 									faderTable.tween = TweenService:Create(lightParts[lightName], tweenInfo, {Transparency = lightData.transparency})
-									faderTable.tween:Play()
-									faderTable.tween.Completed:Wait()
+									if faderTable.tween ~= nil then
+										faderTable.tween:Play()
+										faderTable.tween.Completed:Wait()
+									end
 								end
 							end
 
@@ -520,7 +556,7 @@ for _,func:Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 		end)
 
 		-- Setup Patterns
-		for _,patternCont:Folder in pairs(func:GetChildren()) do
+		for _,patternCont in pairs(func:GetChildren()) do
 			local patternNumber = tonumber(patternCont.Name:match("%d+"))
 			if patternCont:IsA("Folder") and patternNumber and funcTable.patterns[patternNumber] == nil then
 				local pattern:pattern = {
@@ -649,7 +685,7 @@ for _,override in pairs(pluginSettings.Overrides.Sirens) do
 end
 
 -- Siren System
-for keybind:EnumItem,siren:{} in pairs(pluginSettings.Sirens) do
+for keybind:EnumItem,siren:sirenSetting in pairs(pluginSettings.Sirens) do
 	if siren._Type ~= nil and (siren._Type == "Siren" or siren._Type == "Hold") and siren.Name ~= nil and siren.OverrideOtherSounds ~= nil then
 		local sirenData:siren = {
 			_type = siren._Type:lower(),
@@ -691,11 +727,19 @@ for keybind:EnumItem,siren:{} in pairs(pluginSettings.Sirens) do
 end
 
 local function playStopModified(name, modifiedName)
+	if soundPart == nil then return end
+	local soundPart:Instance = soundPart
+
 	local sirenData:siren = sirensByName[name]
 	local modifiedData:sirenModifier = sirenData.modifiers[modifiedName]
 	local modifierData:modifier = modifiers[modifiedName]
-	local sound:Sound = soundPart[name]
-	local modifiedSound:Sound = soundPart[modifiedData.name]
+	local soundInstance:Instance? = soundPart:FindFirstChild(name)
+	if soundInstance == nil or soundInstance:IsA("Sound") == false then return end
+	local sound:Sound = soundInstance :: Sound
+
+	local modifiedSoundInstance:Instance? = soundPart:FindFirstChild(modifiedData.name)
+	if modifiedSoundInstance == nil or modifiedSoundInstance:IsA("Sound") == false then return end
+	local modifiedSound:Sound = modifiedSoundInstance :: Sound
 	
 	if modifierData.enabled and sound.Playing == true then
 		if modifiedData.playNonModified then
@@ -718,8 +762,13 @@ local function playStopModified(name, modifiedName)
 end
 
 local function playSiren(name)
+	if soundPart == nil then return end
+	local soundPart:Instance = soundPart
+
 	local sirenData:siren = sirensByName[name]
-	local sound:Sound = soundPart[name]
+	local soundInstance:Instance? = soundPart:FindFirstChild(name)
+	if soundInstance == nil or soundInstance:IsA("Sound") == false then return end
+	local sound:Sound = soundInstance :: Sound
 	
 	if sirenData.overrideOtherSounds then
 		if sirenData._type == "hold" then
@@ -765,8 +814,13 @@ local function playSiren(name)
 end
 
 local function stopSiren(name)
+	if soundPart == nil then return end
+	local soundPart:Instance = soundPart
+
 	local sirenData:siren = sirensByName[name]
-	local sound:Sound = soundPart[name]
+	local soundInstance:Instance? = soundPart:FindFirstChild(name)
+	if soundInstance == nil or soundInstance:IsA("Sound") == false then return end
+	local sound:Sound = soundInstance :: Sound
 	
 	if sirenData.overrideOtherSounds then
 		if sirenData._type == "hold" then
@@ -806,7 +860,7 @@ event.OnServerEvent:Connect(function(player, eventType:string, ...)
 	if player.Character ~= car.DriveSeat.Occupant.Parent then return end
 
 	if eventType == "Input" then
-		local state:EnumItem, inputType:EnumItem, keycode:EnumItem = ...
+		local state:EnumItem, _inputType:EnumItem, keycode:EnumItem = ...
 		if pluginSettings.SecondaryKeybinds[keycode] ~= nil and typeof(pluginSettings.SecondaryKeybinds[keycode]) == "EnumItem" then
 			keycode = pluginSettings.SecondaryKeybinds[keycode]
 		end
@@ -816,36 +870,43 @@ event.OnServerEvent:Connect(function(player, eventType:string, ...)
 				if typeof(lightbar:GetAttribute(pluginSettings.Keybinds[keycode])) ~= "number" then return end
 				lightbar:SetAttribute(pluginSettings.Keybinds[keycode],  lightbar:GetAttribute(pluginSettings.Keybinds[keycode])+1)
 			elseif sirensByKeybind[keycode] then
+				if soundPart == nil then return end
+				local soundPart:Instance = soundPart
+
 				local sirenData:siren|modifier = sirensByKeybind[keycode]
 				if sirenData._type == "siren" or sirenData._type == "hold" then
-					if soundPart:FindFirstChild(sirenData.name) then
-						if soundPart[sirenData.name].Playing and sirenData._type ~= "hold" then
+					local soundInstance:Instance? = soundPart:FindFirstChild(sirenData.name)
+					if soundInstance ~= nil and soundInstance:IsA("Sound") then
+						local sound:Sound = soundInstance :: Sound
+						if sound.Playing and sirenData._type ~= "hold" then
 							stopSiren(sirenData.name)
 						else
 							playSiren(sirenData.name)
 						end
 					end
 				elseif sirenData._type == "modifier" then
-					if sirenData.enabled then
-						sirenData.enabled = false
-						if pluginSettings.Overrides.Sirens[sirenData.name] ~= nil then
-							lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 0)
+					local modifierData:modifier = sirenData :: modifier
+
+					if modifierData.enabled then
+						modifierData.enabled = false
+						if pluginSettings.Overrides.Sirens[modifierData.name] ~= nil then
+							lightbar:SetAttribute(pluginSettings.Overrides.Sirens[modifierData.name], 0)
 						end
 
 						for _,v:siren in pairs(sirensByName) do
-							if v.modifiers[sirenData.name] then
-								playStopModified(v.name, sirenData.name)
+							if v.modifiers[modifierData.name] then
+								playStopModified(v.name, modifierData.name)
 							end
 						end
 					else
-						sirenData.enabled = true
-						if pluginSettings.Overrides.Sirens[sirenData.name] ~= nil then
-							lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 1)
+						modifierData.enabled = true
+						if pluginSettings.Overrides.Sirens[modifierData.name] ~= nil then
+							lightbar:SetAttribute(pluginSettings.Overrides.Sirens[modifierData.name], 1)
 						end
 
 						for _,v:siren in pairs(sirensByName) do
-							if v.modifiers[sirenData.name] then
-								playStopModified(v.name, sirenData.name)
+							if v.modifiers[modifierData.name] then
+								playStopModified(v.name, modifierData.name)
 							end
 						end
 					end
@@ -853,10 +914,17 @@ event.OnServerEvent:Connect(function(player, eventType:string, ...)
 			end
 		elseif state == Enum.UserInputState.End then
 			if sirensByKeybind[keycode] then
+				if soundPart == nil then return end
+				local soundPart:Instance = soundPart
+
 				local sirenData:siren|modifier = sirensByKeybind[keycode]
 				if sirenData._type == "hold" then
-					if soundPart[sirenData.name].Playing then
-						stopSiren(sirenData.name)
+					local soundInstance:Instance? = soundPart:FindFirstChild(sirenData.name)
+					if soundInstance ~= nil and soundInstance:IsA("Sound") then
+						local sound:Sound = soundInstance :: Sound
+						if sound.Playing then
+							stopSiren(sirenData.name)
+						end
 					end
 				end
 			end
