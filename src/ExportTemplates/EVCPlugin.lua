@@ -807,6 +807,10 @@ event.OnServerEvent:Connect(function(player, eventType:string, ...)
 
 	if eventType == "Input" then
 		local state:EnumItem, inputType:EnumItem, keycode:EnumItem = ...
+		if pluginSettings.SecondaryKeybinds[keycode] ~= nil and typeof(pluginSettings.SecondaryKeybinds[keycode]) == "EnumItem" then
+			keycode = pluginSettings.SecondaryKeybinds[keycode]
+		end
+
 		if state == Enum.UserInputState.Begin then
 			if pluginSettings.Keybinds[keycode] then
 				if typeof(lightbar:GetAttribute(pluginSettings.Keybinds[keycode])) ~= "number" then return end

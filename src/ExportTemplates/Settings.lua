@@ -87,6 +87,15 @@ return {
 		[Enum.KeyCode.K] = "Traffic_Advisor"
 	},
 
+	-- Secondary keybinds
+	-- These keybinds are mapped to other keybinds
+	-- This can be used for Xbox controller support
+	-- So for example:
+	-- [Enum.KeyCode.DPadDown] = Enum.KeyCode.J,
+	SecondaryKeybinds = {
+		[Enum.KeyCode.DPadDown] = Enum.KeyCode.J,
+	},
+
 	-- Default function state
 	-- To setup this up, set the function name equal to the state you want it to start at
 	-- If this is not set it will default to 0
@@ -140,8 +149,6 @@ return {
 					v.Visible = false
 				elseif v:IsA("Light") or v:IsA("SurfaceGui") then
 					v.Enabled = false
-				elseif v:IsA("ParticleEmitter") then
-					v.Transparency = NumberSequence.new(1)
 				end
 			end
 			Light.Transparency = 1
@@ -155,9 +162,6 @@ return {
 					v.Color = Colors[Color]
 				elseif v:IsA("SurfaceGui") then
 					v.Enabled = true
-				elseif v:IsA("ParticleEmitter") then
-					v.Transparency = NumberSequence.new(0)
-					v.Color = ColorSequence.new(Colors[Color])
 				end
 			end
 			Light.Transparency = 0
@@ -172,6 +176,6 @@ return {
 
 	-- DO NOT CHANGE
 	-- THIS IS AUTOMATICALLY GENERATED
-	PluginVersion = "2.1.0",
+	PluginVersion = "2.1.1",
 	-- THIS IS FOR THE CHASSIS PLUGIN AND WILL NOT ALWAYS MATCH THE STUDIO PLUGIN
 }
