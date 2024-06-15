@@ -40,6 +40,7 @@ return function(ColumnNumber: number)
 	top.BorderSizePixel = 0
 	top.LayoutOrder = 0
 	top.Size = UDim2.new(1, 0, 0, 15) -- 30
+	top.ZIndex = 3
 
 	local textBox = Instance.new("TextBox")
 	textBox.Name = "TextBox"
@@ -57,45 +58,47 @@ return function(ColumnNumber: number)
 	textBox.ZIndex = 4
 	textBox.Parent = top
 
-	local light = Instance.new("ImageLabel")
-	light.Name = "Light"
-	light.Image = "rbxassetid://8081553398"
-	light.ImageColor3 = Color3.fromRGB(47, 71, 255)
-	light.AnchorPoint = Vector2.new(0.5, 0.5)
-	light.BackgroundTransparency = 1
-	light.Position = UDim2.fromScale(0.5, 0.5)
-	light.Size = UDim2.fromScale(1.25, 1.75)
-	light.Visible = false
-	light.ZIndex = 2
-	light.Parent = top
-
-	local light2 = Instance.new("ImageLabel")
-	light2.Name = "Light2"
-	light2.Image = "http://www.roblox.com/asset/?id=9957617181"
-	light2.ImageColor3 = Color3.fromRGB(47, 71, 255)
-	light2.ScaleType = Enum.ScaleType.Slice
-	light2.SliceCenter = Rect.new(244, 256, 244, 256)
-	light2.SliceScale = 0.05
-	light2.AnchorPoint = Vector2.new(0.5, 0.5)
-	light2.BackgroundTransparency = 1
-	light2.Position = UDim2.fromScale(0.5, 0.5)
-	light2.Size = UDim2.fromScale(1.25, 1.5)
-	light2.Visible = false
-	light2.ZIndex = 2
-	light2.Parent = top
-
 	local light1 = Instance.new("ImageLabel")
 	light1.Name = "Light1"
-	light1.Image = "rbxassetid://2468100097"
-	light1.ImageColor3 = Color3.fromRGB(47, 71, 255)
+	light1.Image = "rbxassetid://17838553865"
+	light1.ImageTransparency = 0.2
+	light1.ScaleType = Enum.ScaleType.Slice
+	light1.SliceCenter = Rect.new(256, 256, 256, 256)
 	light1.AnchorPoint = Vector2.new(0.5, 0.5)
 	light1.BackgroundTransparency = 1
 	light1.Position = UDim2.fromScale(0.5, 0.5)
-	light1.Size = UDim2.fromScale(2, 4)
-	light1.Visible = false
+	light1.Size = UDim2.new(1, 150, 1, 150)
 	light1.ZIndex = 2
 	light1.Parent = top
+	light1.Visible = false
 
+	local light = Instance.new("ImageLabel")
+	light.Name = "Light"
+	light.Image = "rbxassetid://17838553865"
+	light.ScaleType = Enum.ScaleType.Slice
+	light.SliceCenter = Rect.new(256, 256, 256, 256)
+	light.AnchorPoint = Vector2.new(0.5, 0.5)
+	light.BackgroundTransparency = 1
+	light.Position = UDim2.fromScale(0.5, 0.5)
+	light.Size = UDim2.new(1, 25, 1, 25)
+	light.ZIndex = 2
+	light.Parent = top
+	light.Visible = false
+
+	local light2 = Instance.new("ImageLabel")
+	light2.Name = "Light2"
+	light2.Image = "rbxassetid://17838553865"
+	light2.ImageTransparency = 0.5
+	light2.ScaleType = Enum.ScaleType.Slice
+	light2.SliceCenter = Rect.new(256, 256, 256, 256)
+	light2.AnchorPoint = Vector2.new(0.5, 0.5)
+	light2.BackgroundTransparency = 1
+	light2.Position = UDim2.fromScale(0.5, 0.5)
+	light2.Size = UDim2.new(1, 200, 1, 200)
+	light2.ZIndex = 2
+	light2.Parent = top
+	light2.Visible = false
+	
 	local uICorner = Instance.new("UICorner")
 	uICorner.Name = "UICorner"
 	uICorner.CornerRadius = UDim.new(0, 2.5) -- 5

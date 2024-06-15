@@ -49,6 +49,7 @@ return function(sectionNumer: number)
 	waitTime.LayoutOrder = 2
 	waitTime.Position = UDim2.new(0.5, 0, 0, 7.5) -- 15
 	waitTime.Size = UDim2.fromOffset(75, 22.5) -- 150, 45
+	waitTime.ZIndex = 4
 
 	local uICorner = Instance.new("UICorner")
 	uICorner.Name = "UICorner"
@@ -72,6 +73,7 @@ return function(sectionNumer: number)
 	add.LayoutOrder = 3
 	add.Size = UDim2.fromOffset(11.5, 11.5) -- 23, 23
 	add.Parent = sectionControls
+	add.ZIndex = 4
 
 	local remove = Instance.new("ImageButton")
 	remove.Name = "RemoveButton"
@@ -84,6 +86,7 @@ return function(sectionNumer: number)
 	remove.LayoutOrder = 1
 	remove.Size = UDim2.fromOffset(11.5, 11.5)
 	remove.Parent = sectionControls
+	remove.ZIndex = 4
 
 	sectionControls.Parent = section
 

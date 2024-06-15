@@ -13,12 +13,12 @@ local elsCreator = {enabled = false, canExport = true, container = nil}
 
 local colors = {
 	[0] = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
-	[1] = Color3.fromRGB(47, 71, 255),
-	[2] = Color3.fromRGB(185, 58, 60),
-	[3] = Color3.fromRGB(253, 194, 66),
+	[1] = Color3.fromRGB(17, 99, 207),
+	[2] = Color3.fromRGB(255, 61, 61),
+	[3] = Color3.fromRGB(94, 225, 110),
 	[4] = Color3.fromRGB(255, 255, 255),
-	[5] = Color3.fromRGB(75, 255, 75),
-	[6] = Color3.fromRGB(188, 12, 211),
+	[5] = Color3.fromRGB(255, 230, 43),
+	[6] = Color3.fromRGB(246, 114, 255),
 }
 local colorLabels = {
 	[1] = "Blue",
@@ -193,7 +193,7 @@ local function registerColumn(column: number, section: Frame)
 
 	local connection = section:GetAttributeChangedSignal("Count"):Connect(function()
 		local color = frame:FindFirstChild(section:GetAttribute("Count")):GetAttribute("Color")
-		frameHeader.Top.BackgroundColor3 = colors[color]
+		frameHeader.Top.BackgroundColor3 = if color == 0 then colors[0] else Color3.new(1,1,1)
 		local enabled = if color == 0 then false else true
 		frameHeader.Top.Light.ImageColor3 = colors[color]
 		frameHeader.Top.Light.Visible = enabled
