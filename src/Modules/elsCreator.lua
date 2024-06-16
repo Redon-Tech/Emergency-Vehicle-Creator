@@ -726,21 +726,33 @@ elsCreator.toTable = function()
 end
 
 -- Input Handler
+local colorChanges = {
+	[Enum.KeyCode.One] = 1,
+	[Enum.KeyCode.Two] = 2,
+	[Enum.KeyCode.Three] = 3,
+	[Enum.KeyCode.Four] = 4,
+	[Enum.KeyCode.Five] = 5,
+	[Enum.KeyCode.Six] = 6,
+	-- NumPad
+	[Enum.KeyCode.KeypadOne] = 1,
+	[Enum.KeyCode.KeypadTwo] = 2,
+	[Enum.KeyCode.KeypadThree] = 3,
+	[Enum.KeyCode.KeypadFour] = 4,
+	[Enum.KeyCode.KeypadFive] = 5,
+	[Enum.KeyCode.KeypadSix] = 6,
+	-- Letters
+	[Enum.KeyCode.Q] = 1,
+	[Enum.KeyCode.W] = 2,
+	[Enum.KeyCode.E] = 3,
+	[Enum.KeyCode.R] = 4,
+	[Enum.KeyCode.T] = 5,
+	[Enum.KeyCode.Y] = 6,
+}
 elsCreator.InputBegan = function(input: InputObject)
 	if elsCreator.enabled == false then return end
 
-	if input.KeyCode == Enum.KeyCode.One then
-		setColor(1)
-	elseif input.KeyCode == Enum.KeyCode.Two then
-		setColor(2)
-	elseif input.KeyCode == Enum.KeyCode.Three then
-		setColor(3)
-	elseif input.KeyCode == Enum.KeyCode.Four then
-		setColor(4)
-	elseif input.KeyCode == Enum.KeyCode.Five then
-		setColor(5)
-	elseif input.KeyCode == Enum.KeyCode.Six then
-		setColor(6)
+	if colorChanges[input.KeyCode] then
+		setColor(colorChanges[input.KeyCode])
 	elseif input.KeyCode == Enum.KeyCode.R then
 		confirmReset()
 	elseif input.KeyCode == Enum.KeyCode.P then
