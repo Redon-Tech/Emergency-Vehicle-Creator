@@ -15,9 +15,9 @@ local colors = {
 	[0] = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
 	[1] = Color3.fromRGB(17, 99, 207),
 	[2] = Color3.fromRGB(255, 61, 61),
-	[3] = Color3.fromRGB(94, 225, 110),
+	[3] = Color3.fromRGB(255, 230, 43),
 	[4] = Color3.fromRGB(255, 255, 255),
-	[5] = Color3.fromRGB(255, 230, 43),
+	[5] = Color3.fromRGB(94, 225, 110),
 	[6] = Color3.fromRGB(246, 114, 255),
 }
 local colorLabels = {
