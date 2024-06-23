@@ -58,7 +58,8 @@ This feature significantly reduces the time required to create your vehicles, an
 
 ## :fontawesome-solid-2: **Enhanced Functionality**
 
-Emergency Vehicle Creator provides support for A-Chassis and AG-Chassis out of the box. Hand scripting AG-Chassis vehicles can be a tedious and time-consuming process. 
+Emergency Vehicle Creator provides support for A-Chassis and AG-Chassis out of the box. This allows you to easily create custom 
+lighting patterns on all your vehicles without having to work around the limitations of the chassis.
 
 The plugin also provides advanced features like light synchronization which can be painful to implement manually. These features
 enhance the realism of your emergency vehicles and make them stand out in game.
@@ -67,13 +68,13 @@ enhance the realism of your emergency vehicles and make them stand out in game.
 
 ## :fontawesome-solid-3: **Less Errors, More Consistent, Full Support**
 
-Emergency Vehicle Creator is designed to be error-free. This does however come with the downside of possible errors, 
-these errors are there to prevent you from making mistakes that could potentially break your vehicles.
+Emergency Vehicle Creator is designed to be error-free. We have spent countless hours testing the plugin to ensure that it is bug-free.
+However, we understand that errors can still occur.
 
-To help solve these errors we provide full support for the plugin. If you encounter any issues, feel free to 
+To help solve any problems we provide full support for the plugin. If you encounter any issues, feel free to 
 [contact us](https://cdn.redon.tech/go/discord) and we will help you resolve them.
 
-Ontop of this, Emergency Vehicle Creator allows for consistency in your vehicles. No longer will you have to jungle 
+Ontop of this, Emergency Vehicle Creator allows for consistency in your vehicles. No longer will you have to juggle 
 around different lighting frameworks, Emergency Vehicle Creator provides a single framework for all your vehicles.
 This helps reduce errors and inconsistencies in your vehicles.
 
@@ -82,7 +83,8 @@ This helps reduce errors and inconsistencies in your vehicles.
 ## Interested in Emergency Vehicle Creator?
 
 If you are interested in Emergency Vehicle Creator, you can download it from the Roblox Marketplace.
-And welcome to the Emergency Vehicle Creator community!
+
+Welcome to the Emergency Vehicle Creator community!
 
 [Download Now](https://create.roblox.com/marketplace/asset/9953321418){ .md-button .md-button--primary }
 [Get Started](get-started/els.md){ .md-button .md-button--primary }
