@@ -17,6 +17,11 @@
 	margin-top: 0;
 }
 
+.md-banner {
+	position: relative;
+	z-index: 2;
+}
+
 .hero {
 	position: absolute;
 	top: 0;
@@ -46,6 +51,7 @@
 	}
 	.hero-video {
 		filter: blur(0.5rem);
+		min-height: 100vh;
 	}
 	.hero {
 		background-color: transparent;
@@ -78,14 +84,15 @@
 	padding: 8px;
 	color: #cdd6f4;
 	background-color: transparent;
-	box-shadow: 0 0rem 1rem rgba(66, 40, 222,.25) !important;
+	box-shadow: 0 0rem 1rem rgba(198, 160, 246,.25);
 	text-decoration: none;
-	border: 2px solid rgb(66, 40, 222);
-	border-radius: 5px;
+	border: .1rem solid rgb(var(--ctp-mocha-mauve-rgb));
+	border-radius: .1rem;
 	transition: background-color 0.3s ease;
+	font-weight: 700;
 }
 
 .hero-links a:hover {
-	background-color: rgba(66, 40, 222);
+	background-color: rgba(var(--ctp-mocha-mauve-rgb));
 	color: #cdd6f4;
 }

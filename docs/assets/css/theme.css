@@ -19,11 +19,11 @@
 	--md-primary-bg-color--light:        var(--ctp-latte-text);
 	--md-primary-bg-color--dark:         var(--ctp-latte-text);
 
-	--md-accent-fg-color:                var(--ctp-latte-red);
-	--md-accent-fg-color--transparent:   rgba(var(--ctp-latte-red-rgb), 0.5);
+	--md-accent-fg-color:                var(--ctp-latte-blue);
+	--md-accent-fg-color--transparent:   rgba(var(--ctp-latte-blue-rgb), 0.5);
 
 	--md-typeset-color:                var(--ctp-latte-text);
-	--md-typeset-a-color:              var(--ctp-latte-maroon);
+	--md-typeset-a-color:              var(--ctp-latte-mauve);
 	--md-typeset-mark-color:           var(--ctp-latte-blue);
 	--md-typeset-del-color:            var(--ctp-latte-red);
 	--md-typeset-ins-color:            var(--ctp-latte-green);
@@ -32,7 +32,7 @@
 	--md-admonition-fg-color:          var(--ctp-latte-text);
 	--md-admonition-bg-color:          var(--ctp-latte-mantle);
 
-	--md-footer-fg-color:              var(--ctp-latte-red);
+	--md-footer-fg-color:              var(--ctp-latte-mauve);
 	--md-footer-fg-color--light:       var(--ctp-latte-text);
 	--md-footer-fg-color--lighter:     var(--ctp-latte-text);
 	--md-footer-bg-color:              var(--ctp-latte-mantle);
@@ -75,11 +75,11 @@
 	--md-primary-bg-color--light:        var(--ctp-mocha-text);
 	--md-primary-bg-color--dark:         var(--ctp-mocha-text);
 
-	--md-accent-fg-color:                var(--ctp-mocha-red);
-	--md-accent-fg-color--transparent:   rgba(var(--ctp-mocha-red-rgb), 0.5);
+	--md-accent-fg-color:                var(--ctp-mocha-blue);
+	--md-accent-fg-color--transparent:   rgba(var(--ctp-mocha-blue-rgb), 0.5);
 
 	--md-typeset-color:                var(--ctp-mocha-text);
-	--md-typeset-a-color:              var(--ctp-mocha-maroon);
+	--md-typeset-a-color:              var(--ctp-mocha-mauve);
 	--md-typeset-mark-color:           var(--ctp-mocha-blue);
 	--md-typeset-del-color:            var(--ctp-mocha-red);
 	--md-typeset-ins-color:            var(--ctp-mocha-green);
@@ -88,7 +88,7 @@
 	--md-admonition-fg-color:          var(--ctp-mocha-text);
 	--md-admonition-bg-color:          var(--ctp-mocha-mantle);
 
-	--md-footer-fg-color:              var(--ctp-mocha-red);
+	--md-footer-fg-color:              var(--ctp-mocha-mauve);
 	--md-footer-fg-color--light:       var(--ctp-mocha-text);
 	--md-footer-fg-color--lighter:     var(--ctp-mocha-text);
 	--md-footer-bg-color:              var(--ctp-mocha-mantle);
@@ -117,6 +117,41 @@
 }
 
 .md-footer a:hover {
-	color: var(--md-accent-fg-color);
+	color: var(--md-typeset-a-color);
 	opacity: 1 !important;
+}
+
+.md-typeset .md-button:focus, .md-typeset .md-button:hover {
+	background-color: var(--md-typeset-a-color);
+	border-color: var(--md-typeset-a-color);
+}
+
+.md-banner {
+	color: var(--md-primary-bg-color);
+	background-color: var(--md-default-bg-color--light);
+	
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.md-banner a {
+	text-shadow: 0 0rem 1rem rgba(198, 160, 246,.25);
+}
+
+.md-banner a span svg {
+	filter: drop-shadow(0 0rem .5rem rgba(198, 160, 246,.25));
+}
+
+.md-tabs__link {
+	opacity: 1;
+}
+
+.md-tabs__link:focus, .md-tabs__link:hover {
+	color: var(--md-accent-fg-color);
+}
+
+.md-tabs__item--active .md-tabs__link {
+	color: var(--md-typeset-a-color);
+	text-shadow: 0 0rem 1rem rgba(198, 160, 246,.1);
 }
