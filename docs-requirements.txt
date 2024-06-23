@@ -1,0 +1,4 @@
+mkdocs-material
+httpx
+mkdocs-literate-nav
+mkdocs-mermaid2-plugin

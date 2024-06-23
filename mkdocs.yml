@@ -1,0 +1,85 @@
+site_name: Emergency Vehicle Creator Guide
+site_description: 'Guide for https://github.com/Redon-Tech/Emergency-Vehicle-Creator/'
+site_author: 'Redon Tech'
+site_url: https://evc.redon.tech/
+docs_dir: docs/
+repo_name: 'Redon-Tech/Emergency-Vehicle-Creator'
+repo_url: 'https://github.com/Redon-Tech/Emergency-Vehicle-Creator/'
+nav:
+  - Home: index.md
+  - Getting Started:
+    - ELS Creator: get-started/els.md
+    - Faders: get-started/faders.md
+    - Rotators: get-started/rotators.md
+    - Save & Load: get-started/save-load.md
+    - Exporting: get-started/exporting.md
+  - Credits: credits.md
+
+copyright: Copyright &copy; 2024 Redon Tech
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Redon-Tech
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/Eb384Xw
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/parker02311
+
+theme:
+  font:
+    text: Fira Sans
+    code: Fira Code
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tabs
+    - navigation.tracking
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - content.code.copy
+    - content.tabs.link
+    - search.suggest
+  name: 'material'
+  logo: assets/EVC.png
+  favicon: assets/favicon.png
+  custom_dir: docs/assets/overrides
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      scheme: catppuccin-latte
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: catppuccin-mocha
+      toggle:
+        icon: material/brightness-3
+        name: Switch to light mode
+
+extra_css:
+  - assets/css/theme.css
+
+plugins:
+  - search
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.snippets
+  - pymdownx.details
+  - pymdownx.tilde
+  - admonition
+  - tables
+  - def_list
+  - attr_list
+  - md_in_html
+  - footnotes
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
