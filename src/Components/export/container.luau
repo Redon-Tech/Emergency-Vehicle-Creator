@@ -282,7 +282,7 @@ return function()
 	local uIListLayout_10 = Instance.new("UIListLayout")
 	uIListLayout_10.Padding = UDim.new(0, 7)
 	uIListLayout_10.FillDirection = Enum.FillDirection.Horizontal
-	uIListLayout_10.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	uIListLayout_10.HorizontalAlignment = Enum.HorizontalAlignment.Left
 	uIListLayout_10.SortOrder = Enum.SortOrder.LayoutOrder
 	uIListLayout_10.Parent = functionsHolder
 
