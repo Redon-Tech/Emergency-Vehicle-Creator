@@ -19,7 +19,7 @@ local Settings, Lights, Rotators, Faders
 Settings = {
 	-- The time between each light flash
 	WaitTime = 0.1,
-	
+
 	-- Determins which lights can override each other
 	-- For example lightbars should be 1 and traffic advisors 2
 	-- This allows the traffic advisor to override the back of the lightbar

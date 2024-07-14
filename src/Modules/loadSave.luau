@@ -11,7 +11,7 @@ local StudioService = game:GetService("StudioService")
 local HttpService = game:GetService("HttpService")
 local Selection = game:GetService("Selection")
 local pluginRoot = script.Parent.Parent.Parent
-local loadSave = {enabled = false, canExport = false, container = nil}
+local loadSave = { enabled = false, canExport = false, container = nil }
 local plugin: Plugin = pluginRoot:WaitForChild("Plugin").Value
 local Is_RBXM = plugin.Name:find(".rbxm") ~= nil
 
@@ -33,8 +33,8 @@ local loadSaveContainer = require(loadSaveComponents:WaitForChild("container"))(
 -- Module Functions --
 --------------------------------------------------------------------------------
 
-local function loadSaveData(saveData: {string:any})
-	for module,data in pairs(saveData) do
+local function loadSaveData(saveData: { string: any })
+	for module, data in pairs(saveData) do
 		-- local module = loadSave.modules
 		-- if module and typeof(module["loadFromTable"]) == "function" then
 		-- 	module["loadFromTable"](data)
@@ -53,7 +53,7 @@ local function loadSaveData(saveData: {string:any})
 	end
 end
 
-local function saveSaveData(saveName: string, saveData: {string:any})
+local function saveSaveData(saveName: string, saveData: { string: any })
 	local saves = plugin:GetSetting("savesV2")
 
 	if saves == nil then
@@ -78,46 +78,54 @@ local function updateSaves()
 		end
 	end
 
-	for name,save in pairs(saves) do
+	for name, save in pairs(saves) do
 		local saveFrame = require(loadSaveComponents.save)(name)
 		saveFrame.Parent = saveList
 		local connections = {}
-		connections[#connections+1] = saveFrame.SaveButton.MouseButton1Click:Connect(function()
+		connections[#connections + 1] = saveFrame.SaveButton.MouseButton1Click:Connect(function()
 			loadSave.container.Parent.PopUps.BackgroundTransparency = 0.5
-			confirmPrompt("Are you sure you want to overwrite this save?\n<b>This can not be undone</b>", function(confirm)
-				loadSave.container.Parent.PopUps.BackgroundTransparency = 1
-				if confirm then
-					local saveData = {}
-					for module,data in pairs(loadSave.modules) do
-						if typeof(data["toTable"]) == "function" then
-							saveData[module] = data["toTable"]()
+			confirmPrompt(
+				"Are you sure you want to overwrite this save?\n<b>This can not be undone</b>",
+				function(confirm)
+					loadSave.container.Parent.PopUps.BackgroundTransparency = 1
+					if confirm then
+						local saveData = {}
+						for module, data in pairs(loadSave.modules) do
+							if typeof(data["toTable"]) == "function" then
+								saveData[module] = data["toTable"]()
+							end
 						end
+
+						saveSaveData(name, saveData)
+						updateSaves()
 					end
-
-					saveSaveData(name, saveData)
-					updateSaves()
 				end
-			end).Parent = loadSave.container.Parent.PopUps
+			).Parent =
+				loadSave.container.Parent.PopUps
 		end)
 
-		connections[#connections+1] = saveFrame.LoadButton.MouseButton1Click:Connect(function()
+		connections[#connections + 1] = saveFrame.LoadButton.MouseButton1Click:Connect(function()
 			loadSave.container.Parent.PopUps.BackgroundTransparency = 0.5
-			confirmPrompt("Are you sure you want to load this save, this will overwrite any unsaved data?\n<b>This can not be undone</b>", function(confirm)
-				loadSave.container.Parent.PopUps.BackgroundTransparency = 1
-				if confirm then
-					loadSaveData(save)
+			confirmPrompt(
+				"Are you sure you want to load this save, this will overwrite any unsaved data?\n<b>This can not be undone</b>",
+				function(confirm)
+					loadSave.container.Parent.PopUps.BackgroundTransparency = 1
+					if confirm then
+						loadSaveData(save)
+					end
 				end
-			end).Parent = loadSave.container.Parent.PopUps
+			).Parent =
+				loadSave.container.Parent.PopUps
 		end)
 
-		connections[#connections+1] = saveFrame.ExportButton.MouseButton1Click:Connect(function()
+		connections[#connections + 1] = saveFrame.ExportButton.MouseButton1Click:Connect(function()
 			local success, message = pcall(function()
 				local instanceToSave = Instance.new("Script")
 				instanceToSave.Source = HttpService:JSONEncode(save)
 				instanceToSave.Name = name
 				instanceToSave.Parent = game
 				local currentSelection = Selection:Get()
-				Selection:Set({instanceToSave})
+				Selection:Set({ instanceToSave })
 				task.wait(0.1)
 				local saved = plugin:PromptSaveSelection(`{name}`)
 				task.wait(0.1)
@@ -130,7 +138,7 @@ local function updateSaves()
 			end
 		end)
 
-		connections[#connections+1] = saveFrame.DeleteButton.MouseButton1Click:Connect(function()
+		connections[#connections + 1] = saveFrame.DeleteButton.MouseButton1Click:Connect(function()
 			loadSave.container.Parent.PopUps.BackgroundTransparency = 0.5
 			confirmPrompt("Are you sure you want to delete this save?\n<b>This can not be undone</b>", function(confirm)
 				loadSave.container.Parent.PopUps.BackgroundTransparency = 1
@@ -145,7 +153,8 @@ local function updateSaves()
 					plugin:SetSetting("savesV2", saves)
 					updateSaves()
 				end
-			end).Parent = loadSave.container.Parent.PopUps
+			end).Parent =
+				loadSave.container.Parent.PopUps
 		end)
 
 		saveFrame.Destroying:Connect(function()
@@ -173,14 +182,14 @@ loadSaveContainer.MainLoadSave.ControlsHolder.CreateSave.MouseButton1Click:Conne
 	local function checkName(checkDepth)
 		if saves[currenNameWithCount] ~= nil then
 			currenNameWithCount = `{name} ({checkDepth})`
-			checkName(checkDepth+1)
+			checkName(checkDepth + 1)
 		end
 	end
 	checkName(1)
 	name = currenNameWithCount
 
 	local saveData = {}
-	for module,data in pairs(loadSave.modules) do
+	for module, data in pairs(loadSave.modules) do
 		if typeof(data["toTable"]) == "function" then
 			saveData[module] = data["toTable"]()
 		end
@@ -192,7 +201,7 @@ end)
 
 loadSaveContainer.MainLoadSave.ControlsHolder.ImportSave.MouseButton1Click:Connect(function()
 	local success, message = pcall(function()
-		local file = StudioService:PromptImportFile({"lua"})
+		local file = StudioService:PromptImportFile({ "lua" })
 
 		if file then
 			local saveData = HttpService:JSONDecode(file:GetBinaryContents())
@@ -208,7 +217,7 @@ loadSaveContainer.MainLoadSave.ControlsHolder.ImportSave.MouseButton1Click:Conne
 			local function checkName(checkDepth)
 				if saves[currenNameWithCount] ~= nil then
 					currenNameWithCount = `{name} ({checkDepth})`
-					checkName(checkDepth+1)
+					checkName(checkDepth + 1)
 				end
 			end
 			checkName(1)
@@ -224,19 +233,19 @@ loadSaveContainer.MainLoadSave.ControlsHolder.ImportSave.MouseButton1Click:Conne
 	end
 end)
 
-local function loadLegacySave(saveData: {string:any})
-	local data = {elsCreator = {}}
+local function loadLegacySave(saveData: { string: any })
+	local data = { elsCreator = {} }
 
 	local sections = {
 		[1] = {
 			WaitTime = 0.1,
 			Columns = {},
 			Remove = 0,
-		}
+		},
 	}
 	local organizedData = {}
 
-	for i,v in pairs(saveData) do
+	for i, v in pairs(saveData) do
 		if i == "BPM" then
 			sections[1].WaitTime = tonumber(v)
 		else
@@ -244,21 +253,21 @@ local function loadLegacySave(saveData: {string:any})
 		end
 	end
 
-	for i=1,#organizedData do
+	for i = 1, #organizedData do
 		local v = organizedData[i]
 		if v.Spacer == true then
-			sections[#sections+1] = {
+			sections[#sections + 1] = {
 				WaitTime = tonumber(v.BPM),
 				Columns = {},
-				Remove = i
+				Remove = i,
 			}
 		else
-			local columnData = {Name = "", Rows = {}}
-			for row,rowData in pairs(v.Rows) do
+			local columnData = { Name = "", Rows = {} }
+			for row, rowData in pairs(v.Rows) do
 				columnData.Rows[tonumber(row)] = rowData
 			end
-			
-			sections[#sections].Columns[i-sections[#sections]["Remove"]] = columnData
+
+			sections[#sections].Columns[i - sections[#sections]["Remove"]] = columnData
 		end
 	end
 
@@ -281,17 +290,21 @@ local function updateLegacySaves()
 		end
 	end
 
-	for name,save in pairs(saves) do
+	for name, save in pairs(saves) do
 		local saveFrame = require(loadSaveComponents.saveLegacy)(name)
 		saveFrame.Parent = saveList
 		local connection = saveFrame.LoadButton.MouseButton1Click:Connect(function()
 			loadSave.container.Parent.PopUps.BackgroundTransparency = 0.5
-			confirmPrompt("Are you sure you want to load this save, this will overwrite any unsaved data?\n<b>This can not be undone</b>", function(confirm)
-				loadSave.container.Parent.PopUps.BackgroundTransparency = 1
-				if confirm then
-					loadLegacySave(save)
+			confirmPrompt(
+				"Are you sure you want to load this save, this will overwrite any unsaved data?\n<b>This can not be undone</b>",
+				function(confirm)
+					loadSave.container.Parent.PopUps.BackgroundTransparency = 1
+					if confirm then
+						loadLegacySave(save)
+					end
 				end
-			end).Parent = loadSave.container.Parent.PopUps
+			).Parent =
+				loadSave.container.Parent.PopUps
 		end)
 
 		saveFrame.Destroying:Connect(function()
@@ -305,39 +318,44 @@ if Is_RBXM == false then
 else
 	loadSaveContainer.MainLegacySaves.ImportLegacySaves.MouseButton1Click:Connect(function()
 		loadSave.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
-		importLocalSavePopup("Select a settings file to import", `%LocalAppData%\\Roblox\\{StudioService:GetUserId()}\\InstalledPlugins\\9953321418`, function(confirm)
-			loadSave.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
-			if confirm then
-				local success, message = pcall(function()
-					local file = StudioService:PromptImportFile({"json"})
-					if file then
-						local data = HttpService:JSONDecode(file:GetBinaryContents())
+		importLocalSavePopup(
+			"Select a settings file to import",
+			`%LocalAppData%\\Roblox\\{StudioService:GetUserId()}\\InstalledPlugins\\9953321418`,
+			function(confirm)
+				loadSave.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
+				if confirm then
+					local success, message = pcall(function()
+						local file = StudioService:PromptImportFile({ "json" })
+						if file then
+							local data = HttpService:JSONDecode(file:GetBinaryContents())
 
-						if data then
-							local currentSaves = plugin:GetSetting("saves")
-							if currentSaves == nil then
-								currentSaves = {}
-							end
+							if data then
+								local currentSaves = plugin:GetSetting("saves")
+								if currentSaves == nil then
+									currentSaves = {}
+								end
 
-							if data["saves"] ~= nil then
-								for i, v in pairs(data["saves"]) do
-									if v["BPM"] ~= nil then
-										currentSaves[i] = v
+								if data["saves"] ~= nil then
+									for i, v in pairs(data["saves"]) do
+										if v["BPM"] ~= nil then
+											currentSaves[i] = v
+										end
 									end
 								end
+
+								plugin:SetSetting("saves", currentSaves)
+								updateLegacySaves()
 							end
-
-							plugin:SetSetting("saves", currentSaves)
-							updateLegacySaves()
 						end
-					end
-				end)
+					end)
 
-				if not success then
-					warn(`[EVC] Error importing legacy saves: {message}\n{debug.traceback()}`)
+					if not success then
+						warn(`[EVC] Error importing legacy saves: {message}\n{debug.traceback()}`)
+					end
 				end
 			end
-		end).Parent = loadSave.container.Parent.PopUps
+		).Parent =
+			loadSave.container.Parent.PopUps
 	end)
 end
 
@@ -361,7 +379,6 @@ if showLegacySaves == false then
 else
 	loadSaveContainer.MainLoadSave.ShowLegacySaves.Visible = false
 end
-
 
 loadSave.Display = function(container: Frame)
 	-- controls.Parent = container

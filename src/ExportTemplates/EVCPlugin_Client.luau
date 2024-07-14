@@ -42,7 +42,13 @@ Values:WaitForChild("Gear"):GetPropertyChangedSignal("Value"):Connect(function()
 end)
 
 local function input(InputObj: InputObject, gameProcessedEvent: BoolValue)
-	if not gameProcessedEvent and (InputObj.UserInputType == Enum.UserInputType.Keyboard or InputObj.UserInputType == Enum.UserInputType.Gamepad1) then
+	if
+		not gameProcessedEvent
+		and (
+			InputObj.UserInputType == Enum.UserInputType.Keyboard
+			or InputObj.UserInputType == Enum.UserInputType.Gamepad1
+		)
+	then
 		Event:FireServer("Input", InputObj.UserInputState, InputObj.UserInputType, InputObj.KeyCode)
 	end
 end

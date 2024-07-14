@@ -23,7 +23,7 @@ local Colors = {
 local function light(LightName, Color)
 	local Light = Lightbar[LightName]
 	if Color == 0 then
-		for i,v in pairs(Light:GetDescendants()) do
+		for i, v in pairs(Light:GetDescendants()) do
 			if v:IsA("GuiObject") then
 				v.Visible = false
 			elseif v:IsA("Light") or v:IsA("SurfaceGui") then
@@ -34,7 +34,7 @@ local function light(LightName, Color)
 		end
 		Light.Transparency = 1
 	else
-		for i,v in pairs(Light:GetDescendants()) do
+		for i, v in pairs(Light:GetDescendants()) do
 			if v:IsA("GuiObject") then
 				v.Visible = true
 				v.ImageColor3 = Colors[Color]
@@ -53,21 +53,25 @@ local function light(LightName, Color)
 	end
 end
 
-local function registerRotator(lightName:string)
+local function registerRotator(lightName: string)
 	local motorPart = Instance.new("Part")
 	motorPart.Name = `motor{lightName}`
-	motorPart.Size = Vector3.new(.1,.1,.1)
+	motorPart.Size = Vector3.new(0.1, 0.1, 0.1)
 	motorPart.CFrame = Lightbar[lightName].CFrame
 	motorPart.Transparency = 1
 	local weld = Instance.new("Weld")
 	weld.Part0 = Car.DriveSeat
 	weld.Part1 = motorPart
-	weld.C0 = Car.DriveSeat.CFrame:Inverse()*Car.DriveSeat.CFrame 
-	weld.C1 = motorPart.CFrame:Inverse()*Car.DriveSeat.CFrame 
+	weld.C0 = Car.DriveSeat.CFrame:Inverse() * Car.DriveSeat.CFrame
+	weld.C1 = motorPart.CFrame:Inverse() * Car.DriveSeat.CFrame
 	weld.Parent = Car.DriveSeat
 
-	local Center = if Lightbar[lightName]:FindFirstChild("inverse") ~= nil then CFrame.new(Lightbar[lightName].inverse.Position) else CFrame.new(Lightbar[lightName].Position)
-	local XYZ = if Lightbar[lightName]:FindFirstChild("inverse") ~= nil then CFrame.Angles(Lightbar[lightName].inverse.CFrame:toEulerAnglesXYZ()) else CFrame.Angles(Lightbar[lightName].CFrame:toEulerAnglesXYZ())
+	local Center = if Lightbar[lightName]:FindFirstChild("inverse") ~= nil
+		then CFrame.new(Lightbar[lightName].inverse.Position)
+		else CFrame.new(Lightbar[lightName].Position)
+	local XYZ = if Lightbar[lightName]:FindFirstChild("inverse") ~= nil
+		then CFrame.Angles(Lightbar[lightName].inverse.CFrame:toEulerAnglesXYZ())
+		else CFrame.Angles(Lightbar[lightName].CFrame:toEulerAnglesXYZ())
 	local motor = Instance.new("Motor6D")
 	motor.Name = "Motor"
 	motor.Part0 = motorPart
@@ -76,7 +80,7 @@ local function registerRotator(lightName:string)
 	motor.C1 = (Lightbar[lightName].CFrame:Inverse() * Center) * XYZ
 	motor.Parent = motorPart
 
-	for i,v in pairs(Car.DriveSeat:GetChildren()) do
+	for i, v in pairs(Car.DriveSeat:GetChildren()) do
 		if v:IsA("Weld") and v.Part1 == Lightbar[lightName] then
 			v:Destroy()
 		end
@@ -84,7 +88,6 @@ local function registerRotator(lightName:string)
 
 	motorPart.Parent = Lightbar
 end
-
 
 -- Main Loops
 --------------

@@ -2,7 +2,9 @@
 Redon Tech 2023-2024
 EVC V2
 --]]
-if not game:GetService("RunService"):IsEdit() then return end
+if not game:GetService("RunService"):IsEdit() then
+	return
+end
 --------------------------------------------------------------------------------
 -- Init --
 --------------------------------------------------------------------------------
@@ -33,18 +35,18 @@ local Components = script.Parent:WaitForChild("Components")
 local Modules = script.Parent:WaitForChild("Modules")
 local Utils = script.Parent:WaitForChild("Utils")
 
-
 if _G.RTPlugins and typeof(_G.RTPlugins) == "table" then
 	if _G.RTPlugins.Buttons[Plugin_Name] then
 		Button = _G.RTPlugins.Buttons[Plugin_Name]
 	else
-		_G.RTPlugins.Buttons[Plugin_Name] = _G.RTPlugins.ToolBar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
+		_G.RTPlugins.Buttons[Plugin_Name] =
+			_G.RTPlugins.ToolBar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
 		Button = _G.RTPlugins.Buttons[Plugin_Name]
 	end
 else
 	_G.RTPlugins = {
 		ToolBar = plugin:CreateToolbar("Redon Tech Plugins"),
-		Buttons = {}
+		Buttons = {},
 	}
 
 	_G.RTPlugins.Buttons[Plugin_Name] = _G.RTPlugins.ToolBar:CreateButton(Button_Name, Plugin_Description, Plugin_Icon)
@@ -60,7 +62,6 @@ local GUI = plugin:CreateDockWidgetPluginGui(Widget_Name, Config)
 GUI.Title = Plugin_Name
 GUI.Name = Widget_Name
 Button:SetActive(GUI.Enabled)
-
 
 GUI:GetPropertyChangedSignal("Enabled"):Connect(function()
 	Button:SetActive(GUI.Enabled)
@@ -98,7 +99,7 @@ containers["loadSave"].topBarButton.TextButton.Parent = Container.TopBar.RightCo
 containers["loadSave"].modules = containers
 
 local function hideContainers()
-	for i,v in pairs(containers) do
+	for i, v in pairs(containers) do
 		v.StopDisplay()
 		v.topBarButton.setEnabled(false)
 	end
@@ -111,7 +112,7 @@ local function enableContainer(container: table)
 end
 
 -- Container Buttons
-for i,v in pairs(containers) do
+for i, v in pairs(containers) do
 	v.topBarButton.TextButton.MouseButton1Click:Connect(function()
 		enableContainer(v)
 	end)
@@ -119,7 +120,7 @@ end
 
 -- Handle Input
 Container.InputBegan:Connect(function(input: InputObject)
-	for i,v in pairs(containers) do
+	for i, v in pairs(containers) do
 		if v["InputBegan"] then
 			v.InputBegan(input)
 		end
@@ -127,7 +128,7 @@ Container.InputBegan:Connect(function(input: InputObject)
 end)
 
 Container.InputChanged:Connect(function(input: InputObject)
-	for i,v in pairs(containers) do
+	for i, v in pairs(containers) do
 		if v["InputChanged"] then
 			v.InputChanged(input)
 		end
@@ -135,7 +136,7 @@ Container.InputChanged:Connect(function(input: InputObject)
 end)
 
 Container.InputEnded:Connect(function(input: InputObject)
-	for i,v in pairs(containers) do
+	for i, v in pairs(containers) do
 		if v["InputEnded"] then
 			v.InputEnded(input)
 		end
@@ -145,15 +146,19 @@ end)
 -- Version Check
 local latestVersion = HttpService:RequestAsync({
 	Url = "https://api.github.com/repos/Redon-Tech/Emergency-Vehicle-Creator/releases/latest",
-	Method = "GET"
+	Method = "GET",
 })
 
 if latestVersion.Success then
 	local latestVersionJSON = HttpService:JSONDecode(latestVersion.Body)
-	if latestVersionJSON.tag_name ~= Plugin_Version and plugin:GetSetting("VersionWarning") ~= latestVersionJSON.tag_name then
-		versionWarning.Text = `Plugin version out of date. Latest {latestVersionJSON.tag_name}, Current {Plugin_Version}. Click to dismiss warning.`
+	if
+		latestVersionJSON.tag_name ~= Plugin_Version
+		and plugin:GetSetting("VersionWarning") ~= latestVersionJSON.tag_name
+	then
+		versionWarning.Text =
+			`Plugin version out of date. Latest {latestVersionJSON.tag_name}, Current {Plugin_Version}. Click to dismiss warning.`
 		versionWarning.Visible = true
-		
+
 		versionWarning.MouseButton1Click:Connect(function()
 			versionWarning.Visible = false
 			plugin:SetSetting("VersionWarning", latestVersionJSON.tag_name)
@@ -170,7 +175,7 @@ end
 -- 	if settings().Studio.Theme ~= originalTheme then
 -- 		local newTheme = settings().Studio.Theme
 -- 		for i,v in pairs(GUI:GetDescendants()) do
-			
+
 -- 		end
 -- 	end
 -- end)

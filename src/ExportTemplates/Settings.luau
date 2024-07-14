@@ -22,10 +22,8 @@ return {
 		}
 	--]]
 	AdditionalLightbarLocations = {
-		Body = {
-		},
-		Misc = {
-		}
+		Body = {},
+		Misc = {},
 	},
 
 	-- The name of the siren location the lightbar location
@@ -37,7 +35,7 @@ return {
 			_Type = "Hold",
 			Name = "Horn",
 			OverrideOtherSounds = true,
-			Modifiers = nil
+			Modifiers = nil,
 		},
 		[Enum.KeyCode.R] = {
 			_Type = "Siren",
@@ -50,7 +48,7 @@ return {
 					PlayOnModifierChange = true,
 					Delay = 0,
 				},
-			}
+			},
 		},
 		[Enum.KeyCode.T] = {
 			_Type = "Siren",
@@ -63,18 +61,18 @@ return {
 					PlayOnModifierChange = true,
 					Delay = -0.2,
 				},
-			}
+			},
 		},
 		[Enum.KeyCode.Y] = {
 			_Type = "Siren",
 			Name = "Priority",
 			OverrideOtherSounds = true,
-			Modifiers = nil
+			Modifiers = nil,
 		},
 
 		[Enum.KeyCode.LeftBracket] = {
 			_Type = "Modifier",
-			Name = "Rumbler"
+			Name = "Rumbler",
 		},
 	},
 
@@ -84,7 +82,7 @@ return {
 	-- [Enum.KeyCode.LeftBracket] = "Ally",
 	Keybinds = {
 		[Enum.KeyCode.J] = "Stages",
-		[Enum.KeyCode.K] = "Traffic_Advisor"
+		[Enum.KeyCode.K] = "Traffic_Advisor",
 	},
 
 	-- Secondary keybinds
@@ -101,8 +99,7 @@ return {
 	-- If this is not set it will default to 0
 	-- So for example:
 	-- ["CruiseLights"] = 1,
-	DefaultFunctionState = {
-	},
+	DefaultFunctionState = {},
 
 	-- **A-Chassis Only**
 	-- Overrides for the chassis plugin
@@ -121,13 +118,12 @@ return {
 	-- The second value is used to disallow the override
 	--  if the second value is not active
 	Overrides = {
-		Sirens = {
-		},
+		Sirens = {},
 		Chassis = {
-			ParkBrake = {"ParkBrakeOverride", "Stages"},
+			ParkBrake = { "ParkBrakeOverride", "Stages" },
 			Brake = "BrakeOverride",
 			Reverse = false,
-		}
+		},
 	},
 
 	-- The colors to be used in the "Light" function
@@ -144,7 +140,7 @@ return {
 	-- Do not change below unless you know what you are doing
 	Light = function(Light, Color, Colors)
 		if Color == 0 then
-			for i,v in pairs(Light:GetDescendants()) do
+			for i, v in pairs(Light:GetDescendants()) do
 				if v:IsA("GuiObject") then
 					v.Visible = false
 				elseif v:IsA("Light") or v:IsA("SurfaceGui") then
@@ -153,7 +149,7 @@ return {
 			end
 			Light.Transparency = 1
 		else
-			for i,v in pairs(Light:GetDescendants()) do
+			for i, v in pairs(Light:GetDescendants()) do
 				if v:IsA("GuiObject") then
 					v.Visible = true
 					v.ImageColor3 = Colors[Color]
@@ -168,11 +164,6 @@ return {
 			Light.Color = Colors[Color]
 		end
 	end,
-
-
-
-
-
 
 	-- DO NOT CHANGE
 	-- THIS IS AUTOMATICALLY GENERATED

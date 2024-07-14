@@ -9,7 +9,7 @@
 
 local RunService = game:GetService("RunService")
 local pluginRoot = script.Parent.Parent.Parent
-local elsCreator = {enabled = false, canExport = true, container = nil}
+local elsCreator = { enabled = false, canExport = true, container = nil }
 
 local colors = {
 	[0] = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
@@ -38,7 +38,8 @@ local coroutines = {}
 --------------------------------------------------------------------------------
 
 local Components = script.Parent.Parent:WaitForChild("Components")
-elsCreator["topBarButton"] = require(Components:WaitForChild("topBarButton"))("elsCreator", 1, "ELS Creator", 0.104, true)
+elsCreator["topBarButton"] =
+	require(Components:WaitForChild("topBarButton"))("elsCreator", 1, "ELS Creator", 0.104, true)
 local elsCreatorComponents = Components:WaitForChild("elsCreator")
 local reusedContent = Components:WaitForChild("reusedContent")
 local confirmPrompt = require(Components:WaitForChild("popups"):WaitForChild("confirm"))
@@ -46,7 +47,12 @@ local confirmPrompt = require(Components:WaitForChild("popups"):WaitForChild("co
 local controls = require(reusedContent:WaitForChild("controls"))()
 local elsContainer = require(elsCreatorComponents:WaitForChild("container"))()
 
-local pauseButton = require(reusedContent:WaitForChild("iconButton"))("Pause", 7, "rbxassetid://12758044104", "rbxassetid://12758044683")
+local pauseButton = require(reusedContent:WaitForChild("iconButton"))(
+	"Pause",
+	7,
+	"rbxassetid://12758044104",
+	"rbxassetid://12758044683"
+)
 local lockButton = require(reusedContent:WaitForChild("iconButton"))("Lock", 8, "rbxassetid://12758042236")
 local resetButton = require(reusedContent:WaitForChild("iconButton"))("Reset", 9, "rbxassetid://12758045258")
 pauseButton.Parent = controls
@@ -63,9 +69,9 @@ local function setPause(value: boolean)
 	pause = value
 	pauseButton:SetAttribute("Icon", pause)
 
-	for _,section in pairs(elsContainer:GetChildren()) do
+	for _, section in pairs(elsContainer:GetChildren()) do
 		if section:IsA("Frame") then
-			for _,header in pairs(section.ColumnHeaders:GetChildren()) do
+			for _, header in pairs(section.ColumnHeaders:GetChildren()) do
 				if header:IsA("Frame") and header.Name ~= "Buttons" then
 					header.Top.TextBox.Visible = pause
 					header.Top.BackgroundColor3 = colors[0]
@@ -81,24 +87,37 @@ end
 -- Color Setup
 local function setColor(value: number)
 	color = value
-	for i,v in pairs(controls:GetChildren()) do
+	for i, v in pairs(controls:GetChildren()) do
 		if v:IsA("Frame") and v:FindFirstChild("Text") then
 			if v.Name == tostring(value) then
-				v.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Selected)
-				v.Text.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText, Enum.StudioStyleGuideModifier.Selected)
+				v.BackgroundColor3 = settings().Studio.Theme:GetColor(
+					Enum.StudioStyleGuideColor.Button,
+					Enum.StudioStyleGuideModifier.Selected
+				)
+				v.Text.TextColor3 = settings().Studio.Theme:GetColor(
+					Enum.StudioStyleGuideColor.MainText,
+					Enum.StudioStyleGuideModifier.Selected
+				)
 				v:SetAttribute("Active", true) -- Not remove the background color when the button is hovered
 			else
 				v.BackgroundColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button)
-				v.Text.TextColor3 = if v.Name == "4" then settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText) else colors[tonumber(v.Name)]
+				v.Text.TextColor3 = if v.Name == "4"
+					then settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+					else colors[tonumber(v.Name)]
 				v:SetAttribute("Active", false)
 			end
 		end
 	end
 end
 
-for i,v in pairs(colors) do
+for i, v in pairs(colors) do
 	if i ~= 0 then
-		local color = require(reusedContent:WaitForChild("textButton"))(i, i, colorLabels[i], if i == 4 then settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText) else v)
+		local color = require(reusedContent:WaitForChild("textButton"))(
+			i,
+			i,
+			colorLabels[i],
+			if i == 4 then settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText) else v
+		)
 		color.Parent = controls
 
 		color.Text.MouseButton1Click:Connect(function()
@@ -113,7 +132,7 @@ local function resetCounters()
 	setPause(true)
 	pauseButton:SetAttribute("Icon", pause)
 
-	for i,v in pairs(elsContainer:GetChildren()) do
+	for i, v in pairs(elsContainer:GetChildren()) do
 		if v:IsA("Frame") then
 			v:SetAttribute("Count", 1)
 			v.IndicatorHolder.Indicator.Position = UDim2.new(0.5, 1, 0, -3)
@@ -131,12 +150,16 @@ local function registerRow(row: Frame)
 	end)
 
 	row.MouseEnter:Connect(function()
-		if mouseDown and ((startingColumn == nil or startingColumn == tonumber(row.Parent.Name)) or locked == false) then
+		if
+			mouseDown and ((startingColumn == nil or startingColumn == tonumber(row.Parent.Name)) or locked == false)
+		then
 			row:SetAttribute("Color", color)
 			if startingColumn == nil then
 				startingColumn = tonumber(row.Parent.Name)
 			end
-		elseif mouse2Down and ((startingColumn == nil or startingColumn == tonumber(row.Parent.Name)) or locked == false) then
+		elseif
+			mouse2Down and ((startingColumn == nil or startingColumn == tonumber(row.Parent.Name)) or locked == false)
+		then
 			row:SetAttribute("Color", 0)
 			if startingColumn == nil then
 				startingColumn = tonumber(row.Parent.Name)
@@ -173,17 +196,19 @@ local function registerColumn(column: number, section: Frame)
 	local rows = #frame:GetChildren() - 1
 
 	frameHeader.Top.TextBox.Visible = pause
-	frameHeader.Top.TextBox.PlaceholderText = if section.LayoutOrder ~= 1 then `{section.LayoutOrder-1}Light{column}` else `Light{column}`
+	frameHeader.Top.TextBox.PlaceholderText = if section.LayoutOrder ~= 1
+		then `{section.LayoutOrder - 1}Light{column}`
+		else `Light{column}`
 
 	if rows ~= section:GetAttribute("Rows") then
 		if rows > section:GetAttribute("Rows") then
-			for i,v in pairs(frame:GetChildren()) do
+			for i, v in pairs(frame:GetChildren()) do
 				if v:IsA("Frame") and v.LayoutOrder > elsContainer.Section1:GetAttribute("Rows") then
 					v:Destroy()
 				end
 			end
 		elseif rows < section:GetAttribute("Rows") then
-			for i = 1, section:GetAttribute("Rows")-rows do
+			for i = 1, section:GetAttribute("Rows") - rows do
 				local row = require(elsCreatorComponents:WaitForChild("columnRow"))(i)
 				row.Parent = frame
 				registerRow(row)
@@ -193,7 +218,7 @@ local function registerColumn(column: number, section: Frame)
 
 	local connection = section:GetAttributeChangedSignal("Count"):Connect(function()
 		local color = frame:FindFirstChild(section:GetAttribute("Count")):GetAttribute("Color")
-		frameHeader.Top.BackgroundColor3 = if color == 0 then colors[0] else Color3.new(1,1,1)
+		frameHeader.Top.BackgroundColor3 = if color == 0 then colors[0] else Color3.new(1, 1, 1)
 		local enabled = if color == 0 then false else true
 		frameHeader.Top.Light.ImageColor3 = colors[color]
 		frameHeader.Top.Light.Visible = enabled
@@ -205,27 +230,39 @@ local function registerColumn(column: number, section: Frame)
 
 	local connection2 = frameHeader.Top.TextBox.FocusLost:Connect(function(enterPressed)
 		if enterPressed then
-			if column == 1 and frameHeader.Top.TextBox.Text ~= nil and frameHeader.Top.TextBox.Text ~= "" and frameHeader.Top.TextBox.Text:match("%d+$") then
+			if
+				column == 1
+				and frameHeader.Top.TextBox.Text ~= nil
+				and frameHeader.Top.TextBox.Text ~= ""
+				and frameHeader.Top.TextBox.Text:match("%d+$")
+			then
 				local Pattern = frameHeader.Top.TextBox.Text:gsub("%d+$", "")
 
-				for _,header in pairs(section.ColumnHeaders:GetChildren()) do
-					if header:IsA("Frame") and header.Name ~= "Buttons" and (header.Top.TextBox.Text == nil or header.Top.TextBox.Text == "") then
+				for _, header in pairs(section.ColumnHeaders:GetChildren()) do
+					if
+						header:IsA("Frame")
+						and header.Name ~= "Buttons"
+						and (header.Top.TextBox.Text == nil or header.Top.TextBox.Text == "")
+					then
 						header.Top.TextBox.Text = `{Pattern}{header.LayoutOrder}`
 					end
 				end
 			end
 
-			if section.ColumnHeaders:FindFirstChild(column+1) then
-				if section.ColumnHeaders:FindFirstChild(column+1).Top.TextBox.Text == nil or section.ColumnHeaders:FindFirstChild(column+1).Top.TextBox.Text == "" then
-					section.ColumnHeaders:FindFirstChild(column+1).Top.TextBox:CaptureFocus()
+			if section.ColumnHeaders:FindFirstChild(column + 1) then
+				if
+					section.ColumnHeaders:FindFirstChild(column + 1).Top.TextBox.Text == nil
+					or section.ColumnHeaders:FindFirstChild(column + 1).Top.TextBox.Text == ""
+				then
+					section.ColumnHeaders:FindFirstChild(column + 1).Top.TextBox:CaptureFocus()
 					RunService.Heartbeat:Wait()
-					section.ColumnHeaders:FindFirstChild(column+1).Top.TextBox.Text = ""
+					section.ColumnHeaders:FindFirstChild(column + 1).Top.TextBox.Text = ""
 				end
 			end
 		end
 	end)
 
-	for i,v in pairs(frame:GetChildren()) do
+	for i, v in pairs(frame:GetChildren()) do
 		if v:IsA("Frame") then
 			registerRow(v)
 		end
@@ -247,13 +284,14 @@ local function update(coro: table, section: number)
 			if lastCount >= sectionFrame:GetAttribute("Rows") then
 				sectionFrame:SetAttribute("Count", 1)
 			else
-				sectionFrame:SetAttribute("Count", lastCount+1)
+				sectionFrame:SetAttribute("Count", lastCount + 1)
 			end
 
-			sectionFrame.IndicatorHolder.Indicator.Position = UDim2.new(0.5, 1, 0, ((sectionFrame:GetAttribute("Count")-1)*20)-3)
+			sectionFrame.IndicatorHolder.Indicator.Position =
+				UDim2.new(0.5, 1, 0, ((sectionFrame:GetAttribute("Count") - 1) * 20) - 3)
 		elseif coro["run"] == false then
 			coroutines[section] = nil
-			for i,v in pairs(elsContainer:GetChildren()) do
+			for i, v in pairs(elsContainer:GetChildren()) do
 				if v:IsA("Frame") and v:GetAttribute("ConnectedTo") == section then
 					v:SetAttribute("ConnectedTo", nil)
 				end
@@ -267,26 +305,33 @@ local function registerSection(section: number)
 	local sectionFrame = elsContainer:WaitForChild(`Section{section}`)
 	local connections = {}
 	local connectedTo = nil
-	
+
 	sectionFrame:SetAttribute("Rows", 20)
-	
+
 	-- Handle Lighting Functions
-	connections[#connections+1] = sectionFrame:GetAttributeChangedSignal("ConnectedTo"):Connect(function()
-		if connectedTo then connectedTo:Disconnect() connectedTo = nil end
+	connections[#connections + 1] = sectionFrame:GetAttributeChangedSignal("ConnectedTo"):Connect(function()
+		if connectedTo then
+			connectedTo:Disconnect()
+			connectedTo = nil
+		end
 
 		if sectionFrame:GetAttribute("ConnectedTo") then
-			connectedTo = elsContainer:WaitForChild(`Section{sectionFrame:GetAttribute("ConnectedTo")}`):GetAttributeChangedSignal("Count"):Connect(function()
-				local lastCount = sectionFrame:GetAttribute("Count")
-				if lastCount >= sectionFrame:GetAttribute("Rows") then
-					sectionFrame:SetAttribute("Count", 1)
-				else
-					sectionFrame:SetAttribute("Count", lastCount+1)
-				end
+			connectedTo = elsContainer
+				:WaitForChild(`Section{sectionFrame:GetAttribute("ConnectedTo")}`)
+				:GetAttributeChangedSignal("Count")
+				:Connect(function()
+					local lastCount = sectionFrame:GetAttribute("Count")
+					if lastCount >= sectionFrame:GetAttribute("Rows") then
+						sectionFrame:SetAttribute("Count", 1)
+					else
+						sectionFrame:SetAttribute("Count", lastCount + 1)
+					end
 
-				sectionFrame.IndicatorHolder.Indicator.Position = UDim2.new(0.5, 1, 0, ((sectionFrame:GetAttribute("Count")-1)*20)-3)
-			end)
+					sectionFrame.IndicatorHolder.Indicator.Position =
+						UDim2.new(0.5, 1, 0, ((sectionFrame:GetAttribute("Count") - 1) * 20) - 3)
+				end)
 		else
-			for i,v in pairs(coroutines) do
+			for i, v in pairs(coroutines) do
 				if v.waitTime == tonumber(sectionFrame.SectionControls.WaitTime.Text) and i ~= section then
 					sectionFrame:SetAttribute("ConnectedTo", i)
 					return
@@ -296,12 +341,12 @@ local function registerSection(section: number)
 		end
 	end)
 
-	connections[#connections+1] = sectionFrame.SectionControls.WaitTime.Focused:Connect(function()
+	connections[#connections + 1] = sectionFrame.SectionControls.WaitTime.Focused:Connect(function()
 		setPause(true)
 		resetCounters()
 	end)
 
-	connections[#connections+1] = sectionFrame.SectionControls.WaitTime.FocusLost:Connect(function()
+	connections[#connections + 1] = sectionFrame.SectionControls.WaitTime.FocusLost:Connect(function()
 		local waitTime = tonumber(sectionFrame.SectionControls.WaitTime.Text)
 		if waitTime >= 0.001 and waitTime <= 10 then
 			setPause(false)
@@ -318,7 +363,7 @@ local function registerSection(section: number)
 
 		coroutines[section].waitTime = tonumber(sectionFrame.SectionControls.WaitTime.Text)
 
-		for i,v in pairs(elsContainer:GetChildren()) do
+		for i, v in pairs(elsContainer:GetChildren()) do
 			if v:IsA("Frame") and v:GetAttribute("ConnectedTo") == section then
 				if v.SectionControls.WaitTime.Text ~= sectionFrame.SectionControls.WaitTime.Text then
 					v:SetAttribute("ConnectedTo", nil)
@@ -326,7 +371,7 @@ local function registerSection(section: number)
 			end
 		end
 
-		for i,v in pairs(coroutines) do
+		for i, v in pairs(coroutines) do
 			if v.waitTime == tonumber(sectionFrame.SectionControls.WaitTime.Text) and i ~= section then
 				sectionFrame:SetAttribute("ConnectedTo", i)
 				return
@@ -339,10 +384,10 @@ local function registerSection(section: number)
 	coroutines[section] = {
 		run = true,
 		waitTime = tonumber(sectionFrame.SectionControls.WaitTime.Text),
-		coro = coroutine.create(update)
+		coro = coroutine.create(update),
 	}
 
-	for i,v in pairs(coroutines) do
+	for i, v in pairs(coroutines) do
 		if v.waitTime == tonumber(sectionFrame.SectionControls.WaitTime.Text) and i ~= section then
 			sectionFrame:SetAttribute("ConnectedTo", i)
 		end
@@ -351,16 +396,16 @@ local function registerSection(section: number)
 
 	-- Handle Controls
 
-	for i,v in pairs(sectionFrame.Columns:GetChildren()) do
+	for i, v in pairs(sectionFrame.Columns:GetChildren()) do
 		if v.Name ~= "Buttons" and v:IsA("Frame") then
 			registerColumn(tonumber(v.Name), sectionFrame)
 		end
 	end
-	
+
 	if section == 1 then
 		sectionFrame.SectionControls.RemoveButton.ImageTransparency = 1
 	end
-	
+
 	local function addVisible()
 		if section ~= #elsContainer:GetChildren() - 2 then
 			sectionFrame.SectionControls.Add.Visible = false
@@ -371,9 +416,9 @@ local function registerSection(section: number)
 		end
 	end
 	addVisible()
-	connections[#connections+1] = elsContainer.ChildAdded:Connect(addVisible)
-	connections[#connections+1] = elsContainer.ChildRemoved:Connect(addVisible)
-	
+	connections[#connections + 1] = elsContainer.ChildAdded:Connect(addVisible)
+	connections[#connections + 1] = elsContainer.ChildRemoved:Connect(addVisible)
+
 	local function removeRowVisible()
 		if sectionFrame:GetAttribute("Rows") == 1 then
 			sectionFrame.Columns.Buttons.Controls.RemoveHolder.Visible = false
@@ -383,11 +428,12 @@ local function registerSection(section: number)
 
 		if sectionFrame:GetAttribute("Count") > sectionFrame:GetAttribute("Rows") then
 			sectionFrame:SetAttribute("Count", sectionFrame:GetAttribute("Rows"))
-			sectionFrame.IndicatorHolder.Indicator.Position = UDim2.new(0.5, 1, 0, ((sectionFrame:GetAttribute("Count")-1)*20)-3)
+			sectionFrame.IndicatorHolder.Indicator.Position =
+				UDim2.new(0.5, 1, 0, ((sectionFrame:GetAttribute("Count") - 1) * 20) - 3)
 		end
 	end
 	removeRowVisible()
-	connections[#connections+1] = sectionFrame:GetAttributeChangedSignal("Rows"):Connect(removeRowVisible)
+	connections[#connections + 1] = sectionFrame:GetAttributeChangedSignal("Rows"):Connect(removeRowVisible)
 
 	local function removeColumnVisible()
 		if #sectionFrame.Columns:GetChildren() == 3 then
@@ -397,93 +443,133 @@ local function registerSection(section: number)
 		end
 	end
 	removeColumnVisible()
-	connections[#connections+1] = sectionFrame.Columns.ChildAdded:Connect(removeColumnVisible)
-	connections[#connections+1] = sectionFrame.Columns.ChildRemoved:Connect(removeColumnVisible)
-	
-	-- Add/Remove Row
-	connections[#connections+1] = sectionFrame.Columns.Buttons.Controls.AddHolder.Add.MouseButton1Click:Connect(function()
-		for i,v in pairs(sectionFrame.Columns:GetChildren()) do
-			if v:IsA("Frame") and v.Name ~= "Buttons" then
-				local row = require(elsCreatorComponents:WaitForChild("columnRow"))(sectionFrame:GetAttribute("Rows")+1)
-				row.Parent = v
-				registerRow(row)
-			elseif v:IsA("Frame") and v.Name == "Buttons" then
-				local row = require(elsCreatorComponents:WaitForChild("columnRow"))(sectionFrame:GetAttribute("Rows"))
-				row.BackgroundTransparency = 1
-				row.UICorner:Destroy()
-				row.Parent = v
-			end
-		end
-		sectionFrame:SetAttribute("Rows", sectionFrame:GetAttribute("Rows")+1)
-	end)
+	connections[#connections + 1] = sectionFrame.Columns.ChildAdded:Connect(removeColumnVisible)
+	connections[#connections + 1] = sectionFrame.Columns.ChildRemoved:Connect(removeColumnVisible)
 
-	connections[#connections+1] = sectionFrame.Columns.Buttons.Controls.RemoveHolder.RemoveButton.MouseButton1Click:Connect(function()
-		if elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then return end
-		elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
-		confirmPrompt("Are you sure you want to remove this row? <b>Any unsaved progress will be lost!</b>", function(confirm)
-			if confirm then
-				if sectionFrame:GetAttribute("Rows") == 1 then return end
-				for i,v in pairs(sectionFrame.Columns:GetChildren()) do
-					if v:IsA("Frame") and v.Name ~= "Buttons" then
-						v:WaitForChild(sectionFrame:GetAttribute("Rows")):Destroy()
-						elseif v:IsA("Frame") and v.Name == "Buttons" then
-							v:WaitForChild(sectionFrame:GetAttribute("Rows")-1):Destroy()
+	-- Add/Remove Row
+	connections[#connections + 1] = sectionFrame.Columns.Buttons.Controls.AddHolder.Add.MouseButton1Click:Connect(
+		function()
+			for i, v in pairs(sectionFrame.Columns:GetChildren()) do
+				if v:IsA("Frame") and v.Name ~= "Buttons" then
+					local row =
+						require(elsCreatorComponents:WaitForChild("columnRow"))(sectionFrame:GetAttribute("Rows") + 1)
+					row.Parent = v
+					registerRow(row)
+				elseif v:IsA("Frame") and v.Name == "Buttons" then
+					local row =
+						require(elsCreatorComponents:WaitForChild("columnRow"))(sectionFrame:GetAttribute("Rows"))
+					row.BackgroundTransparency = 1
+					row.UICorner:Destroy()
+					row.Parent = v
+				end
+			end
+			sectionFrame:SetAttribute("Rows", sectionFrame:GetAttribute("Rows") + 1)
+		end
+	)
+
+	connections[#connections + 1] = sectionFrame.Columns.Buttons.Controls.RemoveHolder.RemoveButton.MouseButton1Click:Connect(
+		function()
+			if elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then
+				return
+			end
+			elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
+			confirmPrompt(
+				"Are you sure you want to remove this row? <b>Any unsaved progress will be lost!</b>",
+				function(confirm)
+					if confirm then
+						if sectionFrame:GetAttribute("Rows") == 1 then
+							return
+						end
+						for i, v in pairs(sectionFrame.Columns:GetChildren()) do
+							if v:IsA("Frame") and v.Name ~= "Buttons" then
+								v:WaitForChild(sectionFrame:GetAttribute("Rows")):Destroy()
+							elseif v:IsA("Frame") and v.Name == "Buttons" then
+								v:WaitForChild(sectionFrame:GetAttribute("Rows") - 1):Destroy()
+							end
 						end
 					end
+					sectionFrame:SetAttribute("Rows", sectionFrame:GetAttribute("Rows") - 1)
+					elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
 				end
-				sectionFrame:SetAttribute("Rows", sectionFrame:GetAttribute("Rows")-1)
-			elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
-		end).Parent = elsCreator.container.Parent.PopUps
-	end)
+			).Parent =
+				elsCreator.container.Parent.PopUps
+		end
+	)
 
 	-- Add/Remove Columns
-	connections[#connections+1] = sectionFrame.ColumnHeaders.Buttons.Controls.AddHolder.Add.MouseButton1Click:Connect(function()
-		local column = require(elsCreatorComponents:WaitForChild("column"))(#sectionFrame.Columns:GetChildren()-1, sectionFrame:GetAttribute("Rows"))
-		column.Parent = sectionFrame.Columns
-		local columnHeader = require(elsCreatorComponents:WaitForChild("columnHeader"))(tonumber(column.Name))
-		columnHeader.Parent = sectionFrame.ColumnHeaders
-		sectionFrame.Size += UDim2.new(0, 37, 0, 0)
-		registerColumn(tonumber(column.Name), sectionFrame)
-	end)
+	connections[#connections + 1] = sectionFrame.ColumnHeaders.Buttons.Controls.AddHolder.Add.MouseButton1Click:Connect(
+		function()
+			local column = require(elsCreatorComponents:WaitForChild("column"))(
+				#sectionFrame.Columns:GetChildren() - 1,
+				sectionFrame:GetAttribute("Rows")
+			)
+			column.Parent = sectionFrame.Columns
+			local columnHeader = require(elsCreatorComponents:WaitForChild("columnHeader"))(tonumber(column.Name))
+			columnHeader.Parent = sectionFrame.ColumnHeaders
+			sectionFrame.Size += UDim2.new(0, 37, 0, 0)
+			registerColumn(tonumber(column.Name), sectionFrame)
+		end
+	)
 
-	connections[#connections+1] = sectionFrame.ColumnHeaders.Buttons.Controls.RemoveHolder.RemoveButton.MouseButton1Click:Connect(function()
-		if elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then return end
-		elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
-		confirmPrompt("Are you sure you want to remove this column? <b>Any unsaved progress will be lost!</b>", function(confirm)
-			elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
-			if confirm then
-				if #sectionFrame.Columns:GetChildren() == 3 then return end
-				sectionFrame.Columns:WaitForChild(#sectionFrame.Columns:GetChildren()-2):Destroy()
-				sectionFrame.ColumnHeaders:WaitForChild(#sectionFrame.ColumnHeaders:GetChildren()-2):Destroy()
-				sectionFrame.Size -= UDim2.new(0, 37, 0, 0)
+	connections[#connections + 1] = sectionFrame.ColumnHeaders.Buttons.Controls.RemoveHolder.RemoveButton.MouseButton1Click:Connect(
+		function()
+			if elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then
+				return
 			end
-		end).Parent = elsCreator.container.Parent.PopUps
-	end)
+			elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
+			confirmPrompt(
+				"Are you sure you want to remove this column? <b>Any unsaved progress will be lost!</b>",
+				function(confirm)
+					elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
+					if confirm then
+						if #sectionFrame.Columns:GetChildren() == 3 then
+							return
+						end
+						sectionFrame.Columns:WaitForChild(#sectionFrame.Columns:GetChildren() - 2):Destroy()
+						sectionFrame.ColumnHeaders:WaitForChild(#sectionFrame.ColumnHeaders:GetChildren() - 2):Destroy()
+						sectionFrame.Size -= UDim2.new(0, 37, 0, 0)
+					end
+				end
+			).Parent =
+				elsCreator.container.Parent.PopUps
+		end
+	)
 
 	-- Add/Remove Section
-	connections[#connections+1] = sectionFrame.SectionControls.Add.MouseButton1Click:Connect(function()
+	connections[#connections + 1] = sectionFrame.SectionControls.Add.MouseButton1Click:Connect(function()
 		resetCounters()
-		require(elsCreatorComponents:WaitForChild("section"))(section+1).Parent = elsContainer
-		registerSection(section+1)
+		require(elsCreatorComponents:WaitForChild("section"))(section + 1).Parent = elsContainer
+		registerSection(section + 1)
 	end)
 
-	connections[#connections+1] = sectionFrame.SectionControls.RemoveButton.MouseButton1Click:Connect(function()
-		if section == 1 then return end
-		if elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then return end
+	connections[#connections + 1] = sectionFrame.SectionControls.RemoveButton.MouseButton1Click:Connect(function()
+		if section == 1 then
+			return
+		end
+		if elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then
+			return
+		end
 		resetCounters()
 		elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
-		confirmPrompt("Are you sure you want to remove this section? <b>Any unsaved progress will be lost!</b>", function(confirm)
-			elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
-			if confirm then
-				sectionFrame:Destroy()
+		confirmPrompt(
+			"Are you sure you want to remove this section? <b>Any unsaved progress will be lost!</b>",
+			function(confirm)
+				elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
+				if confirm then
+					sectionFrame:Destroy()
+				end
 			end
-		end).Parent = elsCreator.container.Parent.PopUps
+		).Parent =
+			elsCreator.container.Parent.PopUps
 	end)
 
-	connections[#connections+1] = sectionFrame.Destroying:Connect(function()
+	connections[#connections + 1] = sectionFrame.Destroying:Connect(function()
 		coroutines[section].run = false
-		if connectedTo then connectedTo:Disconnect() connectedTo = nil end
-		for i,v in pairs(connections) do
+		if connectedTo then
+			connectedTo:Disconnect()
+			connectedTo = nil
+		end
+		for i, v in pairs(connections) do
 			v:Disconnect()
 		end
 	end)
@@ -495,18 +581,18 @@ registerSection(1)
 
 local function reset()
 	resetCounters()
-	for i,v in pairs(elsContainer:GetChildren()) do
+	for i, v in pairs(elsContainer:GetChildren()) do
 		if v:IsA("Frame") and v.Name ~= "Section1" then
 			v:Destroy()
 		end
 	end
 
-	for i,v in pairs(elsContainer.Section1.Columns:GetChildren()) do
+	for i, v in pairs(elsContainer.Section1.Columns:GetChildren()) do
 		if v:IsA("Frame") and (v.Name ~= "1" and v.Name ~= "Buttons") then
 			v:Destroy()
 		end
 	end
-	for i,v in pairs(elsContainer.Section1.ColumnHeaders:GetChildren()) do
+	for i, v in pairs(elsContainer.Section1.ColumnHeaders:GetChildren()) do
 		if v:IsA("Frame") and (v.Name ~= "1" and v.Name ~= "Buttons") then
 			v:Destroy()
 		end
@@ -534,12 +620,12 @@ local function reset()
 			-- 		registerRow(row)
 			-- 	end
 			-- end
-			for i,v in pairs(frame:GetChildren()) do
+			for i, v in pairs(frame:GetChildren()) do
 				if v:IsA("Frame") then
 					v:Destroy()
 				end
 			end
-			
+
 			for i = 1, elsContainer.Section1:GetAttribute("Rows") do
 				local row = require(elsCreatorComponents:WaitForChild("columnRow"))(i)
 				row.Parent = frame
@@ -547,7 +633,7 @@ local function reset()
 			end
 		end
 
-		for i,v in pairs(frame:GetChildren()) do
+		for i, v in pairs(frame:GetChildren()) do
 			if v:IsA("Frame") and v.Name ~= "Buttons" then
 				v:SetAttribute("Color", 0)
 			end
@@ -573,13 +659,13 @@ local function reset()
 			-- 		registerRow(row)
 			-- 	end
 			-- end
-			for i,v in pairs(frame:GetChildren()) do
+			for i, v in pairs(frame:GetChildren()) do
 				if v:IsA("Frame") and v.Name ~= "Controls" then
 					v:Destroy()
 				end
 			end
-			
-			for i = 1, elsContainer.Section1:GetAttribute("Rows")-1 do
+
+			for i = 1, elsContainer.Section1:GetAttribute("Rows") - 1 do
 				local row = require(elsCreatorComponents:WaitForChild("columnRow"))(i)
 				row.Parent = frame
 				row.BackgroundTransparency = 1
@@ -590,30 +676,39 @@ local function reset()
 end
 
 local function confirmReset()
-	if elsCreator.container == nil then return end
-	if elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then return end
+	if elsCreator.container == nil then
+		return
+	end
+	if elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then
+		return
+	end
 	elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
 	confirmPrompt("Are you sure you want to reset? \n<b>Any unsaved progress will be lost!</b>", function(confirm)
 		if confirm then
 			reset()
 		end
 		elsCreator.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
-	end).Parent = elsCreator.container.Parent.PopUps
+	end).Parent =
+		elsCreator.container.Parent.PopUps
 end
 
 resetButton.Image.MouseButton1Click:Connect(function()
 	confirmReset()
 end)
 
-elsCreator.loadFromTable = function(data: {number:{string:any}})
+elsCreator.loadFromTable = function(data: { number: { string: any } })
 	reset()
 
 	task.wait(0.25)
 
 	-- for section,sectionData in pairs(data) do
-	for section=1,#data do
+	for section = 1, #data do
 		local sectionData = data[section]
-		if typeof(sectionData["WaitTime"]) == "number" and typeof(sectionData["Columns"]) == "table" and typeof(sectionData["Columns"][1]) == "table" then
+		if
+			typeof(sectionData["WaitTime"]) == "number"
+			and typeof(sectionData["Columns"]) == "table"
+			and typeof(sectionData["Columns"][1]) == "table"
+		then
 			local sectionFrame = elsContainer.Section1
 			if section ~= 1 then
 				sectionFrame = require(elsCreatorComponents:WaitForChild("section"))(section)
@@ -625,9 +720,13 @@ elsCreator.loadFromTable = function(data: {number:{string:any}})
 
 			-- for column,columnData in pairs(sectionData.Columns) do
 			local numberOfRows = 0
-			for column=1,#sectionData.Columns do
+			for column = 1, #sectionData.Columns do
 				local columnData = sectionData.Columns[column]
-				if typeof(columnData) == "table" and typeof(columnData["Name"]) == "string" and typeof(columnData["Rows"]) == "table" then
+				if
+					typeof(columnData) == "table"
+					and typeof(columnData["Name"]) == "string"
+					and typeof(columnData["Rows"]) == "table"
+				then
 					local columnFrame = sectionFrame.Columns:FindFirstChild(tostring(column))
 					local columnHeader = sectionFrame.ColumnHeaders:FindFirstChild(tostring(column))
 					numberOfRows = rawlen(columnData["Rows"])
@@ -645,7 +744,7 @@ elsCreator.loadFromTable = function(data: {number:{string:any}})
 
 					-- for row,rowData in pairs(columnData["Rows"]) do
 					sectionFrame:SetAttribute("Rows", numberOfRows)
-					for row=1,numberOfRows do
+					for row = 1, numberOfRows do
 						task.spawn(function()
 							local rowData = columnData["Rows"][row]
 							if typeof(rowData) == "number" then
@@ -661,7 +760,7 @@ elsCreator.loadFromTable = function(data: {number:{string:any}})
 						end)
 					end
 
-					for _,row in pairs(columnFrame:GetChildren()) do
+					for _, row in pairs(columnFrame:GetChildren()) do
 						if row:IsA("Frame") and row.LayoutOrder > numberOfRows then
 							row:Destroy()
 						end
@@ -669,15 +768,17 @@ elsCreator.loadFromTable = function(data: {number:{string:any}})
 				end
 			end
 
-			if #sectionFrame.Columns.Buttons:GetChildren()-1 > numberOfRows then
-				for _,row in pairs(sectionFrame.Columns.Buttons:GetChildren()) do
-					if row:IsA("Frame") and row.Name ~= "Controls" and row.LayoutOrder+1 > numberOfRows then
+			if #sectionFrame.Columns.Buttons:GetChildren() - 1 > numberOfRows then
+				for _, row in pairs(sectionFrame.Columns.Buttons:GetChildren()) do
+					if row:IsA("Frame") and row.Name ~= "Controls" and row.LayoutOrder + 1 > numberOfRows then
 						row:Destroy()
 					end
 				end
-			elseif #sectionFrame.Columns.Buttons:GetChildren()-1 < numberOfRows then
-				for i = 1, numberOfRows-#sectionFrame.Columns.Buttons:GetChildren()+1 do
-					local row = require(elsCreatorComponents:WaitForChild("columnRow"))(#sectionFrame.Columns.Buttons:GetChildren()-1)
+			elseif #sectionFrame.Columns.Buttons:GetChildren() - 1 < numberOfRows then
+				for i = 1, numberOfRows - #sectionFrame.Columns.Buttons:GetChildren() + 1 do
+					local row = require(elsCreatorComponents:WaitForChild("columnRow"))(
+						#sectionFrame.Columns.Buttons:GetChildren() - 1
+					)
 					row.Parent = sectionFrame.Columns.Buttons
 					row.BackgroundTransparency = 1
 					row.UICorner:Destroy()
@@ -691,21 +792,21 @@ end
 elsCreator.toTable = function()
 	local data = {}
 
-	for _,section in pairs(elsContainer:GetChildren()) do
+	for _, section in pairs(elsContainer:GetChildren()) do
 		if section:IsA("Frame") and section:FindFirstChild("SectionControls") then
 			local sectionData = {
 				WaitTime = tonumber(section.SectionControls.WaitTime.Text),
-				Columns = {}
+				Columns = {},
 			}
 
-			for _,column in pairs(section.Columns:GetChildren()) do
+			for _, column in pairs(section.Columns:GetChildren()) do
 				if column:IsA("Frame") and column.Name ~= "Buttons" then
 					local columnData = {
 						Name = section.ColumnHeaders[column.LayoutOrder].Top.TextBox.Text,
-						Rows = {}
+						Rows = {},
 					}
 
-					for _,row in pairs(column:GetChildren()) do
+					for _, row in pairs(column:GetChildren()) do
 						if row:IsA("Frame") and row.Name ~= "Buttons" then
 							-- table.insert(columnData["Rows"], v3:GetAttribute("Color"))
 							columnData["Rows"][row.LayoutOrder] = row:GetAttribute("Color")
@@ -749,7 +850,9 @@ local colorChanges = {
 	[Enum.KeyCode.Y] = 6,
 }
 elsCreator.InputBegan = function(input: InputObject)
-	if elsCreator.enabled == false then return end
+	if elsCreator.enabled == false then
+		return
+	end
 
 	if colorChanges[input.KeyCode] then
 		setColor(colorChanges[input.KeyCode])
@@ -780,7 +883,9 @@ lockButton.Image.MouseButton1Click:Connect(function()
 end)
 
 elsCreator.InputEnded = function(input: InputObject)
-	if elsCreator.enabled == false then return end
+	if elsCreator.enabled == false then
+		return
+	end
 
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		mouseDown = false

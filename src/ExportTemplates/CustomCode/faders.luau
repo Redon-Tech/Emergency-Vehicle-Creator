@@ -22,7 +22,7 @@ local Colors = {
 local function light(LightName, Color)
 	local Light = Lightbar[LightName]
 	if Color == 0 then
-		for i,v in pairs(Light:GetDescendants()) do
+		for i, v in pairs(Light:GetDescendants()) do
 			if v:IsA("GuiObject") then
 				v.Visible = false
 			elseif v:IsA("Light") or v:IsA("SurfaceGui") then
@@ -33,7 +33,7 @@ local function light(LightName, Color)
 		end
 		Light.Transparency = 1
 	else
-		for i,v in pairs(Light:GetDescendants()) do
+		for i, v in pairs(Light:GetDescendants()) do
 			if v:IsA("GuiObject") then
 				v.Visible = true
 				v.ImageColor3 = Colors[Color]
@@ -51,7 +51,6 @@ local function light(LightName, Color)
 		Light.Color = Colors[Color]
 	end
 end
-
 
 -- Main Loop
 --------------

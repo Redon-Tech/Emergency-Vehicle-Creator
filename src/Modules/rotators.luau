@@ -10,7 +10,7 @@ EVC V2
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local pluginRoot = script.Parent.Parent.Parent
-local rotators = {enabled = false, canExport = true, container = nil}
+local rotators = { enabled = false, canExport = true, container = nil }
 
 local colors = {
 	[0] = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
@@ -54,7 +54,12 @@ local confirmPrompt = require(Components:WaitForChild("popups"):WaitForChild("co
 local controls = require(reusedContent:WaitForChild("controls"))()
 local rotatorContainer = require(rotatorComponents:WaitForChild("container"))(colorDropdown, colorLabels)
 
-local pauseButton = require(reusedContent:WaitForChild("iconButton"))("Pause", 7, "rbxassetid://12758044104", "rbxassetid://12758044683")
+local pauseButton = require(reusedContent:WaitForChild("iconButton"))(
+	"Pause",
+	7,
+	"rbxassetid://12758044104",
+	"rbxassetid://12758044683"
+)
 local resetButton = require(reusedContent:WaitForChild("iconButton"))("Reset", 9, "rbxassetid://12758045258")
 pauseButton.Parent = controls
 pauseButton:SetAttribute("Icon", pause)
@@ -106,7 +111,9 @@ local function threadFunction()
 	local motor = rotatorContainer.ViewportFrame.WorldModel.Motor.Motor6D
 	local connection
 	connection = RunService.Heartbeat:Connect(function()
-		if rotators.enabled == false then connection:Disconnect() end
+		if rotators.enabled == false then
+			connection:Disconnect()
+		end
 
 		if motor:GetAttribute("Reset") == true then
 			-- if currentPreview ~= nil and currentPreviewAngle ~= nil then
@@ -124,7 +131,6 @@ local function threadFunction()
 			motor.C1 = CFrame.Angles(math.rad(90), 0, 0)
 
 			rotatorContainer.ViewportFrame.WorldModel.Part:SetAttribute("Color", 0)
-
 
 			motor:SetAttribute("Reset", false)
 		end
@@ -160,8 +166,10 @@ local function threadFunction()
 				-- 	rotatorContainer.ViewportFrame.WorldModel.Part:SetAttribute("Color", angleFrame.Color:GetAttribute("Color"))
 				-- end
 				if currentPreview ~= nil and currentPreviewAngle ~= nil then
-					local currentPreviewFrame = rotatorContainer.ControlsHolder:FindFirstChild(`Section{currentPreview}`)
-					local currentPreviewAngleFrame = currentPreviewFrame.Options:FindFirstChild(`Angle{currentPreviewAngle}`)
+					local currentPreviewFrame =
+						rotatorContainer.ControlsHolder:FindFirstChild(`Section{currentPreview}`)
+					local currentPreviewAngleFrame =
+						currentPreviewFrame.Options:FindFirstChild(`Angle{currentPreviewAngle}`)
 
 					if currentPreviewFrame:GetAttribute("Angles") == currentPreviewAngle then
 						currentPreviewAngle = 1
@@ -170,15 +178,25 @@ local function threadFunction()
 					end
 
 					local angleFrame = currentPreviewFrame.Options:FindFirstChild(`Angle{currentPreviewAngle}`)
-					currentPreviewAngleFrame.ImageLabel.ImageColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
-					angleFrame.ImageLabel.ImageColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Selected)
-					if tonumber(angleFrame.Velocity.TextBox.Text) == nil or tonumber(angleFrame.Angle.TextBox.Text) == nil then
+					currentPreviewAngleFrame.ImageLabel.ImageColor3 =
+						settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+					angleFrame.ImageLabel.ImageColor3 = settings().Studio.Theme:GetColor(
+						Enum.StudioStyleGuideColor.Button,
+						Enum.StudioStyleGuideModifier.Selected
+					)
+					if
+						tonumber(angleFrame.Velocity.TextBox.Text) == nil
+						or tonumber(angleFrame.Angle.TextBox.Text) == nil
+					then
 						setPause(true)
 						return
 					end
 					motor.MaxVelocity = tonumber(angleFrame.Velocity.TextBox.Text)
 					motor:SetAttribute("DesiredAngle", math.rad(tonumber(angleFrame.Angle.TextBox.Text)))
-					rotatorContainer.ViewportFrame.WorldModel.Part:SetAttribute("Color", angleFrame.Color:GetAttribute("Color"))
+					rotatorContainer.ViewportFrame.WorldModel.Part:SetAttribute(
+						"Color",
+						angleFrame.Color:GetAttribute("Color")
+					)
 				end
 			else
 				currentRad += if diff > 0 then currentVelocity else -currentVelocity
@@ -237,17 +255,20 @@ local function changePreview(section: number)
 	setPause(true)
 	pauseButton:SetAttribute("Icon", pause)
 	resetPreview()
-	task.wait(.1)
+	task.wait(0.1)
 
 	if currentPreview == section then
 		currentPreview = nil
-		rotatorContainer.ControlsHolder:FindFirstChild(`Section{section}`).Options.TopOptions.Enabled.Checkbox.Checkmark.Visible = false
+		rotatorContainer.ControlsHolder:FindFirstChild(`Section{section}`).Options.TopOptions.Enabled.Checkbox.Checkmark.Visible =
+			false
 	else
 		local oldSection = currentPreview
 		local oldSectionFrame = rotatorContainer.ControlsHolder:FindFirstChild(`Section{oldSection}`)
 		local sectionFrame = rotatorContainer.ControlsHolder:FindFirstChild(`Section{section}`)
 
-		if oldSectionFrame then oldSectionFrame.Options.TopOptions.Enabled.Checkbox.Checkmark.Visible = false end
+		if oldSectionFrame then
+			oldSectionFrame.Options.TopOptions.Enabled.Checkbox.Checkmark.Visible = false
+		end
 		sectionFrame.Options.TopOptions.Enabled.Checkbox.Checkmark.Visible = true
 
 		currentPreview = section
@@ -261,7 +282,7 @@ local function registerAngle(sectionFrame: Frame, angle: number)
 	local connections = {}
 	local didSetPause = false
 
-	connections[#connections+1] = angleFrame.Color:GetAttributeChangedSignal("Color"):Connect(function()
+	connections[#connections + 1] = angleFrame.Color:GetAttributeChangedSignal("Color"):Connect(function()
 		angleFrame.Color.BackgroundColor3 = colors[angleFrame.Color:GetAttribute("Color")]
 		-- if angleFrame.Color:GetAttribute("Color") == 0 then
 		-- 	angleFrame.Color.TextButton.TextColor3 = settings().Studio.Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
@@ -281,24 +302,28 @@ local function registerAngle(sectionFrame: Frame, angle: number)
 	end)
 
 	angleFrame.Color:SetAttribute("Color", 0)
-	connections[#connections+1] = angleFrame.Color.TextButton.MouseButton1Click:Connect(function()
-		if sectionFrame.Dropdown.Color:GetAttribute("debounce") == true then return end
+	connections[#connections + 1] = angleFrame.Color.TextButton.MouseButton1Click:Connect(function()
+		if sectionFrame.Dropdown.Color:GetAttribute("debounce") == true then
+			return
+		end
 		sectionFrame.Dropdown.Color:SetAttribute("debounce", true)
 		if sectionFrame.Dropdown.Color:GetAttribute("currentFrame") == angle then
 			sectionFrame.Dropdown.Color.Visible = false
 		else
 			local colorConnections = {}
 			sectionFrame.Dropdown.Color:SetAttribute("currentFrame", angle)
-			colorConnections[#colorConnections+1] = sectionFrame.Dropdown.Color:GetAttributeChangedSignal("currentFrame"):Connect(function()
-				for i = 1, #colorConnections do
-					colorConnections[i]:Disconnect()
-				end
-			end)
+			colorConnections[#colorConnections + 1] = sectionFrame.Dropdown.Color
+				:GetAttributeChangedSignal("currentFrame")
+				:Connect(function()
+					for i = 1, #colorConnections do
+						colorConnections[i]:Disconnect()
+					end
+				end)
 			sectionFrame.Dropdown.Color.Visible = true
-			sectionFrame.Dropdown.Color.Position = UDim2.new(0.5, 0, 0, (105*(angle - 1)) + 170)
-			for i,v in pairs(sectionFrame.Dropdown.Color:GetChildren()) do
+			sectionFrame.Dropdown.Color.Position = UDim2.new(0.5, 0, 0, (105 * (angle - 1)) + 170)
+			for i, v in pairs(sectionFrame.Dropdown.Color:GetChildren()) do
 				if v:IsA("TextButton") then
-					colorConnections[#colorConnections+1] = v.MouseButton1Click:Connect(function()
+					colorConnections[#colorConnections + 1] = v.MouseButton1Click:Connect(function()
 						angleFrame.Color:SetAttribute("Color", v.LayoutOrder)
 						sectionFrame.Dropdown.Color.Visible = false
 						sectionFrame.Dropdown.Color:SetAttribute("currentFrame", nil)
@@ -312,12 +337,12 @@ local function registerAngle(sectionFrame: Frame, angle: number)
 		sectionFrame.Dropdown.Color:SetAttribute("debounce", false)
 	end)
 
-	connections[#connections+1] = angleFrame.Angle.TextBox.Focused:Connect(function()
+	connections[#connections + 1] = angleFrame.Angle.TextBox.Focused:Connect(function()
 		didSetPause = if pause == false then true else false
 		setPause(true)
 	end)
 
-	connections[#connections+1] = angleFrame.Angle.TextBox.FocusLost:Connect(function(enterPressed)
+	connections[#connections + 1] = angleFrame.Angle.TextBox.FocusLost:Connect(function(enterPressed)
 		if didSetPause then
 			setPause(false)
 			didSetPause = false
@@ -330,19 +355,19 @@ local function registerAngle(sectionFrame: Frame, angle: number)
 		end
 	end)
 
-	connections[#connections+1] = angleFrame.Velocity.TextBox.Focused:Connect(function()
+	connections[#connections + 1] = angleFrame.Velocity.TextBox.Focused:Connect(function()
 		didSetPause = if pause == false then true else false
 		setPause(true)
 	end)
 
-	connections[#connections+1] = angleFrame.Velocity.TextBox.FocusLost:Connect(function()
+	connections[#connections + 1] = angleFrame.Velocity.TextBox.FocusLost:Connect(function()
 		if didSetPause then
 			setPause(false)
 			didSetPause = false
 		end
 	end)
 
-	connections[#connections+1] = angleFrame.Destroying:Connect(function()
+	connections[#connections + 1] = angleFrame.Destroying:Connect(function()
 		for i = 1, #connections do
 			connections[i]:Disconnect()
 		end
@@ -360,29 +385,38 @@ local function registerSection(section: number)
 
 	sectionFrame.Options.TopOptions.NameBox.TextBox.PlaceholderText = `Rotator{section}`
 
-	connections[#connections+1] = sectionFrame.Options.TopOptions.NameBox.TextBox.FocusLost:Connect(function(enterPressed)
-		if enterPressed then
-			if rotatorContainer.ControlsHolder:FindFirstChild(`Section{section+1}`) then
-				rotatorContainer.ControlsHolder:FindFirstChild(`Section{section+1}`).Options.TopOptions.NameBox.TextBox:CaptureFocus()
-				RunService.Heartbeat:Wait()
-				rotatorContainer.ControlsHolder:FindFirstChild(`Section{section+1}`).Options.TopOptions.NameBox.TextBox.Text = ""
+	connections[#connections + 1] = sectionFrame.Options.TopOptions.NameBox.TextBox.FocusLost:Connect(
+		function(enterPressed)
+			if enterPressed then
+				if rotatorContainer.ControlsHolder:FindFirstChild(`Section{section + 1}`) then
+					rotatorContainer.ControlsHolder
+						:FindFirstChild(`Section{section + 1}`).Options.TopOptions.NameBox.TextBox
+						:CaptureFocus()
+					RunService.Heartbeat:Wait()
+					rotatorContainer.ControlsHolder:FindFirstChild(`Section{section + 1}`).Options.TopOptions.NameBox.TextBox.Text =
+						""
+				end
 			end
 		end
-	end)
+	)
 
 	-- Handle Controls
 
 	-- Set Preview
-	connections[#connections+1] = sectionFrame.Options.TopOptions.Enabled.Checkbox.Button.MouseButton1Click:Connect(function()
-		changePreview(section)
-	end)
+	connections[#connections + 1] = sectionFrame.Options.TopOptions.Enabled.Checkbox.Button.MouseButton1Click:Connect(
+		function()
+			changePreview(section)
+		end
+	)
 
 	if section == 1 then
 		sectionFrame.Buttons.TopControls.RemoveHolder.Visible = false
 	end
 
 	local function sectionAddVisible()
-		if rotatorContainer:FindFirstChild("ControlsHolder") == nil then return end
+		if rotatorContainer:FindFirstChild("ControlsHolder") == nil then
+			return
+		end
 		if section ~= #rotatorContainer.ControlsHolder:GetChildren() - 2 then
 			sectionFrame.Buttons.TopControls.AddHolder.Visible = false
 			sectionFrame.Buttons.TopControls.RemoveHolder.Visible = false
@@ -392,19 +426,25 @@ local function registerSection(section: number)
 		end
 	end
 	sectionAddVisible()
-	connections[#connections+1] = rotatorContainer.ControlsHolder.ChildAdded:Connect(sectionAddVisible)
-	connections[#connections+1] = rotatorContainer.ControlsHolder.ChildRemoved:Connect(sectionAddVisible)
+	connections[#connections + 1] = rotatorContainer.ControlsHolder.ChildAdded:Connect(sectionAddVisible)
+	connections[#connections + 1] = rotatorContainer.ControlsHolder.ChildRemoved:Connect(sectionAddVisible)
 
 	local function angleChildrenChange()
-		if sectionFrame:FindFirstChild("Buttons") == nil then return end
+		if sectionFrame:FindFirstChild("Buttons") == nil then
+			return
+		end
 		if sectionFrame:GetAttribute("Angles") == 1 then
 			sectionFrame.Buttons.Controls.RemoveHolder.Visible = false
 		else
 			sectionFrame.Buttons.Controls.RemoveHolder.Visible = true
 		end
-		
-		if sectionFrame:FindFirstChild("Options") == nil then return end
-		if sectionFrame:FindFirstChild("Buttons") == nil then return end
+
+		if sectionFrame:FindFirstChild("Options") == nil then
+			return
+		end
+		if sectionFrame:FindFirstChild("Buttons") == nil then
+			return
+		end
 		if #sectionFrame.Options:GetChildren() ~= #sectionFrame.Buttons:GetChildren() then
 			local difference = #sectionFrame.Options:GetChildren() - #sectionFrame.Buttons:GetChildren()
 			if difference > 0 then
@@ -423,32 +463,42 @@ local function registerSection(section: number)
 		end
 	end
 	angleChildrenChange()
-	connections[#connections+1] = sectionFrame.Options.ChildAdded:Connect(angleChildrenChange)
-	connections[#connections+1] = sectionFrame.Options.ChildRemoved:Connect(angleChildrenChange)
-	connections[#connections+1] = sectionFrame:GetAttributeChangedSignal("Angles"):Connect(angleChildrenChange)
+	connections[#connections + 1] = sectionFrame.Options.ChildAdded:Connect(angleChildrenChange)
+	connections[#connections + 1] = sectionFrame.Options.ChildRemoved:Connect(angleChildrenChange)
+	connections[#connections + 1] = sectionFrame:GetAttributeChangedSignal("Angles"):Connect(angleChildrenChange)
 
 	-- Add Section
-	connections[#connections+1] = sectionFrame.Buttons.TopControls.AddHolder.Add.MouseButton1Click:Connect(function()
-		local newSection = require(rotatorComponents:WaitForChild("section"))(section+1, colorDropdown, colorLabels)
+	connections[#connections + 1] = sectionFrame.Buttons.TopControls.AddHolder.Add.MouseButton1Click:Connect(function()
+		local newSection = require(rotatorComponents:WaitForChild("section"))(section + 1, colorDropdown, colorLabels)
 		newSection.Parent = rotatorContainer.ControlsHolder
-		registerSection(section+1)
+		registerSection(section + 1)
 	end)
 
 	-- Remove Section
-	connections[#connections+1] = sectionFrame.Buttons.TopControls.RemoveHolder.RemoveButton.MouseButton1Click:Connect(function()
-		if section == 1 then return end
-		if rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then return end
-		rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
-		confirmPrompt("Are you sure you want to remove this section? <b>Any unsaved progress will be lost!</b>", function(confirm)
-			rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
-			if confirm then
-				sectionFrame:Destroy()
+	connections[#connections + 1] = sectionFrame.Buttons.TopControls.RemoveHolder.RemoveButton.MouseButton1Click:Connect(
+		function()
+			if section == 1 then
+				return
 			end
-		end).Parent = rotators.container.Parent.PopUps
-	end)
+			if rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then
+				return
+			end
+			rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
+			confirmPrompt(
+				"Are you sure you want to remove this section? <b>Any unsaved progress will be lost!</b>",
+				function(confirm)
+					rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
+					if confirm then
+						sectionFrame:Destroy()
+					end
+				end
+			).Parent =
+				rotators.container.Parent.PopUps
+		end
+	)
 
 	-- Add Angle
-	connections[#connections+1] = sectionFrame.Buttons.Controls.AddHolder.Add.MouseButton1Click:Connect(function()
+	connections[#connections + 1] = sectionFrame.Buttons.Controls.AddHolder.Add.MouseButton1Click:Connect(function()
 		sectionFrame:SetAttribute("Angles", sectionFrame:GetAttribute("Angles") + 1)
 		local newAngle = require(rotatorComponents:WaitForChild("angleRows"))(sectionFrame:GetAttribute("Angles"))
 		newAngle.Parent = sectionFrame.Options
@@ -456,20 +506,30 @@ local function registerSection(section: number)
 	end)
 
 	-- Remove Angle
-	connections[#connections+1] = sectionFrame.Buttons.Controls.RemoveHolder.RemoveButton.MouseButton1Click:Connect(function()
-		if sectionFrame:GetAttribute("Angles") == 1 then return end
-		if rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then return end
-		rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
-		confirmPrompt("Are you sure you want to remove this angle? <b>Any unsaved progress will be lost!</b>", function(confirm)
-			rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
-			if confirm then
-				sectionFrame.Options:FindFirstChild(`Angle{sectionFrame:GetAttribute("Angles")}`):Destroy()
-				sectionFrame:SetAttribute("Angles", sectionFrame:GetAttribute("Angles") - 1)
+	connections[#connections + 1] = sectionFrame.Buttons.Controls.RemoveHolder.RemoveButton.MouseButton1Click:Connect(
+		function()
+			if sectionFrame:GetAttribute("Angles") == 1 then
+				return
 			end
-		end).Parent = rotators.container.Parent.PopUps
-	end)
+			if rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then
+				return
+			end
+			rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
+			confirmPrompt(
+				"Are you sure you want to remove this angle? <b>Any unsaved progress will be lost!</b>",
+				function(confirm)
+					rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
+					if confirm then
+						sectionFrame.Options:FindFirstChild(`Angle{sectionFrame:GetAttribute("Angles")}`):Destroy()
+						sectionFrame:SetAttribute("Angles", sectionFrame:GetAttribute("Angles") - 1)
+					end
+				end
+			).Parent =
+				rotators.container.Parent.PopUps
+		end
+	)
 
-	connections[#connections+1] = sectionFrame.Destroying:Connect(function()
+	connections[#connections + 1] = sectionFrame.Destroying:Connect(function()
 		for i = 1, #connections do
 			connections[i]:Disconnect()
 		end
@@ -483,14 +543,14 @@ changePreview(1)
 local function reset()
 	setPause(true)
 	resetPreview()
-	for i,v in pairs(rotatorContainer.ControlsHolder:GetChildren()) do
+	for i, v in pairs(rotatorContainer.ControlsHolder:GetChildren()) do
 		if v:IsA("ScrollingFrame") and v.Name ~= "Section1" then
 			v:Destroy()
 		end
 	end
 
 	rotatorContainer.ControlsHolder.Section1:SetAttribute("Angles", 1)
-	for i,v in pairs(rotatorContainer.ControlsHolder.Section1.Options:GetChildren()) do
+	for i, v in pairs(rotatorContainer.ControlsHolder.Section1.Options:GetChildren()) do
 		if v:IsA("Frame") and (v.Name ~= "Angle1" and v.Name ~= "Label" and v.Name ~= "TopOptions") then
 			v:Destroy()
 		end
@@ -505,25 +565,34 @@ local function reset()
 end
 
 local function confirmReset()
-	if rotators.container == nil then return end
-	if rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then return end
+	if rotators.container == nil then
+		return
+	end
+	if rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency ~= 1 then
+		return
+	end
 	rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 0.5
 	confirmPrompt("Are you sure you want to reset? \n<b>Any unsaved progress will be lost!</b>", function(confirm)
 		if confirm then
 			reset()
 		end
 		rotators.container.Parent:WaitForChild("PopUps").BackgroundTransparency = 1
-	end).Parent = rotators.container.Parent.PopUps
+	end).Parent =
+		rotators.container.Parent.PopUps
 end
 
-rotators.loadFromTable = function(data: {number:{string:any}})
+rotators.loadFromTable = function(data: { number: { string: any } })
 	reset()
 
 	task.wait(0.1)
 
-	for section=1,#data do
+	for section = 1, #data do
 		local sectionData = data[section]
-		if typeof(sectionData) == "table" and typeof(sectionData["Name"]) == "string" and typeof(sectionData["Angles"]) == "table" then
+		if
+			typeof(sectionData) == "table"
+			and typeof(sectionData["Name"]) == "string"
+			and typeof(sectionData["Angles"]) == "table"
+		then
 			local sectionFrame = rotatorContainer.ControlsHolder.Section1
 			if section ~= 1 then
 				sectionFrame = require(rotatorComponents:WaitForChild("section"))(section, colorDropdown, colorLabels)
@@ -533,13 +602,19 @@ rotators.loadFromTable = function(data: {number:{string:any}})
 
 			sectionFrame:SetAttribute("Angles", #sectionData.Angles)
 			sectionFrame.Options.TopOptions.NameBox.TextBox.Text = sectionData.Name
-			
-			for angle=1,#sectionData.Angles do
+
+			for angle = 1, #sectionData.Angles do
 				local angleData = sectionData.Angles[angle]
-				if typeof(angleData) == "table" and typeof(angleData["Angle"]) == "number" and typeof(angleData["Velocity"]) == "number" and typeof(angleData["Color"]) == "number" then
+				if
+					typeof(angleData) == "table"
+					and typeof(angleData["Angle"]) == "number"
+					and typeof(angleData["Velocity"]) == "number"
+					and typeof(angleData["Color"]) == "number"
+				then
 					local angleFrame = sectionFrame.Options:FindFirstChild(`Angle{angle}`)
 					if angleFrame == nil then
-						angleFrame = require(rotatorComponents:WaitForChild("angleRows"))(sectionFrame:GetAttribute("Angles"))
+						angleFrame =
+							require(rotatorComponents:WaitForChild("angleRows"))(sectionFrame:GetAttribute("Angles"))
 						angleFrame.Parent = sectionFrame.Options
 						registerAngle(sectionFrame, sectionFrame:GetAttribute("Angles"))
 					end
@@ -558,19 +633,19 @@ end
 rotators.toTable = function()
 	local data = {}
 
-	for _,section in pairs(rotatorContainer.ControlsHolder:GetChildren()) do
+	for _, section in pairs(rotatorContainer.ControlsHolder:GetChildren()) do
 		if section:IsA("ScrollingFrame") then
 			local sectionData = {
 				Name = section.Options.TopOptions.NameBox.TextBox.Text,
-				Angles = {}
+				Angles = {},
 			}
 
-			for _,angle in pairs(section.Options:GetChildren()) do
+			for _, angle in pairs(section.Options:GetChildren()) do
 				if angle:IsA("Frame") and angle.Name ~= "Label" and angle.Name ~= "TopOptions" then
 					local angleData = {
 						Angle = tonumber(angle.Angle.TextBox.Text),
 						Velocity = tonumber(angle.Velocity.TextBox.Text),
-						Color = angle.Color:GetAttribute("Color")
+						Color = angle.Color:GetAttribute("Color"),
 					}
 
 					-- table.insert(sectionData.Angles, angleData)
@@ -588,7 +663,9 @@ end
 
 -- Input Handler
 rotators.InputBegan = function(input: InputObject)
-	if rotators.enabled == false then return end
+	if rotators.enabled == false then
+		return
+	end
 
 	if input.KeyCode == Enum.KeyCode.P then
 		setPause(not pause)
