@@ -476,7 +476,7 @@ for _, func in pairs(moduleStore:GetChildren()) do
 
 							local connection
 							connection = RunService.Heartbeat:Connect(function()
-								if rotatorTable.run == false or lights[lightName].running_module ~= patternModule then
+								if rotatorTable.run == false then
 									connection:Disconnect()
 									rotatorThreads[lightName] = nil
 									motor.C1 = defaultC1
@@ -487,7 +487,7 @@ for _, func in pairs(moduleStore:GetChildren()) do
 										patternModule.moduleSettings.colors
 									)
 									return
-								else
+								elseif lights[lightName].running_module == patternModule and lightParts[lightName] then
 									if -desiredAngle ~= currentTarget then
 										currentTarget = -desiredAngle
 									end
@@ -519,6 +519,12 @@ for _, func in pairs(moduleStore:GetChildren()) do
 										end
 										motor.C1 = defaultC1 * CFrame.Angles(0, 0, currentRad)
 									end
+								else
+									rotatorTable.currentRunner = 0
+									currentRad = 0
+									currentTarget = 0
+									desiredAngle = 0
+									currentVelocity = 0
 								end
 							end)
 						end)
@@ -532,9 +538,9 @@ for _, func in pairs(moduleStore:GetChildren()) do
 						tweenThreads[lightName] = faderTable
 						tweenThreads[lightName].thread = task.defer(function()
 							while task.wait(1 / 3) do
-								if faderTable.run == false or lights[lightName].running_module ~= patternModule then
+								if faderTable.run == false then
 									break
-								else
+								elseif lights[lightName].running_module == patternModule and lightParts[lightName] then
 									if faderTable.currentRunner >= rawlen(lightData) then
 										faderTable.currentRunner = 1
 									else
@@ -607,6 +613,10 @@ for _, func in pairs(moduleStore:GetChildren()) do
 							end
 						end
 						for lightName, lightData in pairs(patternModule.rotators) do
+							if rotatorThreads[lightName] then
+								rotatorThreads[lightName].run = false
+							end
+
 							if lightParts[lightName] then
 								patternModule.moduleSettings.light(
 									lightParts[lightName],
@@ -616,6 +626,10 @@ for _, func in pairs(moduleStore:GetChildren()) do
 							end
 						end
 						for lightName, lightData in pairs(patternModule.faders) do
+							if tweenThreads[lightName] then
+								tweenThreads[lightName].run = false
+							end
+
 							if lightParts[lightName] then
 								patternModule.moduleSettings.light(
 									lightParts[lightName],
