@@ -136,8 +136,8 @@ local function threadFunction()
 		end
 
 		if pause == false and currentPreview ~= nil then
-			if -motor:GetAttribute("DesiredAngle") ~= currentTarget then
-				currentTarget = -motor:GetAttribute("DesiredAngle")
+			if motor:GetAttribute("DesiredAngle") ~= currentTarget then
+				currentTarget = motor:GetAttribute("DesiredAngle")
 			end
 			if currentVelocity ~= motor.MaxVelocity then
 				currentVelocity = motor.MaxVelocity
@@ -201,6 +201,9 @@ local function threadFunction()
 			else
 				currentRad += if diff > 0 then currentVelocity else -currentVelocity
 				if math.abs(currentVelocity) > math.abs(currentTarget) then
+					currentRad = currentTarget
+				end
+				if math.abs(currentRad) > math.abs(currentTarget) then
 					currentRad = currentTarget
 				end
 				motor.C1 = CFrame.Angles(math.rad(90), 0, currentRad)

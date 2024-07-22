@@ -517,6 +517,9 @@ for _, func in pairs(moduleStore:GetChildren()) do
 										if math.abs(currentVelocity) > math.abs(currentTarget) then
 											currentRad = currentTarget
 										end
+										if math.abs(currentRad) > math.abs(currentTarget) then
+											currentRad = currentTarget
+										end
 										motor.C1 = defaultC1 * CFrame.Angles(0, 0, currentRad)
 									end
 								else
