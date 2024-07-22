@@ -115,6 +115,10 @@ return {
 	-- Brake = false,
 	-- Reverse = "ReverseOverride",
 	--
+	-- For dependencies if you want to depend on being
+	-- higher then a pattern you can do this
+	-- {"ParkBrakeOverride", "Stages", 3},
+	--
 	-- The second value is used to disallow the override
 	--  if the second value is not active
 	Overrides = {

@@ -41,6 +41,10 @@ Values:WaitForChild("Gear"):GetPropertyChangedSignal("Value"):Connect(function()
 	Event:FireServer("DoOverride", "Gear", Values.Gear.Value)
 end)
 
+Event:FireServer("DoOverride", "PBrake", Values.PBrake.Value)
+Event:FireServer("DoOverride", "Brake", Values.Brake.Value)
+Event:FireServer("DoOverride", "Gear", Values.Gear.Value)
+
 local function input(InputObj: InputObject, gameProcessedEvent: BoolValue)
 	if
 		not gameProcessedEvent
