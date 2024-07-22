@@ -200,6 +200,9 @@ local function threadFunction()
 				end
 			else
 				currentRad += if diff > 0 then currentVelocity else -currentVelocity
+				if math.abs(currentVelocity) > math.abs(currentTarget) then
+					currentRad = currentTarget
+				end
 				motor.C1 = CFrame.Angles(math.rad(90), 0, currentRad)
 			end
 		end

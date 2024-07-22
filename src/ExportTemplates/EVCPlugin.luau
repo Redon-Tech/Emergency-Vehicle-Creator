@@ -142,6 +142,7 @@ local soundPart: Instance? = lightbar:FindFirstChild(pluginSettings.SirenName) :
 
 local TweenService = game:GetService("TweenService")
 local JointsService = game:GetService("JointsService")
+local RunService = game:GetService("RunService")
 
 local lightParts: { [string]: BasePart } = {}
 local lights: { [string]: lightInstance } = {}
@@ -460,12 +461,43 @@ for _, func in pairs(moduleStore:GetChildren()) do
 						}
 						rotatorThreads[lightName] = rotatorTable
 						rotatorThreads[lightName].thread = task.defer(function()
-							local motor = lightbar[`motor{lightName}`]
-							while task.wait(1 / 3) do
+							local motorPart = lightbar[`motor{lightName}`]
+							if motorPart == nil then
+								rotatorThreads[lightName] = nil
+								return
+							end
+							local motor: Motor6D = motorPart:WaitForChild("Motor") :: Motor6D
+							local defaultC1 = motor:GetAttribute("C1")
+							local currentRad = 0
+							local currentTarget = 0
+							local desiredAngle = 0
+							local currentVelocity = 0
+
+							local connection
+							connection = RunService.Heartbeat:Connect(function()
 								if rotatorTable.run == false or lights[lightName].running_module ~= patternModule then
-									break
+									connection:Disconnect()
+									rotatorThreads[lightName] = nil
+									motor.C1 = defaultC1
+									desiredAngle = 0
+									patternModule.moduleSettings.light(
+										lightParts[lightName],
+										0,
+										patternModule.moduleSettings.colors
+									)
+									return
 								else
-									if math.abs(motor.Motor.CurrentAngle - motor.Motor.DesiredAngle) < 0.05 then
+									if -desiredAngle ~= currentTarget then
+										currentTarget = -desiredAngle
+									end
+									if currentVelocity ~= motor.MaxVelocity then
+										currentVelocity = motor.MaxVelocity
+									end
+
+									local diff = currentTarget - currentRad
+									if math.abs(diff) < 0.05 then
+										motor.C1 = defaultC1 * CFrame.Angles(0, 0, currentTarget)
+
 										if rotatorTable.currentRunner >= rawlen(lightData) then
 											rotatorTable.currentRunner = 1
 										else
@@ -477,21 +509,17 @@ for _, func in pairs(moduleStore:GetChildren()) do
 											lightData[rotatorTable.currentRunner].color,
 											patternModule.moduleSettings.colors
 										)
-										motor.Motor.MaxVelocity = lightData[rotatorTable.currentRunner].velocity
-										motor.Motor.DesiredAngle = math.rad(lightData[rotatorTable.currentRunner].angle)
+										motor.MaxVelocity = lightData[rotatorTable.currentRunner].velocity
+										desiredAngle = math.rad(lightData[rotatorTable.currentRunner].angle)
+									else
+										currentRad += if diff > 0 then currentVelocity else -currentVelocity
+										if math.abs(currentVelocity) > math.abs(currentTarget) then
+											currentRad = currentTarget
+										end
+										motor.C1 = defaultC1 * CFrame.Angles(0, 0, currentRad)
 									end
 								end
-							end
-
-							patternModule.moduleSettings.light(
-								lightParts[lightName],
-								0,
-								patternModule.moduleSettings.colors
-							)
-							motor.Motor.MaxVelocity = 5555555555555
-							motor.Motor.DesiredAngle = 0
-							rotatorThreads[lightName] = nil
-							return "Killed"
+							end)
 						end)
 					end
 					for lightName, lightData in pairs(patternModule.faders) do
