@@ -136,6 +136,41 @@ settingsConverter.converters["2_1_0"] = function(settings: ModuleScript, pluginS
 	return newSettingsModule
 end
 
+settingsConverter.converters["2_1_1"] = function(settings: ModuleScript, pluginSettings: v2_1_0): ModuleScript
+	local newSettingsModule = pluginRoot.src.ExportTemplates.BlankSettings:Clone()
+	local originalSource = settings.Source
+	local source = newSettingsModule.Source
+
+	source = source:gsub("LightbarName = nil,", `LightbarName = \"{pluginSettings.LightbarName}\",`, 1)
+	source = source:gsub(
+		"AdditionalLightbarLocations = nil,",
+		"AdditionalLightbarLocations = {" .. originalSource:split("AdditionalLightbarLocations = {")[2]:split("--")[1],
+		1
+	)
+	source = source:gsub("SirenName = nil,", `SirenName = \"{pluginSettings.SirenName}\",`, 1)
+	source = source:gsub("Sirens = nil,", "Sirens = {" .. originalSource:split("Sirens = {")[2]:split("--")[1], 1)
+	source = source:gsub("Keybinds = nil,", "Keybinds = {" .. originalSource:split("Keybinds = {")[2]:split("--")[1], 1)
+	source = source:gsub(
+		"DefaultFunctionState = nil,",
+		"DefaultFunctionState = {" .. originalSource:split("DefaultFunctionState = {")[2]:split("--")[1],
+		1
+	)
+	source =
+		source:gsub("Overrides = nil,", "Overrides = {" .. originalSource:split("Overrides = {")[2]:split("--")[1], 1)
+	source = source:gsub("Colors = nil,", "Colors = {" .. originalSource:split("Colors = {")[2]:split("--")[1], 1)
+	source =
+		source:gsub("Light = nil,", "Light = function" .. originalSource:split("Light = function")[2]:split("--")[1], 1)
+
+	source = source:gsub(
+		"SecondaryKeybinds = nil,",
+		"SecondaryKeybinds = {" .. originalSource:split("SecondaryKeybinds = {")[2]:split("--")[1],
+		1
+	)
+
+	newSettingsModule.Source = source
+	return newSettingsModule
+end
+
 function settingsConverter.convert(settings: ModuleScript)
 	local pluginSettings = require(settings)
 	local formattedVersion = pluginSettings.PluginVersion:gsub("%.", "_")
