@@ -22,8 +22,8 @@ type faderLight = {
 	color: number,
 	transparency: number,
 	timeTaken: number,
-	easingStyle: EnumItem,
-	easingDirection: EnumItem,
+	easingStyle: Enum.EasingStyle,
+	easingDirection: Enum.EasingDirection,
 	repeatCount: number,
 	reverses: boolean,
 	timeDelay: number,
@@ -35,12 +35,12 @@ type patternModule = {
 	moduleSettings: {
 		waitTime: number,
 		weight: number,
-		colors: {}?,
-		light: any?,
+		colors: { [number]: Color3 },
+		light: (BasePart, number, { [number]: Color3 }) -> nil,
 	},
-	lights: { string: { elsLight } },
-	rotators: { string: { number: { rotatorLight } } },
-	faders: { string: { number: { faderLight } } },
+	lights: { [string]: { elsLight } },
+	rotators: { [string]: { [number]: { rotatorLight } } },
+	faders: { [string]: { [number]: { faderLight } } },
 	count: number,
 	max_count: number,
 }
@@ -50,7 +50,7 @@ type pattern = {
 }
 
 type lightbarFunction = {
-	patterns: { number: pattern },
+	patterns: { [number]: pattern },
 	currentPattern: number,
 	maxPattern: number,
 }
@@ -66,16 +66,46 @@ type runningCoroutine = {
 }
 
 type rotatorLightThread = {
-	thread: thread,
+	thread: thread?,
 	currentRunner: number,
 	run: boolean,
 }
 
 type tweenLightThread = {
-	thread: thread,
-	tween: Tween,
+	thread: thread?,
+	tween: Tween?,
 	currentRunner: number,
 	run: boolean,
+}
+
+type sirenModifier = {
+	modifierName: string,
+	name: string,
+	playNonModified: boolean,
+	playOnModifierChange: boolean,
+	timeDelay: number,
+}
+
+type siren = {
+	_type: string,
+	keybind: EnumItem,
+	name: string,
+	overrideOtherSounds: boolean,
+	modifiers: { [string]: sirenModifier },
+}
+
+type sirenSetting = {
+	_Type: string,
+	Name: string,
+	OverrideOtherSounds: boolean,
+	Modifiers: { [string]: sirenModifier }?,
+}
+
+type modifier = {
+	_type: string,
+	keybind: EnumItem,
+	name: string,
+	enabled: boolean,
 }
 
 --------------------------------------------------------------------------------
@@ -89,30 +119,67 @@ local warn = function(...)
 	warn("[EVC]", ...)
 end
 
-local car: Model = script.Parent.Parent.Parent.Parent
+local car = script.Parent.Parent.Parent.Parent :: Model
 local pluginSettings = require(script.Parent.Settings)
-local body: Model = car:WaitForChild("Body")
-local lightbar: Model = body:WaitForChild("ELS")
+local body: Instance = car:WaitForChild("Body")
+local lightbarInstance: Instance? = body:WaitForChild("ELS")
+if lightbarInstance == nil or lightbarInstance:IsA("Model") == false then
+	error(`No lightbar found`)
+end
+local lightbar: Model = lightbarInstance :: Model
 
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
-local lights: { string: lightInstance } = {}
-local lightbarFunctions: { name: lightbarFunction } = {}
+local lightParts: { [string]: BasePart } = {}
+local lights: { [string]: lightInstance } = {}
+local lightbarFunctions: { [string]: lightbarFunction } = {}
 local coroutines = {}
-local rotatorThreads: { string: rotatorLightThread } = {}
-local tweenThreads: { string: tweenLightThread } = {}
+local rotatorThreads: { [string]: rotatorLightThread } = {}
+local tweenThreads: { [string]: tweenLightThread } = {}
+local dependentOverrides: { [string]: { { string | number } } } = {}
 
 --------------------------------------------------------------------------------
 -- Functions --
 --------------------------------------------------------------------------------
 
--- Checks
-if lightbar == nil then
-	error(`No lightbar found`)
+local function findFirstDescendant(instance: Instance, name: string): Instance?
+	for _, child in pairs(instance:GetDescendants()) do
+		if child.Name == name then
+			return child
+		end
+	end
+	return nil
 end
-if lightbar:FindFirstChild("ModuleStore") == nil then
+
+-- Checks
+local moduleStoreFolder: Instance? = lightbar:FindFirstChild("ModuleStore")
+if moduleStoreFolder == nil or moduleStoreFolder:IsA("Folder") == false then
 	error(`No modulestore found`)
 end
+local moduleStore: Folder = moduleStoreFolder :: Folder
+
+for _, part in pairs(lightbar:GetDescendants()) do
+	if part:IsA("BasePart") and lightParts[part.Name] == nil then
+		lightParts[part.Name] = part
+	elseif part:IsA("BasePart") then
+		warn(`Duplicate lightPart ({part.Name}) in {lightbar.Name} (Body)`)
+	end
+end
+
+for _, v in pairs(pluginSettings.AdditionalLightbarLocations.Body) do
+	local model = findFirstDescendant(body, v)
+	if model ~= nil then
+		for _, part in pairs(model:GetDescendants()) do
+			if part:IsA("BasePart") and lightParts[part.Name] == nil then
+				lightParts[part.Name] = part
+			elseif part:IsA("BasePart") then
+				warn(`Duplicate lightPart ({part.Name}) in {model.Name} (Body)`)
+			end
+		end
+	end
+end
+
 -- Spinup Coroutine
 local function spinupCoroutine(waitTime: number, patterns: {})
 	if patterns == nil or waitTime == nil then
@@ -141,10 +208,10 @@ local function spinupCoroutine(waitTime: number, patterns: {})
 								if
 									lights[lightName].running_module == pattern
 									and lightData[pattern.count] ~= nil
-									and lightbar:FindFirstChild(lightName)
+									and lightParts[lightName]
 								then
 									pattern.moduleSettings.light(
-										lightbar[lightName],
+										lightParts[lightName],
 										lightData[pattern.count],
 										pattern.moduleSettings.colors
 									)
@@ -174,11 +241,11 @@ local function registerLight(lightName: string)
 end
 
 local function registerRotator(lightName: string)
-	if lightbar:FindFirstChild(`motor{lightName}`) == nil then
+	if lightbar:FindFirstChild(`motor{lightName}`) == nil and lightParts[lightName] then
 		local motorPart = Instance.new("Part")
 		motorPart.Name = `motor{lightName}`
 		motorPart.Size = Vector3.new(0.1, 0.1, 0.1)
-		motorPart.CFrame = lightbar[lightName].CFrame
+		motorPart.CFrame = lightParts[lightName].CFrame
 		motorPart.Transparency = 1
 		local weld = Instance.new("Weld")
 		weld.Part0 = car.DriveSeat
@@ -187,22 +254,29 @@ local function registerRotator(lightName: string)
 		weld.C1 = motorPart.CFrame:Inverse() * car.DriveSeat.CFrame
 		weld.Parent = car.DriveSeat
 
-		local Center = if lightbar[lightName]:FindFirstChild("inverse") ~= nil
-			then CFrame.new(lightbar[lightName].inverse.Position)
-			else CFrame.new(lightbar[lightName].Position)
-		local XYZ = if lightbar[lightName]:FindFirstChild("inverse") ~= nil
-			then CFrame.Angles(lightbar[lightName].inverse.CFrame:toEulerAnglesXYZ())
-			else CFrame.Angles(lightbar[lightName].CFrame:toEulerAnglesXYZ())
+		local inversePart: Instance? = lightParts[lightName]:FindFirstChild("inverse")
+		local inverse: BasePart? = nil
+		if inversePart ~= nil and inversePart:IsA("BasePart") then
+			inverse = inversePart
+		end
+
+		local Center = if inverse ~= nil
+			then CFrame.new(inverse.Position)
+			else CFrame.new(lightParts[lightName].Position)
+		local XYZ = if inverse ~= nil
+			then CFrame.Angles(inverse.CFrame:ToEulerAnglesXYZ())
+			else CFrame.Angles(lightParts[lightName].CFrame:ToEulerAnglesXYZ())
 		local motor = Instance.new("Motor6D")
 		motor.Name = "Motor"
 		motor.Part0 = motorPart
-		motor.Part1 = lightbar[lightName]
+		motor.Part1 = lightParts[lightName]
 		motor.C0 = (motorPart.CFrame:Inverse() * Center) * XYZ
-		motor.C1 = (lightbar[lightName].CFrame:Inverse() * Center) * XYZ
+		motor.C1 = (lightParts[lightName].CFrame:Inverse() * Center) * XYZ
+		motor:SetAttribute("C1", motor.C1)
 		motor.Parent = motorPart
 
 		for i, v in pairs(car.DriveSeat:GetChildren()) do
-			if v:IsA("Weld") and v.Part1 == lightbar[lightName] then
+			if v:IsA("Weld") and v.Part1 == lightParts[lightName] then
 				v:Destroy()
 			end
 		end
@@ -211,15 +285,19 @@ local function registerRotator(lightName: string)
 	end
 end
 
-local function setLightRunningModule(lightName: string, module: patternModule, skipPossibleModules: boolean)
+local function setLightRunningModule(lightName: string, module: patternModule, skipPossibleModules: boolean?)
 	local light: lightInstance = lights[lightName]
 
 	if light.running_module == nil or light.running_module.moduleSettings.weight < module.moduleSettings.weight then
-		if
-			light.running_module ~= nil
-			and light.running_module.instance.Parent.Parent ~= module.instance.Parent.Parent
-		then
-			table.insert(light.possible_modules, light.running_module)
+		if light.running_module ~= nil then
+			local runningModuleParent = light.running_module.instance.Parent
+			local moduleParent = module.instance.Parent
+			local runningModuleParentParent = runningModuleParent.Parent
+			local moduleParentParent = moduleParent.Parent
+
+			if runningModuleParentParent ~= moduleParentParent then
+				table.insert(light.possible_modules, light.running_module)
+			end
 		end
 		light.running_module = module
 		if table.find(light.possible_modules, module) then
@@ -230,7 +308,7 @@ local function setLightRunningModule(lightName: string, module: patternModule, s
 	end
 end
 
-for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
+for _, func in pairs(moduleStore:GetChildren()) do
 	if func:IsA("Folder") and lightbarFunctions[func.Name] == nil then
 		local funcTable: lightbarFunction = {
 			patterns = {},
@@ -239,7 +317,7 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 		}
 
 		lightbar:GetAttributeChangedSignal(func.Name):Connect(function()
-			local patternNumber: number = lightbar:GetAttribute(func.Name)
+			local patternNumber: unknown? = lightbar:GetAttribute(func.Name)
 			if typeof(patternNumber) ~= "number" then
 				return
 			end
@@ -258,9 +336,17 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 							lights[lightName].running_module = nil
 
 							if rawlen(lights[lightName].possible_modules) > 0 then
-								for _, module in pairs(lights[lightName].possible_modules) do
-									setLightRunningModule(lightName, module, true)
+								local highestWeight = {
+									weight = 0,
+									module = nil,
+								}
+								for _, module in ipairs(lights[lightName].possible_modules) do
+									if module.moduleSettings.weight > highestWeight.weight then
+										highestWeight.weight = module.moduleSettings.weight
+										highestWeight.module = module
+									end
 								end
+								setLightRunningModule(lightName, highestWeight.module)
 							end
 						else
 							table.remove(
@@ -275,9 +361,17 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 							lights[lightName].running_module = nil
 
 							if rawlen(lights[lightName].possible_modules) > 0 then
-								for _, module in pairs(lights[lightName].possible_modules) do
-									setLightRunningModule(lightName, module, true)
+								local highestWeight = {
+									weight = 0,
+									module = nil,
+								}
+								for _, module in ipairs(lights[lightName].possible_modules) do
+									if module.moduleSettings.weight > highestWeight.weight then
+										highestWeight.weight = module.moduleSettings.weight
+										highestWeight.module = module
+									end
 								end
+								setLightRunningModule(lightName, highestWeight.module)
 							end
 						else
 							table.remove(
@@ -292,9 +386,17 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 							lights[lightName].running_module = nil
 
 							if rawlen(lights[lightName].possible_modules) > 0 then
-								for _, module in pairs(lights[lightName].possible_modules) do
-									setLightRunningModule(lightName, module, true)
+								local highestWeight = {
+									weight = 0,
+									module = nil,
+								}
+								for _, module in ipairs(lights[lightName].possible_modules) do
+									if module.moduleSettings.weight > highestWeight.weight then
+										highestWeight.weight = module.moduleSettings.weight
+										highestWeight.module = module
+									end
 								end
+								setLightRunningModule(lightName, highestWeight.module)
 							end
 						else
 							table.remove(
@@ -321,12 +423,43 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 						}
 						rotatorThreads[lightName] = rotatorTable
 						rotatorThreads[lightName].thread = task.defer(function()
-							local motor = lightbar[`motor{lightName}`]
-							while task.wait(1 / 3) do
-								if rotatorTable.run == false or lights[lightName].running_module ~= patternModule then
-									break
-								else
-									if math.abs(motor.Motor.CurrentAngle - motor.Motor.DesiredAngle) < 0.05 then
+							local motorPart = lightbar[`motor{lightName}`]
+							if motorPart == nil then
+								rotatorThreads[lightName] = nil
+								return
+							end
+							local motor: Motor6D = motorPart:WaitForChild("Motor") :: Motor6D
+							local defaultC1 = motor:GetAttribute("C1")
+							local currentRad = 0
+							local currentTarget = 0
+							local desiredAngle = 0
+							local currentVelocity = 0
+
+							local connection
+							connection = RunService.Heartbeat:Connect(function()
+								if rotatorTable.run == false then
+									connection:Disconnect()
+									rotatorThreads[lightName] = nil
+									motor.C1 = defaultC1
+									desiredAngle = 0
+									patternModule.moduleSettings.light(
+										lightParts[lightName],
+										0,
+										patternModule.moduleSettings.colors
+									)
+									return
+								elseif lights[lightName].running_module == patternModule and lightParts[lightName] then
+									if -desiredAngle ~= currentTarget then
+										currentTarget = -desiredAngle
+									end
+									if currentVelocity ~= motor.MaxVelocity then
+										currentVelocity = motor.MaxVelocity
+									end
+
+									local diff = currentTarget - currentRad
+									if math.abs(diff) < 0.05 then
+										motor.C1 = defaultC1 * CFrame.Angles(0, 0, currentTarget)
+
 										if rotatorTable.currentRunner >= rawlen(lightData) then
 											rotatorTable.currentRunner = 1
 										else
@@ -334,25 +467,27 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 										end
 
 										patternModule.moduleSettings.light(
-											lightbar[lightName],
+											lightParts[lightName],
 											lightData[rotatorTable.currentRunner].color,
 											patternModule.moduleSettings.colors
 										)
-										motor.Motor.MaxVelocity = lightData[rotatorTable.currentRunner].velocity
-										motor.Motor.DesiredAngle = math.rad(lightData[rotatorTable.currentRunner].angle)
+										motor.MaxVelocity = lightData[rotatorTable.currentRunner].velocity
+										desiredAngle = math.rad(lightData[rotatorTable.currentRunner].angle)
+									else
+										currentRad += if diff > 0 then currentVelocity else -currentVelocity
+										if math.abs(currentVelocity) > math.abs(currentTarget) then
+											currentRad = currentTarget
+										end
+										motor.C1 = defaultC1 * CFrame.Angles(0, 0, currentRad)
 									end
+								else
+									rotatorTable.currentRunner = 0
+									currentRad = 0
+									currentTarget = 0
+									desiredAngle = 0
+									currentVelocity = 0
 								end
-							end
-
-							patternModule.moduleSettings.light(
-								lightbar[lightName],
-								0,
-								patternModule.moduleSettings.colors
-							)
-							motor.Motor.MaxVelocity = 5555555555555
-							motor.Motor.DesiredAngle = 0
-							rotatorThreads[lightName] = nil
-							return "Killed"
+							end)
 						end)
 					end
 					for lightName, lightData in pairs(patternModule.faders) do
@@ -364,9 +499,9 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 						tweenThreads[lightName] = faderTable
 						tweenThreads[lightName].thread = task.defer(function()
 							while task.wait(1 / 3) do
-								if faderTable.run == false or lights[lightName].running_module ~= patternModule then
+								if faderTable.run == false then
 									break
-								else
+								elseif lights[lightName].running_module == patternModule and lightParts[lightName] then
 									if faderTable.currentRunner >= rawlen(lightData) then
 										faderTable.currentRunner = 1
 									else
@@ -375,7 +510,8 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 
 									local lightData: faderLight = lightData[faderTable.currentRunner]
 									if lightData.color ~= 0 then
-										lightbar[lightName].Color = patternModule.moduleSettings.colors[lightData.color]
+										lightParts[lightName].Color =
+											patternModule.moduleSettings.colors[lightData.color]
 									end
 									-- patternModule.moduleSettings.light(lightbar[lightName], lightData.color, patternModule.moduleSettings.colors)
 									local tweenInfo = TweenInfo.new(
@@ -386,17 +522,19 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 										lightData.reverses
 									)
 									faderTable.tween = TweenService:Create(
-										lightbar[lightName],
+										lightParts[lightName],
 										tweenInfo,
 										{ Transparency = lightData.transparency }
 									)
-									faderTable.tween:Play()
-									faderTable.tween.Completed:Wait()
+									if faderTable.tween ~= nil then
+										faderTable.tween:Play()
+										faderTable.tween.Completed:Wait()
+									end
 								end
 							end
 
 							patternModule.moduleSettings.light(
-								lightbar[lightName],
+								lightParts[lightName],
 								0,
 								patternModule.moduleSettings.colors
 							)
@@ -411,36 +549,62 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 						spinupCoroutine(patternModule.moduleSettings.waitTime, { patternModule })
 					end
 				end
+
+				if dependentOverrides[func.Name] ~= nil then
+					for _, override in pairs(dependentOverrides[func.Name]) do
+						if
+							lightbar:GetAttribute(override[1]) == 0
+							and lightbar:GetAttribute(`should{override[1]}`) == true
+							and patternNumber > override[2] - 1
+						then
+							lightbar:SetAttribute(override[1], 1)
+						end
+					end
+				end
 			else
 				for _, pattern in pairs(funcTable.patterns) do
 					for _, patternModule: patternModule in pairs(pattern.modules) do
 						for lightName, lightData in pairs(patternModule.lights) do
-							if lightbar:FindFirstChild(lightName) then
+							if lightParts[lightName] then
 								patternModule.moduleSettings.light(
-									lightbar[lightName],
+									lightParts[lightName],
 									0,
 									patternModule.moduleSettings.colors
 								)
 							end
 						end
 						for lightName, lightData in pairs(patternModule.rotators) do
-							if lightbar:FindFirstChild(lightName) then
+							if rotatorThreads[lightName] then
+								rotatorThreads[lightName].run = false
+							end
+
+							if lightParts[lightName] then
 								patternModule.moduleSettings.light(
-									lightbar[lightName],
+									lightParts[lightName],
 									0,
 									patternModule.moduleSettings.colors
 								)
 							end
 						end
 						for lightName, lightData in pairs(patternModule.faders) do
-							if lightbar:FindFirstChild(lightName) then
+							if tweenThreads[lightName] then
+								tweenThreads[lightName].run = false
+							end
+
+							if lightParts[lightName] then
 								patternModule.moduleSettings.light(
-									lightbar[lightName],
+									lightParts[lightName],
 									0,
 									patternModule.moduleSettings.colors
 								)
 							end
 						end
+					end
+				end
+
+				if dependentOverrides[func.Name] ~= nil then
+					for _, override in pairs(dependentOverrides[func.Name]) do
+						lightbar:SetAttribute(override[1], 0)
 					end
 				end
 			end
@@ -467,7 +631,7 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 		end)
 
 		-- Setup Patterns
-		for _, patternCont: Folder in pairs(func:GetChildren()) do
+		for _, patternCont in pairs(func:GetChildren()) do
 			local patternNumber = tonumber(patternCont.Name:match("%d+"))
 			if patternCont:IsA("Folder") and patternNumber and funcTable.patterns[patternNumber] == nil then
 				local pattern: pattern = {
@@ -507,7 +671,7 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 									if
 										patternModuleTable.lights[lightName] == nil
 										and typeof(lightData) == "table"
-										and lightbar:FindFirstChild(lightName)
+										and lightParts[lightName]
 									then
 										patternModuleTable.lights[lightName] = lightData
 										patternModuleTable.max_count = rawlen(lightData)
@@ -524,7 +688,7 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 									if
 										patternModuleTable.rotators[lightName] == nil
 										and typeof(lightData) == "table"
-										and lightbar:FindFirstChild(lightName)
+										and lightParts[lightName]
 									then
 										local lightDataTable = {}
 										for i, v in pairs(lightData) do
@@ -549,7 +713,7 @@ for _, func: Folder in pairs(lightbar.ModuleStore:GetChildren()) do
 									if
 										patternModuleTable.faders[lightName] == nil
 										and typeof(lightData) == "table"
-										and lightbar:FindFirstChild(lightName)
+										and lightParts[lightName]
 									then
 										local lightDataTable = {}
 										for i, v in pairs(lightData) do
