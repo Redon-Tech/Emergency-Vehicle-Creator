@@ -540,20 +540,28 @@ for _, func in pairs(moduleStore:GetChildren()) do
 						}
 						tweenThreads[lightName] = faderTable
 						tweenThreads[lightName].thread = task.defer(function()
-							while task.wait(1 / 3) do
-								if faderTable.run == false then
+							while task.wait(1/3) do
+								if faderTable.run == false or lights[lightName].running_module ~= patternModule then
 									break
-								elseif lights[lightName].running_module == patternModule and lightParts[lightName] then
+								else
 									if faderTable.currentRunner >= rawlen(lightData) then
 										faderTable.currentRunner = 1
 									else
 										faderTable.currentRunner += 1
 									end
 
-									local lightData: faderLight = lightData[faderTable.currentRunner]
+									local lightData:faderLight = lightData[faderTable.currentRunner]
 									if lightData.color ~= 0 then
-										lightParts[lightName].Color =
-											patternModule.moduleSettings.colors[lightData.color]
+										if lightParts[lightName]:FindFirstChild("Lighto") then
+											lightParts[lightName].Light.Enabled = true
+											lightParts[lightName].Light.Color = patternModule.moduleSettings.colors[lightData.color]
+											lightParts[lightName].Lighto.Enabled = true
+											lightParts[lightName]:FindFirstChild("Lighto").Color.ImageColor3 = patternModule.moduleSettings.colors[lightData.color]
+										else
+											lightParts[lightName].Light.Enabled = true
+											lightParts[lightName].Light.Color = patternModule.moduleSettings.colors[lightData.color]
+											lightParts[lightName].Color = patternModule.moduleSettings.colors[lightData.color]
+										end
 									end
 									-- patternModule.moduleSettings.light(lightbar[lightName], lightData.color, patternModule.moduleSettings.colors)
 									local tweenInfo = TweenInfo.new(
@@ -563,15 +571,13 @@ for _, func in pairs(moduleStore:GetChildren()) do
 										lightData.repeatCount,
 										lightData.reverses
 									)
-									faderTable.tween = TweenService:Create(
-										lightParts[lightName],
-										tweenInfo,
-										{ Transparency = lightData.transparency }
-									)
-									if faderTable.tween ~= nil then
-										faderTable.tween:Play()
-										faderTable.tween.Completed:Wait()
+									if lightParts[lightName]:FindFirstChild("Lighto") then
+										faderTable.tween = TweenService:Create(lightParts[lightName].Lighto.Color, tweenInfo, {ImageTransparency = lightData.transparency})
+									else
+										faderTable.tween = TweenService:Create(lightParts[lightName], tweenInfo, {Transparency = lightData.transparency})
 									end
+									faderTable.tween:Play()
+									faderTable.tween.Completed:Wait()
 								end
 							end
 
