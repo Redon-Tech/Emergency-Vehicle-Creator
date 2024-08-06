@@ -540,55 +540,64 @@ for _, func in pairs(moduleStore:GetChildren()) do
 						}
 						tweenThreads[lightName] = faderTable
 						tweenThreads[lightName].thread = task.defer(function()
-							while task.wait(1/3) do
-								if faderTable.run == false or lights[lightName].running_module ~= patternModule then
-									break
-								else
-									if faderTable.currentRunner >= rawlen(lightData) then
-										faderTable.currentRunner = 1
-									else
-										faderTable.currentRunner += 1
-									end
+                            while task.wait(1 / 3) do
+                                if faderTable.run == false then
+                                    break
+                                elseif lights[lightName].running_module == patternModule and lightParts[lightName] then
+                                    if faderTable.currentRunner >= rawlen(lightData) then
+                                        faderTable.currentRunner = 1
+                                    else
+                                        faderTable.currentRunner += 1
+                                    end
 
-									local lightData:faderLight = lightData[faderTable.currentRunner]
-									if lightData.color ~= 0 then
-										if lightParts[lightName]:FindFirstChild("Lighto") then
-											lightParts[lightName].Light.Enabled = true
-											lightParts[lightName].Light.Color = patternModule.moduleSettings.colors[lightData.color]
-											lightParts[lightName].Lighto.Enabled = true
-											lightParts[lightName]:FindFirstChild("Lighto").Color.ImageColor3 = patternModule.moduleSettings.colors[lightData.color]
-										else
-											lightParts[lightName].Light.Enabled = true
-											lightParts[lightName].Light.Color = patternModule.moduleSettings.colors[lightData.color]
-											lightParts[lightName].Color = patternModule.moduleSettings.colors[lightData.color]
-										end
-									end
-									-- patternModule.moduleSettings.light(lightbar[lightName], lightData.color, patternModule.moduleSettings.colors)
-									local tweenInfo = TweenInfo.new(
-										lightData.timeTaken,
-										lightData.easingStyle,
-										lightData.easingDirection,
-										lightData.repeatCount,
-										lightData.reverses
-									)
-									if lightParts[lightName]:FindFirstChild("Lighto") then
-										faderTable.tween = TweenService:Create(lightParts[lightName].Lighto.Color, tweenInfo, {ImageTransparency = lightData.transparency})
-									else
-										faderTable.tween = TweenService:Create(lightParts[lightName], tweenInfo, {Transparency = lightData.transparency})
-									end
-									faderTable.tween:Play()
-									faderTable.tween.Completed:Wait()
-								end
-							end
+                                    local lightData: faderLight = lightData[faderTable.currentRunner]
+                                    local lighto = lightParts[lightName]:FindFirstAncestorWhichIsA("GuiObject", true)
+                                    if lightData.color ~= 0 then
+                                        lightParts[lightName].Color =
+                                            patternModule.moduleSettings.colors[lightData.color]
+                                        if lighto ~= nil then
+                                            lighto.ImageColor3 = patternModule.moduleSettings.colors[lightData.color]
+                                        end
+                                    end
+                                    -- patternModule.moduleSettings.light(lightbar[lightName], lightData.color, patternModule.moduleSettings.colors)
+                                    local tweenInfo = TweenInfo.new(
+                                        lightData.timeTaken,
+                                        lightData.easingStyle,
+                                        lightData.easingDirection,
+                                        lightData.repeatCount,
+                                        lightData.reverses
+                                    )
+                                    faderTable.tween = TweenService:Create(
+                                        lightParts[lightName],
+                                        tweenInfo,
+                                        { Transparency = lightData.transparency }
+                                    )
+                                    if faderTable.tween ~= nil then
+                                        faderTable.tween:Play()
+                                        local temporaryConnection
+                                        if lighto ~= nil then
+                                            temporaryConnection = lightParts[lightName]
+                                                :GetPropertyChangedSignal("Transparency")
+                                                :Connect(function()
+                                                    lighto.Transparency = lightParts[lightName].Transparency
+                                                end)
+                                        end
+                                        faderTable.tween.Completed:Wait()
+                                        if lighto and temporaryConnection ~= nil then
+                                            temporaryConnection:Disconnect()
+                                        end
+                                    end
+                                end
+                            end
 
-							patternModule.moduleSettings.light(
-								lightParts[lightName],
-								0,
-								patternModule.moduleSettings.colors
-							)
-							tweenThreads[lightName] = nil
-							return "Killed"
-						end)
+                            patternModule.moduleSettings.light(
+                                lightParts[lightName],
+                                0,
+                                patternModule.moduleSettings.colors
+                            )
+                            tweenThreads[lightName] = nil
+                            return "Killed"
+                        end)
 					end
 
 					if coroutines[patternModule.moduleSettings.waitTime] then
