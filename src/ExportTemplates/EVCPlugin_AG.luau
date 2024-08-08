@@ -138,6 +138,7 @@ local coroutines = {}
 local rotatorThreads: { [string]: rotatorLightThread } = {}
 local tweenThreads: { [string]: tweenLightThread } = {}
 local dependentOverrides: { [string]: { { string | number } } } = {}
+local faders: { [Instance]: { lightos: { GuiObject }, lights: { Light }, guis: { SurfaceGui } } } = {}
 
 --------------------------------------------------------------------------------
 -- Functions --
@@ -283,6 +284,27 @@ local function registerRotator(lightName: string)
 
 		motorPart.Parent = lightbar
 	end
+end
+
+local function registerFader(lightPart: BasePart)
+	local data = {
+		lightos = {},
+		lights = {},
+		guis = {},
+	}
+
+	for _, v in pairs(lightPart:GetDescendants()) do
+		if v:IsA("GuiObject") then
+			table.insert(data.lightos, v)
+		elseif v:IsA("Light") then
+			v:SetAttribute("defaultBrightness", v.Brightness)
+			table.insert(data.lights, v)
+		elseif v:IsA("SurfaceGui") then
+			table.insert(data.guis, v)
+		end
+	end
+
+	faders[lightPart] = data
 end
 
 local function setLightRunningModule(lightName: string, module: patternModule, skipPossibleModules: boolean?)
@@ -512,9 +534,21 @@ for _, func in pairs(moduleStore:GetChildren()) do
 									end
 
 									local lightData: faderLight = lightData[faderTable.currentRunner]
+									local fader = faders[lightParts[lightName]]
 									if lightData.color ~= 0 then
 										lightParts[lightName].Color =
 											patternModule.moduleSettings.colors[lightData.color]
+										for _, lighto in pairs(fader.lightos) do
+											lighto.Visible = true
+											lighto.ImageColor3 = patternModule.moduleSettings.colors[lightData.color]
+										end
+										for _, light in pairs(fader.lights) do
+											light.Enabled = true
+											light.Color = patternModule.moduleSettings.colors[lightData.color]
+										end
+										for _, gui in pairs(fader.guis) do
+											gui.Enabled = true
+										end
 									end
 									-- patternModule.moduleSettings.light(lightbar[lightName], lightData.color, patternModule.moduleSettings.colors)
 									local tweenInfo = TweenInfo.new(
@@ -531,7 +565,23 @@ for _, func in pairs(moduleStore:GetChildren()) do
 									)
 									if faderTable.tween ~= nil then
 										faderTable.tween:Play()
+										local temporaryConnection
+										temporaryConnection = lightParts[lightName]
+											:GetPropertyChangedSignal("Transparency")
+											:Connect(function()
+												local transparency = lightParts[lightName].Transparency
+												for _, lighto in pairs(fader.lightos) do
+													lighto.ImageTransparency = transparency
+												end
+												for _, light in pairs(fader.lights) do
+													light.Brightness = light:GetAttribute("defaultBrightness")
+														* (1 - transparency)
+												end
+											end)
 										faderTable.tween.Completed:Wait()
+										if temporaryConnection ~= nil then
+											temporaryConnection:Disconnect()
+										end
 									end
 								end
 							end
@@ -720,6 +770,7 @@ for _, func in pairs(moduleStore:GetChildren()) do
 									then
 										local lightDataTable = {}
 										for i, v in pairs(lightData) do
+											registerFader(lightParts[lightName])
 											lightDataTable[i] = {
 												color = v.Color,
 												transparency = v.Transparency,
