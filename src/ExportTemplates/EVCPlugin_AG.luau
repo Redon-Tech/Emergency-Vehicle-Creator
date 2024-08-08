@@ -123,10 +123,10 @@ local car = script.Parent.Parent.Parent.Parent :: Model
 local pluginSettings = require(script.Parent.Settings)
 local body: Instance = car:WaitForChild("Body")
 local lightbarInstance: Instance? = body:WaitForChild("ELS")
-if lightbarInstance == nil or lightbarInstance:IsA("Model") == false then
+if lightbarInstance == nil or lightbarInstance:IsA("Folder") == false then
 	error(`No lightbar found`)
 end
-local lightbar: Model = lightbarInstance :: Model
+local lightbar: Folder = lightbarInstance :: Folder
 
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
