@@ -309,6 +309,12 @@ local function registerRotator(lightName: string)
 		motor:SetAttribute("C1", motor.C1)
 		motor.Parent = motorPart
 
+		for i, v in pairs(lightParts[lightName]:GetChildren()) do
+            if v:IsA("WeldConstraint") and v.Part1 == car.DriveSeat then
+                v:Destroy()
+            end
+        end
+
 		for i, v in pairs(car.DriveSeat:GetChildren()) do
 			if v:IsA("Weld") and v.Part1 == lightParts[lightName] then
 				v:Destroy()
