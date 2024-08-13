@@ -334,6 +334,7 @@ local function registerFader(lightPart: BasePart)
 
 	for _, v in pairs(lightPart:GetDescendants()) do
 		if v:IsA("GuiObject") then
+			v:SetAttribute("defaultTransparency", v.ImageTransparency)
 			table.insert(data.lightos, v)
 		elseif v:IsA("Light") then
 			v:SetAttribute("defaultBrightness", v.Brightness)
@@ -620,6 +621,12 @@ for _, func in pairs(moduleStore:GetChildren()) do
 										faderTable.tween.Completed:Wait()
 										if temporaryConnection ~= nil then
 											temporaryConnection:Disconnect()
+											for _, lighto in pairs(fader.lightos) do
+												lighto.ImageTransparency = lighto:GetAttribute("defaultTransparency")
+											end
+											for _, light in pairs(fader.lights) do
+												light.Brightness = light:GetAttribute("defaultBrightness")
+											end
 										end
 									end
 								end
