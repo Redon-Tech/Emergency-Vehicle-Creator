@@ -24,7 +24,7 @@ local function getName(name: string)
 	return name
 end
 
-local Plugin_Version = "2.2.3"
+local Plugin_Version = "2.2.4"
 local Plugin_Name = getName("Emergency Vehicle Creator V2")
 local Plugin_Description = "Easily create amazing ELS for emergency vehicles!"
 local Plugin_Icon = "http://www.roblox.com/asset/?id=9953243250"

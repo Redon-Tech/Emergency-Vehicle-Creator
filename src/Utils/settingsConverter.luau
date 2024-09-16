@@ -218,6 +218,18 @@ settingsConverter.converters["2_2_1"] = function(settings: ModuleScript, pluginS
 	return newSettingsModule
 end
 
+settingsConverter.converters["2_2_2"] = function(settings: ModuleScript, pluginSettings: v2_1_0): ModuleScript
+	local newSettingsModule = pluginRoot.src.ExportTemplates.BlankSettings:Clone()
+	local originalSource = settings.Source
+	local source = newSettingsModule.Source
+
+	source = originalSource
+	source = source:gsub('PluginVersion = "2.2.2",', `PluginVersion = "2.2.4",`, 1)
+
+	newSettingsModule.Source = source
+	return newSettingsModule
+end
+
 function settingsConverter.convert(settings: ModuleScript)
 	local pluginSettings = require(settings)
 	local formattedVersion = pluginSettings.PluginVersion:gsub("%.", "_")

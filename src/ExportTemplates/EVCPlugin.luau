@@ -368,6 +368,10 @@ local function setLightRunningModule(lightName: string, module: patternModule, s
 			end
 		end
 		light.running_module = module
+		if tweenThreads[lightName] ~= nil and tweenThreads[lightName].tween ~= nil then
+			local tween = tweenThreads[lightName].tween :: Tween
+			tween:Cancel()
+		end
 		if table.find(light.possible_modules, module) then
 			table.remove(light.possible_modules, table.find(light.possible_modules, module))
 		end
@@ -569,10 +573,13 @@ for _, func in pairs(moduleStore:GetChildren()) do
 						}
 						tweenThreads[lightName] = faderTable
 						tweenThreads[lightName].thread = task.defer(function()
+							local fader = faders[lightParts[lightName]]
+							local hasBeenOverridden = false
 							while task.wait(1 / 3) do
 								if faderTable.run == false then
 									break
 								elseif lights[lightName].running_module == patternModule and lightParts[lightName] then
+									if hasBeenOverridden == true then hasBeenOverridden = false end
 									if faderTable.currentRunner >= rawlen(lightData) then
 										faderTable.currentRunner = 1
 									else
@@ -580,7 +587,6 @@ for _, func in pairs(moduleStore:GetChildren()) do
 									end
 
 									local lightData: faderLight = lightData[faderTable.currentRunner]
-									local fader = faders[lightParts[lightName]]
 									if lightData.color ~= 0 then
 										lightParts[lightName].Color =
 											patternModule.moduleSettings.colors[lightData.color]
@@ -627,17 +633,19 @@ for _, func in pairs(moduleStore:GetChildren()) do
 										faderTable.tween.Completed:Wait()
 										if temporaryConnection ~= nil then
 											temporaryConnection:Disconnect()
-											for _, lighto in pairs(fader.lightos) do
-												lighto.ImageTransparency = lighto:GetAttribute("defaultTransparency")
-											end
-											for _, light in pairs(fader.lights) do
-												light.Brightness = light:GetAttribute("defaultBrightness")
-											end
 										end
+									end
+								elseif hasBeenOverridden == false then
+									hasBeenOverridden = true
+									for _, lighto in pairs(fader.lightos) do
+										lighto.ImageTransparency = lighto:GetAttribute("defaultTransparency")
+									end
+									for _, light in pairs(fader.lights) do
+										light.Brightness = light:GetAttribute("defaultBrightness")
 									end
 								end
 							end
-
+							
 							patternModule.moduleSettings.light(
 								lightParts[lightName],
 								0,
