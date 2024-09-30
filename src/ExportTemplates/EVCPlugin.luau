@@ -646,6 +646,12 @@ for _, func in pairs(moduleStore:GetChildren()) do
 								end
 							end
 							
+							for _, lighto in pairs(fader.lightos) do
+								lighto.ImageTransparency = lighto:GetAttribute("defaultTransparency")
+							end
+							for _, light in pairs(fader.lights) do
+								light.Brightness = light:GetAttribute("defaultBrightness")
+							end
 							patternModule.moduleSettings.light(
 								lightParts[lightName],
 								0,
