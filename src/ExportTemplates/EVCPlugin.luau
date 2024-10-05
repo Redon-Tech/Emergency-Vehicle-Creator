@@ -310,10 +310,10 @@ local function registerRotator(lightName: string)
 		motor.Parent = motorPart
 
 		for i, v in pairs(lightParts[lightName]:GetChildren()) do
-            if v:IsA("WeldConstraint") and v.Part1 == car.DriveSeat then
-                v:Destroy()
-            end
-        end
+			if v:IsA("WeldConstraint") and v.Part1 == car.DriveSeat then
+				v:Destroy()
+			end
+		end
 
 		for i, v in pairs(car.DriveSeat:GetChildren()) do
 			if v:IsA("Weld") and v.Part1 == lightParts[lightName] then
@@ -579,7 +579,9 @@ for _, func in pairs(moduleStore:GetChildren()) do
 								if faderTable.run == false then
 									break
 								elseif lights[lightName].running_module == patternModule and lightParts[lightName] then
-									if hasBeenOverridden == true then hasBeenOverridden = false end
+									if hasBeenOverridden == true then
+										hasBeenOverridden = false
+									end
 									if faderTable.currentRunner >= rawlen(lightData) then
 										faderTable.currentRunner = 1
 									else
@@ -645,7 +647,7 @@ for _, func in pairs(moduleStore:GetChildren()) do
 									end
 								end
 							end
-							
+
 							for _, lighto in pairs(fader.lightos) do
 								lighto.ImageTransparency = lighto:GetAttribute("defaultTransparency")
 							end
@@ -989,71 +991,6 @@ local function playStopModified(name, modifiedName)
 	end
 end
 
-local function playSiren(name)
-	if soundPart == nil then
-		return
-	end
-	local soundPart: Instance = soundPart
-
-	local sirenData: siren = sirensByName[name]
-	local soundInstance: Instance? = soundPart:FindFirstChild(name)
-	if soundInstance == nil or soundInstance:IsA("Sound") == false then
-		return
-	end
-	local sound: Sound = soundInstance :: Sound
-
-	if sirenData.overrideOtherSounds then
-		if sirenData._type == "hold" then
-			for _, v in pairs(soundPart:GetChildren()) do
-				if v:IsA("Sound") and v ~= sound then
-					if v:GetAttribute("OriginalVolume") == nil then
-						v:SetAttribute("OriginalVolume", v.Volume)
-					end
-					v.Volume = 0
-				end
-			end
-		else
-			for _, v in pairs(soundPart:GetChildren()) do
-				if v:IsA("Sound") and v ~= sound then
-					v:Stop()
-				end
-			end
-		end
-	end
-
-	local originalVolume = sound:GetAttribute("OriginalVolume")
-	if typeof(originalVolume) == "number" then
-		sound.Volume = originalVolume
-	end
-	sound:Play()
-
-	if pluginSettings.Overrides.Sirens[sirenData.name] ~= nil then
-		if typeof(pluginSettings.Overrides.Sirens[sirenData.name]) == "string" then
-			lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 1)
-		elseif typeof(pluginSettings.Overrides.Sirens[sirenData.name]) == "table" then
-			local dependency = lightbar:GetAttribute(pluginSettings.Overrides.Sirens[sirenData.name][2])
-			if typeof(dependency) ~= "number" then
-				return
-			end
-			local dependencyPattern = pluginSettings.Overrides.Sirens[sirenData.name][3]
-			if dependencyPattern == nil then
-				dependencyPattern = 1
-			end
-			lightbar:SetAttribute(`should{pluginSettings.Overrides.Sirens[sirenData.name][1]}`, true)
-			lightbar:SetAttribute(
-				pluginSettings.Overrides.Sirens[sirenData.name][1],
-				if dependency > dependencyPattern - 1 then 1 else 0
-			)
-		end
-	end
-
-	for modifiedName, data: sirenModifier in pairs(sirenData.modifiers) do
-		if soundPart:FindFirstChild(data.name) then
-			playStopModified(name, modifiedName)
-		end
-	end
-end
-
 local function stopSiren(name)
 	if soundPart == nil then
 		return
@@ -1085,6 +1022,71 @@ local function stopSiren(name)
 		elseif typeof(pluginSettings.Overrides.Sirens[sirenData.name]) == "table" then
 			lightbar:SetAttribute(`should{pluginSettings.Overrides.Sirens[sirenData.name][1]}`, false)
 			lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name][1], 0)
+		end
+	end
+
+	for modifiedName, data: sirenModifier in pairs(sirenData.modifiers) do
+		if soundPart:FindFirstChild(data.name) then
+			playStopModified(name, modifiedName)
+		end
+	end
+end
+
+local function playSiren(name)
+	if soundPart == nil then
+		return
+	end
+	local soundPart: Instance = soundPart
+
+	local sirenData: siren = sirensByName[name]
+	local soundInstance: Instance? = soundPart:FindFirstChild(name)
+	if soundInstance == nil or soundInstance:IsA("Sound") == false then
+		return
+	end
+	local sound: Sound = soundInstance :: Sound
+
+	if sirenData.overrideOtherSounds then
+		if sirenData._type == "hold" then
+			for _, v in pairs(soundPart:GetChildren()) do
+				if v:IsA("Sound") and v ~= sound and sirensByName[v.Name] then
+					if v:GetAttribute("OriginalVolume") == nil then
+						v:SetAttribute("OriginalVolume", v.Volume)
+					end
+					v.Volume = 0
+				end
+			end
+		else
+			for _, v in pairs(soundPart:GetChildren()) do
+				if v:IsA("Sound") and v ~= sound and sirensByName[v.Name] then
+					stopSiren(v.Name)
+				end
+			end
+		end
+	end
+
+	local originalVolume = sound:GetAttribute("OriginalVolume")
+	if typeof(originalVolume) == "number" then
+		sound.Volume = originalVolume
+	end
+	sound:Play()
+
+	if pluginSettings.Overrides.Sirens[sirenData.name] ~= nil then
+		if typeof(pluginSettings.Overrides.Sirens[sirenData.name]) == "string" then
+			lightbar:SetAttribute(pluginSettings.Overrides.Sirens[sirenData.name], 1)
+		elseif typeof(pluginSettings.Overrides.Sirens[sirenData.name]) == "table" then
+			local dependency = lightbar:GetAttribute(pluginSettings.Overrides.Sirens[sirenData.name][2])
+			if typeof(dependency) ~= "number" then
+				return
+			end
+			local dependencyPattern = pluginSettings.Overrides.Sirens[sirenData.name][3]
+			if dependencyPattern == nil then
+				dependencyPattern = 1
+			end
+			lightbar:SetAttribute(`should{pluginSettings.Overrides.Sirens[sirenData.name][1]}`, true)
+			lightbar:SetAttribute(
+				pluginSettings.Overrides.Sirens[sirenData.name][1],
+				if dependency > dependencyPattern - 1 then 1 else 0
+			)
 		end
 	end
 
