@@ -1246,7 +1246,7 @@ event.OnServerEvent:Connect(function(player, eventType: string, ...)
 			if typeof(pluginSettings.Overrides.Chassis.Reverse) == "string" then
 				lightbar:SetAttribute(pluginSettings.Overrides.Chassis.Reverse, if value == -1 then 1 else 0)
 			elseif typeof(pluginSettings.Overrides.Chassis.Reverse) == "table" then
-				if value > -1 then
+				if value < 0 then
 					local dependency = lightbar:GetAttribute(pluginSettings.Overrides.Chassis.Reverse[2])
 					if typeof(dependency) ~= "number" then
 						return
