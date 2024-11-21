@@ -12,29 +12,3 @@
 # Overview
 
 The Redon Tech Emergency Vehcile Creator is a plugin for Roblox inspired by Siren Tool by Dawnstar FiveM. This plugin aims to make the creation of emergency vehicles on Roblox faster and easier for everyone, while being 100% free and open source.
-
-## Features
-
-- ELS Creation
-- Saving/Loading Patterns
-- Exporting as a standard ELS controller
-- Custom A-Chassis plugin for ELS controlling
-- AG-Chassis support
-- Rotators
-- Fading Light Support
-
-## Planned Features
-
-- And much more features yet to be disclosed!
-
-## Installation
-
-[Video](https://youtu.be/V2dkDgH1Sio)
-
-# Contributor Information
-
-The "build" branch is only for full releases, any development should go onto the "main" branch.
-
-## To Do
-
-**To Be Updated**
