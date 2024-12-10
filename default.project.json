@@ -6,7 +6,7 @@
 			"$path": "src"
 		},
 		"packages": {
-			"$path": "packages"
+			"$path": "Packages"
 		},
 		"LICENSE": {
 			"$path": "LICENSE.luau"
