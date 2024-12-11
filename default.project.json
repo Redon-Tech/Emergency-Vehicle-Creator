@@ -2,10 +2,10 @@
 	"name": "Emergency-Vehicle-Creator",
 	"tree": {
 		"$className": "Folder",
-		"src": {
+		"Plugin": {
 			"$path": "src"
 		},
-		"packages": {
+		"Packages": {
 			"$path": "Packages"
 		},
 		"LICENSE": {
