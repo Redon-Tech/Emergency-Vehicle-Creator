@@ -55,3 +55,55 @@ else
 	_G.RTPlugins.Buttons[name] = _G.RTPlugins.ToolBar:CreateButton(buttonName, description, pluginIcon)
 	button = _G.RTPlugins.Buttons[name]
 end
+
+--[[
+
+	Run
+
+]]
+
+local root = script.Parent
+
+local Fusion = require(root.Packages.fusion)
+local RedonUI = require(root.Packages["redon-ui"])
+local types = require(root.Plugin.types)
+
+local menu = require(script.Components.menu)
+
+local scope = Fusion.scoped(Fusion, RedonUI.Util, RedonUI.Components, {
+	menu = menu,
+})
+
+local enabled = scope:Value(false)
+local mode = scope:Value("menu")
+
+local menuWidget = scope:menu {
+	Name = name,
+	Version = VERSION,
+
+	Enabled = enabled,
+	Mode = mode,
+}
+
+menuWidget:BindToClose(function()
+	enabled:set(false)
+end)
+
+button:SetActive(false) -- If the plugin is reloaded, the button state should be reset
+scope:Observer(enabled):onChange(function()
+	button:SetActive(Fusion.peek(enabled))
+end)
+
+button.Click:Connect(function()
+	enabled:set(not Fusion.peek(enabled))
+end)
+
+--[[
+
+	Cleanup
+
+]]
+
+plugin.Unloading:Connect(function()
+	scope:doCleanup()
+end)
