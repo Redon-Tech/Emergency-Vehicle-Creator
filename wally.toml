@@ -6,4 +6,4 @@ realm = "shared"
 
 [dependencies]
 fusion = "elttob/fusion@0.3.0"
-redon-ui = "redon-tech/redon-ui@0.1.0-alpha.4"
+redon-ui = "redon-tech/redon-ui@0.1.0-alpha.7"
