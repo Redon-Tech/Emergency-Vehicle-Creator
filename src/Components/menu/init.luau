@@ -1,3 +1,4 @@
+-- Redon Tech Emnergency Vehicle Creator, MIT License
 local root = script.Parent.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
@@ -21,6 +22,10 @@ type props = {
 	Mode: Fusion.UsedAs<types.mode>,
 }
 
+--[[
+	Menu
+	Creates the main menu for the plugin
+]]
 return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 	local scope = Fusion.innerScope(baseScope, components)
 

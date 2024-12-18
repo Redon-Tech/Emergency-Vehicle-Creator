@@ -8,6 +8,7 @@
 	|_|  \_\  \___|  \__,_|  \___/  |_| |_|      |_|     \___|  \___| |_| |_|
 	Emergency Vehicle Creator V3
 	Plugin Loader
+	MIT License
 --]]
 
 if not game:GetService("RunService"):IsEdit() then

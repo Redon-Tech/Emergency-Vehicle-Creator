@@ -1,3 +1,4 @@
+-- Redon Tech Emnergency Vehicle Creator, MIT License
 local root = script.Parent.Parent.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
@@ -15,6 +16,10 @@ local secondaryButtons: { [types.menuPanels]: string } = {
 	["Credits"] = "rbxassetid://95086716451211",
 }
 
+--[[
+	Home
+	Creates the home page for the main menu
+]]
 return function(scope: types.Scope, props: props): Fusion.Child
 	local currentTheme = RedonUI.theme.theme:now()
 

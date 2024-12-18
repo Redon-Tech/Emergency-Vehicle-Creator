@@ -1,3 +1,4 @@
+-- Redon Tech Emnergency Vehicle Creator, MIT License
 local root = script.Parent.Parent.Parent.Parent
 local plugin = root:FindFirstAncestorWhichIsA("Plugin") :: Plugin
 
@@ -18,6 +19,10 @@ type props = {
 	Enabled: Fusion.UsedAs<boolean>,
 }
 
+--[[
+	Widget
+	Creates a DockWidgetPluginGui
+]]
 return function(scope: types.Scope, props: props): Fusion.Child
 	local widget = plugin:CreateDockWidgetPluginGui(
 		props.pluginGuiId,

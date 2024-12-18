@@ -1,4 +1,6 @@
 --# selene: allow(unused_variable)
+-- Redon Tech Emnergency Vehicle Creator, MIT License
+
 local root = script.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
