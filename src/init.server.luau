@@ -56,6 +56,7 @@ else
 	_G.RTPlugins.Buttons[name] = _G.RTPlugins.ToolBar:CreateButton(buttonName, description, pluginIcon)
 	button = _G.RTPlugins.Buttons[name]
 end
+button.ClickableWhenViewportHidden = true
 
 --[[
 
