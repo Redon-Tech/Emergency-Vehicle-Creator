@@ -68,7 +68,6 @@ local root = script.Parent
 
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
-local types = require(root.Plugin.types)
 
 local menu = require(script.Components.menu)
 
@@ -91,7 +90,7 @@ menuWidget:BindToClose(function()
 	enabled:set(false)
 end)
 
-button:SetActive(false) -- If the plugin is reloaded, the button state should be reset
+button:SetActive(scope.peek(enabled)) -- If the plugin is reloaded, the button state should be reset
 scope:Observer(enabled):onChange(function()
 	button:SetActive(Fusion.peek(enabled))
 end)
