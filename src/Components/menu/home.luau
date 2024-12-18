@@ -6,7 +6,7 @@ local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 
 type props = {
-	CurrentPanel: Fusion.UsedAs<types.menuPanels>,
+	CurrentPanel: Fusion.Value<types.menuPanels>,
 	Version: string,
 }
 
@@ -101,19 +101,30 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						Padding = UDim.new(0, 55),
 						FillDirection = Enum.FillDirection.Horizontal,
 						HorizontalAlignment = Enum.HorizontalAlignment.Center,
+						SortOrder = Enum.SortOrder.LayoutOrder,
 					},
 
 					-- selene: allow(shadowing)
 					scope:ForPairs(secondaryButtons, function(_, scope: typeof(scope), panel, icon)
-						return scope:iconButton {
-							Name = panel,
-							Size = UDim2.fromOffset(80, 80),
-							Image = icon,
-							ImageColor = "text",
-							BackgroundColor = "mantle",
-							Border = 3,
-							Reactive = true,
-						}
+						return panel,
+							scope:iconButton {
+								Name = panel,
+								Size = UDim2.fromOffset(80, 80),
+								Image = icon,
+								ImageColor = "text",
+								BackgroundColor = "crust",
+								Border = 3,
+								BorderColor = "text",
+								Reactive = true,
+								CornerRadius = UDim.new(0, 25),
+								LayoutOrder = if panel == "Settings" then 1 elseif panel == "Help" then 2 else 3,
+								Shadow = true,
+								ShadowColor = "crust",
+
+								[Fusion.OnEvent "Activated"] = function()
+									props.CurrentPanel:set(panel)
+								end,
+							}
 					end),
 				},
 			},

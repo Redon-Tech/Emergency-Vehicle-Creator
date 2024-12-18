@@ -10,8 +10,10 @@ local components = {
 }
 
 local home = require(script.home)
+local help = require(script.help)
 local panels = {
 	home = home,
+	help = help,
 }
 
 type props = {
