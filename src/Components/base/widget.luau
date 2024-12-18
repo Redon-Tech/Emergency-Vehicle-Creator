@@ -37,6 +37,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		)
 	)
 	widget.Name = props.pluginGuiId
+	widget.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	return scope:Hydrate(widget) {
 		Title = props.Title,
