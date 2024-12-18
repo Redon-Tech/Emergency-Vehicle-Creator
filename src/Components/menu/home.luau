@@ -27,7 +27,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		Name = "Home",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(400, 750),
+		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
 		Visible = scope:Computed(function(use)
 			return use(props.CurrentPanel) == "Home"
@@ -42,6 +42,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 				Text = "Emergency Vehicle Creator\nV3",
 				FontWeight = Enum.FontWeight.Bold,
+				TextScaled = true,
 
 				TextYAlignment = Enum.TextYAlignment.Top,
 			},

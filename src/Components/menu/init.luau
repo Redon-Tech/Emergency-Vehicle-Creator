@@ -35,10 +35,10 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 		pluginGuiId = `{props.Name}_Menu`,
 		InitialDockState = Enum.InitialDockState.Float,
 		InitialEnabled = false,
-		MinHeight = 500,
-		MinWidth = 350,
-		FloatingYSize = 500,
-		FloatingXSize = 350,
+		MinHeight = 450,
+		MinWidth = 240,
+		FloatingYSize = 450,
+		FloatingXSize = 240,
 		InitialEnabledShouldOverrideRestore = true,
 
 		Title = scope:Computed(function(use)
@@ -51,20 +51,32 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 
 		[Fusion.Children] = {
 			scope:base {
-				Name = "MainContainer",
+				Name = "Main",
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Position = UDim2.fromScale(0.5, 0.5),
 				Size = UDim2.fromScale(1, 1),
 				BackgroundColor = "base",
 
 				[Fusion.Children] = {
-					-- selene: allow(shadowing)
-					scope:ForValues(panels, function(_, scope: typeof(scope), panel)
-						return panel(scope, {
-							CurrentPanel = currentPanel,
-							Version = props.Version,
-						})
-					end),
+					scope:New("Frame") {
+						Name = "Container",
+						AnchorPoint = Vector2.new(0.5, 0.5),
+						Position = UDim2.fromScale(0.5, 0.5),
+						Size = UDim2.fromOffset(400, 750),
+						BackgroundTransparency = 1,
+
+						[Fusion.Children] = {
+							scope:New("UIScale") { Scale = 0.6 },
+
+							-- selene: allow(shadowing)
+							scope:ForValues(panels, function(_, scope: typeof(scope), panel)
+								return panel(scope, {
+									CurrentPanel = currentPanel,
+									Version = props.Version,
+								})
+							end),
+						},
+					},
 				},
 			},
 		},
