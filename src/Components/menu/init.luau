@@ -11,9 +11,11 @@ local components = {
 
 local home = require(script.home)
 local help = require(script.help)
+local credits = require(script.credits)
 local panels = {
 	home = home,
 	help = help,
+	credits = credits,
 }
 
 type props = {
