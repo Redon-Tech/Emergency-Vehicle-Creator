@@ -7,7 +7,6 @@ local types = require(root.Plugin.types)
 
 type props = {
 	CurrentPanel: Fusion.Value<types.menuPanels>,
-	Version: string,
 }
 
 local secondaryButtons: { [types.menuPanels]: string } = {

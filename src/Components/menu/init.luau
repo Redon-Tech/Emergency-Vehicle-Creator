@@ -83,6 +83,17 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 					},
 				},
 			},
+
+			scope:textLabel {
+				Name = "Version",
+				AnchorPoint = Vector2.new(0.5, 1),
+				Position = UDim2.fromScale(0.5, 1),
+				Size = UDim2.fromOffset(240, 10),
+				BackgroundTransparency = 1,
+
+				Text = props.Version,
+				TextSize = 9,
+			},
 		},
 	}
 end

@@ -13,7 +13,6 @@ type props = {
 	AutomaticSize: Fusion.UsedAs<Enum.AutomaticSize>?,
 
 	CurrentPanel: Fusion.Value<types.menuPanels>,
-	Version: string,
 }
 
 --[[
@@ -83,17 +82,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				[Fusion.OnEvent "Activated"] = function()
 					props.CurrentPanel:set("Home")
 				end,
-			},
-
-			scope:textLabel {
-				Name = "Version",
-				AnchorPoint = Vector2.new(0.5, 1),
-				Position = UDim2.fromScale(0.5, 1),
-				Size = UDim2.fromOffset(400, 18),
-				BackgroundTransparency = 1,
-
-				Text = props.Version,
-				TextSize = 15,
 			},
 		},
 	}
