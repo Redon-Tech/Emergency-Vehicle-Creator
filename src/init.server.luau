@@ -15,7 +15,7 @@ if not game:GetService("RunService"):IsEdit() then
 	return
 end
 
-local VERSION = "2.0.0-alpha.1"
+local VERSION = "3.0.0-alpha.1"
 local IS_DEV = true
 
 --[[
