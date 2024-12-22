@@ -15,7 +15,8 @@ if not game:GetService("RunService"):IsEdit() then
 	return
 end
 
-local VERSION = "3.0-alpha.1"
+local VERSION = "2.0.0-alpha.1"
+local IS_DEV = true
 
 --[[
 
@@ -65,12 +66,15 @@ button.ClickableWhenViewportHidden = true
 ]]
 
 local root = script.Parent
+-- Setup Logging
+local log = require(script.log)
+log.verbosity = if IS_DEV then log.level.debug else log.level.error
 
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 
+-- Setup Scope
 local menu = require(script.Components.menu)
-
 local scope = Fusion.scoped(Fusion, RedonUI.Util, RedonUI.Components, {
 	menu = menu,
 })
