@@ -4,15 +4,16 @@ local root = script.Parent.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
+local assets = require(root.Plugin.assets)
 
 type props = {
 	CurrentPanel: Fusion.Value<types.menuPanels>,
 }
 
 local secondaryButtons: { [types.menuPanels]: string } = {
-	["Settings"] = "rbxassetid://135865113316058",
-	["Help"] = "rbxassetid://123835351185186",
-	["Credits"] = "rbxassetid://95086716451211",
+	["Settings"] = assets.images.home.settings,
+	["Help"] = assets.images.home.help,
+	["Credits"] = assets.images.home.credits,
 }
 
 --[[
