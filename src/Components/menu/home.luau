@@ -29,10 +29,10 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 	local currentSelection: Fusion.Value<Instance?> = scope:Value(nil)
 
-	local selectionConnection
+	local selectionConnection: RBXScriptConnection? = nil
 	local function listenForSelection()
 		if selectionConnection ~= nil then
-			selectionConnection:disconnect()
+			selectionConnection:Disconnect()
 			selectionConnection = nil
 		end
 
@@ -52,7 +52,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			if enabled then
 				listenForSelection()
 			elseif selectionConnection ~= nil then
-				selectionConnection:disconnect()
+				selectionConnection:Disconnect()
 			end
 			return enabled
 		end),
