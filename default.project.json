@@ -6,7 +6,7 @@
 			"$path": "src"
 		},
 		"Packages": {
-			"$path": "Packages"
+			"$path": "roblox_packages"
 		},
 		"LICENSE": {
 			"$path": "LICENSE.luau"

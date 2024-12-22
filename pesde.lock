@@ -1,0 +1,241 @@
+name = "redon_tech/emergency_vehicle_creator"
+version = "0.1.0"
+target = "roblox"
+
+[graph."jiwonz/dirs"."0.1.2 lune"]
+resolved_ty = "standard"
+
+[graph."jiwonz/dirs"."0.1.2 lune".target]
+environment = "lune"
+lib = "src/init.luau"
+
+[graph."jiwonz/dirs"."0.1.2 lune".dependencies]
+"jiwonz/pathfs" = ["0.1.0 lune", "pathfs"]
+
+[graph."jiwonz/dirs"."0.1.2 lune".pkg_ref]
+ref_ty = "pesde"
+name = "jiwonz/dirs"
+version = "0.1.2"
+index_url = "https://github.com/daimond113/pesde-index"
+
+[graph."jiwonz/dirs"."0.1.2 lune".pkg_ref.dependencies]
+pathfs = [{ name = "jiwonz/pathfs", version = "^0.1.0", index = "https://github.com/daimond113/pesde-index" }, "standard"]
+
+[graph."jiwonz/dirs"."0.1.2 lune".pkg_ref.target]
+environment = "lune"
+lib = "src/init.luau"
+
+[graph."jiwonz/pathfs"."0.1.0 lune"]
+resolved_ty = "standard"
+
+[graph."jiwonz/pathfs"."0.1.0 lune".target]
+environment = "lune"
+lib = "init.luau"
+
+[graph."jiwonz/pathfs"."0.1.0 lune".pkg_ref]
+ref_ty = "pesde"
+name = "jiwonz/pathfs"
+version = "0.1.0"
+index_url = "https://github.com/daimond113/pesde-index"
+
+[graph."jiwonz/pathfs"."0.1.0 lune".pkg_ref.target]
+environment = "lune"
+lib = "init.luau"
+
+[graph."lukadev_0/option"."1.2.0 lune"]
+resolved_ty = "standard"
+
+[graph."lukadev_0/option"."1.2.0 lune".target]
+environment = "lune"
+lib = "lib/init.luau"
+
+[graph."lukadev_0/option"."1.2.0 lune".pkg_ref]
+ref_ty = "pesde"
+name = "lukadev_0/option"
+version = "1.2.0"
+index_url = "https://github.com/daimond113/pesde-index"
+
+[graph."lukadev_0/option"."1.2.0 lune".pkg_ref.target]
+environment = "lune"
+lib = "lib/init.luau"
+
+[graph."lukadev_0/result"."1.2.0 lune"]
+resolved_ty = "standard"
+
+[graph."lukadev_0/result"."1.2.0 lune".target]
+environment = "lune"
+lib = "lib/init.luau"
+
+[graph."lukadev_0/result"."1.2.0 lune".pkg_ref]
+ref_ty = "pesde"
+name = "lukadev_0/result"
+version = "1.2.0"
+index_url = "https://github.com/daimond113/pesde-index"
+
+[graph."lukadev_0/result"."1.2.0 lune".pkg_ref.target]
+environment = "lune"
+lib = "lib/init.luau"
+
+[graph."pesde/rojo"."7.4.4 lune"]
+direct = ["rojo", { name = "pesde/rojo", version = "^7.4.4", target = "lune" }, "dev"]
+resolved_ty = "dev"
+
+[graph."pesde/rojo"."7.4.4 lune".target]
+environment = "lune"
+bin = "init.luau"
+
+[graph."pesde/rojo"."7.4.4 lune".dependencies]
+"lukadev_0/option" = ["1.2.0 lune", "option"]
+"lukadev_0/result" = ["1.2.0 lune", "result"]
+"pesde/toolchainlib" = ["0.1.4 lune", "core"]
+
+[graph."pesde/rojo"."7.4.4 lune".pkg_ref]
+ref_ty = "pesde"
+name = "pesde/rojo"
+version = "7.4.4"
+index_url = "https://github.com/pesde-pkg/index"
+
+[graph."pesde/rojo"."7.4.4 lune".pkg_ref.dependencies]
+core = [{ name = "pesde/toolchainlib", version = "^0.1.1", index = "https://github.com/daimond113/pesde-index", target = "lune" }, "standard"]
+option = [{ name = "lukadev_0/option", version = "^1.2.0", index = "https://github.com/daimond113/pesde-index" }, "standard"]
+result = [{ name = "lukadev_0/result", version = "^1.2.0", index = "https://github.com/daimond113/pesde-index" }, "standard"]
+
+[graph."pesde/rojo"."7.4.4 lune".pkg_ref.target]
+environment = "lune"
+bin = "init.luau"
+
+[graph."pesde/scripts_core"."0.0.1 lune"]
+resolved_ty = "standard"
+
+[graph."pesde/scripts_core"."0.0.1 lune".target]
+environment = "lune"
+lib = "src/init.luau"
+
+[graph."pesde/scripts_core"."0.0.1 lune".pkg_ref]
+ref_ty = "pesde"
+name = "pesde/scripts_core"
+version = "0.0.1"
+index_url = "https://github.com/pesde-pkg/index"
+
+[graph."pesde/scripts_core"."0.0.1 lune".pkg_ref.dependencies]
+frktest = [{ name = "itsfrank/frktest", version = "^0.0.2", index = "https://github.com/pesde-pkg/index" }, "dev"]
+luau-lsp = [{ name = "pesde/luau_lsp", version = "^1.36.0", index = "https://github.com/pesde-pkg/index" }, "dev"]
+pathfs = [{ name = "jiwonz/pathfs", version = "^0.1.0", index = "https://github.com/pesde-pkg/index" }, "dev"]
+stylua = [{ name = "pesde/stylua", version = "^2.0.1", index = "https://github.com/pesde-pkg/index" }, "dev"]
+
+[graph."pesde/scripts_core"."0.0.1 lune".pkg_ref.target]
+environment = "lune"
+lib = "src/init.luau"
+
+[graph."pesde/scripts_rojo"."0.1.0 lune"]
+direct = ["scripts", { name = "pesde/scripts_rojo", version = "^0.1.0", target = "lune" }, "dev"]
+resolved_ty = "dev"
+
+[graph."pesde/scripts_rojo"."0.1.0 lune".target]
+environment = "lune"
+
+[graph."pesde/scripts_rojo"."0.1.0 lune".target.scripts]
+roblox_sync_config_generator = "roblox_sync_config_generator.luau"
+sourcemap_generator = "sourcemap_generator.luau"
+
+[graph."pesde/scripts_rojo"."0.1.0 lune".dependencies]
+"pesde/rojo" = ["7.4.4 lune", "rojo"]
+"pesde/scripts_core" = ["0.0.1 lune", "core"]
+
+[graph."pesde/scripts_rojo"."0.1.0 lune".pkg_ref]
+ref_ty = "pesde"
+name = "pesde/scripts_rojo"
+version = "0.1.0"
+index_url = "https://github.com/pesde-pkg/index"
+
+[graph."pesde/scripts_rojo"."0.1.0 lune".pkg_ref.dependencies]
+core = [{ name = "pesde/scripts_core", version = "^0.0.1", index = "https://github.com/pesde-pkg/index", target = "lune" }, "standard"]
+rojo = [{ name = "pesde/rojo", version = "^7.4.4", index = "https://github.com/pesde-pkg/index" }, "peer"]
+
+[graph."pesde/scripts_rojo"."0.1.0 lune".pkg_ref.target]
+environment = "lune"
+
+[graph."pesde/scripts_rojo"."0.1.0 lune".pkg_ref.target.scripts]
+roblox_sync_config_generator = "roblox_sync_config_generator.luau"
+sourcemap_generator = "sourcemap_generator.luau"
+
+[graph."pesde/toolchainlib"."0.1.4 lune"]
+resolved_ty = "standard"
+
+[graph."pesde/toolchainlib"."0.1.4 lune".target]
+environment = "lune"
+lib = "src/init.luau"
+
+[graph."pesde/toolchainlib"."0.1.4 lune".dependencies]
+"jiwonz/dirs" = ["0.1.2 lune", "dirs"]
+"jiwonz/pathfs" = ["0.1.0 lune", "pathfs"]
+"lukadev_0/option" = ["1.2.0 lune", "option"]
+"lukadev_0/result" = ["1.2.0 lune", "result"]
+
+[graph."pesde/toolchainlib"."0.1.4 lune".pkg_ref]
+ref_ty = "pesde"
+name = "pesde/toolchainlib"
+version = "0.1.4"
+index_url = "https://github.com/daimond113/pesde-index"
+
+[graph."pesde/toolchainlib"."0.1.4 lune".pkg_ref.dependencies]
+dirs = [{ name = "jiwonz/dirs", version = "^0.1.1", index = "https://github.com/daimond113/pesde-index" }, "standard"]
+option = [{ name = "lukadev_0/option", version = "^1.2.0", index = "https://github.com/daimond113/pesde-index" }, "peer"]
+pathfs = [{ name = "jiwonz/pathfs", version = "^0.1.0", index = "https://github.com/daimond113/pesde-index" }, "standard"]
+result = [{ name = "lukadev_0/result", version = "^1.2.0", index = "https://github.com/daimond113/pesde-index" }, "peer"]
+
+[graph."pesde/toolchainlib"."0.1.4 lune".pkg_ref.target]
+environment = "lune"
+lib = "src/init.luau"
+
+[graph."wally#elttob/fusion"."0.3.0 roblox"]
+direct = ["fusion", { wally = "wally#elttob/fusion", version = "^0.3.0" }, "standard"]
+resolved_ty = "standard"
+
+[graph."wally#elttob/fusion"."0.3.0 roblox".target]
+environment = "roblox"
+lib = 'src\init.luau'
+build_files = []
+
+[graph."wally#elttob/fusion"."0.3.0 roblox".pkg_ref]
+ref_ty = "wally"
+wally = "wally#elttob/fusion"
+version = "0.3.0"
+index_url = "https://github.com/UpliftGames/wally-index"
+
+[graph."wally#pepeeltoro41/ui-labs"."2.3.0 roblox"]
+resolved_ty = "standard"
+
+[graph."wally#pepeeltoro41/ui-labs"."2.3.0 roblox".target]
+environment = "roblox"
+lib = 'src\init.luau'
+build_files = []
+
+[graph."wally#pepeeltoro41/ui-labs"."2.3.0 roblox".pkg_ref]
+ref_ty = "wally"
+wally = "wally#pepeeltoro41/ui-labs"
+version = "2.3.0"
+index_url = "https://github.com/UpliftGames/wally-index"
+
+[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.7 roblox"]
+direct = ["redon-ui", { wally = "wally#redon-tech/redon-ui", version = "^0.1.0-alpha.7" }, "standard"]
+resolved_ty = "standard"
+
+[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.7 roblox".target]
+environment = "roblox"
+lib = 'src\init.luau'
+build_files = []
+
+[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.7 roblox".dependencies]
+"wally#elttob/fusion" = ["0.3.0 roblox", "Fusion"]
+"wally#pepeeltoro41/ui-labs" = ["2.3.0 roblox", "ui-labs"]
+
+[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.7 roblox".pkg_ref]
+ref_ty = "wally"
+wally = "wally#redon-tech/redon-ui"
+version = "0.1.0-alpha.7"
+index_url = "https://github.com/UpliftGames/wally-index"
+
+[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.7 roblox".pkg_ref.dependencies]
+Fusion = [{ wally = "wally#elttob/fusion", version = ">=0.3.0, <0.4.0", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
+ui-labs = [{ wally = "wally#pepeeltoro41/ui-labs", version = ">=2.3.0, <3.0.0", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
