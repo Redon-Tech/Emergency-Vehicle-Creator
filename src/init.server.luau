@@ -70,6 +70,14 @@ local root = script.Parent
 local log = require(script.log)
 log.verbosity = if IS_DEV then log.level.debug else log.level.error
 
+-- Setup Version
+local version = require(script.version)
+version.currentVersion = VERSION
+version.currentVer = version:parseVersion(VERSION)
+version:checkVersion()
+
+-- Main Requirements
+local pluginSettings = require(script.settings)
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 
@@ -78,22 +86,61 @@ local menu = require(script.Components.menu)
 local scope = Fusion.scoped(Fusion, RedonUI.Util, RedonUI.Components, {
 	menu = menu,
 })
+pluginSettings:setup(scope)
 
-local enabled = scope:Value(false)
+-- Values
+local enabled = scope:Value((isRBXM and IS_DEV) or scope.peek(pluginSettings.values.debugMode))
 local mode = scope:Value("menu")
+local theme = scope.peek(pluginSettings.values.theme)
 
-local menuWidget = scope:menu {
-	Name = name,
-	Version = VERSION,
+-- UI Initialization
+local activeScope = nil
+local function initUI()
+	local themeToUse = nil
+	if theme == "Auto" then
+		if settings().Studio.Theme.Name == "Dark" then
+			themeToUse = "Mocha"
+		else
+			themeToUse = "Latte"
+		end
+	else
+		themeToUse = theme
+	end
 
-	Enabled = enabled,
-	Mode = mode,
-}
+	activeScope = scope:innerScope()
+	RedonUI.theme.theme:is(RedonUI.theme[themeToUse:lower()]):during(function()
+		local menuWidget = activeScope:menu {
+			Name = name,
+			Version = VERSION,
 
-menuWidget:BindToClose(function()
-	enabled:set(false)
+			Enabled = enabled,
+			Mode = mode,
+		}
+
+		menuWidget:BindToClose(function()
+			enabled:set(false)
+		end)
+	end)
+end
+initUI()
+
+-- Theme Handling
+settings().Studio.ThemeChanged:Connect(function()
+	if activeScope and theme == "Auto" then
+		activeScope:doCleanup()
+		initUI()
+	end
 end)
 
+scope:Observer(pluginSettings.values.theme):onChange(function()
+	if activeScope then
+		theme = scope.peek(pluginSettings.values.theme)
+		activeScope:doCleanup()
+		initUI()
+	end
+end)
+
+-- Button Handling
 button:SetActive(scope.peek(enabled)) -- If the plugin is reloaded, the button state should be reset
 scope:Observer(enabled):onChange(function()
 	button:SetActive(Fusion.peek(enabled))

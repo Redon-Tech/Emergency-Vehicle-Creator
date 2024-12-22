@@ -129,15 +129,40 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				},
 			},
 
-			scope:textLabel {
-				Name = "Version",
+			scope:base {
+				Name = "VersionWarning",
 				AnchorPoint = Vector2.new(0.5, 1),
-				Position = UDim2.fromScale(0.5, 1),
-				Size = UDim2.fromOffset(400, 18),
+				Position = UDim2.new(0.5, 0, 1, -41),
+				Size = UDim2.fromOffset(400, 73),
 				BackgroundTransparency = 1,
+				Visible = if version:isOutdated() then true else false,
 
-				Text = props.Version,
-				TextSize = 15,
+				[Fusion.Children] = {
+					scope:textLabel {
+						Name = "WARNING",
+						AnchorPoint = Vector2.new(0.5, 0),
+						Position = UDim2.fromScale(0.5, 0),
+						Size = UDim2.fromOffset(400, 30),
+
+						Text = "WARNING!",
+						FontWeight = Enum.FontWeight.Regular,
+						TextSize = 30,
+						TextColor = "peach",
+					},
+
+					scope:textLabel {
+						Name = "Version",
+						AnchorPoint = Vector2.new(0.5, 0),
+						Position = UDim2.new(0.5, 0, 0, 37),
+						Size = UDim2.fromOffset(400, 60),
+
+						Text = `You are running an outdated version of the plugin, please update to the latest version ({version.latestVersion}) to ensure a great experience!`,
+						FontWeight = Enum.FontWeight.Regular,
+						TextSize = 20,
+						TextWrapped = true,
+						TextColor = "text",
+					},
+				},
 			},
 		},
 	}
