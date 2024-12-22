@@ -35,6 +35,7 @@ local assetUrls = getAssetUrls(assets, {})
 log.debug("Preloading assets", assetUrls)
 task.spawn(function()
 	game:GetService("ContentProvider"):PreloadAsync(assetUrls)
+	log.debug("Preloaded assets")
 end)
 
 return assets
