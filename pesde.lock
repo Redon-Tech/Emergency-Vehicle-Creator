@@ -217,25 +217,25 @@ wally = "wally#pepeeltoro41/ui-labs"
 version = "2.3.0"
 index_url = "https://github.com/UpliftGames/wally-index"
 
-[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.7 roblox"]
-direct = ["redon-ui", { wally = "wally#redon-tech/redon-ui", version = "^0.1.0-alpha.7" }, "standard"]
+[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.8 roblox"]
+direct = ["redon-ui", { wally = "wally#redon-tech/redon-ui", version = "^0.1.0-alpha.8" }, "standard"]
 resolved_ty = "standard"
 
-[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.7 roblox".target]
+[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.8 roblox".target]
 environment = "roblox"
 lib = 'src\init.luau'
 build_files = []
 
-[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.7 roblox".dependencies]
+[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.8 roblox".dependencies]
 "wally#elttob/fusion" = ["0.3.0 roblox", "Fusion"]
 "wally#pepeeltoro41/ui-labs" = ["2.3.0 roblox", "ui-labs"]
 
-[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.7 roblox".pkg_ref]
+[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.8 roblox".pkg_ref]
 ref_ty = "wally"
 wally = "wally#redon-tech/redon-ui"
-version = "0.1.0-alpha.7"
+version = "0.1.0-alpha.8"
 index_url = "https://github.com/UpliftGames/wally-index"
 
-[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.7 roblox".pkg_ref.dependencies]
+[graph."wally#redon-tech/redon-ui"."0.1.0-alpha.8 roblox".pkg_ref.dependencies]
 Fusion = [{ wally = "wally#elttob/fusion", version = ">=0.3.0, <0.4.0", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
 ui-labs = [{ wally = "wally#pepeeltoro41/ui-labs", version = ">=2.3.0, <3.0.0", index = "https://github.com/UpliftGames/wally-index" }, "standard"]

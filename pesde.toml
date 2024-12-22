@@ -21,5 +21,5 @@ scripts = { name = "pesde/scripts_rojo", version = "^0.1.0", target = "lune" }
 rojo = { name = "pesde/rojo", version = "^7.4.4", target = "lune" }
 
 [dependencies]
-redon-ui = { wally = "wally#redon-tech/redon-ui", version = "^0.1.0-alpha.7" }
+redon-ui = { wally = "wally#redon-tech/redon-ui", version = "^0.1.0-alpha.8" }
 fusion = { wally = "wally#elttob/fusion", version = "^0.3.0" }
