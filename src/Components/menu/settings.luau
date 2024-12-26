@@ -19,7 +19,7 @@ type props = {
 	Settings
 	Creates a settings page for the main menu
 ]]
-return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
+return function(baseScope: types.Scope, props: props)
 	local scope = Fusion.innerScope(baseScope, components)
 
 	-- Components to put inside the list
@@ -28,12 +28,12 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 	for key, valueData in pairs(settings.valueData) do
 		local setting = settings.values[valueData.key] :: Fusion.Value<any>
 		extraComponents[key + 1] = scope:base {
-			Name = key,
+			Name = tostring(key),
 			Size = UDim2.fromOffset(400, 100),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
 
-			[Fusion.Children] = {
+			[Fusion.Children] = Fusion.Child {
 				scope:New("UIPadding") {
 					PaddingTop = UDim.new(0, 10),
 					PaddingBottom = UDim.new(0, 10),
@@ -64,17 +64,17 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 				},
 
 				scope:Computed(function()
-					if valueData.type == "boolean" then
-						return scope:checkBox {
+					return if valueData.type == "boolean"
+						then scope:checkBox {
 							Size = UDim2.fromOffset(42, 42),
 							Position = UDim2.fromScale(1, 0.5),
 							AnchorPoint = Vector2.new(1, 0.5),
-							BackgroundColor = "crust",
+							BackgroundColor = "crust" :: any, -- TODO
 							CornerRadius = UDim.new(0, 10),
 							Border = 1,
-							BorderColor = "white",
-							SelectedColor = "blue",
-							SelectedCheckColor = "crust",
+							BorderColor = "white" :: any, -- TODO
+							SelectedColor = "blue" :: any, -- TODO
+							SelectedCheckColor = "crust" :: any, -- TODO
 							Reactive = true,
 
 							Enabled = setting,
@@ -83,15 +83,14 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 								setting:set(not scope.peek(setting))
 							end,
 						}
-					else
-						return scope:dropdown {
+						else scope:dropdown {
 							Size = UDim2.fromOffset(150, 42),
 							Position = UDim2.new(1, 0, 0, 29),
 							AnchorPoint = Vector2.new(1, 0),
-							BackgroundColor = "crust",
+							BackgroundColor = "crust" :: any, -- TODO
 							CornerRadius = UDim.new(0, 10),
 							Border = 1,
-							BorderColor = "white",
+							BorderColor = "white" :: any, -- TODO
 							DropdownHeight = 150,
 							Reactive = true,
 							DropdownYOffset = 34,
@@ -103,7 +102,6 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 								setting:set(value)
 							end,
 						}
-					end
 				end),
 			},
 		}

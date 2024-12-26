@@ -1,5 +1,6 @@
 -- Redon Tech Emnergency Vehicle Creator, MIT License
 local root = script.Parent.Parent.Parent.Parent
+local plugin = root:FindFirstAncestorWhichIsA("Plugin")
 
 local Selection = game:GetService("Selection")
 
@@ -7,11 +8,13 @@ local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local assets = require(root.Plugin.assets)
-local vehicleHandler = require(root.Plugin.vehicleHandler)
+local vehicle = require(root.Plugin.vehicle)
 local version = require(root.Plugin.version)
 
 type props = {
 	CurrentPanel: Fusion.Value<types.menuPanels>,
+	CurrentVehicle: Fusion.Value<Instance | string?>,
+	Mode: Fusion.Value<types.mode>,
 }
 
 local secondaryButtons: { [types.menuPanels]: string } = {
@@ -36,6 +39,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			selectionConnection = nil
 		end
 
+		currentSelection:set(Selection:Get()[1])
 		selectionConnection = Selection.SelectionChanged:Connect(function()
 			currentSelection:set(Selection:Get()[1])
 		end)
@@ -57,7 +61,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			return enabled
 		end),
 
-		[Fusion.Children] = {
+		[Fusion.Children] = Fusion.Child {
 			scope:textLabel {
 				Name = "Title",
 				AnchorPoint = Vector2.new(0.5, 0),
@@ -86,11 +90,11 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				end),
 				TextColor = scope:Computed(function(use)
 					local selection = use(currentSelection)
-					if selection ~= nil and vehicleHandler:IsValidVehicle(selection) == false then
+					if selection ~= nil and vehicle:isValidVehicle(selection) == false then
 						return "peach"
 					end
 					return "text"
-				end),
+				end :: any), -- TODO: Update type cast when RedonUI exports the type
 				FontWeight = Enum.FontWeight.Bold,
 				TextScaled = true,
 
@@ -108,20 +112,20 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				Size = UDim2.fromOffset(350, 80),
 				BackgroundColor3 = Color3.new(1, 1, 1),
 				Gradient = ColorSequence.new(currentTheme.colors.sky, currentTheme.colors.sapphire),
-				BorderColor = "text",
+				BorderColor = "text" :: any, -- TODO
 				Border = 3,
 				CornerRadius = UDim.new(0, 25),
 
 				Text = scope:Computed(function(use)
 					local selection = use(currentSelection)
-					if selection ~= nil and vehicleHandler:IsValidVehicle(selection) ~= false then
+					if selection ~= nil and vehicle:isValidVehicle(selection) ~= false then
 						return "Edit Vehicle"
 					end
 					return "Create Vehicle"
 				end),
 				FontWeight = Enum.FontWeight.Bold,
 				TextSize = 40,
-				TextColor = "mantle",
+				TextColor = "mantle" :: any, -- TODO
 
 				Reactive = true,
 				ButtonGlow = true,
@@ -137,20 +141,20 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				Size = UDim2.fromOffset(350, 80),
 				BackgroundColor3 = Color3.new(1, 1, 1),
 				Gradient = ColorSequence.new(currentTheme.colors.sky, currentTheme.colors.sapphire),
-				BorderColor = "text",
+				BorderColor = "text" :: any, -- TODO
 				Border = 3,
 				CornerRadius = UDim.new(0, 25),
 
 				Text = "Continue Without",
 				FontWeight = Enum.FontWeight.Bold,
 				TextSize = 40,
-				TextColor = "mantle",
+				TextColor = "mantle" :: any, -- TODO
 
 				Reactive = true,
 				ButtonGlow = true,
-				ButtonGlowColor = if currentTheme.colors.white == Color3.new(1, 1, 1) then "text" else "base",
+				ButtonGlowColor = if currentTheme.colors.white == Color3.new(1, 1, 1) then "text" else "base" :: any, -- TODO
 				Shadow = true,
-				ShadowColor = "sky",
+				ShadowColor = "sky" :: any, -- TODO
 			},
 
 			--selene: allow(shadowing)
@@ -168,7 +172,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					Visible = if value == 231
 						then scope:Computed(function(use)
 							local selection = use(currentSelection)
-							return selection == nil or vehicleHandler:IsValidVehicle(selection) == false
+							return selection == nil or vehicle:isValidVehicle(selection) == false
 						end)
 						else true,
 				}
@@ -181,7 +185,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				Size = UDim2.fromOffset(350, 80),
 				BackgroundTransparency = 1,
 
-				[Fusion.Children] = {
+				[Fusion.Children] = Fusion.Child {
 					scope:New("UIListLayout") {
 						Padding = UDim.new(0, 55),
 						FillDirection = Enum.FillDirection.Horizontal,
@@ -196,18 +200,18 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								Name = panel,
 								Size = UDim2.fromOffset(80, 80),
 								Image = icon,
-								ImageColor = "text",
-								BackgroundColor = "crust",
+								ImageColor = "text" :: any, -- TODO
+								BackgroundColor = "crust" :: any, -- TODO
 								Border = 3,
-								BorderColor = "text",
+								BorderColor = "text" :: any, -- TODO
 								Reactive = true,
 								CornerRadius = UDim.new(0, 25),
 								LayoutOrder = if panel == "Settings" then 1 elseif panel == "Help" then 2 else 3,
 								Shadow = true,
-								ShadowColor = "crust",
+								ShadowColor = "crust" :: any, -- TODO
 
 								[Fusion.OnEvent "Activated"] = function()
-									props.CurrentPanel:set(panel)
+									props.CurrentPanel:set(panel :: types.menuPanels)
 								end,
 							}
 					end),
@@ -232,7 +236,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						Text = "WARNING!",
 						FontWeight = Enum.FontWeight.Regular,
 						TextSize = 30,
-						TextColor = "peach",
+						TextColor = "peach" :: any, -- TODO
 					},
 
 					scope:textLabel {
@@ -245,7 +249,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						FontWeight = Enum.FontWeight.Regular,
 						TextSize = 20,
 						TextWrapped = true,
-						TextColor = "text",
+						TextColor = "text" :: any, -- TODO
 					},
 				},
 			},

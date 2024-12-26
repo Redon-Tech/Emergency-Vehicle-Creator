@@ -16,10 +16,7 @@ type props = {
 	Version: string,
 }
 
-local credits: {
-	{ name: string }
-	& ({ type: "icon", description: string, icon: string, contrastIcon: string? } | { type: "text", content: string })
-} =
+local credits: { { name: string, type: "icon" | "text", description: string?, icon: string?, contrastIcon: string?, content: string? } } =
 	{
 		{
 			type = "icon",
@@ -47,11 +44,18 @@ local credits: {
 			contrastIcon = assets.images.credits.fusionContrast,
 		},
 		{
+			type = "icon",
+			name = "ionicons",
+			description = "Ionic & Contributors\nIcons used in the plugin",
+			icon = assets.images.credits.ionic,
+			contrastIcon = assets.images.credits.ionic,
+		},
+		{
 			type = "text",
 			name = "Inspirations & Misc",
 			content = [[Slither (Litten's Games) - UI Inspiration
 Siren Tool (Dawnstar) - Original Inspiration
-EasyLS (EasyLS Studios) - Driving Improvement]],
+EasyLS (EasyLS Studios) - Driving Improvement (v3 wouldn't exist without it)]],
 		},
 		{
 			type = "text",
@@ -64,7 +68,7 @@ EasyLS (EasyLS Studios) - Driving Improvement]],
 	Credits
 	Creates a credits page for the main menu
 ]]
-return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
+return function(baseScope: types.Scope, props: props)
 	local scope = Fusion.innerScope(baseScope, components)
 	local currentTheme = RedonUI.theme.theme:now()
 
@@ -73,12 +77,12 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 
 	for key, value in pairs(credits) do
 		extraComponents[key + 1] = scope:base {
-			Name = key,
+			Name = tostring(key),
 			Size = UDim2.fromOffset(400, 100),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
 
-			[Fusion.Children] = {
+			[Fusion.Children] = Fusion.Child {
 				scope:New("UIPadding") {
 					PaddingTop = UDim.new(0, 10),
 					PaddingBottom = UDim.new(0, 10),
@@ -119,8 +123,8 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 				},
 
 				scope:Computed(function()
-					if value.type == "icon" then
-						return scope:base {
+					return if value.type == "icon"
+						then scope:base {
 							Name = "Icon",
 							Size = UDim2.fromOffset(80, 80),
 							AnchorPoint = Vector2.new(0, 0.5),
@@ -151,7 +155,7 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 										if currentTheme.colors.white == Color3.new() and value.contrastIcon ~= nil then
 											return value.contrastIcon
 										else
-											return value.icon
+											return value.icon or ""
 										end
 									end),
 									ScaleType = Enum.ScaleType.Crop,
@@ -160,8 +164,7 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 								},
 							},
 						}
-					end
-					return
+						else nil
 				end),
 			},
 		}

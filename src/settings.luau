@@ -7,20 +7,18 @@ local log = require(script.Parent.log)
 local Fusion = require(root.Packages.fusion)
 
 type settings = {
-	scope: types.Scope?,
+	scope: types.Scope,
 	values: {
 		theme: Fusion.Value<types.theme>,
 		fakeBloom: Fusion.Value<boolean>,
 		colorKeybinds: Fusion.Value<types.keybinds>,
 		debugMode: Fusion.Value<boolean>,
 		saveBackupMode: Fusion.Value<types.saveBackupMode>,
-	}?,
+	},
 	valueData: { { type: { string } | "boolean", title: string, description: string, key: string } },
 	setup: (self: settings, scope: types.Scope) -> (),
 }
 local settings = {
-	scope = nil,
-	values = nil,
 	valueData = {
 		{
 			title = "Theme",
@@ -55,6 +53,14 @@ local settings = {
 	},
 } :: settings
 
+local defaultValues = {
+	theme = "Auto",
+	fakeBloom = false,
+	colorKeybinds = "Q-Y",
+	debugMode = false,
+	saveBackupMode = "Encrypted",
+}
+
 local function getSaveKey(key: string): string
 	return `RedonTech_EVC_{key}`
 end
@@ -62,19 +68,16 @@ end
 function settings:setup(scope: types.Scope)
 	self.scope = scope
 
-	self.values = {
-		theme = scope:Value("Auto"),
-		fakeBloom = scope:Value(true),
-		colorKeybinds = scope:Value("Q-Y"),
-		debugMode = scope:Value(false),
-		saveBackupMode = scope:Value("Encrypted"),
-	}
+	local valuesToLoad = { "theme", "fakeBloom", "colorKeybinds", "debugMode", "saveBackupMode" }
 
-	for key, value in pairs(self.values) do
+	self.values = {} :: any
+	for _, key in pairs(valuesToLoad) do
 		local savedValue = plugin:GetSetting(getSaveKey(key))
 
 		if savedValue ~= nil then
-			value:set(savedValue)
+			self.values[key] = scope:Value(savedValue)
+		else
+			self.values[key] = scope:Value(defaultValues[key])
 		end
 	end
 	log.debug("Settings loaded", self.values)

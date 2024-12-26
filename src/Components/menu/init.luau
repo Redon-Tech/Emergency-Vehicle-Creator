@@ -32,7 +32,7 @@ type props = {
 	Menu
 	Creates the main menu for the plugin
 ]]
-return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
+return function(baseScope: types.Scope, props: props): Fusion.Child
 	local scope = Fusion.innerScope(baseScope, components)
 
 	local currentPanel = scope:Value("Home")
@@ -52,7 +52,7 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 		end),
 
 		Enabled = scope:Computed(function(use)
-			return use(props.Enabled) and use(props.Mode) == "menu"
+			return use(props.Enabled) == true and use(props.Mode) == "menu"
 		end),
 
 		[Fusion.Children] = {
@@ -71,7 +71,7 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 						Size = UDim2.fromOffset(400, 750),
 						BackgroundTransparency = 1,
 
-						[Fusion.Children] = {
+						[Fusion.Children] = Fusion.Child {
 							scope:New("UIScale") { Scale = 0.6 },
 
 							-- selene: allow(shadowing)

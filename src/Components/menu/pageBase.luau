@@ -56,8 +56,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				Size = UDim2.fromOffset(400, 567),
 				AnchorPoint = Vector2.new(0.5, 1),
 				Position = UDim2.new(0.5, 0, 1, -100),
-				BackgroundColor = "base",
-				AlternateColor = "mantle",
+				BackgroundColor = "base" :: any, -- TODO
+				AlternateColor = "mantle" :: any, -- TODO
 				RowSize = props.RowSize,
 				Rows = props.Rows,
 				PrimaryColor = props.PrimaryColor,
@@ -69,13 +69,13 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				AnchorPoint = Vector2.new(0.5, 1),
 				Position = UDim2.new(0.5, 0, 1, -25),
 				Size = UDim2.fromOffset(350, 50),
-				BackgroundColor = "crust",
+				BackgroundColor = "crust" :: any, -- TODO
 				Border = 3,
 				CornerRadius = UDim.new(0, 15),
 				Text = "Go Back",
 				FontWeight = Enum.FontWeight.Medium,
 				Shadow = true,
-				ShadowColor = "crust",
+				ShadowColor = "crust" :: any, -- TODO
 				TextSize = 35,
 				Reactive = true,
 

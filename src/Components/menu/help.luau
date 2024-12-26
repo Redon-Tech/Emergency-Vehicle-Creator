@@ -36,7 +36,7 @@ local supportOptions = {
 	Help
 	Creates a help page for the main menu
 ]]
-return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
+return function(baseScope: types.Scope, props: props)
 	local scope = Fusion.innerScope(baseScope, components)
 
 	-- Components to put inside the list
@@ -82,7 +82,7 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 		local CursorPosition = scope:Value(-1)
 		local SelectionStart = scope:Value(-1)
 		extraComponents[key + 1] = scope:base {
-			Name = key,
+			Name = tostring(key),
 			Size = UDim2.fromOffset(400, 122),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
@@ -136,7 +136,7 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 					TextEditable = false,
 					CursorPosition = CursorPosition,
 					SelectionStart = SelectionStart,
-					BackgroundColor = "crust",
+					BackgroundColor = "crust" :: any, -- TODO
 					Border = 1,
 					CornerRadius = UDim.new(0, 10),
 
@@ -155,7 +155,7 @@ return function(baseScope: types.Scope, props: props): DockWidgetPluginGui
 						scope:New("UITextSizeConstraint") {
 							MaxTextSize = 25,
 						},
-					},
+					} :: any, -- y, idk
 				},
 			},
 		}

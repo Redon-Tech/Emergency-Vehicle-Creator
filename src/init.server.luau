@@ -80,6 +80,7 @@ version:checkVersion()
 local pluginSettings = require(script.settings)
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
+local types = require(script.types)
 
 -- Setup Scope
 local menu = require(script.Components.menu)
@@ -120,6 +121,10 @@ local function initUI()
 		menuWidget:BindToClose(function()
 			enabled:set(false)
 		end)
+
+		return {
+			menuWidget,
+		} :: { Instance }
 	end)
 end
 initUI()
