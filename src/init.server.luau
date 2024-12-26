@@ -91,15 +91,33 @@ local RedonUI = require(root.Packages["redon-ui"])
 local types = require(script.types)
 
 -- Setup Scope
+local utils = require(script.utils)
 local menu = require(script.Components.menu)
-local scope = Fusion.scoped(Fusion, RedonUI.Util, RedonUI.Components, {
+local viewport = require(script.Components.viewport)
+local scope = Fusion.scoped(Fusion, RedonUI.Util, RedonUI.Components, utils, {
 	menu = menu,
+	viewport = viewport,
 })
+
+table.insert(scope, function()
+	log.debug("Cleaning vehicle cache")
+	local cache = require(script.vehicle).cache
+	for i, v in pairs(cache) do
+		v.vehicle:Destroy()
+		v.customization:Destroy()
+		cache[i] = nil
+	end
+end)
+
 pluginSettings:setup(scope)
+if scope.peek(pluginSettings.values.debugMode) then
+	log.verbosity = log.level.debug
+end
 
 -- Values
-local enabled = scope:Value((isRBXM and IS_DEV) or scope.peek(pluginSettings.values.debugMode))
-local mode = scope:Value("menu")
+local enabled = scope:Value(isRBXM and IS_DEV)
+local mode = scope:Value("menu" :: types.mode)
+local currentVehicle: Fusion.Value<Model | string?> = scope:Value(nil)
 local theme = scope.peek(pluginSettings.values.theme)
 
 -- UI Initialization
@@ -123,8 +141,18 @@ local function initUI()
 			Version = versionDisplay,
 
 			Enabled = enabled,
-			Mode = mode,
+			Mode = mode :: any, -- ROBLOX FIX YOUR DAMN TYPE SOLVER k thx love u bye
+			CurrentVehicle = currentVehicle,
+		} :: DockWidgetPluginGui -- idk man, I am tired
+		local viewportGui = activeScope:viewport {
+			Name = name,
+			Version = versionDisplay,
+
+			Enabled = enabled,
+			Mode = mode :: any, -- ROBLOX FIX YOUR DAMN TYPE SOLVER k thx love u bye
+			CurrentVehicle = currentVehicle,
 		}
+		viewportGui.Parent = game:GetService("CoreGui")
 
 		menuWidget:BindToClose(function()
 			enabled:set(false)
@@ -132,6 +160,7 @@ local function initUI()
 
 		return {
 			menuWidget,
+			viewportGui,
 		} :: { Instance }
 	end)
 end

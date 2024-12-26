@@ -5,10 +5,11 @@ local root = script.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
+local utils = require(script.Parent.utils)
 
 -- Code Types
 
-export type Scope = Fusion.Scope<typeof(Fusion) & typeof(RedonUI.Components) & typeof(RedonUI.Util)>
+export type Scope = Fusion.Scope<typeof(Fusion) & typeof(RedonUI.Components) & typeof(RedonUI.Util) & typeof(utils)>
 
 export type mode = "menu" | "app" | "viewport"
 

@@ -129,9 +129,21 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 				Reactive = true,
 				ButtonGlow = true,
-				ButtonGlowColor = if currentTheme.colors.white == Color3.new(1, 1, 1) then "text" else "base",
+				ButtonGlowColor = if currentTheme.colors.white == Color3.new(1, 1, 1) then "text" else "base" :: any, -- TODO
 				Shadow = true,
-				ShadowColor = "sky",
+				ShadowColor = "sky" :: any, -- TODO
+
+				[Fusion.OnEvent "Activated"] = function()
+					local selection = scope.peek(currentSelection)
+					if selection == nil or vehicle:isValidVehicle(selection) == false then
+						props.CurrentPanel:set("Vehicle")
+					elseif vehicle:isVehicleCustomizable(selection) == true then
+						props.CurrentVehicle:set(selection)
+						props.Mode:set("viewport")
+						Selection:Set({}) -- Deselect the vehicle, so it doesn't get in the way
+						plugin:Activate(true) -- Disable tools so it doesn't get in the way
+					end
+				end,
 			},
 
 			scope:textButton {

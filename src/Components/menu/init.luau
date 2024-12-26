@@ -13,11 +13,13 @@ local home = require(script.home)
 local help = require(script.help)
 local credits = require(script.credits)
 local settings = require(script.settings)
+local vehicle = require(script.vehicle)
 local panels = {
 	home = home,
 	help = help,
 	credits = credits,
 	settings = settings,
+	vehicle = vehicle,
 }
 
 type props = {
@@ -26,6 +28,7 @@ type props = {
 
 	Enabled: Fusion.UsedAs<boolean>,
 	Mode: Fusion.UsedAs<types.mode>,
+	CurrentVehicle: Fusion.Value<Model | string?>,
 }
 
 --[[
@@ -79,6 +82,8 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 								return panel(scope, {
 									CurrentPanel = currentPanel,
 									Version = props.Version,
+									CurrentVehicle = props.CurrentVehicle,
+									Mode = props.Mode,
 								})
 							end),
 						},

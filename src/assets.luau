@@ -13,6 +13,18 @@ local assets = {
 			subaru = "rbxassetid://118384213214792",
 			fusion = "rbxassetid://106848335032671",
 			fusionContrast = "rbxassetid://92779493029740",
+			ionic = "rbxassetid://71776903426004",
+		},
+		redonUI = {
+			check = "rbxassetid://109702476150696",
+			arrow = "rbxassetid://110726366161984",
+			create = "rbxassetid://139549363450320",
+			createFilled = "rbxassetid://126924702377763",
+			add = "rbxassetid://131875989308596",
+			remove = "rbxassetid://139585109490603",
+		},
+		vehicles = {
+			FPIU2020 = "rbxassetid://138806014801248",
 		},
 	},
 	sounds = {},
@@ -34,8 +46,12 @@ end
 local assetUrls = getAssetUrls(assets, {})
 log.debug("Preloading assets", assetUrls)
 task.spawn(function()
-	game:GetService("ContentProvider"):PreloadAsync(assetUrls)
-	log.debug("Preloaded assets")
+	local startTime = os.clock()
+	game:GetService("ContentProvider")
+		:PreloadAsync(assetUrls, function(assetId: unknown, assetFetchStatus: Enum.AssetFetchStatus)
+			log.debug("Preloaded asset", assetId, assetFetchStatus)
+		end)
+	log.debug(`Preloaded assets in {os.clock() - startTime}`)
 end)
 
 return assets
