@@ -75,6 +75,14 @@ local version = require(script.version)
 version.currentVersion = VERSION
 version.currentVer = version:parseVersion(VERSION)
 version:checkVersion()
+local versionDisplay = VERSION
+if isRBXM then
+	if version.currentVer.build == nil then
+		versionDisplay ..= "+local"
+	else
+		versionDisplay ..= ".local"
+	end
+end
 
 -- Main Requirements
 local pluginSettings = require(script.settings)
@@ -112,7 +120,7 @@ local function initUI()
 	RedonUI.theme.theme:is(RedonUI.theme[themeToUse:lower()]):during(function()
 		local menuWidget = activeScope:menu {
 			Name = name,
-			Version = VERSION,
+			Version = versionDisplay,
 
 			Enabled = enabled,
 			Mode = mode,

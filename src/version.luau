@@ -26,11 +26,11 @@ function version.parseVersion(_: version, versionString: string): versionParsed
 	local parsedData = { string.match(versionString, "(%d+)%.(%d+)%.(%d+)%-?([%w%.]*)%+?(.*)$") }
 	log.debug("Parsed Version", versionString, parsedData)
 	return {
-		major = tonumber(parsedData[1]),
-		minor = tonumber(parsedData[2]),
-		patch = tonumber(parsedData[3]),
-		preRelease = parsedData[4],
-		build = parsedData[5],
+		major = tonumber(parsedData[1]) or 0,
+		minor = tonumber(parsedData[2]) or 0,
+		patch = tonumber(parsedData[3]) or 0,
+		preRelease = if parsedData[4] == "" then nil else parsedData[4],
+		build = if parsedData[5] == "" then nil else parsedData[5],
 	}
 end
 
@@ -58,7 +58,7 @@ end
 function version.isOutdated(self: version)
 	if self.latestVer == nil or self.latestVersion == nil then
 		log.debug("Skipping version check, no latest version found")
-		return
+		return false
 	end
 
 	if

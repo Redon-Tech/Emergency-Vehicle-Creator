@@ -93,7 +93,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				Size = UDim2.fromOffset(240, 10),
 				BackgroundTransparency = 1,
 
-				Text = props.Version,
+				Text = `Version {props.Version}`,
 				TextSize = 9,
 			},
 		},
