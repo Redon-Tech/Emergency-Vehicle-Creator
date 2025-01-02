@@ -58,7 +58,7 @@ type vehicle = {
 		equipmentModel: Model,
 		configuration: { [string]: boolean | { [string]: boolean } }
 	) -> (),
-	updateEquipmentLights: (self: vehicle, equipmentModel: Model) -> (),
+	updateEquipmentLights: (self: vehicle, equipmentModel: Model, oldPrefix: string) -> (),
 	changeEquipment: (
 		self: vehicle,
 		vehicleFolder: vehicleFolder,
@@ -428,7 +428,7 @@ function vehicle.changeConfiguration(_, vehicleFolder, equipmentModel, configura
 			originalConfiguration:Destroy()
 			equipmentModel:SetAttribute(configurationName, configurationData)
 		end
-		vehicle:updateEquipmentLights(equipmentModel)
+		vehicle:updateEquipmentLights(equipmentModel, equipmentModel:GetAttribute("LightPrefix") :: string)
 	end
 end
 
@@ -547,17 +547,22 @@ function vehicle.cloneCustomizationBasePoint(_, vehicleFolder)
 	return customizationBasePoint
 end
 
-function vehicle.updateEquipmentLights(_, equipmentModel)
+function vehicle.updateEquipmentLights(_, equipmentModel, oldPrefix)
 	local lightPrefix = equipmentModel:GetAttribute("lightPrefix") :: string?
 	if lightPrefix == nil or typeof(lightPrefix) ~= "string" then
 		return
 	end
+	if oldPrefix == lightPrefix or oldPrefix == nil or typeof(oldPrefix) ~= "string" then
+		oldPrefix = ""
+	end
 
 	for _, v in pairs(equipmentModel:GetDescendants()) do
 		if v.Parent and v.Parent.Name == "_LIGHTS" then
-			local lightNumber = v.Name:match("%d+$")
-			if lightNumber ~= nil then
-				v.Name = lightPrefix .. lightNumber
+			local names = v.Name:gsub(oldPrefix, ""):split("%d+$")
+			if names[2] ~= nil then
+				v.Name = lightPrefix .. names[1] .. names[1]
+			else
+				v.Name = lightPrefix .. names[1]
 			end
 		end
 	end
