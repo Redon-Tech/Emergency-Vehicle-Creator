@@ -225,6 +225,18 @@ return function(baseScope: types.Scope, props: props)
 		[Fusion.Out "AbsoluteSize"] = viewportSize,
 
 		[Fusion.Children] = Fusion.Child {
+			scope:textLabel {
+				Size = UDim2.fromScale(1, 1),
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.fromScale(0.5, 0.5),
+				BackgroundColor3 = currentTheme.colors.mantle,
+				BackgroundTransparency = 0.5,
+				Text = "Please wait while the vehicle is loaded..",
+				Visible = scope:Computed(function(use)
+					return use(currentVehicleFolder) == nil and use(placingVehicle) == nil
+				end),
+			},
+
 			scope:billboards {
 				attachments = attachments,
 				viewportSize = viewportSize,

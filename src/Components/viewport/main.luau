@@ -230,16 +230,18 @@ return function(
 						Reactive = true,
 
 						[Fusion.OnEvent "Activated"] = function()
-							-- TODO
-						end,
+							if scope.peek(props.currentVehicleFolder) == nil then
+								log.warn("Please wait until the vehicle is fully loaded before using any inputs")
+								return
+							end
+							props.cleanupCustomization()
+							props.ReturnTo:set("customizer")
+							props.Mode:set("main")
+						end :: unknown,
 
-						[Fusion.Children] = {
-							scope:New("UITextSizeConstraint") {
-								MaxTextSize = 35,
-							},
-						} :: any,
+						MaxTextSize = 35,
 					},
-				} :: any,
+				},
 			},
 
 			scope:base {
