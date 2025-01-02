@@ -7,250 +7,6 @@ local types = require(root.Plugin.types)
 local vehicle = require(root.Plugin.vehicle)
 local log = require(root.Plugin.log)
 
--- return function(scope: types.Scope, props: {})
--- 	local function makeChildren(name: string, value: string?)
--- 		return {
--- 			scope:New("UIPadding") {
--- 				PaddingTop = UDim.new(0, 10),
--- 				PaddingBottom = UDim.new(0, 10),
--- 				PaddingLeft = UDim.new(0, 10),
--- 				PaddingRight = UDim.new(0, 10),
--- 			},
-
--- 			scope:textLabel {
--- 				Size = UDim2.new(1, -35, 0, 0),
--- 				AutomaticSize = Enum.AutomaticSize.Y,
--- 				Text = value or name,
--- 				TextSize = 25,
--- 				TextXAlignment = Enum.TextXAlignment.Left,
--- 				FontWeight = Enum.FontWeight.Regular,
--- 				TextWrapped = true,
--- 				BackgroundTransparency = 1,
--- 			},
-
--- 			scope:checkBox {
--- 				Size = UDim2.fromOffset(25, 25),
--- 				AnchorPoint = Vector2.new(1, 0.5),
--- 				Position = UDim2.fromScale(1, 0.5),
--- 				BackgroundColor = "crust" :: any, -- TODO
--- 				CornerRadius = UDim.new(0, 5),
--- 				Border = 1,
--- 				BorderColor = "white" :: any, -- TODO
--- 				SelectedColor = "blue" :: any, -- TODO
--- 				SelectedCheckColor = "crust" :: any, -- TODO
--- 				Reactive = true,
-
--- 				Enabled = scope:Computed(function(use)
--- 					local data = use(props.currentOptionData)[name]
--- 					return if typeof(data) == "table" then data[value or name] else data
--- 				end),
-
--- 				[Fusion.OnEvent "Activated"] = function()
--- 					local currentVehicleFolder = scope.peek(props.currentVehicleFolder)
--- 					local currentLocation = scope.peek(props.currentLocation)
--- 					local currentEquipment = scope.peek(props.currentEquipment)
--- 					if currentVehicleFolder == nil or currentLocation == nil or currentEquipment == nil then
--- 						log.warn("currentVehicleFolder, currentLocation, or currentEquipment is nil")
--- 						return
--- 					end
-
--- 					-- Change the value of the current option and meet requirements
--- 					local equipmentData = currentVehicleFolder.data.customization[currentLocation][currentEquipment]
--- 					local data = scope.peek(props.currentOptionData)
--- 					local current = data[name]
--- 					if typeof(current) == "table" then
--- 						if equipmentData.configuration[name].canSelectMultiple ~= true then
--- 							for key, _ in pairs(current) do
--- 								if key ~= value or name then
--- 									current[key] = false
--- 								end
--- 							end
--- 						end
-
--- 						if equipmentData.configuration[name].canHaveNone ~= true then
--- 							current[value or name] = true
--- 						else
--- 							current[value or name] = not current[value or name]
--- 						end
--- 					else
--- 						data[name] = not current
--- 					end
--- 					props.currentOptionData:set(data)
-
--- 					-- Attempt to apply the new configuration
--- 					local outfitting = scope.peek(props.outfitting)
--- 					if outfitting == nil then
--- 						log.warn("outfitting is nil")
--- 						return
--- 					end
--- 					local currentEquipmentModel = outfitting:FindFirstChild(currentEquipment) :: Model?
--- 					if currentEquipmentModel == nil or currentEquipmentModel:IsA("Model") == false then
--- 						log.warn("currentEquipmentModel is nil or not a model", currentEquipment, outfitting)
--- 						return
--- 					end
--- 					vehicle:changeConfiguration(currentVehicleFolder, currentEquipmentModel, {
--- 						[name] = if typeof(current) == "boolean" then not current else value or name,
--- 					})
--- 				end,
--- 			},
--- 		}
--- 	end
-
--- 	local rows: { [string]: vehicle.option | Instance } =
--- 		scope.deepCopy(currentVehicleFolder.data.customization[currentLocation][currentlyConfiguring].configuration)
--- 	local layoutLength = 0
--- 	for _, value in pairs(rows) do
--- 		if typeof(value) == "table" and value.layoutOrder > layoutLength then
--- 			layoutLength = value.layoutOrder
--- 		else
--- 			layoutLength += 1
--- 		end
--- 	end
-
--- 	if currentVehicleFolder.data.customization[currentLocation][currentlyConfiguring].hasLights == true then
--- 		local lightPrefix = scope:Value("")
--- 		local function newLightPrefix()
--- 			local currentLocation = scope.peek(props.currentLocation)
--- 			local currentEquipment = scope.peek(props.currentEquipment)
--- 			local outfitting = scope.peek(props.outfitting)
--- 			if outfitting == nil or currentLocation == nil or currentEquipment == nil then
--- 				log.warn("outfitting, currentLocation, or currentEquipment is nil")
--- 				return
--- 			end
--- 			local currentEquipmentModel = outfitting:FindFirstChild(currentEquipment) :: Model?
--- 			if currentEquipmentModel == nil or currentEquipmentModel:IsA("Model") == false then
--- 				log.warn("currentEquipmentModel is nil or not a model")
--- 				return
--- 			end
--- 			local newPrefix = scope.peek(lightPrefix)
-
--- 			currentEquipmentModel:SetAttribute("lightPrefix", newPrefix)
--- 			vehicle:updateEquipmentLights(currentEquipmentModel)
--- 		end
--- 		rows["Light Prefix"] = scope:base {
--- 			Size = UDim2.fromOffset(300, 50),
--- 			BackgroundTransparency = 1,
-
--- 			[Fusion.Children] = {
--- 				scope:New("UIPadding") {
--- 					PaddingTop = UDim.new(0, 10),
--- 					PaddingBottom = UDim.new(0, 10),
--- 					PaddingLeft = UDim.new(0, 10),
--- 					PaddingRight = UDim.new(0, 10),
--- 				},
-
--- 				scope:textBox {
--- 					Size = UDim2.fromScale(1, 1),
--- 					PlaceholderText = "Light name prefix",
--- 					[Fusion.Out "Text"] = lightPrefix,
--- 					TextSize = 25,
--- 					TextXAlignment = Enum.TextXAlignment.Left,
--- 					FontWeight = Enum.FontWeight.Medium,
--- 					TextWrapped = true,
--- 					BackgroundColor = "crust" :: any, -- TODO
--- 					CornerRadius = UDim.new(0, 10),
--- 					Border = 1,
--- 					BorderColor = "text" :: any, -- TODO
-
--- 					[Fusion.OnEvent "FocusLost"] = function()
--- 						newLightPrefix()
--- 					end :: any, -- y the fuck
--- 				},
--- 			},
--- 		}
--- 	end
-
--- 	return scope:list {
--- 		Size = UDim2.fromOffset(300, 390),
--- 		AnchorPoint = Vector2.new(0.5, 0),
--- 		Position = UDim2.new(0.5, 0, 0, 50),
--- 		BackgroundColor = "base" :: any, -- TODO
--- 		AlternateColor = "mantle" :: any, -- TODO
--- 		PrimaryColor = "Alternate" :: any, -- TODO
--- 		Name = "Customizing",
--- 		RowSize = UDim2.fromOffset(300, 50),
--- 		AutomaticSize = Enum.AutomaticSize.Y,
--- 		BackgroundTransparency = 1,
--- 		Rows = scope:ForPairs(rows, function(_, scope: typeof(scope), name: string, data: vehicle.option | Instance)
--- 			local children = {}
--- 			if typeof(data) == "table" and data.type == "select" and data.choices ~= nil then
--- 				table.insert(
--- 					children,
--- 					scope:textLabel {
--- 						Size = UDim2.fromOffset(280, 20),
--- 						Text = name:gsub("_", " "),
--- 						Position = UDim2.fromOffset(10, 0),
--- 						TextXAlignment = Enum.TextXAlignment.Left,
--- 						FontWeight = Enum.FontWeight.Medium,
--- 						TextSize = 20,
--- 					}
--- 				)
--- 				table.insert(
--- 					children,
--- 					scope:base {
--- 						Size = UDim2.fromScale(1, 0),
--- 						Position = UDim2.fromOffset(0, 20),
--- 						AutomaticSize = Enum.AutomaticSize.Y,
--- 						BackgroundTransparency = 1,
-
--- 						[Fusion.Children] = Fusion.Child {
--- 							scope:New("UIListLayout") {},
-
--- 							scope:ForPairs(data.choices, function(_, scope: typeof(scope), key: number, value: string)
--- 								return key,
--- 									scope:base {
--- 										Size = UDim2.fromOffset(300, 50),
--- 										BackgroundColor = if key % 2 == 0 then "base" :: any else "mantle" :: any,
--- 										LayoutOrder = key,
-
--- 										[Fusion.Children] = makeChildren(name, value),
--- 									}
--- 							end),
--- 						},
--- 					}
--- 				)
--- 			elseif typeof(data) == "table" then
--- 				table.insert(
--- 					children,
--- 					scope:base {
--- 						Size = UDim2.fromOffset(300, 50),
--- 						BackgroundTransparency = 1,
-
--- 						[Fusion.Children] = makeChildren(name),
--- 					}
--- 				)
--- 			else
--- 				table.insert(
--- 					children,
--- 					scope:textLabel {
--- 						Size = UDim2.fromOffset(280, 20),
--- 						Text = name:gsub("_", " "),
--- 						Position = UDim2.fromOffset(10, 0),
--- 						TextXAlignment = Enum.TextXAlignment.Left,
--- 						FontWeight = Enum.FontWeight.Medium,
--- 						TextSize = 20,
--- 					}
--- 				)
--- 				table.insert(
--- 					children,
--- 					scope:base {
--- 						Size = UDim2.fromScale(1, 0),
--- 						Position = UDim2.fromOffset(0, 20),
--- 						AutomaticSize = Enum.AutomaticSize.Y,
--- 						BackgroundTransparency = 1,
-
--- 						[Fusion.Children] = data,
--- 					}
--- 				)
--- 			end
-
--- 			return if typeof(data) == "table" then data.layoutOrder else layoutLength + 1, children
--- 		end),
--- 		CanvasGroup = false,
--- 	}
--- end
-
---[[]]
 return function(
 	scope: types.Scope,
 	props: {
@@ -295,12 +51,12 @@ return function(
 				Size = UDim2.fromOffset(25, 25),
 				AnchorPoint = Vector2.new(1, 0.5),
 				Position = UDim2.fromScale(1, 0.5),
-				BackgroundColor = "crust" :: any, -- TODO
+				BackgroundColor3 = currentTheme.colors.crust,
 				CornerRadius = UDim.new(0, 5),
 				Border = 1,
-				BorderColor = "white" :: any, -- TODO
-				SelectedColor = "blue" :: any, -- TODO
-				SelectedCheckColor = "crust" :: any, -- TODO
+				BorderColor3 = currentTheme.colors.white,
+				SelectedColor3 = currentTheme.colors.blue,
+				SelectedCheckColor3 = currentTheme.colors.crust,
 				Reactive = true,
 
 				Enabled = scope:Computed(function(use)
@@ -438,19 +194,19 @@ return function(
 								scope:textBox {
 									Size = UDim2.fromScale(1, 1),
 									PlaceholderText = "Light name prefix",
-									[Fusion.Out "Text"] = lightPrefix,
+									[Fusion.Out "Text"] = lightPrefix :: unknown,
 									TextSize = 25,
 									TextXAlignment = Enum.TextXAlignment.Left,
 									FontWeight = Enum.FontWeight.Medium,
 									TextWrapped = true,
-									BackgroundColor = "crust" :: any, -- TODO
+									BackgroundColor3 = currentTheme.colors.crust,
 									CornerRadius = UDim.new(0, 10),
 									Border = 1,
-									BorderColor = "text" :: any, -- TODO
+									BorderColor3 = currentTheme.colors.text,
 
 									[Fusion.OnEvent "FocusLost"] = function()
 										newLightPrefix()
-									end :: any, -- y the fuck
+									end,
 								},
 							},
 						}
@@ -489,9 +245,9 @@ return function(
 													return key,
 														scope:base {
 															Size = UDim2.fromOffset(300, 50),
-															BackgroundColor = if key % 2 == 0
-																then "base" :: any
-																else "mantle" :: any,
+															BackgroundColor3 = if key % 2 == 0
+																then currentTheme.colors.base
+																else currentTheme.colors.mantle,
 															LayoutOrder = key,
 
 															[Fusion.Children] = makeChildren(scope, name, value),
@@ -541,8 +297,8 @@ return function(
 								scope:base {
 									ClassName = "Frame",
 									Size = UDim2.fromOffset(300, 50),
-									BackgroundColor = scope:Computed(function(_)
-										return order % 2 == 0 and "base" or "mantle" :: any
+									BackgroundColor3 = scope:Computed(function(_)
+										return order % 2 == 0 and currentTheme.colors.base or currentTheme.colors.mantle
 									end),
 									AutomaticSize = Enum.AutomaticSize.Y,
 									ClipsDescendants = true,
@@ -558,177 +314,4 @@ return function(
 			end),
 		},
 	}
-
-	--[[return scope:Computed(function(use, scope: typeof(scope)): Fusion.Child
-		log.debug("y")
-		local currentLocation = scope.peek(props.currentLocation)
-		local currentlyConfiguring = use(props.currentlyConfiguring)
-		local currentVehicleFolder = scope.peek(props.currentVehicleFolder)
-
-		if currentlyConfiguring ~= nil and currentVehicleFolder ~= nil and currentLocation ~= nil then
-			local rows: { [string]: vehicle.option | Instance } = scope.deepCopy(
-				currentVehicleFolder.data.customization[currentLocation][currentlyConfiguring].configuration
-			)
-			local layoutLength = 0
-			for _, value in pairs(rows) do
-				if typeof(value) == "table" and value.layoutOrder > layoutLength then
-					layoutLength = value.layoutOrder
-				else
-					layoutLength += 1
-				end
-			end
-
-			if currentVehicleFolder.data.customization[currentLocation][currentlyConfiguring].hasLights == true then
-				local lightPrefix = scope:Value("")
-				local function newLightPrefix()
-					local currentLocation = scope.peek(props.currentLocation)
-					local currentEquipment = scope.peek(props.currentEquipment)
-					local outfitting = scope.peek(props.outfitting)
-					if outfitting == nil or currentLocation == nil or currentEquipment == nil then
-						log.warn("outfitting, currentLocation, or currentEquipment is nil")
-						return
-					end
-					local currentEquipmentModel = outfitting:FindFirstChild(currentEquipment) :: Model?
-					if currentEquipmentModel == nil or currentEquipmentModel:IsA("Model") == false then
-						log.warn("currentEquipmentModel is nil or not a model")
-						return
-					end
-					local newPrefix = scope.peek(lightPrefix)
-
-					currentEquipmentModel:SetAttribute("lightPrefix", newPrefix)
-					vehicle:updateEquipmentLights(currentEquipmentModel)
-				end
-				rows["Light Prefix"] = scope:base {
-					Size = UDim2.fromOffset(300, 50),
-					BackgroundTransparency = 1,
-
-					[Fusion.Children] = {
-						scope:New("UIPadding") {
-							PaddingTop = UDim.new(0, 10),
-							PaddingBottom = UDim.new(0, 10),
-							PaddingLeft = UDim.new(0, 10),
-							PaddingRight = UDim.new(0, 10),
-						},
-
-						scope:textBox {
-							Size = UDim2.fromScale(1, 1),
-							PlaceholderText = "Light name prefix",
-							[Fusion.Out "Text"] = lightPrefix,
-							TextSize = 25,
-							TextXAlignment = Enum.TextXAlignment.Left,
-							FontWeight = Enum.FontWeight.Medium,
-							TextWrapped = true,
-							BackgroundColor = "crust" :: any, -- TODO
-							CornerRadius = UDim.new(0, 10),
-							Border = 1,
-							BorderColor = "text" :: any, -- TODO
-
-							[Fusion.OnEvent "FocusLost"] = function()
-								newLightPrefix()
-							end :: any, -- y the fuck
-						},
-					},
-				}
-			end
-
-			return scope:list {
-				Size = UDim2.fromOffset(300, 390),
-				AnchorPoint = Vector2.new(0.5, 0),
-				Position = UDim2.new(0.5, 0, 0, 50),
-				BackgroundColor = "base" :: any, -- TODO
-				AlternateColor = "mantle" :: any, -- TODO
-				PrimaryColor = "Alternate" :: any, -- TODO
-				Name = "Customizing",
-				RowSize = UDim2.fromOffset(300, 50),
-				AutomaticSize = Enum.AutomaticSize.Y,
-				BackgroundTransparency = 1,
-				Rows = scope:ForPairs(
-					rows,
-					function(_, scope: typeof(scope), name: string, data: vehicle.option | Instance)
-						local children = {}
-						if typeof(data) == "table" and data.type == "select" and data.choices ~= nil then
-							table.insert(
-								children,
-								scope:textLabel {
-									Size = UDim2.fromOffset(280, 20),
-									Text = name:gsub("_", " "),
-									Position = UDim2.fromOffset(10, 0),
-									TextXAlignment = Enum.TextXAlignment.Left,
-									FontWeight = Enum.FontWeight.Medium,
-									TextSize = 20,
-								}
-							)
-							table.insert(
-								children,
-								scope:base {
-									Size = UDim2.fromScale(1, 0),
-									Position = UDim2.fromOffset(0, 20),
-									AutomaticSize = Enum.AutomaticSize.Y,
-									BackgroundTransparency = 1,
-
-									[Fusion.Children] = Fusion.Child {
-										scope:New("UIListLayout") {},
-
-										scope:ForPairs(
-											data.choices,
-											function(_, scope: typeof(scope), key: number, value: string)
-												return key,
-													scope:base {
-														Size = UDim2.fromOffset(300, 50),
-														BackgroundColor = if key % 2 == 0
-															then "base" :: any
-															else "mantle" :: any,
-														LayoutOrder = key,
-
-														[Fusion.Children] = makeChildren(scope, name, value),
-													}
-											end
-										),
-									},
-								}
-							)
-						elseif typeof(data) == "table" then
-							table.insert(
-								children,
-								scope:base {
-									Size = UDim2.fromOffset(300, 50),
-									BackgroundTransparency = 1,
-
-									[Fusion.Children] = makeChildren(scope, name),
-								}
-							)
-						else
-							table.insert(
-								children,
-								scope:textLabel {
-									Size = UDim2.fromOffset(280, 20),
-									Text = name:gsub("_", " "),
-									Position = UDim2.fromOffset(10, 0),
-									TextXAlignment = Enum.TextXAlignment.Left,
-									FontWeight = Enum.FontWeight.Medium,
-									TextSize = 20,
-								}
-							)
-							table.insert(
-								children,
-								scope:base {
-									Size = UDim2.fromScale(1, 0),
-									Position = UDim2.fromOffset(0, 20),
-									AutomaticSize = Enum.AutomaticSize.Y,
-									BackgroundTransparency = 1,
-
-									[Fusion.Children] = data,
-								}
-							)
-						end
-
-						return if typeof(data) == "table" then data.layoutOrder else layoutLength + 1, children
-					end
-				),
-				CanvasGroup = false,
-			}
-		else
-			return {}
-		end
-	end)]]
 end

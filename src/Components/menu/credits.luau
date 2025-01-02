@@ -136,11 +136,11 @@ return function(baseScope: types.Scope, props: props)
 							Border = scope:Computed(function()
 								return if value.contrastIcon == nil then 2 else 0
 							end),
-							BorderColor = "text",
+							BorderColor3 = currentTheme.colors.text,
 							Shadow = scope:Computed(function()
 								return if value.contrastIcon == nil then true else false
 							end),
-							ShadowColor = "text",
+							ShadowColor3 = currentTheme.colors.text,
 
 							[Fusion.Children] = {
 								scope:base {

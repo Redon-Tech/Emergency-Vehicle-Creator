@@ -2,6 +2,7 @@
 local root = script.Parent.Parent.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
+local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 
 local pageBase = require(script.Parent.pageBase)
@@ -38,6 +39,7 @@ local supportOptions = {
 ]]
 return function(baseScope: types.Scope, props: props)
 	local scope = Fusion.innerScope(baseScope, components)
+	local currentTheme = RedonUI.theme.theme:now()
 
 	-- Components to put inside the list
 	local extraComponents = {
@@ -136,26 +138,21 @@ return function(baseScope: types.Scope, props: props)
 					TextEditable = false,
 					CursorPosition = CursorPosition,
 					SelectionStart = SelectionStart,
-					BackgroundColor = "crust" :: any, -- TODO
+					BackgroundColor3 = currentTheme.colors.crust,
 					Border = 1,
 					CornerRadius = UDim.new(0, 10),
+					MaxTextSize = 25,
 
 					[Fusion.OnEvent "Focused"] = function()
 						task.wait(0.1)
 						SelectionStart:set(0)
 						CursorPosition:set(#value.link + 1)
-					end,
+					end :: unknown,
 
 					[Fusion.OnEvent "FocusLost"] = function()
 						CursorPosition:set(-1)
 						SelectionStart:set(-1)
 					end,
-
-					[Fusion.Children] = {
-						scope:New("UITextSizeConstraint") {
-							MaxTextSize = 25,
-						},
-					} :: any, -- y, idk
 				},
 			},
 		}

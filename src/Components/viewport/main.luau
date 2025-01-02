@@ -15,6 +15,7 @@ local function construct(
 	outfitting: Model,
 	props: { [string]: any }
 )
+	local currentTheme = RedonUI.theme.theme:now()
 	return scope:ForPairs(
 		currentVehicle.data.customization,
 		function(_, scope: typeof(scope), key: string, value: { [string]: vehicle.equipmentData })
@@ -42,8 +43,9 @@ local function construct(
 									scope:base {
 										ClassName = "Frame",
 										Size = UDim2.fromOffset(300, 50),
-										BackgroundColor = scope:Computed(function(_)
-											return data.layoutOrder % 2 == 0 and "base" or "mantle" :: any
+										BackgroundColor3 = scope:Computed(function(_)
+											return data.layoutOrder % 2 == 0 and currentTheme.colors.base
+												or currentTheme.colors.mantle
 										end),
 										AutomaticSize = Enum.AutomaticSize.Y,
 										ClipsDescendants = true,
@@ -193,9 +195,9 @@ return function(
 					scope:textButton {
 						Name = "Cancel",
 						Size = UDim2.new(0.078125, 0, 1, 0),
-						BackgroundColor = "crust" :: any, -- TODO
+						BackgroundColor3 = currentTheme.colors.crust,
 						Border = 2,
-						BorderColor = "text" :: any, -- TODO
+						BorderColor3 = currentTheme.colors.text,
 						CornerRadius = UDim.new(0.2, 0),
 						Text = "Go Back",
 						TextScaled = true,
@@ -203,24 +205,24 @@ return function(
 						Reactive = true,
 
 						[Fusion.OnEvent "Activated"] = function()
+							if scope.peek(props.currentVehicleFolder) == nil then
+								log.warn("Please wait until the vehicle is fully loaded before using any inputs")
+								return
+							end
 							props.cleanupCustomization()
 							props.CurrentVehicle:set(nil)
 							props.Mode:set("menu")
-						end,
+						end :: unknown,
 
-						[Fusion.Children] = {
-							scope:New("UITextSizeConstraint") {
-								MaxTextSize = 35,
-							},
-						} :: any,
+						MaxTextSize = 35,
 					},
 
 					scope:textButton {
 						Name = "Continue",
 						Size = UDim2.new(0.078125, 0, 1, 0),
-						BackgroundColor = "crust" :: any, -- TODO
+						BackgroundColor3 = currentTheme.colors.crust,
 						Border = 2,
-						BorderColor = "text" :: any, -- TODO
+						BorderColor3 = currentTheme.colors.text,
 						CornerRadius = UDim.new(0.2, 0),
 						Text = "Continue",
 						TextScaled = true,
@@ -245,7 +247,7 @@ return function(
 				Size = UDim2.fromOffset(300, 500),
 				AnchorPoint = Vector2.new(0, 0.5),
 				Position = UDim2.new(0, 10, 0.5, 0),
-				BackgroundColor = "base" :: any, -- TODO
+				BackgroundColor3 = currentTheme.colors.base,
 				CornerRadius = UDim.new(0, 15),
 
 				[Fusion.Children] = Fusion.Child {
@@ -266,11 +268,7 @@ return function(
 						TextScaled = true,
 						FontWeight = Enum.FontWeight.Bold,
 
-						[Fusion.Children] = {
-							scope:New("UITextSizeConstraint") {
-								MaxTextSize = 25,
-							},
-						},
+						MaxTextSize = 25,
 					},
 
 					scope:base {
@@ -282,10 +280,10 @@ return function(
 						[Fusion.Children] = Fusion.Child {
 							scope:textButton {
 								Size = UDim2.fromOffset(115, 40),
-								BackgroundColor = "crust" :: any, -- TODO
+								BackgroundColor3 = currentTheme.colors.crust,
 								Border = 2,
 								Shadow = true,
-								ShadowColor = "crust" :: any, -- TODO
+								ShadowColor3 = currentTheme.colors.crust,
 								CornerRadius = UDim.new(0, 10),
 								Text = "Return",
 								TextScaled = true,
@@ -297,30 +295,26 @@ return function(
 
 								[Fusion.OnEvent "Activated"] = function()
 									props.currentlyConfiguring:set(nil)
-								end,
+								end :: unknown,
 
-								[Fusion.Children] = {
-									scope:New("UITextSizeConstraint") {
-										MaxTextSize = 25,
-									},
-								} :: any,
+								MaxTextSize = 25,
 							},
 
 							scope:textButton {
 								Size = UDim2.fromOffset(115, 40),
 								AnchorPoint = Vector2.new(1, 0),
 								Position = UDim2.fromScale(1, 0),
-								BackgroundColor = "blue" :: any, -- TODO
+								BackgroundColor3 = currentTheme.colors.blue,
 								Border = 2,
 								Shadow = true,
-								ShadowColor = "blue" :: any, -- TODO
+								ShadowColor3 = currentTheme.colors.blue,
 								ButtonGlow = true,
-								ButtonGlowColor = if currentTheme.colors.white == Color3.new(1, 1, 1)
-									then "text"
-									else "base" :: any, -- TODO
+								ButtonGlowColor3 = if currentTheme.colors.white == Color3.new(1, 1, 1)
+									then currentTheme.colors.text
+									else currentTheme.colors.base,
 								CornerRadius = UDim.new(0, 10),
 								Text = "Done",
-								TextColor = "mantle" :: any, -- TODO
+								TextColor3 = currentTheme.colors.mantle,
 								TextScaled = true,
 								FontWeight = Enum.FontWeight.Medium,
 								Reactive = true,
@@ -332,21 +326,17 @@ return function(
 									props.currentlyConfiguring:set(nil)
 									props.currentLocation:set(nil)
 									props.currentEquipment:set("")
-								end,
+								end :: unknown,
 
-								[Fusion.Children] = {
-									scope:New("UITextSizeConstraint") {
-										MaxTextSize = 25,
-									},
-								} :: any,
+								MaxTextSize = 25,
 							},
 
 							scope:textButton {
 								Size = UDim2.fromScale(1, 1),
-								BackgroundColor = "crust" :: any, -- TODO
+								BackgroundColor3 = currentTheme.colors.crust,
 								Border = 2,
 								Shadow = true,
-								ShadowColor = "crust" :: any, -- TODO
+								ShadowColor3 = currentTheme.colors.crust,
 								CornerRadius = UDim.new(0, 10),
 								Text = "Remove Current",
 								TextScaled = true,
@@ -372,13 +362,9 @@ return function(
 									end
 									props.currentEquipment:set("")
 									props.currentlyConfiguring:set(nil)
-								end,
+								end :: unknown,
 
-								[Fusion.Children] = {
-									scope:New("UITextSizeConstraint") {
-										MaxTextSize = 25,
-									},
-								} :: any,
+								MaxTextSize = 25,
 							},
 						},
 					},

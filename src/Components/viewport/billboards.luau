@@ -1,6 +1,7 @@
 local root = script.Parent.Parent.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
+local RedonUI = require(root.Packages["redon-ui"])
 local assets = require(root.Plugin.assets)
 local types = require(root.Plugin.types)
 
@@ -13,6 +14,7 @@ return function(
 		currentlyConfiguring: Fusion.Value<string?>,
 	}
 )
+	local currentTheme = RedonUI.theme.theme:now()
 	--selene: allow(shadowing)
 	return scope:Computed(function(use, scope: typeof(scope))
 		return scope:ForValues(use(props.attachments), function(_, scope: typeof(scope), value: Attachment)
@@ -39,9 +41,9 @@ return function(
 						[Fusion.Children] = {
 							scope:iconButton {
 								Size = UDim2.fromScale(1, 1),
-								BackgroundColor = "base" :: any, -- TODO
+								BackgroundColor3 = currentTheme.colors.base,
 								Border = 2,
-								BorderColor = "text" :: any, -- TODO
+								BorderColor3 = currentTheme.colors.text,
 								CornerRadius = UDim.new(1, 0),
 								Image = scope:Computed(function(use)
 									if use(props.currentLocation) == value.Name then
@@ -57,11 +59,11 @@ return function(
 										props.currentLocation:set(value.Name)
 									end
 									props.currentlyConfiguring:set(nil)
-								end,
+								end :: unknown,
 
 								[Fusion.Children] = {
 									scope:New("UIAspectRatioConstraint") {},
-								} :: any,
+								},
 							},
 						},
 					}

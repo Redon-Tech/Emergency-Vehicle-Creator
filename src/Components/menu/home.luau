@@ -44,6 +44,16 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			currentSelection:set(Selection:Get()[1])
 		end)
 	end
+	local function checkIfEnabled()
+		local enabled = scope.peek(props.CurrentPanel) == "Home"
+		if enabled then
+			listenForSelection()
+		elseif selectionConnection ~= nil then
+			selectionConnection:Disconnect()
+		end
+	end
+	scope:Observer(props.CurrentPanel):onChange(checkIfEnabled)
+	checkIfEnabled()
 
 	return scope:base {
 		Name = "Home",
@@ -51,15 +61,15 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
-		Visible = scope:Computed(function(use)
-			local enabled = use(props.CurrentPanel) == "Home"
-			if enabled then
-				listenForSelection()
-			elseif selectionConnection ~= nil then
-				selectionConnection:Disconnect()
-			end
-			return enabled
-		end),
+		-- Visible = scope:Computed(function(use)
+		-- 	local enabled = use(props.CurrentPanel) == "Home"
+		-- 	if enabled then
+		-- 		listenForSelection()
+		-- 	elseif selectionConnection ~= nil then
+		-- 		selectionConnection:Disconnect()
+		-- 	end
+		-- 	return enabled
+		-- end),
 
 		[Fusion.Children] = Fusion.Child {
 			scope:textLabel {
@@ -88,21 +98,16 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					end
 					return `Selecting {selection.Name}`
 				end),
-				TextColor = scope:Computed(function(use)
+				TextColor3 = scope:Computed(function(use)
 					local selection = use(currentSelection)
 					if selection ~= nil and vehicle:isValidVehicle(selection) == false then
-						return "peach"
+						return currentTheme.colors.peach
 					end
-					return "text"
-				end :: any), -- TODO: Update type cast when RedonUI exports the type
+					return currentTheme.colors.text
+				end),
 				FontWeight = Enum.FontWeight.Bold,
 				TextScaled = true,
-
-				[Fusion.Children] = {
-					scope:New("UITextSizeConstraint") {
-						MaxTextSize = 30,
-					},
-				},
+				MaxTextSize = 30,
 			},
 
 			scope:textButton {
@@ -112,7 +117,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				Size = UDim2.fromOffset(350, 80),
 				BackgroundColor3 = Color3.new(1, 1, 1),
 				Gradient = ColorSequence.new(currentTheme.colors.sky, currentTheme.colors.sapphire),
-				BorderColor = "text" :: any, -- TODO
+				BorderColor3 = currentTheme.colors.text,
 				Border = 3,
 				CornerRadius = UDim.new(0, 25),
 
@@ -125,13 +130,15 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				end),
 				FontWeight = Enum.FontWeight.Bold,
 				TextSize = 40,
-				TextColor = "mantle" :: any, -- TODO
+				TextColor3 = currentTheme.colors.mantle,
 
 				Reactive = true,
 				ButtonGlow = true,
-				ButtonGlowColor = if currentTheme.colors.white == Color3.new(1, 1, 1) then "text" else "base" :: any, -- TODO
+				ButtonGlowColor3 = if currentTheme.colors.white == Color3.new(1, 1, 1)
+					then currentTheme.colors.text
+					else currentTheme.colors.base,
 				Shadow = true,
-				ShadowColor = "sky" :: any, -- TODO
+				ShadowColor3 = currentTheme.colors.sky,
 
 				[Fusion.OnEvent "Activated"] = function()
 					local selection = scope.peek(currentSelection)
@@ -153,20 +160,22 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				Size = UDim2.fromOffset(350, 80),
 				BackgroundColor3 = Color3.new(1, 1, 1),
 				Gradient = ColorSequence.new(currentTheme.colors.sky, currentTheme.colors.sapphire),
-				BorderColor = "text" :: any, -- TODO
+				BorderColor3 = currentTheme.colors.text,
 				Border = 3,
 				CornerRadius = UDim.new(0, 25),
 
 				Text = "Continue Without",
 				FontWeight = Enum.FontWeight.Bold,
 				TextSize = 40,
-				TextColor = "mantle" :: any, -- TODO
+				TextColor3 = currentTheme.colors.mantle,
 
 				Reactive = true,
 				ButtonGlow = true,
-				ButtonGlowColor = if currentTheme.colors.white == Color3.new(1, 1, 1) then "text" else "base" :: any, -- TODO
+				ButtonGlowColor3 = if currentTheme.colors.white == Color3.new(1, 1, 1)
+					then currentTheme.colors.text
+					else currentTheme.colors.base,
 				Shadow = true,
-				ShadowColor = "sky" :: any, -- TODO
+				ShadowColor3 = currentTheme.colors.sky,
 			},
 
 			--selene: allow(shadowing)
@@ -212,15 +221,15 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								Name = panel,
 								Size = UDim2.fromOffset(80, 80),
 								Image = icon,
-								ImageColor = "text" :: any, -- TODO
-								BackgroundColor = "crust" :: any, -- TODO
+								ImageColor3 = currentTheme.colors.text,
+								BackgroundColor3 = currentTheme.colors.crust,
 								Border = 3,
-								BorderColor = "text" :: any, -- TODO
+								BorderColor3 = currentTheme.colors.text,
 								Reactive = true,
 								CornerRadius = UDim.new(0, 25),
 								LayoutOrder = if panel == "Settings" then 1 elseif panel == "Help" then 2 else 3,
 								Shadow = true,
-								ShadowColor = "crust" :: any, -- TODO
+								ShadowColor3 = currentTheme.colors.crust,
 
 								[Fusion.OnEvent "Activated"] = function()
 									props.CurrentPanel:set(panel :: types.menuPanels)
@@ -248,7 +257,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						Text = "WARNING!",
 						FontWeight = Enum.FontWeight.Regular,
 						TextSize = 30,
-						TextColor = "peach" :: any, -- TODO
+						TextColor3 = currentTheme.colors.peach,
 					},
 
 					scope:textLabel {
@@ -261,7 +270,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						FontWeight = Enum.FontWeight.Regular,
 						TextSize = 20,
 						TextWrapped = true,
-						TextColor = "text" :: any, -- TODO
+						TextColor3 = currentTheme.colors.text,
 					},
 				},
 			},

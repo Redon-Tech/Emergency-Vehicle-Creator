@@ -2,6 +2,7 @@
 local root = script.Parent.Parent.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
+local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 
 type props = {
@@ -27,6 +28,7 @@ type props = {
 		- Version
 ]]
 return function(scope: types.Scope, props: props): Fusion.Child
+	local currentTheme = RedonUI.theme.theme:now()
 	return scope:base {
 		Name = props.Name,
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -56,12 +58,13 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				Size = UDim2.fromOffset(400, 567),
 				AnchorPoint = Vector2.new(0.5, 1),
 				Position = UDim2.new(0.5, 0, 1, -100),
-				BackgroundColor = "base" :: any, -- TODO
-				AlternateColor = "mantle" :: any, -- TODO
+				BackgroundColor3 = currentTheme.colors.base,
+				AlternateColor3 = currentTheme.colors.mantle,
 				RowSize = props.RowSize,
 				Rows = props.Rows,
 				PrimaryColor = props.PrimaryColor,
 				AutomaticSize = props.AutomaticSize,
+				CanvasGroup = false,
 			},
 
 			scope:textButton {
@@ -69,13 +72,13 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				AnchorPoint = Vector2.new(0.5, 1),
 				Position = UDim2.new(0.5, 0, 1, -25),
 				Size = UDim2.fromOffset(350, 50),
-				BackgroundColor = "crust" :: any, -- TODO
+				BackgroundColor3 = currentTheme.colors.crust,
 				Border = 3,
 				CornerRadius = UDim.new(0, 15),
 				Text = "Go Back",
 				FontWeight = Enum.FontWeight.Medium,
 				Shadow = true,
-				ShadowColor = "crust" :: any, -- TODO
+				ShadowColor3 = currentTheme.colors.crust,
 				TextSize = 35,
 				Reactive = true,
 

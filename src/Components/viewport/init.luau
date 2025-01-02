@@ -6,6 +6,7 @@ local mouse = plugin:GetMouse()
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 
 local Fusion = require(root.Packages.fusion)
+local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local vehicle = require(root.Plugin.vehicle)
 local log = require(root.Plugin.log)
@@ -32,6 +33,7 @@ type props = {
 ]]
 return function(baseScope: types.Scope, props: props)
 	local scope = Fusion.innerScope(baseScope, components)
+	local currentTheme = RedonUI.theme.theme:now()
 
 	-- Placing Vehicle Handling
 	local placingVehicle: Fusion.Value<vehicle.vehicleFolder?> = scope:Value(nil)
@@ -261,7 +263,7 @@ return function(baseScope: types.Scope, props: props)
 
 				[Fusion.OnEvent "MouseMoved"] = function()
 					worldModel:MoveTo(mouse.Hit.Position + Vector3.new(0, heightOffset, 0))
-				end,
+				end :: unknown,
 
 				[Fusion.OnEvent "Activated"] = function()
 					ChangeHistoryService:SetWaypoint("Placed Vehicle")
@@ -301,28 +303,23 @@ return function(baseScope: types.Scope, props: props)
 						AnchorPoint = Vector2.new(0.5, 0),
 						Position = UDim2.fromScale(0.5, 0.0092592593),
 						Size = UDim2.fromScale(0.078125, 0.0462962963),
-						BackgroundColor = "crust" :: any, -- TODO
+						BackgroundColor3 = currentTheme.colors.crust,
 						Border = 2,
-						BorderColor = "text" :: any, -- TODO
+						BorderColor3 = currentTheme.colors.text,
 						CornerRadius = UDim.new(0.2, 0),
 						Text = "Cancel",
 						TextScaled = true,
 						FontWeight = Enum.FontWeight.Bold,
 						Reactive = true,
+						MaxTextSize = 35,
 
 						[Fusion.OnEvent "Activated"] = function()
 							placingVehicle:set(nil)
 							props.CurrentVehicle:set(nil)
 							props.Mode:set("menu")
-						end,
-
-						[Fusion.Children] = {
-							scope:New("UITextSizeConstraint") {
-								MaxTextSize = 35,
-							},
-						} :: any,
+						end :: unknown,
 					},
-				} :: any,
+				},
 			},
 
 			scope:textLabel {

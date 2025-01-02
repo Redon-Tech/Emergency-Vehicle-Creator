@@ -2,6 +2,7 @@
 local root = script.Parent.Parent.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
+local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local settings = require(root.Plugin.settings)
 
@@ -21,6 +22,7 @@ type props = {
 ]]
 return function(baseScope: types.Scope, props: props)
 	local scope = Fusion.innerScope(baseScope, components)
+	local currentTheme = RedonUI.theme.theme:now()
 
 	-- Components to put inside the list
 	local extraComponents = {}
@@ -69,12 +71,12 @@ return function(baseScope: types.Scope, props: props)
 							Size = UDim2.fromOffset(42, 42),
 							Position = UDim2.fromScale(1, 0.5),
 							AnchorPoint = Vector2.new(1, 0.5),
-							BackgroundColor = "crust" :: any, -- TODO
+							BackgroundColor3 = currentTheme.colors.crust,
 							CornerRadius = UDim.new(0, 10),
 							Border = 1,
-							BorderColor = "white" :: any, -- TODO
-							SelectedColor = "blue" :: any, -- TODO
-							SelectedCheckColor = "crust" :: any, -- TODO
+							BorderColor3 = currentTheme.colors.white,
+							SelectedColor3 = currentTheme.colors.blue,
+							SelectedCheckColor3 = currentTheme.colors.crust,
 							Reactive = true,
 
 							Enabled = setting,
@@ -87,13 +89,14 @@ return function(baseScope: types.Scope, props: props)
 							Size = UDim2.fromOffset(150, 42),
 							Position = UDim2.new(1, 0, 0, 29),
 							AnchorPoint = Vector2.new(1, 0),
-							BackgroundColor = "crust" :: any, -- TODO
+							BackgroundColor3 = currentTheme.colors.crust,
 							CornerRadius = UDim.new(0, 10),
 							Border = 1,
-							BorderColor = "white" :: any, -- TODO
+							BorderColor3 = currentTheme.colors.white,
 							DropdownHeight = 150,
 							Reactive = true,
-							DropdownYOffset = 34,
+							DropdownYOffset = UDim.new(0, 34),
+							ScaleChoicesUpBy = 1.7,
 
 							Options = valueData.type,
 							Text = setting,

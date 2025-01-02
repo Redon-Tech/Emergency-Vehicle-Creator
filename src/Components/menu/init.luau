@@ -2,6 +2,7 @@
 local root = script.Parent.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
+local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 
 local widget = require(script.Parent.base.widget)
@@ -37,6 +38,7 @@ type props = {
 ]]
 return function(baseScope: types.Scope, props: props): Fusion.Child
 	local scope = Fusion.innerScope(baseScope, components)
+	local currentTheme = RedonUI.theme.theme:now()
 
 	local currentPanel = scope:Value("Home")
 
@@ -64,7 +66,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Position = UDim2.fromScale(0.5, 0.5),
 				Size = UDim2.fromScale(1, 1),
-				BackgroundColor = "base",
+				BackgroundColor3 = currentTheme.colors.base,
 
 				[Fusion.Children] = {
 					scope:New("Frame") {
@@ -99,6 +101,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				BackgroundTransparency = 1,
 
 				Text = `Version {props.Version}`,
+				FontWeight = Enum.FontWeight.Regular,
 				TextSize = 9,
 			},
 		},
