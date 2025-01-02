@@ -1,3 +1,4 @@
+-- Redon Tech Emnergency Vehicle Creator, MIT License
 local utils = {}
 
 function utils.deepCopy<T>(inputTable: T): T

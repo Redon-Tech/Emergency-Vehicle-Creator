@@ -1,3 +1,4 @@
+-- Redon Tech Emnergency Vehicle Creator, MIT License
 local HttpService = game:GetService("HttpService")
 local log = require(script.Parent.log)
 

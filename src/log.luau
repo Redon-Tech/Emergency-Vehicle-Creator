@@ -1,3 +1,4 @@
+-- Redon Tech Emnergency Vehicle Creator, MIT License
 local log = {
 	level = {
 		info = 1,

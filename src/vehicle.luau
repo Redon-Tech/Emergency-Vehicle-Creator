@@ -1,3 +1,4 @@
+-- Redon Tech Emnergency Vehicle Creator, MIT License
 local InsertService = game:GetService("InsertService")
 local assets = require(script.Parent.assets)
 local log = require(script.Parent.log)
