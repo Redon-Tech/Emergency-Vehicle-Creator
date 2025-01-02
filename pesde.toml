@@ -19,7 +19,9 @@ sourcemap_generator = ".pesde/scripts/sourcemap_generator.luau"
 [dev_dependencies]
 scripts = { name = "pesde/scripts_rojo", version = "^0.1.0", target = "lune" }
 rojo = { name = "pesde/rojo", version = "^7.4.4", target = "lune" }
+stylua = { name = "pesde/stylua", version = "^2.0.2", target = "lune" }
 
 [dependencies]
-redon-ui = { wally = "wally#redon-tech/redon-ui", version = "^0.1.0-alpha.8" }
+redon-ui = { wally = "wally#redon-tech/redon-ui", version = "^0.1.0-alpha.11" }
 fusion = { wally = "wally#elttob/fusion", version = "^0.3.0" }
+LuaEncode = { wally = "wally#regginator/luaencode", version = "^1.4.3" }
