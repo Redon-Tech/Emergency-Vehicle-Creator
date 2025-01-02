@@ -18,13 +18,15 @@ local log = {
 
 function log.info(...)
 	if log.verbosity >= 1 then
-		print(log.format.info, debug.info(2, "sl"), "\n               ", ...)
+		local s, l = debug.info(2, "sl")
+		print(log.format.info, ..., "\n", `{s}:{l}`)
 	end
 end
 
 function log.warn(...)
 	if log.verbosity >= 2 then
-		warn(log.format.warn, debug.info(2, "sl"), "\n               ", ...)
+		local s, l = debug.info(2, "sl")
+		warn(log.format.warn, ..., "\n", `{s}:{l}`)
 	end
 end
 
@@ -35,7 +37,8 @@ end
 
 function log.debug(...)
 	if log.verbosity >= 4 then
-		print(log.format.debug, debug.info(2, "sl"), "\n               ", ...)
+		local s, l = debug.info(2, "sl")
+		print(log.format.debug, ..., "\n", `{s}:{l}`)
 	end
 end
 
