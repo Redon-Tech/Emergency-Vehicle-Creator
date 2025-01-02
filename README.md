@@ -30,3 +30,20 @@ Installing is easy, just get it from the [Roblox marketplace](https://create.rob
 ## Contributing & Issues
 
 Coming Soon
+
+Emergency Vehicle Handler Outline
+```
+Emergency Vehicle Handler
+  EVHEvent
+    loader
+      modules
+        TODO
+      EVHServer (Only runs in studio)
+      EVHClient
+    configuration
+      lightFunction
+      functions
+      sirens
+      lightGroups
+```
+[tree gen](https://tree.nathanfriend.com/?s=(%27op0s!(%27fancy!true~fullPath!false~trailingSlash!true~rootDot!false)~2(%272%27.Emergency%20Vehicle%20Handler.-EVHEv3loader*modules*-TODO6Server%20%7BOnly%20runs%20in%20studio%7D6Cli3configura04F5*f5s*sirens4Groups%27)~version!%271%27)*.----%20%20.%5Cn0tion2source!3ent.--4*light5unc06*EVH%01654320.-*)
