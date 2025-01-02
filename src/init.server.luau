@@ -17,6 +17,9 @@ end
 
 local VERSION = "3.0.0-alpha.1"
 local IS_DEV = true
+if IS_DEV then
+	game:GetService("LogService"):ClearOutput()
+end
 
 --[[
 
@@ -94,9 +97,13 @@ local types = require(script.types)
 local utils = require(script.utils)
 local menu = require(script.Components.menu)
 local viewport = require(script.Components.viewport)
+local main = require(script.Components.main)
+local popup = require(script.Components.popup)
 local scope = Fusion.scoped(Fusion, RedonUI.Util, RedonUI.Components, utils, {
 	menu = menu,
 	viewport = viewport,
+	mainWidget = main,
+	popup = popup,
 })
 
 table.insert(scope, function()
@@ -118,10 +125,11 @@ end
 local enabled = scope:Value(isRBXM and IS_DEV)
 local mode = scope:Value("menu" :: types.mode)
 local currentVehicle: Fusion.Value<Model | string?> = scope:Value(nil)
+local returnTo = scope:Value("menu" :: types.returnTo)
 local theme = scope.peek(pluginSettings.values.theme)
 
 -- UI Initialization
-local activeScope = nil
+local activeScope: Fusion.Scope<typeof(scope)>? = nil
 local function initUI()
 	local themeToUse = nil
 	if theme == "Auto" then
@@ -136,6 +144,10 @@ local function initUI()
 
 	activeScope = scope:innerScope()
 	RedonUI.theme.theme:is(RedonUI.theme[themeToUse:lower()]):during(function()
+		if activeScope == nil then
+			return {}
+		end
+		local popupFrame = activeScope.popup:container(scope)
 		local menuWidget = activeScope:menu {
 			Name = name,
 			Version = versionDisplay,
@@ -143,7 +155,21 @@ local function initUI()
 			Enabled = enabled,
 			Mode = mode :: any, -- ROBLOX FIX YOUR DAMN TYPE SOLVER k thx love u bye
 			CurrentVehicle = currentVehicle,
+			ReturnTo = returnTo :: any,
 		} :: DockWidgetPluginGui -- idk man, I am tired
+		local mainWidget = activeScope:mainWidget {
+			Name = name,
+			Version = versionDisplay,
+
+			Enabled = enabled,
+			Mode = mode :: any,
+			CurrentVehicle = currentVehicle,
+			ReturnTo = returnTo :: any,
+
+			[Fusion.Children] = {
+				popupFrame,
+			},
+		} :: DockWidgetPluginGui
 		local viewportGui = activeScope:viewport {
 			Name = name,
 			Version = versionDisplay,
@@ -151,10 +177,15 @@ local function initUI()
 			Enabled = enabled,
 			Mode = mode :: any, -- ROBLOX FIX YOUR DAMN TYPE SOLVER k thx love u bye
 			CurrentVehicle = currentVehicle,
+			ReturnTo = returnTo :: any,
 		}
 		viewportGui.Parent = game:GetService("CoreGui")
 
 		menuWidget:BindToClose(function()
+			enabled:set(false)
+		end)
+
+		mainWidget:BindToClose(function()
 			enabled:set(false)
 		end)
 
@@ -170,6 +201,7 @@ initUI()
 settings().Studio.ThemeChanged:Connect(function()
 	if activeScope and theme == "Auto" then
 		activeScope:doCleanup()
+		activeScope = nil
 		initUI()
 	end
 end)
@@ -178,6 +210,7 @@ scope:Observer(pluginSettings.values.theme):onChange(function()
 	if activeScope then
 		theme = scope.peek(pluginSettings.values.theme)
 		activeScope:doCleanup()
+		activeScope = nil
 		initUI()
 	end
 end)
@@ -188,9 +221,12 @@ scope:Observer(enabled):onChange(function()
 	button:SetActive(Fusion.peek(enabled))
 end)
 
-button.Click:Connect(function()
-	enabled:set(not Fusion.peek(enabled))
-end)
+table.insert(
+	scope,
+	button.Click:Connect(function()
+		enabled:set(not Fusion.peek(enabled))
+	end)
+)
 
 --[[
 

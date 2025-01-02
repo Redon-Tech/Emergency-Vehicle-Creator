@@ -25,6 +25,7 @@ type props = {
 	Enabled: Fusion.Value<boolean>,
 	Mode: Fusion.Value<types.mode>,
 	CurrentVehicle: Fusion.Value<Model | string?>,
+	ReturnTo: Fusion.Value<types.returnTo>,
 }
 
 --[[
@@ -259,6 +260,7 @@ return function(baseScope: types.Scope, props: props)
 				currentOptionData = currentOptionData,
 
 				cleanupCustomization = cleanupCustomization,
+				ReturnTo = props.ReturnTo,
 			},
 
 			scope:base {

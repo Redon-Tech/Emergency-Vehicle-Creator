@@ -155,6 +155,7 @@ return function(
 		currentOptionData: Fusion.Value<{ [string]: boolean | { [string]: boolean } }>,
 
 		cleanupCustomization: () -> (),
+		ReturnTo: Fusion.Value<types.returnTo>,
 	}
 )
 	local currentTheme = RedonUI.theme.theme:now()

@@ -1,0 +1,204 @@
+-- Redon Tech Emnergency Vehicle Creator, MIT License
+local root = script.Parent.Parent.Parent
+
+local Fusion = require(root.Packages.fusion)
+local RedonUI = require(root.Packages["redon-ui"])
+local types = require(root.Plugin.types)
+
+type action = {
+	text: Fusion.UsedAs<string>,
+	type: "standard" | "primary" | "danger",
+	callback: (popup: Instance) -> (),
+	key: Fusion.UsedAs<number>,
+}
+export type popup = {
+	currentContainer: Fusion.Value<Frame>?,
+	container: (self: popup, scope: types.Scope) -> Fusion.Child,
+	addPopup: (
+		self: popup,
+		scope: types.Scope,
+		props: {
+			title: Fusion.UsedAs<string>,
+			description: Fusion.UsedAs<string>,
+			forceDescriptionSize: Fusion.UsedAs<UDim2>?,
+			actions: { action },
+		}
+	) -> (),
+}
+local popup = {} :: popup
+
+function popup.addPopup(self, scope, props)
+	if self.currentContainer == nil then
+		return
+	end
+	local currentContainer = scope.peek(self.currentContainer)
+	local currentTheme = RedonUI.theme.theme:now()
+	local newPopup
+	newPopup = scope:base {
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundColor3 = currentTheme.colors.base,
+		Border = 2,
+		CornerRadius = UDim.new(0, 15),
+
+		[Fusion.Children] = {
+			scope:New("UIPadding") {
+				PaddingTop = UDim.new(0, 10),
+				PaddingBottom = UDim.new(0, 10),
+				PaddingLeft = UDim.new(0, 10),
+				PaddingRight = UDim.new(0, 10),
+			},
+
+			scope:New("UIListLayout") {
+				Padding = UDim.new(0, 15),
+				FillDirection = Enum.FillDirection.Vertical,
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
+				VerticalAlignment = Enum.VerticalAlignment.Top,
+				SortOrder = Enum.SortOrder.LayoutOrder,
+			},
+
+			scope:textLabel {
+				Size = UDim2.fromOffset(300, 50),
+				AnchorPoint = Vector2.new(0.5, 0),
+				Position = UDim2.fromScale(0.5, 0),
+				Text = props.title,
+				TextScaled = true,
+				MaxTextSize = 30,
+				FontWeight = Enum.FontWeight.Bold,
+				LayoutOrder = 1,
+			},
+
+			scope:textLabel {
+				Size = if props.forceDescriptionSize ~= nil
+					then props.forceDescriptionSize
+					else UDim2.fromOffset(400, 50),
+				AnchorPoint = Vector2.new(0, 0),
+				Position = UDim2.new(0, 0, 0, 65),
+				Text = props.description,
+				RichText = true,
+				TextScaled = props.forceDescriptionSize ~= nil,
+				TextSize = 20,
+				FontWeight = Enum.FontWeight.Regular,
+				MaxTextSize = 20,
+				TextWrapped = true,
+				TextYAlignment = Enum.TextYAlignment.Top,
+				AutomaticSize = if props.forceDescriptionSize == nil
+					then Enum.AutomaticSize.Y
+					else Enum.AutomaticSize.None,
+				LayoutOrder = 2,
+			},
+
+			scope:base {
+				Size = UDim2.fromOffset(300, 50),
+				AnchorPoint = Vector2.new(0.5, 1),
+				Position = UDim2.fromScale(0.5, 1),
+				BackgroundTransparency = 1,
+				LayoutOrder = 3,
+
+				[Fusion.Children] = Fusion.Child {
+					scope:New("UIListLayout") {
+						Padding = UDim.new(0, 15),
+						FillDirection = Enum.FillDirection.Horizontal,
+						HorizontalAlignment = Enum.HorizontalAlignment.Center,
+						VerticalAlignment = Enum.VerticalAlignment.Center,
+						SortOrder = Enum.SortOrder.LayoutOrder,
+					},
+
+					--selene: allow(shadowing)
+					scope:ForValues(props.actions, function(_, scope: typeof(scope), value: action)
+						local BackgroundColor = if value.type == "primary"
+							then currentTheme.colors.blue
+							elseif value.type == "danger" then currentTheme.colors.red
+							else currentTheme.colors.crust
+						local TextColor = if value.type == "standard"
+							then currentTheme.colors.text
+							else currentTheme.colors.crust
+						local ShadowColor = if value.type == "primary"
+							then currentTheme.colors.blue
+							elseif value.type == "danger" then currentTheme.colors.red
+							else currentTheme.colors.crust
+						local ButtonGlowColor = if value.type == "primary"
+							then if currentTheme.colors.white == Color3.new(1, 1, 1)
+								then currentTheme.colors.text
+								else currentTheme.colors.base
+							else currentTheme.colors.maroon
+						return scope:textButton {
+							Size = UDim2.fromOffset(175, 35),
+							Text = value.text,
+							TextScaled = true,
+							MaxTextSize = 25,
+							TextColor3 = TextColor,
+							BackgroundColor3 = BackgroundColor,
+							ButtonGlowColor3 = ButtonGlowColor,
+							ShadowColor3 = ShadowColor,
+							ButtonGlow = if value.type == "standard" then false else true,
+							Shadow = true,
+							Border = 2,
+							CornerRadius = UDim.new(0, 10),
+							[Fusion.OnEvent "Activated"] = function()
+								value.callback(newPopup)
+							end,
+							LayoutOrder = value.key,
+
+							Reactive = true,
+						}
+					end),
+				},
+			},
+		},
+	}
+	newPopup.Parent = currentContainer
+end
+
+function popup.container(self, scope)
+	local currentTheme = RedonUI.theme.theme:now()
+	local contentSize = scope:Value(Vector2.zero)
+	local container = scope:base {
+		Size = UDim2.fromScale(2, 2),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundColor3 = currentTheme.colors.crust,
+		BackgroundTransparency = scope:Spring(
+			scope:Computed(function(use)
+				return if use(contentSize) == Vector2.zero then 1 else 0.5
+			end),
+			20,
+			1
+		),
+		Position = scope:Spring(
+			scope:Computed(function(use)
+				return if use(contentSize) == Vector2.zero then UDim2.fromScale(0.5, 1.5) else UDim2.fromScale(0.5, 0.5)
+			end),
+			20,
+			0.6
+		),
+
+		[Fusion.Children] = {
+			scope:New("UIListLayout") {
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				[Fusion.Out "AbsoluteContentSize"] = contentSize,
+			},
+
+			scope:New("UIGradient") {
+				Rotation = 90,
+				Transparency = NumberSequence.new({
+					NumberSequenceKeypoint.new(0, 1),
+					NumberSequenceKeypoint.new(0.1, 0),
+					NumberSequenceKeypoint.new(0.9, 0),
+					NumberSequenceKeypoint.new(1, 1),
+				}),
+			},
+		},
+	} :: Frame
+	-- scope:Observer(contentSize):onChange(function()
+	-- 	local size = scope.peek(contentSize)
+	-- 	if size == Vector2.zero then
+	-- 		container.BackgroundTransparency = 1
+	-- 	else
+	-- 		container.BackgroundTransparency = 0.5
+	-- 	end
+	-- end)
+	self.currentContainer = scope:Value(container)
+	return container
+end
+
+return popup

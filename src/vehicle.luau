@@ -1,5 +1,6 @@
 -- Redon Tech Emnergency Vehicle Creator, MIT License
 local InsertService = game:GetService("InsertService")
+local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local assets = require(script.Parent.assets)
 local log = require(script.Parent.log)
 
@@ -92,7 +93,7 @@ function vehicle.isValidVehicle(_, vehicleToCheck)
 			end
 
 			-- Detect AG chassis
-			local loader = plugins:FindFirstChild("AG-Chassis [Loader]")
+			local loader = tune:FindFirstChild("AG-Chassis [Loader]")
 			if loader then
 				return "ag"
 			end
