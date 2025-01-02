@@ -10,7 +10,7 @@ type props = {
 
 	PrimaryColor: Fusion.UsedAs<"Primary" | "Alternate">?,
 	RowSize: Fusion.UsedAs<UDim2>,
-	Rows: { [number]: Fusion.Child | string }?,
+	Rows: Fusion.UsedAs<{ [number]: Fusion.Child | string }>,
 	AutomaticSize: Fusion.UsedAs<Enum.AutomaticSize>?,
 
 	CurrentPanel: Fusion.Value<types.menuPanels>,
@@ -35,9 +35,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
-		Visible = scope:Computed(function(use)
-			return use(props.CurrentPanel) == use(props.Name)
-		end),
+		-- Visible = scope:Computed(function(use)
+		-- 	return use(props.CurrentPanel) == use(props.Name)
+		-- end),
 
 		[Fusion.Children] = {
 			scope:textLabel {

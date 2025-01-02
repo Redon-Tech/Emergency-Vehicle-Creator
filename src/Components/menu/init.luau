@@ -15,12 +15,19 @@ local help = require(script.help)
 local credits = require(script.credits)
 local settings = require(script.settings)
 local vehicle = require(script.vehicle)
-local panels = {
-	home = home,
-	help = help,
-	credits = credits,
-	settings = settings,
-	vehicle = vehicle,
+local panels: { [number]: (scope: types.Scope, props: any) -> Fusion.Child } = {
+	[1] = home,
+	[2] = help,
+	[3] = credits,
+	[4] = settings,
+	[5] = vehicle,
+}
+local panelByName = {
+	Home = 1,
+	Help = 2,
+	Credits = 3,
+	Settings = 4,
+	Vehicle = 5,
 }
 
 type props = {
@@ -41,6 +48,15 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	local currentTheme = RedonUI.theme.theme:now()
 
 	local currentPanel = scope:Value("Home")
+	local lastPanelIndex = scope:Value(1)
+	local currentPanelIndex = scope:Value(1)
+	scope:Observer(currentPanel):onChange(function()
+		local newPanel = scope.peek(currentPanel)
+		local newIndex = panelByName[newPanel]
+		local currentIndex = scope.peek(currentPanelIndex)
+		lastPanelIndex:set(currentIndex)
+		currentPanelIndex:set(newIndex)
+	end)
 
 	return scope:widget {
 		pluginGuiId = `{props.Name}_Menu`,
@@ -75,18 +91,44 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						Position = UDim2.fromScale(0.5, 0.5),
 						Size = UDim2.fromOffset(400, 750),
 						BackgroundTransparency = 1,
+						ClipsDescendants = true,
 
 						[Fusion.Children] = Fusion.Child {
 							scope:New("UIScale") { Scale = 0.6 },
 
 							-- selene: allow(shadowing)
-							scope:ForValues(panels, function(_, scope: typeof(scope), panel)
-								return panel(scope, {
-									CurrentPanel = currentPanel,
-									Version = props.Version,
-									CurrentVehicle = props.CurrentVehicle,
-									Mode = props.Mode,
-								})
+							scope:ForPairs(panels, function(_, scope: typeof(scope), key, panel)
+								return key,
+									scope:base {
+										Name = tostring(key),
+										Size = UDim2.fromScale(1, 1),
+										Position = scope:Tween(
+											scope:Computed(function(use)
+												local currentIndex = use(currentPanelIndex)
+												if currentIndex == key then
+													return UDim2.fromScale(0, 0)
+												elseif currentIndex > key then
+													return UDim2.fromScale(-1, 0)
+												else
+													return UDim2.fromScale(1, 0)
+												end
+											end),
+											TweenInfo.new(0.25, Enum.EasingStyle.Cubic)
+										),
+										Visible = scope:Computed(function(use)
+											return use(currentPanelIndex) == key or use(lastPanelIndex) == key
+										end),
+										BackgroundTransparency = 1,
+
+										[Fusion.Children] = {
+											panel(scope, {
+												CurrentPanel = currentPanel,
+												Version = props.Version,
+												CurrentVehicle = props.CurrentVehicle,
+												Mode = props.Mode,
+											}),
+										},
+									}
 							end),
 						},
 					},
