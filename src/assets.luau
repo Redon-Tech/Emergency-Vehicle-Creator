@@ -22,6 +22,10 @@ local assets = {
 			createFilled = "rbxassetid://126924702377763",
 			add = "rbxassetid://131875989308596",
 			remove = "rbxassetid://139585109490603",
+			trash = "rbxassetid://84339644678815",
+			trashFilled = "rbxassetid://107030343619370",
+			download = "rbxassetid://108720050020650",
+			downloadFilled = "rbxassetid://107900022917876",
 		},
 		vehicles = {
 			FPIU2020 = "rbxassetid://138806014801248",
@@ -29,6 +33,7 @@ local assets = {
 	},
 	sounds = {},
 }
+table.freeze(assets)
 
 local getAssetUrls
 function getAssetUrls(currentTable: { [any]: string | { [any]: any } }, currentUrls: { string })
