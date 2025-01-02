@@ -17,6 +17,7 @@ type props = {
 
 	Title: Fusion.UsedAs<string>,
 	Enabled: Fusion.UsedAs<boolean>,
+	[Fusion.SpecialKey]: unknown,
 }
 
 --[[
@@ -24,25 +25,33 @@ type props = {
 	Creates a DockWidgetPluginGui
 ]]
 return function(scope: types.Scope, props: props): Fusion.Child
+	local pluginGuiId = scope.EatValue(props, "pluginGuiId") :: string
+	local InitialDockState = scope.EatValue(props, "InitialDockState") :: Enum.InitialDockState?
+	local InitialEnabled = scope.EatValue(props, "InitialEnabled") :: boolean?
+	local InitialEnabledShouldOverrideRestore = scope.EatValue(props, "InitialEnabledShouldOverrideRestore") :: boolean?
+	local FloatingXSize = scope.EatValue(props, "FloatingXSize") :: number?
+	local FloatingYSize = scope.EatValue(props, "FloatingYSize") :: number?
+	local MinWidth = scope.EatValue(props, "MinWidth") :: number?
+	local MinHeight = scope.EatValue(props, "MinHeight") :: number?
 	local widget = plugin:CreateDockWidgetPluginGui(
-		props.pluginGuiId,
+		pluginGuiId,
 		DockWidgetPluginGuiInfo.new(
-			props.InitialDockState or Enum.InitialDockState.Right,
-			props.InitialEnabled or false,
-			props.InitialEnabledShouldOverrideRestore or false,
-			props.FloatingXSize or 0,
-			props.FloatingYSize or 0,
-			props.MinWidth or 0,
-			props.MinHeight or 0
+			InitialDockState or Enum.InitialDockState.Right,
+			InitialEnabled or false,
+			InitialEnabledShouldOverrideRestore or false,
+			FloatingXSize or 0,
+			FloatingYSize or 0,
+			MinWidth or 0,
+			MinHeight or 0
 		)
 	)
-	widget.Name = props.pluginGuiId
+	widget.Name = pluginGuiId
 	widget.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-	return scope:Hydrate(widget) {
+	return scope:Hydrate(widget)(scope.CombineProperties({
 		Title = props.Title,
 		Enabled = props.Enabled,
 
 		[Fusion.Children] = props[Fusion.Children],
-	}
+	}, props))
 end
