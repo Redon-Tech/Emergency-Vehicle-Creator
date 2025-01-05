@@ -24,12 +24,19 @@ export type popup = {
 			actions: { action },
 		}
 	) -> (),
+	removePopup: (self: popup, newPopup: Instance) -> (),
+	enabled: Fusion.Value<boolean>,
+	currentPopup: Instance?,
 }
 local popup = {} :: popup
 
 function popup.addPopup(self, scope, props)
 	if self.currentContainer == nil then
 		return
+	end
+	if self.currentPopup ~= nil then
+		self.currentPopup:Destroy()
+		self.currentPopup = nil
 	end
 	local currentContainer = scope.peek(self.currentContainer)
 	local currentTheme = RedonUI.theme.theme:now()
@@ -146,26 +153,32 @@ function popup.addPopup(self, scope, props)
 			},
 		},
 	}
+	self.enabled:set(true)
 	newPopup.Parent = currentContainer
+	self.currentPopup = newPopup
+end
+
+function popup.removePopup(self, _)
+	self.enabled:set(false)
 end
 
 function popup.container(self, scope)
 	local currentTheme = RedonUI.theme.theme:now()
-	local contentSize = scope:Value(Vector2.zero)
+	self.enabled = scope:Value(false)
 	local container = scope:base {
 		Size = UDim2.fromScale(2, 2),
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = currentTheme.colors.crust,
 		BackgroundTransparency = scope:Spring(
 			scope:Computed(function(use)
-				return if use(contentSize) == Vector2.zero then 1 else 0.5
+				return if use(self.enabled) == false then 1 else 0.5
 			end),
 			20,
 			1
 		),
 		Position = scope:Spring(
 			scope:Computed(function(use)
-				return if use(contentSize) == Vector2.zero then UDim2.fromScale(0.5, 1.5) else UDim2.fromScale(0.5, 0.5)
+				return if use(self.enabled) == false then UDim2.fromScale(0.5, 1.5) else UDim2.fromScale(0.5, 0.5)
 			end),
 			20,
 			0.6
@@ -175,7 +188,6 @@ function popup.container(self, scope)
 			scope:New("UIListLayout") {
 				HorizontalAlignment = Enum.HorizontalAlignment.Center,
 				VerticalAlignment = Enum.VerticalAlignment.Center,
-				[Fusion.Out "AbsoluteContentSize"] = contentSize,
 			},
 
 			scope:New("UIGradient") {
@@ -189,14 +201,7 @@ function popup.container(self, scope)
 			},
 		},
 	} :: Frame
-	-- scope:Observer(contentSize):onChange(function()
-	-- 	local size = scope.peek(contentSize)
-	-- 	if size == Vector2.zero then
-	-- 		container.BackgroundTransparency = 1
-	-- 	else
-	-- 		container.BackgroundTransparency = 0.5
-	-- 	end
-	-- end)
+
 	self.currentContainer = scope:Value(container)
 	return container
 end

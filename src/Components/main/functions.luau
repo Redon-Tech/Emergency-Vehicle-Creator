@@ -324,16 +324,16 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														text = "Cancel",
 														type = "primary",
 														key = 1,
-														callback = function(popup)
-															popup:Destroy()
+														callback = function(newPopup)
+															popup:removePopup(newPopup)
 														end,
 													},
 													{
 														text = "Delete",
 														type = "danger",
 														key = 2,
-														callback = function(popup)
-															popup:Destroy()
+														callback = function(newPopup)
+															popup:removePopup(newPopup)
 															local currentFunctions = scope.peek(functions)
 															table.remove(currentFunctions, key)
 															table.remove(currentConfiguration.functions, key)
@@ -561,16 +561,16 @@ return function(scope: types.Scope, props: props): Fusion.Child
 													text = "Cancel",
 													type = "primary",
 													key = 1,
-													callback = function(popup)
-														popup:Destroy()
+													callback = function(newPopup)
+														popup:removePopup(newPopup)
 													end,
 												},
 												{
 													text = "Delete",
 													type = "danger",
 													key = 2,
-													callback = function(popup)
-														popup:Destroy()
+													callback = function(newPopup)
+														popup:removePopup(newPopup)
 														local currentPatterns = scope.peek(patterns)
 														table.remove(currentPatterns, key)
 														patterns:set(currentPatterns)
@@ -868,16 +868,16 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														text = "Cancel",
 														type = "primary",
 														key = 1,
-														callback = function(popup)
-															popup:Destroy()
+														callback = function(newPopup)
+															popup:removePopup(newPopup)
 														end,
 													},
 													{
 														text = "Delete",
 														type = "danger",
 														key = 2,
-														callback = function(popup)
-															popup:Destroy()
+														callback = function(newPopup)
+															popup:removePopup(newPopup)
 															local currentActivations = scope.peek(activations)
 															table.remove(currentActivations, key)
 															activations:set(currentActivations)

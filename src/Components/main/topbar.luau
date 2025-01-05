@@ -122,8 +122,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								text = "Cancel",
 								type = "standard",
 								key = 1,
-								callback = function(popup)
-									popup:Destroy()
+								callback = function(newPopup)
+									popup:removePopup(newPopup)
 									print("cancel")
 								end,
 							},
@@ -131,8 +131,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								text = "Save",
 								type = "primary",
 								key = 2,
-								callback = function(popup)
-									popup:Destroy()
+								callback = function(newPopup)
+									popup:removePopup(newPopup)
 									print("save")
 								end,
 							},

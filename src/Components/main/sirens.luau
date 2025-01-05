@@ -269,16 +269,16 @@ return function(scope: types.Scope, props: props): Fusion.Child
 															text = "Cancel",
 															type = "primary",
 															key = 1,
-															callback = function(popup)
-																popup:Destroy()
+															callback = function(newPopup)
+																popup:removePopup(newPopup)
 															end,
 														},
 														{
 															text = "Delete",
 															type = "danger",
 															key = 2,
-															callback = function(popup)
-																popup:Destroy()
+															callback = function(newPopup)
+																popup:removePopup(newPopup)
 																local currentSirens = scope.peek(sirens)
 																table.remove(value.modifiers, i)
 																currentSirens[key] = value
@@ -422,16 +422,16 @@ return function(scope: types.Scope, props: props): Fusion.Child
 													text = "Cancel",
 													type = "primary",
 													key = 1,
-													callback = function(popup)
-														popup:Destroy()
+													callback = function(newPopup)
+														popup:removePopup(newPopup)
 													end,
 												},
 												{
 													text = "Delete",
 													type = "danger",
 													key = 2,
-													callback = function(popup)
-														popup:Destroy()
+													callback = function(newPopup)
+														popup:removePopup(newPopup)
 														local currentSirens = scope.peek(sirens)
 														table.remove(currentSirens, key)
 														table.remove(currentConfiguration.sirens, key)
