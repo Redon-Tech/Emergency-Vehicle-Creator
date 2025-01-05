@@ -237,12 +237,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 									[Fusion.Children] = createChildren(scope, {
 										rowSize = rowSize,
 										options = {
-											{ value = value.weight, layoutOrder = 1 },
-											{ value = value.name, layoutOrder = 2 },
-										},
-										hasDeleteButton = true,
-										hasDownloadButton = true,
-										hasEditButton = true,
+											{ type = "number", initialValue = value.weight, layoutOrder = 1 },
+											{ type = "string", initialValue = value.name, layoutOrder = 2 },
+										} :: { createChildren.option },
 
 										onOptionChange = function(editing: number, newValue: any?)
 											if editing == 1 then
@@ -347,6 +344,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 												},
 											})
 										end,
+										onDownload = function() end,
 									}),
 								}
 						end
@@ -511,11 +509,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								[Fusion.Children] = createChildren(scope, {
 									rowSize = rowSize,
 									options = {
-										{ value = key, layoutOrder = 1 },
-									},
-									hasDeleteButton = true,
-									hasDownloadButton = true,
-									hasEditButton = true,
+										{ type = "number", initialValue = key, layoutOrder = 1 },
+									} :: { createChildren.option },
 
 									onOptionChange = function(_: number, newValue: any?)
 										newValue = tonumber(newValue)
@@ -587,6 +582,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 											},
 										})
 									end,
+									onDownload = function() end,
 								}),
 							}
 					end),
@@ -595,11 +591,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 							return
 						end
 						local currentPatterns = scope.peek(patterns)
-						table.insert(currentPatterns, {
-							flashers = {},
-							faders = {},
-							rotators = {},
-						})
+						table.insert(currentPatterns, scope.deepCopy(chassisHandler.defaults.functions.patterns[1]))
 						patterns:set(currentPatterns)
 						props.UnsavedChanges:set(true)
 					end),
@@ -628,10 +620,11 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					AutomaticSize = Enum.AutomaticSize.Y,
 					Rows = scope:ForPairs(
 						activations,
-						function(use, scope: typeof(scope), key: number, value: types.activation)
+						function(_, scope: typeof(scope), key: number, value: types.activation)
 							local options: { createChildren.option } = {
 								{
-									value = value.type,
+									type = "select",
+									initialValue = value.type,
 									layoutOrder = 1,
 									options = { "Standard", "Override" }, --"Conditional" },
 								},
@@ -640,15 +633,22 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 							-- Standard
 							if value.type == "Standard" and value.pattern ~= nil and value.keybinds ~= nil then
-								local mode = scope:Value(value.mode)
+								table.insert(options, {
+									type = "select",
+									initialValue = value.mode,
+									layoutOrder = 2,
+									options = { "Cycle", "Set Pattern" },
+								})
+
 								table.insert(
 									options,
-									{ value = mode, layoutOrder = 2, options = { "Cycle", "Set Pattern" } }
+									{ type = "number", initialValue = value.pattern, layoutOrder = 3 }
 								)
-								use(mode) -- hack to avoid parent property locked error
-								table.insert(options, { value = value.pattern, layoutOrder = 3 })
 								for i, keybind in value.keybinds do
-									table.insert(options, { value = keybind, layoutOrder = i + 3 })
+									table.insert(
+										options,
+										{ type = "keycode", initialValue = keybind, layoutOrder = i + 3 }
+									)
 								end
 								onChange = function(
 									id: number,
@@ -660,10 +660,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										if newValue == "Cycle" then
 											currentActivations[key].mode = "Cycle"
 											currentActivations[key].pattern = 0
-											mode:set("Cycle")
 										else
 											currentActivations[key].mode = "Set Pattern"
-											mode:set("Set Pattern")
 										end
 									elseif id == 3 and typeof(newValue) == "number" then
 										currentActivations[key].pattern = newValue
@@ -680,15 +678,18 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								and value.dependentFunction ~= nil
 								and value.dependentPattern ~= nil
 							then
-								local mode = scope:Value(value.mode)
 								table.insert(options, {
-									value = mode,
+									type = "select",
+									initialValue = value.mode,
 									layoutOrder = 2,
 									options = { "Siren Override", "Park", "Brake", "Reverse" },
 								})
-								if use(mode) == "Siren Override" then
+								if value.mode == "Siren Override" then
 									-- TODO: Siren by name
-									table.insert(options, { value = value.siren, layoutOrder = 3 })
+									table.insert(
+										options,
+										{ type = "select", initialValue = value.siren, layoutOrder = 3, options = {} }
+									)
 								end
 								local currentFunctions = scope.peek(functions)
 								local byValue = scope.dictionaryValueToIndex(currentFunctions, "name")
@@ -696,22 +697,37 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								for _, func in currentFunctions do
 									table.insert(choices, func.weight, func.name)
 								end
-								local dependentFunction = scope:Value(value.dependentFunction)
-								local dependent = use(dependentFunction)
 								table.insert(options, {
-									value = if byValue[dependent]
-										then choices[byValue[dependent].weight]
-										elseif dependent == "" then "No Dependent Function"
-										else `Function {dependent} Not Found`,
-									options = choices,
+									type = "select",
+									initialValue = if byValue[value.dependentFunction]
+										then choices[byValue[value.dependentFunction].weight]
+										elseif value.dependentFunction == "" then "No Dependent Function"
+										else `Function {value.dependentFunction} Not Found`,
+									options = scope:Computed(function(use)
+										local choices = { "No Dependent Function" }
+										for _, func in use(functions) do
+											table.insert(choices, func.weight, func.name)
+										end
+										return choices
+									end),
 									layoutOrder = 4,
 								})
-								table.insert(options, { value = value.dependentPattern, layoutOrder = 5 })
+								table.insert(
+									options,
+									{ type = "number", initialValue = value.dependentPattern, layoutOrder = 5 }
+								)
 								onChange = function(id, newValue, currentActivations, _)
 									if id == 2 and typeof(newValue) == "string" then
-										currentActivations[key].mode =
-											newValue :: "Siren Override" | "Park" | "Brake" | "Reverse"
-										mode:set(newValue)
+										local deepCopy = scope.deepCopy(currentActivations[key])
+										if newValue == "Siren Override" then
+											if deepCopy.siren == nil then
+												deepCopy.siren = 0
+											end
+										end
+										deepCopy.mode = newValue :: "Siren Override" | "Park" | "Brake" | "Reverse"
+										currentActivations[key] = deepCopy
+										-- currentActivations[key].mode =
+										-- 	newValue :: "Siren Override" | "Park" | "Brake" | "Reverse"
 									elseif id == 3 and typeof(newValue) == "number" then
 										currentActivations[key].siren = newValue
 									elseif id == 4 and typeof(newValue) == "string" then
@@ -720,7 +736,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										else
 											currentActivations[key].dependentFunction = newValue
 										end
-										dependentFunction:set(currentActivations[key].dependentFunction)
 									elseif id == 5 and typeof(newValue) == "number" then
 										currentActivations[key].dependentPattern = newValue
 									end
@@ -811,9 +826,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 									[Fusion.Children] = createChildren(scope, {
 										rowSize = rowSize,
 										options = options,
-										hasDeleteButton = true,
-										hasDownloadButton = true,
-										hasEditButton = false,
 
 										onOptionChange = function(id: number, newValue: any?)
 											local currentActivations = scope.peek(activations)
@@ -831,7 +843,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 												if chassisHandler.defaults.activations[newValue] == nil then
 													return
 												end
-												currentActivations[key] = chassisHandler.defaults.activations[newValue]
+												currentActivations[key] =
+													scope.deepCopy(chassisHandler.defaults.activations[newValue])
 											else
 												onChange(id, newValue, currentActivations, selectedFunction)
 											end
@@ -840,9 +853,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 												currentActivations
 											activations:set(currentActivations)
 											props.UnsavedChanges:set(true)
-										end,
-										onEdit = function()
-											-- TODO: Add pattern editor
 										end,
 										onDelete = function()
 											local selectedFunction = scope.peek(selectedFunction)
@@ -879,6 +889,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 												},
 											})
 										end,
+										onDownload = function() end,
 									}),
 								}
 						end
@@ -888,12 +899,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 							return
 						end
 						local currentActivations = scope.peek(activations)
-						table.insert(currentActivations, {
-							type = "Standard",
-							mode = "Cycle",
-							keybinds = { Enum.KeyCode.J },
-							pattern = 0,
-						})
+						table.insert(currentActivations, scope.deepCopy(chassisHandler.defaults.activations.Standard))
 						activations:set(currentActivations)
 						props.UnsavedChanges:set(true)
 					end),
@@ -905,7 +911,17 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	return scope:base {
 		Name = "Functions",
 		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.fromScale(0.5, 0.0462962963),
+		Position = scope:Spring(
+			scope:Computed(function(use)
+				local currentPage = use(props.CurrentPage)
+				if currentPage == "Functions" then
+					return UDim2.fromScale(0.5, 0.0462962963)
+				end
+				return UDim2.fromScale(-1, 0.0462962963)
+			end),
+			20,
+			0.75
+		),
 		Size = UDim2.fromScale(1, 0.9537037037),
 		BackgroundColor3 = currentTheme.colors.base,
 

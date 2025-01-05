@@ -36,6 +36,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 	local currentConfiguration = nil
 	local sirens: Fusion.Value<{ types.siren }> = scope:Value({})
+	local modifiers: Fusion.Value<{ string }> = scope:Value({})
 
 	scope:Observer(props.CurrentVehicle):onChange(function()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
@@ -45,6 +46,16 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				sirens:set(currentConfiguration.sirens)
 			end
 		end
+	end)
+	scope:Observer(sirens):onChange(function()
+		local currentSirens = scope.peek(sirens)
+		local currentModifiers = {}
+		for _, siren in currentSirens do
+			if siren.type == "Modifier" then
+				table.insert(currentModifiers, siren.name)
+			end
+		end
+		modifiers:set(currentModifiers)
 	end)
 
 	local newSirenName = scope:Value("")
@@ -112,7 +123,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								end
 								local newSirenName = scope.peek(newSirenName)
 								if newSirenName == "" then
-									newSirenName = "New Siren"
+									newSirenName = "Wail"
 								end
 								local currentSirens = scope.peek(sirens)
 								local sirensByName = {}
@@ -121,12 +132,10 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								end
 								newSirenName = testFunctionName(newSirenName, sirensByName, 0)
 
-								local newSirenData = scope.deepCopy(chassisHandler.defaults.sirens)
-								newSirenData.name = newSirenName
-								table.insert(currentConfiguration.sirens, newSirenData)
-
+								local newSirenData = scope.deepCopy(chassisHandler.defaults.sirens);
+								(newSirenData :: { name: string }).name = newSirenName
 								table.insert(currentSirens, newSirenData)
-								log.debug(currentConfiguration.sirens, newSirenData)
+								currentConfiguration.sirens = currentSirens
 								sirens:set(currentSirens)
 								props.UnsavedChanges:set(true)
 							end,
@@ -159,26 +168,191 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					CornerRadius = UDim.new(0.0182926829, 0),
 					AutomaticSize = Enum.AutomaticSize.Y,
 					[Fusion.Out "AbsoluteSize"] = actualTableSize,
-					Rows = scope:ForPairs(sirens, function(use, scope: typeof(scope), key: number, value: types.siren)
+					Rows = scope:ForPairs(sirens, function(_, scope: typeof(scope), key: number, value: types.siren)
 						local rowSize = scope:Value(75)
 						local bg = scope:Spring(scope:Value(1), 10, 1)
 						bg:setPosition(0)
 
-						local mode = scope:Value(value.type)
+						local childrenOptions: Fusion.UsedAs<{ createChildren.childOption }>? = nil
 						local options: { createChildren.option } = {
-							{ value = value.name, layoutOrder = 1 },
-							{ value = mode, layoutOrder = 2, options = { "Siren", "Hold", "Modifier" } },
+							{ type = "string", initialValue = value.name, layoutOrder = 1 },
+							{
+								type = "select",
+								initialValue = value.type,
+								layoutOrder = 2,
+								options = { "Siren", "Hold", "Modifier" },
+							},
 						}
-						if use(mode) ~= "Modifier" then
-							local behavoir = scope:Value(value.behavoir)
+
+						if value.type ~= "Modifier" then
 							table.insert(options, {
-								value = behavoir,
+								type = "select",
+								initialValue = value.behavoir,
 								layoutOrder = 3,
 								options = { "Overrides Other Sounds", "Plays Simultaneously" },
 							})
 						end
-						for i, keybind in value.keybinds do
-							table.insert(options, { value = keybind, layoutOrder = i + 3 })
+
+						for i, keybind in value.keybinds :: { Enum.KeyCode } do
+							table.insert(options, { type = "keycode", initialValue = keybind, layoutOrder = i + 3 })
+						end
+
+						-- table.insert(options, {
+						-- 	type = "button",
+						-- 	text = "Add Keybind",
+						-- 	layoutOrder = #options + 1,
+						-- 	callback = function()
+						-- 		if currentConfiguration == nil then
+						-- 			return
+						-- 		end
+
+						-- 		local currentSirens = scope.peek(sirens)
+						-- 		value.keybinds[#value.keybinds + 1] = Enum.KeyCode.Unknown
+						-- 		currentSirens[key] = value
+						-- 		currentConfiguration.sirens[key] = value
+						-- 		sirens:set(currentSirens)
+						-- 		props.UnsavedChanges:set(true)
+						-- 	end,
+						-- })
+						if value.type ~= "Modifier" then
+							local valueModifiers = scope:Value(value.modifiers)
+							childrenOptions = scope:ForPairs(
+								valueModifiers,
+								function(
+									_,
+									_,
+									i: number,
+									modifier: types.modifier
+								): (number, createChildren.childOption)
+									return i,
+										{
+											options = {
+												{
+													type = "select",
+													initialValue = modifier.name,
+													layoutOrder = 1,
+													options = modifiers,
+												},
+												{
+													type = "string",
+													initialValue = modifier.modifiedSirenName,
+													layoutOrder = 2,
+												},
+												{
+													type = "select",
+													initialValue = modifier.parentSoundBehavior,
+													layoutOrder = 3,
+													options = { "Play Parent Sound", "Plays Simultaneously" },
+												},
+												{
+													type = "select",
+													initialValue = modifier.behavoir,
+													layoutOrder = 4,
+													options = { "Play Automatically", "Require Parent Replay" },
+												},
+												{
+													type = "number",
+													initialValue = modifier.delay,
+													layoutOrder = 5,
+												},
+											},
+											onDelete = function()
+												if currentConfiguration == nil then
+													return
+												end
+
+												popup:addPopup(scope, {
+													title = "Delete Modifier",
+													description = "Are you sure you want to delete this modifier?\n<b>All data will be lost.</b>",
+													actions = {
+														{
+															text = "Cancel",
+															type = "primary",
+															key = 1,
+															callback = function(popup)
+																popup:Destroy()
+															end,
+														},
+														{
+															text = "Delete",
+															type = "danger",
+															key = 2,
+															callback = function(popup)
+																popup:Destroy()
+																local currentSirens = scope.peek(sirens)
+																table.remove(value.modifiers, i)
+																currentSirens[key] = value
+																currentConfiguration.sirens[key] = value
+																sirens:set(currentSirens)
+																valueModifiers:set(value.modifiers)
+																props.UnsavedChanges:set(true)
+															end,
+														},
+													},
+												})
+											end,
+											onOptionChange = function(editing: number, newValue: any?)
+												if currentConfiguration == nil then
+													return
+												end
+												local currentSirens = scope.peek(sirens)
+
+												if editing == 1 and typeof(newValue) == "string" then
+													local currentModifiers = scope.peek(modifiers)
+													if table.find(currentModifiers, newValue) == nil then
+														return
+													end
+
+													value.modifiers[i].name = newValue
+												elseif editing == 2 and typeof(newValue) == "string" then
+													value.modifiers[i].modifiedSirenName = newValue
+												elseif editing == 3 and typeof(newValue) == "string" then
+													value.modifiers[i].parentSoundBehavior =
+														newValue :: "Play Parent Sound" | "Plays Simultaneously"
+												elseif editing == 4 and typeof(newValue) == "string" then
+													value.modifiers[i].behavoir =
+														newValue :: "Play Automatically" | "Require Parent Replay"
+												elseif editing == 5 and typeof(newValue) == "number" then
+													value.modifiers[i].delay = newValue
+												else
+													return
+												end
+
+												currentSirens[key] = value
+												currentConfiguration.sirens[key] = value
+												sirens:set(currentSirens)
+												valueModifiers:set(value.modifiers)
+												props.UnsavedChanges:set(true)
+											end,
+										}
+								end
+							)
+
+							table.insert(options, {
+								type = "button",
+								text = "Add Modifier",
+								layoutOrder = #options + 1,
+								callback = function()
+									if currentConfiguration == nil then
+										return
+									end
+
+									local currentSirens = scope.peek(sirens)
+									local currentModifiers = scope.peek(modifiers)
+									value.modifiers[#value.modifiers + 1] = {
+										name = currentModifiers[1] or "New Modifier",
+										modifiedSirenName = value.name .. (currentModifiers[1] or "Unknown"),
+										parentSoundBehavior = "Play Parent Sound",
+										behavoir = "Play Automatically",
+										delay = 0,
+									}
+									currentSirens[key] = value
+									currentConfiguration.sirens[key] = value
+									sirens:set(currentSirens)
+									valueModifiers:set(value.modifiers)
+									props.UnsavedChanges:set(true)
+								end,
+							})
 						end
 
 						return key,
@@ -192,11 +366,49 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								[Fusion.Children] = createChildren(scope, {
 									rowSize = rowSize,
 									options = options,
-									hasDeleteButton = true,
-									hasDownloadButton = true,
-									hasEditButton = false,
+									childOptions = childrenOptions,
+									actualTableSize = actualTableSize,
 
-									onOptionChange = function(editing: number, newValue: any?) end,
+									onOptionChange = function(editing: number, newValue: any?)
+										if currentConfiguration == nil then
+											return
+										end
+										local currentSirens = scope.peek(sirens)
+
+										if editing == 1 and typeof(newValue) == "string" then
+											(value :: { name: string }).name = newValue
+										elseif editing == 2 and typeof(newValue) == "string" then
+											-- (value :: { type: "Siren" | "Hold" | "Modifier" }).type =
+											-- 	newValue :: "Siren" | "Hold" | "Modifier"
+											if newValue == "Modifier" and value.type ~= "Modifier" then
+												value = scope.deepCopy(chassisHandler.defaults.modifier)
+												value.name = "New Modifier"
+											else
+												(value :: { type: "Siren" | "Hold" | "Modifier" }).type =
+													newValue :: "Siren" | "Hold" | "Modifier"
+											end
+										elseif
+											editing == 3
+											and typeof(newValue) == "string"
+											and value.type ~= "Modifier"
+										then
+											value.behavoir =
+												newValue :: "Overrides Other Sounds" | "Plays Simultaneously"
+										elseif typeof(newValue) == "EnumItem" then
+											if newValue.EnumType == Enum.KeyCode then
+												value.keybinds[editing - 3] = newValue :: Enum.KeyCode
+											else
+												return
+											end
+										else
+											return
+										end
+
+										currentSirens[key] = value
+										currentConfiguration.sirens[key] = value
+										sirens:set(currentSirens)
+										props.UnsavedChanges:set(true)
+									end,
 									onDelete = function()
 										if currentConfiguration == nil then
 											return
@@ -230,6 +442,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 											},
 										})
 									end,
+									onDownload = function() end,
 								}),
 							}
 					end),
@@ -239,9 +452,21 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	}
 
 	return scope:base {
-		Name = "Functions",
+		Name = "Sirens",
 		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.fromScale(0.5, 0.0462962963),
+		Position = scope:Spring(
+			scope:Computed(function(use)
+				local currentPage = use(props.CurrentPage)
+				if currentPage == "Sirens" then
+					return UDim2.fromScale(0.5, 0.0462962963)
+				elseif currentPage == "Light Settings" then
+					return UDim2.fromScale(-1, 0.0462962963)
+				end
+				return UDim2.fromScale(1.5, 0.0462962963)
+			end),
+			20,
+			0.75
+		),
 		Size = UDim2.fromScale(1, 0.9537037037),
 		BackgroundColor3 = currentTheme.colors.base,
 

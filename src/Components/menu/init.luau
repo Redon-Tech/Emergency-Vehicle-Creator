@@ -102,7 +102,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 									scope:base {
 										Name = tostring(key),
 										Size = UDim2.fromScale(1, 1),
-										Position = scope:Tween(
+										Position = scope:Spring(
 											scope:Computed(function(use)
 												local currentIndex = use(currentPanelIndex)
 												if currentIndex == key then
@@ -113,7 +113,8 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 													return UDim2.fromScale(1, 0)
 												end
 											end),
-											TweenInfo.new(0.25, Enum.EasingStyle.Cubic)
+											20,
+											0.75
 										),
 										Visible = scope:Computed(function(use)
 											return use(currentPanelIndex) == key or use(lastPanelIndex) == key

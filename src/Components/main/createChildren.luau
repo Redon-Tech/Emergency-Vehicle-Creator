@@ -9,58 +9,91 @@ local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
 
 export type option = {
+	type: "select",
 	layoutOrder: number,
-	options: { [any]: unknown }?,
-	value: Fusion.UsedAs<any>,
+	options: Fusion.UsedAs<{ [any]: unknown }>,
+	initialValue: any,
+	OverrideXSize: number?,
+} | {
+	type: "string",
+	layoutOrder: number,
+	initialValue: string,
+	OverrideXSize: number?,
+} | {
+	type: "keycode",
+	layoutOrder: number,
+	initialValue: Enum.KeyCode,
+	OverrideXSize: number?,
+} | {
+	type: "number",
+	layoutOrder: number,
+	initialValue: number,
+	OverrideXSize: number?,
+} | {
+	type: "button",
+	layoutOrder: number,
+	callback: () -> (),
+	text: Fusion.UsedAs<string>,
 	OverrideXSize: number?,
 }
+
+export type childOption = {
+	options: { option },
+	onOptionChange: ((key: number, newValue: any?) -> ())?,
+	onEdit: (() -> ())?,
+	onDownload: (() -> ())?,
+	onDelete: (() -> ())?,
+}
+
+local function getSize(data: option): number
+	return if data.OverrideXSize ~= nil
+		then data.OverrideXSize
+		elseif data.type == "number" then 50
+		elseif data.type == "button" then 200
+		else 250
+end
 
 --[[
 	createChildren
 	A function that will create the required children for a list in the main app
 ]]
-return function(
+local function createChildren(
 	scope: types.Scope,
 	props: {
-		options: { option },
-		buttons: { text: string, onClick: () -> () }?,
-		childOptions: { { option } }?,
-
-		hasEditButton: boolean?,
-		hasDownloadButton: boolean?,
-		hasDeleteButton: boolean?,
+		options: Fusion.UsedAs<{ option }>,
 
 		onOptionChange: ((key: number, newValue: any?) -> ())?,
 		onEdit: (() -> ())?,
 		onDownload: (() -> ())?,
 		onDelete: (() -> ())?,
 
+		baseSize: number,
 		rowSize: Fusion.Value<number>,
 	}
-): Fusion.Child
+)
 	local currentTheme = RedonUI.theme.theme:now()
 	local isTrashHovered = scope:Value(false)
 	local isDownloadHovered = scope:Value(false)
 	local maxOptionsSize = 1820 - 15
-	if props.hasEditButton then
+	if props.onEdit ~= nil then
 		maxOptionsSize = maxOptionsSize - 200 - 15
 	end
-	if props.hasDeleteButton then
+	if props.onDelete ~= nil then
 		maxOptionsSize = maxOptionsSize - 40 - 15
 	end
-	if props.hasDownloadButton then
+	if props.onDownload ~= nil then
 		maxOptionsSize = maxOptionsSize - 36 - 15
+	end
+	if props.baseSize < 70 then
+		maxOptionsSize = maxOptionsSize - 35
 	end
 	local maxButtonSize = 1820 - maxOptionsSize
 	local rows = { {} }
 	local rowMeta = { { total = 0 } }
 	local currentRow = 1
 	local currentRowSize = maxOptionsSize
-	for key, data in props.options do
-		local size = if tonumber(scope.peek(data.value)) ~= nil
-			then 50
-			elseif data.OverrideXSize ~= nil then data.OverrideXSize
-			else 250
+	for key, data in scope.peek(props.options) do
+		local size = getSize(data)
 		if currentRowSize < size then
 			currentRow = currentRow + 1
 			currentRowSize = maxOptionsSize
@@ -86,15 +119,12 @@ return function(
 	return {
 		scope:base {
 			Size = UDim2.fromScale(maxOptionsSize / 1820, 1), -- 1345
-			Position = UDim2.fromScale(0.0082417582, 0),
-			-- AutomaticSize = Enum.AutomaticSize.Y,
+			Position = UDim2.fromScale(if props.baseSize < 70 then 0.0274725274725 else 0.0082417582, 0),
 			BackgroundTransparency = 1,
 			Name = "Options",
 
 			[Fusion.Children] = Fusion.Child {
 				scope:New("UIListLayout") {
-					-- Padding = UDim.new(15 / maxOptionsSize, 0),
-					-- FillDirection = Enum.FillDirection.Horizontal,
 					Padding = scope:Computed(function(use)
 						return UDim.new(15 / use(props.rowSize), 0)
 					end),
@@ -108,7 +138,7 @@ return function(
 					return rowKey,
 						scope:base {
 							Size = scope:Computed(function(use)
-								return UDim2.fromScale(1, 75 / use(props.rowSize))
+								return UDim2.fromScale(1, props.baseSize / use(props.rowSize))
 							end),
 							BackgroundTransparency = 1,
 							LayoutOrder = rowKey,
@@ -122,22 +152,13 @@ return function(
 								},
 
 								scope:ForPairs(value, function(use, scope: typeof(scope), key: number, data: option)
-									local value = use(data.value)
-									local isNumber = tonumber(value) ~= nil
-									local isKeycode = if isNumber == false
-										then typeof(value) == "EnumItem" and (value :: EnumItem).EnumType == Enum.KeyCode
-										else false
-									if isKeycode then
-										value = (value :: Enum.KeyCode).Name
-									end
-									local size = if isNumber
-										then 50
-										elseif data.OverrideXSize ~= nil then data.OverrideXSize
-										else 250
+									local size = getSize(data)
 
-									local newValue = scope:Value(value)
 									local baseProps = {
-										Size = UDim2.fromScale(size / maxOptionsSize, 50 / use(props.rowSize)),
+										Size = UDim2.fromScale(
+											size / maxOptionsSize,
+											(if props.baseSize < 70 then 45 else 50) / use(props.rowSize)
+										),
 										BackgroundColor3 = currentTheme.colors.crust,
 										CornerRadius = UDim.new(0, 5),
 										Border = 1,
@@ -146,50 +167,94 @@ return function(
 										FontWeight = Enum.FontWeight.Regular,
 										LayoutOrder = data.layoutOrder,
 									}
-									local absoluteSize = scope:Value(Vector2.one)
-									return key,
-										if data.options == nil
-											then scope:textBox(scope.CombineProperties(baseProps, {
-												MaxSize = Vector2.new(300, 50),
-												Text = tostring(value),
-												[Fusion.Out "Text"] = newValue :: unknown,
-												TextXAlignment = if size == 50
-													then Enum.TextXAlignment.Center
-													else Enum.TextXAlignment.Left,
-												PaddingBottom = UDim.new(0.2, 0),
-												PaddingTop = UDim.new(0.2, 0),
-												PaddingLeft = UDim.new(10 / size, 0),
-												PaddingRight = UDim.new(10 / size, 0),
+									local textBaseProps = {
+										MaxSize = Vector2.new(300, 50),
+										PaddingBottom = UDim.new(0.2, 0),
+										PaddingTop = UDim.new(0.2, 0),
+										PaddingLeft = UDim.new(10 / size, 0),
+										PaddingRight = UDim.new(10 / size, 0),
+									}
+									if data.type == "string" then
+										local value = scope:Value(data.initialValue)
+										return key,
+											scope:textBox(scope.CombineProperties(baseProps, textBaseProps, {
+												Text = data.initialValue,
+												[Fusion.Out "Text"] = value :: unknown,
+												TextXAlignment = Enum.TextXAlignment.Left,
 												[Fusion.OnEvent "FocusLost"] = function()
-													if isKeycode then
-														local success, result = pcall(function()
-															return (Enum.KeyCode :: any)[scope.peek(newValue)]
-														end)
-														if success then
-															newValue:set(result)
-														else
-															log.warn("Unable to serialize keycode", result)
-															return
-														end
-													end
-													if isNumber then
-														newValue:set(tonumber(scope.peek(newValue)))
-													end
-
 													if props.onOptionChange then
-														props.onOptionChange(data.layoutOrder, scope.peek(newValue))
+														props.onOptionChange(data.layoutOrder, scope.peek(value))
 													end
 												end,
 											}))
-											else createDropdown(
+									elseif data.type == "keycode" then
+										local value = scope:Value(data.initialValue)
+										return key,
+											scope:textBox(scope.CombineProperties(baseProps, textBaseProps, {
+												Text = data.initialValue.Name,
+												[Fusion.Out "Text"] = value :: unknown,
+												TextXAlignment = Enum.TextXAlignment.Left,
+												[Fusion.OnEvent "FocusLost"] = function()
+													local actualValue = scope.peek(value)
+													local success, result = pcall(function()
+														return (Enum.KeyCode :: any)[actualValue]
+													end)
+													if success then
+														actualValue = result
+													else
+														log.warn("Unable to serialize keycode", result)
+														return
+													end
+
+													if props.onOptionChange then
+														props.onOptionChange(data.layoutOrder, actualValue)
+													end
+												end,
+											}))
+									elseif data.type == "number" then
+										local value = scope:Value(data.initialValue)
+										return key,
+											scope:textBox(scope.CombineProperties(baseProps, textBaseProps, {
+												Text = data.initialValue,
+												[Fusion.Out "Text"] = value :: unknown,
+												TextXAlignment = Enum.TextXAlignment.Center,
+												[Fusion.OnEvent "FocusLost"] = function()
+													if props.onOptionChange then
+														props.onOptionChange(
+															data.layoutOrder,
+															tonumber(scope.peek(value))
+														)
+													end
+												end,
+											}))
+									elseif data.type == "button" then
+										return key,
+											scope:textButton(scope.CombineProperties(baseProps, {
+												MaxSize = Vector2.new(300, 50),
+												Text = data.text,
+												TextXAlignment = Enum.TextXAlignment.Center,
+												[Fusion.OnEvent "Activated"] = function()
+													data.callback()
+												end,
+												Reactive = true,
+											}))
+									elseif data.type == "select" then
+										local value = scope:Value(data.initialValue)
+										local absoluteSize = scope:Value(Vector2.one)
+										return key,
+											createDropdown(
 												scope,
 												scope.CombineProperties(baseProps, {
 													DropdownHeight = 100,
 													Options = data.options,
-													Text = use(newValue),
+													Text = value,
 													TextXAlignment = Enum.TextXAlignment.Left,
 													Position = UDim2.fromScale(
-														(rowMeta[rowKey][key] - size - 15) / maxOptionsSize,
+														(
+															rowMeta[rowKey][key]
+															- size
+															- (if props.baseSize < 70 then -25 else 15)
+														) / maxOptionsSize,
 														0
 													),
 													[Fusion.Out "AbsoluteSize"] = absoluteSize,
@@ -197,13 +262,15 @@ return function(
 													RemoveForPadding = UDim2.fromOffset(0, 10),
 
 													OnOptionSelected = function(_, v)
-														newValue:set(v)
+														value:set(v)
 														if props.onOptionChange then
 															props.onOptionChange(data.layoutOrder, v)
 														end
 													end,
 												})
 											)
+									end
+									return key, {} :: any
 								end),
 							},
 						}
@@ -213,7 +280,6 @@ return function(
 		scope:base {
 			Size = UDim2.fromScale(maxOptionsSize / 1820, 1), -- 1345
 			Position = UDim2.fromScale(0.0082417582, 0),
-			-- AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
 			Name = "Dropdowns",
 
@@ -235,7 +301,7 @@ return function(
 					SortOrder = Enum.SortOrder.LayoutOrder,
 				},
 
-				if props.hasEditButton
+				if props.onEdit ~= nil
 					then scope:textButton {
 						Size = UDim2.fromScale(200 / maxButtonSize, 0.6666666667),
 						MaxSize = Vector2.new(200, 50),
@@ -261,7 +327,7 @@ return function(
 						end,
 					}
 					else {},
-				if props.hasDeleteButton
+				if props.onDelete ~= nil
 					then scope:iconButton {
 						Size = UDim2.fromScale(40 / maxButtonSize, 0.7666666667),
 						BackgroundTransparency = 1,
@@ -289,7 +355,7 @@ return function(
 						end,
 					}
 					else {},
-				if props.hasDownloadButton
+				if props.onDownload ~= nil
 					then scope:iconButton {
 						Size = UDim2.fromScale(36 / maxButtonSize, 0.7666666667),
 						BackgroundTransparency = 1,
@@ -319,5 +385,97 @@ return function(
 					else {},
 			},
 		},
+	}
+end
+
+return function(
+	scope: types.Scope,
+	props: {
+		options: Fusion.UsedAs<{ option }>,
+		childOptions: Fusion.UsedAs<{ childOption }>?,
+
+		onOptionChange: ((key: number, newValue: any?) -> ())?,
+		onEdit: (() -> ())?,
+		onDownload: (() -> ())?,
+		onDelete: (() -> ())?,
+
+		baseSize: number?,
+		actualTableSize: Fusion.Value<Vector2>?,
+		rowSize: Fusion.Value<number>,
+	}
+): Fusion.Child
+	if props.childOptions == nil or props.actualTableSize == nil then
+		local baseSize = props.baseSize or 75
+		return createChildren(scope, {
+			options = props.options,
+			onOptionChange = props.onOptionChange,
+			onEdit = props.onEdit,
+			onDownload = props.onDownload,
+			onDelete = props.onDelete,
+			baseSize = baseSize,
+			rowSize = props.rowSize,
+		})
+	end
+
+	local childOptions = scope:Computed(function(use)
+		local currentOptions = use(props.childOptions)
+		local firstOption: childOption = {
+			options = props.options,
+			onOptionChange = props.onOptionChange,
+			onEdit = props.onEdit,
+			onDownload = props.onDownload,
+			onDelete = props.onDelete,
+		}
+		table.insert(currentOptions, 1, firstOption)
+		return currentOptions
+	end)
+	local allRowSize = {}
+
+	return Fusion.Child {
+		scope:New("UIListLayout") {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		},
+
+		scope:ForPairs(childOptions, function(_, scope: typeof(scope), key: number, value: childOption)
+			local thisRowSize = scope:Value(if key == 1 then 75 else 62)
+			scope:Observer(thisRowSize):onChange(function()
+				local this = scope.peek(thisRowSize)
+				allRowSize[key] = this
+				local total = 0
+				for _, v in ipairs(allRowSize) do
+					total += v
+				end
+				props.rowSize:set(total)
+			end)
+			return key,
+				scope:base {
+					Size = UDim2.fromScale(1, 0),
+					BackgroundTransparency = 1,
+					LayoutOrder = key,
+					AutomaticSize = Enum.AutomaticSize.Y,
+					ZIndex = key,
+
+					[Fusion.Children] = {
+						scope:base {
+							Size = scope:Computed(function(use)
+								return UDim2.new(1, 0, 0, (use(thisRowSize) / 820) * use(props.actualTableSize).Y)
+							end),
+							BackgroundTransparency = 1,
+
+							[Fusion.Children] = createChildren(scope, {
+								options = value.options,
+
+								onOptionChange = value.onOptionChange,
+								onEdit = value.onEdit,
+								onDownload = value.onDownload,
+								onDelete = value.onDelete,
+
+								baseSize = scope.peek(thisRowSize),
+								rowSize = thisRowSize,
+							}),
+						},
+					},
+				}
+		end),
 	}
 end

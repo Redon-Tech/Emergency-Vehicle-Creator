@@ -13,6 +13,7 @@ local components = {
 }
 
 local functions = require(script.functions)
+local sirens = require(script.sirens)
 
 type props = {
 	Name: string,
@@ -83,6 +84,14 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					},
 
 					functions(scope, {
+						UnsavedChanges = unsavedChanges,
+						CurrentPanel = currentPanel :: any,
+						CurrentPage = currentPage,
+						Mode = props.Mode,
+						CurrentVehicle = props.CurrentVehicle,
+					}),
+
+					sirens(scope, {
 						UnsavedChanges = unsavedChanges,
 						CurrentPanel = currentPanel :: any,
 						CurrentPage = currentPage,

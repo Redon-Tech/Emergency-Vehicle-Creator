@@ -132,10 +132,14 @@ export type modifier = {
 
 export type siren = {
 	name: string,
-	type: "Siren" | "Hold" | "Modifier",
-	behavoir: ("Overrides Other Sounds" | "Plays Simultaneously")?,
+	type: "Siren" | "Hold",
+	behavoir: "Overrides Other Sounds" | "Plays Simultaneously",
 	keybinds: { Enum.KeyCode },
-	modifiers: { modifier }?,
+	modifiers: { modifier },
+} | {
+	name: string,
+	type: "Modifier",
+	keybinds: { Enum.KeyCode },
 }
 
 return nil

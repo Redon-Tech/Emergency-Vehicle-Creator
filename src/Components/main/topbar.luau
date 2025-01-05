@@ -26,7 +26,7 @@ local pageButtons: {
 	{
 		["Functions"] = { panel = "Vehicle Setup", order = 1 },
 		["Sirens"] = { panel = "Vehicle Setup", order = 2 },
-		["Light Groups"] = { panel = "Vehicle Setup", order = 3 },
+		["Light Settings"] = { panel = "Vehicle Setup", order = 3 },
 		["Flashers"] = { panel = "ELS Setup", order = 1 },
 		["Faders"] = { panel = "ELS Setup", order = 2 },
 		["Rotators"] = { panel = "ELS Setup", order = 3 },

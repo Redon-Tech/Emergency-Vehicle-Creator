@@ -20,6 +20,7 @@ type chassisHandler = {
 		activations: { [string]: types.activation },
 		functions: types.elsFunction,
 		sirens: types.siren,
+		modifier: types.siren,
 	},
 }
 
@@ -31,7 +32,7 @@ local chassisHandler = {
 				type = "Standard",
 				mode = "Cycle",
 				pattern = 0,
-				keybinds = { Enum.KeyCode.J },
+				keybinds = { Enum.KeyCode.J, Enum.KeyCode.DPadLeft },
 			},
 			Override = {
 				type = "Override",
@@ -43,7 +44,7 @@ local chassisHandler = {
 				type = "Conditional",
 				mode = "Cycle", -- This won't be used
 				conditionMode = "Keybind",
-				keybinds = { Enum.KeyCode.J },
+				keybinds = { Enum.KeyCode.J, Enum.KeyCode.DPadLeft },
 				conditions = {},
 			},
 		},
@@ -51,7 +52,12 @@ local chassisHandler = {
 			weight = 0,
 			name = "default",
 			activations = {
-				{ type = "Standard", mode = "Cycle", pattern = 0, keybinds = { Enum.KeyCode.J } },
+				{
+					type = "Standard",
+					mode = "Cycle",
+					pattern = 0,
+					keybinds = { Enum.KeyCode.J, Enum.KeyCode.DPadLeft },
+				},
 			},
 			patterns = { {
 				flashers = {},
@@ -63,11 +69,17 @@ local chassisHandler = {
 			name = "default",
 			type = "Siren",
 			behavoir = "Overrides Other Sounds",
-			keybinds = { Enum.KeyCode.R },
+			keybinds = { Enum.KeyCode.R, Enum.KeyCode.DPadRight },
 			modifiers = {},
+		},
+		modifier = {
+			name = "default",
+			type = "Modifier",
+			keybinds = { Enum.KeyCode.T, Enum.KeyCode.Unknown },
 		},
 	},
 } :: chassisHandler
+table.freeze(chassisHandler.defaults)
 
 function chassisHandler.hasPluginInstalled(self: chassisHandler, model: Model): (boolean, LocalScript?)
 	if self.cache[model] then
