@@ -4,11 +4,27 @@ local types = require(script.Parent.types)
 local vehicle = require(script.Parent.vehicle)
 local utils = require(script.Parent.utils)
 
+export type lightSettings = {
+	colors: { [number]: {
+		name: string,
+		partColor: Color3,
+		lightColor: Color3,
+		lightoColor: Color3,
+	} },
+	optimizations: {
+		shouldChangeNeons: boolean,
+		shouldChangeLights: boolean,
+		shouldChangeLightos: boolean,
+	},
+	lightGroups: {
+		[string]: { string },
+	},
+}
+
 export type chassisConfiguration = {
-	lightFunction: ModuleScript,
+	lightSettings: lightSettings,
 	functions: { types.elsFunction },
 	sirens: { types.siren },
-	lightGroups: unknown,
 }
 
 type chassisHandler = {
@@ -142,29 +158,25 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 		return
 	end
 
-	local lightFunction = configuration:FindFirstChild("lightFunction") :: ModuleScript?
 	local functions = configuration:FindFirstChild("functions") :: ModuleScript?
 	local sirens = configuration:FindFirstChild("sirens") :: ModuleScript?
-	local lightGroups = configuration:FindFirstChild("lightGroups") :: ModuleScript?
+	local lightSettings = configuration:FindFirstChild("lightSettings") :: ModuleScript?
 	if
-		lightFunction == nil
-		or functions == nil
+		functions == nil
 		or sirens == nil
-		or lightGroups == nil
-		or lightFunction:IsA("ModuleScript") == false
+		or lightSettings == nil
 		or functions:IsA("ModuleScript") == false
 		or sirens:IsA("ModuleScript") == false
-		or lightGroups:IsA("ModuleScript") == false
+		or lightSettings:IsA("ModuleScript") == false
 	then
 		log.warn("Plugin installed but configuration is invalid")
 		return
 	end
 
 	local data = {
-		lightFunction = lightFunction,
+		lightSettings = utils.deepCopy((require :: any)(lightSettings) :: lightSettings),
 		functions = utils.deepCopy((require :: any)(functions) :: { types.elsFunction }),
 		sirens = utils.deepCopy((require :: any)(sirens) :: { types.siren }),
-		lightGroups = utils.deepCopy((require :: any)(lightGroups)),
 	}
 
 	self.cache[model] = data
