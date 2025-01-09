@@ -4,13 +4,15 @@ local types = require(script.Parent.types)
 local vehicle = require(script.Parent.vehicle)
 local utils = require(script.Parent.utils)
 
+export type color = {
+	name: string,
+	partColor: Color3,
+	lightColor: Color3,
+	lightoColor: Color3,
+}
+
 export type lightSettings = {
-	colors: { [number]: {
-		name: string,
-		partColor: Color3,
-		lightColor: Color3,
-		lightoColor: Color3,
-	} },
+	colors: { color },
 	optimizations: {
 		shouldChangeNeons: boolean,
 		shouldChangeLights: boolean,
