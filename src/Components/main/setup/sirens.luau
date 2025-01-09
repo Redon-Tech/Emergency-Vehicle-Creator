@@ -1,6 +1,6 @@
 --#selene: allow(shadowing)
 -- Redon Tech Emnergency Vehicle Creator, MIT License
-local root = script.Parent.Parent.Parent.Parent
+local root = script.Parent.Parent.Parent.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])

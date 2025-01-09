@@ -12,8 +12,8 @@ local components = {
 	topbar = topbar,
 }
 
-local functions = require(script.functions)
-local sirens = require(script.sirens)
+local functions = require(script.setup.functions)
+local sirens = require(script.setup.sirens)
 
 type props = {
 	Name: string,
