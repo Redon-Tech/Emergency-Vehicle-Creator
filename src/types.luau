@@ -35,10 +35,9 @@ export type saveBackupMode = "Encrypted" | "Unencrypted" | "None"
 export type elsColor = number
 
 export type flasherSection = {
-	lightName: string,
 	waitTime: number,
 	rowCount: number,
-	colums: { { elsColor } },
+	columns: { [number]: { lightName: string, rows: { elsColor } } },
 }
 
 export type faderSection = {

@@ -14,6 +14,7 @@ local components = {
 
 local functions = require(script.setup.functions)
 local sirens = require(script.setup.sirens)
+local flashers = require(script.els.flashers)
 
 type props = {
 	Name: string,
@@ -37,6 +38,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	local currentPanel = scope:Value("Vehicle Setup")
 	local currentPage = scope:Value(nil)
 	local unsavedChanges = scope:Value(false)
+	local currentPattern = scope:Value(nil)
 
 	local AbsoluteSize = scope:Value(Vector2.one)
 	return scope:widget {
@@ -74,11 +76,12 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				Size = UDim2.fromScale(1, 1),
 				BackgroundColor3 = currentTheme.colors.base,
 
-				[Fusion.Children] = {
+				[Fusion.Children] = Fusion.Child {
 					scope:topbar {
 						UnsavedChanges = unsavedChanges,
 						CurrentPanel = currentPanel :: any,
 						CurrentPage = currentPage,
+						CurrentVehicle = props.CurrentVehicle,
 						ReturnTo = props.ReturnTo,
 						Mode = props.Mode,
 					},
@@ -89,6 +92,8 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						CurrentPage = currentPage,
 						Mode = props.Mode,
 						CurrentVehicle = props.CurrentVehicle,
+						CurrentPattern = currentPattern,
+						ReturnTo = props.ReturnTo,
 					}),
 
 					sirens(scope, {
@@ -97,6 +102,15 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						CurrentPage = currentPage,
 						Mode = props.Mode,
 						CurrentVehicle = props.CurrentVehicle,
+					}),
+
+					flashers(scope, {
+						UnsavedChanges = unsavedChanges,
+						CurrentPanel = currentPanel :: any,
+						CurrentPage = currentPage,
+						Mode = props.Mode,
+						CurrentVehicle = props.CurrentVehicle,
+						CurrentPattern = currentPattern,
 					}),
 				},
 			},

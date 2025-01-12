@@ -13,6 +13,7 @@ type props = {
 	CurrentPanel: Fusion.Value<types.mainPanels>,
 	CurrentPage: Fusion.Value<types.pages?>,
 	ReturnTo: Fusion.Value<types.returnTo>,
+	CurrentVehicle: Fusion.Value<Model | string?>,
 }
 
 local pageButtons: {
@@ -174,6 +175,12 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						props.Mode:set("viewport")
 					elseif returnTo == "vehicleSetup" then
 						props.CurrentPanel:set("Vehicle Setup")
+						props.CurrentPage:set("Functions")
+						if scope.peek(props.CurrentVehicle) ~= nil then
+							props.ReturnTo:set("customizer")
+						else
+							props.ReturnTo:set("menu")
+						end
 					end
 				end,
 			},

@@ -60,6 +60,8 @@ type props = {
 	CurrentPanel: Fusion.Value<types.mainPanels>,
 	CurrentPage: Fusion.Value<types.pages?>,
 	CurrentVehicle: Fusion.Value<Model | string?>,
+	CurrentPattern: Fusion.Value<types.pattern?>,
+	ReturnTo: Fusion.Value<types.returnTo>,
 }
 
 local SPRING_SPEED = 20
@@ -545,7 +547,16 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										props.UnsavedChanges:set(true)
 									end,
 									onEdit = function()
-										-- TODO: Add pattern editor
+										local selectedFunction = scope.peek(selectedFunction)
+										if currentConfiguration == nil or selectedFunction == nil then
+											return
+										end
+										props.CurrentPattern:set(
+											currentConfiguration.functions[selectedFunction].patterns[key]
+										)
+										props.CurrentPage:set("Flashers")
+										props.CurrentPanel:set("ELS Setup")
+										props.ReturnTo:set("vehicleSetup")
 									end,
 									onDelete = function()
 										local selectedFunction = scope.peek(selectedFunction)
