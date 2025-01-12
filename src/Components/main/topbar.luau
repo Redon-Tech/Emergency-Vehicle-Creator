@@ -72,7 +72,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				return UDim2.new(-1, 0, 0, 0)
 			end
 
-			local currentPosition: Vector2? = scope.peek(pageButtons[currentPage :: types.pages].position)
+			local currentPosition: Vector2? = use(pageButtons[currentPage :: types.pages].position)
 			if currentPosition == nil or currentPosition.X == 0 then
 				return UDim2.new(-1, 0, 0, 0)
 			end
