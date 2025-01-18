@@ -82,6 +82,12 @@ export type pattern = {
 	rotators: { rotatorSection },
 }
 
+export type selectedPattern = {
+	functionId: number,
+	patternId: number,
+	pattern: pattern,
+}
+
 export type activation = {
 	type: "Standard" | "Override" | "Conditional",
 	mode: "Cycle" | "Set Pattern" | "Siren Override" | "Park" | "Brake" | "Reverse",

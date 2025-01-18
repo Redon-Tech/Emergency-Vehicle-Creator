@@ -55,7 +55,7 @@ local settings = {
 
 local defaultValues = {
 	theme = "Auto",
-	fakeBloom = false,
+	fakeBloom = true,
 	colorKeybinds = "Q-Y",
 	debugMode = false,
 	saveBackupMode = "Encrypted",

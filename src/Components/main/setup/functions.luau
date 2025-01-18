@@ -60,7 +60,7 @@ type props = {
 	CurrentPanel: Fusion.Value<types.mainPanels>,
 	CurrentPage: Fusion.Value<types.pages?>,
 	CurrentVehicle: Fusion.Value<Model | string?>,
-	CurrentPattern: Fusion.Value<types.pattern?>,
+	CurrentPattern: Fusion.Value<types.selectedPattern?>,
 	ReturnTo: Fusion.Value<types.returnTo>,
 }
 
@@ -90,6 +90,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					newFunctions[i] = { name = func.name, weight = func.weight }
 				end
 				functions:set(newFunctions)
+				currentContent:set("functions")
 			end
 		end
 	end)
@@ -329,6 +330,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														callback = function(newPopup)
 															popup:removePopup(newPopup)
 														end,
+														keybind = Enum.KeyCode.Escape,
 													},
 													{
 														text = "Delete",
@@ -551,9 +553,11 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										if currentConfiguration == nil or selectedFunction == nil then
 											return
 										end
-										props.CurrentPattern:set(
-											currentConfiguration.functions[selectedFunction].patterns[key]
-										)
+										props.CurrentPattern:set({
+											functionId = selectedFunction,
+											patternId = key,
+											pattern = currentConfiguration.functions[selectedFunction].patterns[key],
+										})
 										props.CurrentPage:set("Flashers")
 										props.CurrentPanel:set("ELS Setup")
 										props.ReturnTo:set("vehicleSetup")
@@ -575,6 +579,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 													callback = function(newPopup)
 														popup:removePopup(newPopup)
 													end,
+													keybind = Enum.KeyCode.Escape,
 												},
 												{
 													text = "Delete",
@@ -882,6 +887,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														callback = function(newPopup)
 															popup:removePopup(newPopup)
 														end,
+														keybind = Enum.KeyCode.Escape,
 													},
 													{
 														text = "Delete",
@@ -896,6 +902,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																currentActivations
 															props.UnsavedChanges:set(true)
 														end,
+														keybind = Enum.KeyCode.Return,
 													},
 												},
 											})

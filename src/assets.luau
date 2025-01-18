@@ -15,6 +15,16 @@ local assets = {
 			fusionContrast = "rbxassetid://92779493029740",
 			ionic = "rbxassetid://71776903426004",
 		},
+		elsCreator = {
+			bloom = "rbxassetid://17838553865",
+			box = "rbxassetid://105262560293769",
+			light = "rbxassetid://81603023190990",
+			beam = "rbxassetid://120157724490118",
+			lightColor = "rbxassetid://107503454484552",
+			bloom1 = "rbxassetid://85255190142930",
+			bloom2 = "rbxassetid://111367073092552",
+			bloom3 = "rbxassetid://108098168026850",
+		},
 		redonUI = {
 			check = "rbxassetid://109702476150696",
 			arrow = "rbxassetid://110726366161984",

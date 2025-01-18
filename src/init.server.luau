@@ -99,6 +99,7 @@ local menu = require(script.Components.menu)
 local viewport = require(script.Components.viewport)
 local main = require(script.Components.main)
 local popup = require(script.Components.popup)
+local colorPicker = require(script.Components.base.colorPicker)
 local scope = Fusion.scoped(Fusion, RedonUI.Util, RedonUI.Components, utils, {
 	menu = menu,
 	viewport = viewport,
@@ -147,7 +148,8 @@ local function initUI()
 		if activeScope == nil then
 			return {}
 		end
-		local popupFrame = activeScope.popup:container(scope)
+		colorPicker(scope, { id = "evcColorPicker", initialColor = Color3.fromRGB(255, 255, 255) })
+		local popupFrame, isPopupShown = activeScope.popup:container(scope)
 		local menuWidget = activeScope:menu {
 			Name = name,
 			Version = versionDisplay,
@@ -165,6 +167,7 @@ local function initUI()
 			Mode = mode :: any,
 			CurrentVehicle = currentVehicle,
 			ReturnTo = returnTo :: any,
+			PopupShown = isPopupShown,
 
 			[Fusion.Children] = {
 				popupFrame,

@@ -14,7 +14,10 @@ local components = {
 
 local functions = require(script.setup.functions)
 local sirens = require(script.setup.sirens)
+local lightSettings = require(script.setup.lightSettings)
 local flashers = require(script.els.flashers)
+local faders = require(script.els.faders)
+local rotators = require(script.els.rotators)
 
 type props = {
 	Name: string,
@@ -25,6 +28,7 @@ type props = {
 	CurrentVehicle: Fusion.Value<Model | string?>,
 
 	ReturnTo: Fusion.Value<types.returnTo>,
+	PopupShown: Fusion.Value<boolean>,
 }
 
 --[[
@@ -75,6 +79,9 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				Position = UDim2.fromScale(0.5, 0.5),
 				Size = UDim2.fromScale(1, 1),
 				BackgroundColor3 = currentTheme.colors.base,
+				Interactable = scope:Computed(function(use)
+					return not use(props.PopupShown)
+				end),
 
 				[Fusion.Children] = Fusion.Child {
 					scope:topbar {
@@ -111,6 +118,27 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						Mode = props.Mode,
 						CurrentVehicle = props.CurrentVehicle,
 						CurrentPattern = currentPattern,
+						Enabled = props.Enabled,
+					}),
+
+					faders(scope, {
+						UnsavedChanges = unsavedChanges,
+						CurrentPanel = currentPanel :: any,
+						CurrentPage = currentPage,
+						Mode = props.Mode,
+						CurrentVehicle = props.CurrentVehicle,
+						CurrentPattern = currentPattern,
+						Enabled = props.Enabled,
+					}),
+
+					rotators(scope, {
+						UnsavedChanges = unsavedChanges,
+						CurrentPanel = currentPanel :: any,
+						CurrentPage = currentPage,
+						Mode = props.Mode,
+						CurrentVehicle = props.CurrentVehicle,
+						CurrentPattern = currentPattern,
+						Enabled = props.Enabled,
 					}),
 				},
 			},

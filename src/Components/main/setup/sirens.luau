@@ -272,6 +272,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 															callback = function(newPopup)
 																popup:removePopup(newPopup)
 															end,
+															keybind = Enum.KeyCode.Escape,
 														},
 														{
 															text = "Delete",
@@ -287,6 +288,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																valueModifiers:set(value.modifiers)
 																props.UnsavedChanges:set(true)
 															end,
+															keybind = Enum.KeyCode.Return,
 														},
 													},
 												})
@@ -425,6 +427,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 													callback = function(newPopup)
 														popup:removePopup(newPopup)
 													end,
+													keybind = Enum.KeyCode.Escape,
 												},
 												{
 													text = "Delete",
@@ -438,6 +441,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														sirens:set(currentSirens)
 														props.UnsavedChanges:set(true)
 													end,
+													keybind = Enum.KeyCode.Return,
 												},
 											},
 										})

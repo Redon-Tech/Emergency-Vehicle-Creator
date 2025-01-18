@@ -10,10 +10,11 @@ type action = {
 	type: "standard" | "primary" | "danger",
 	callback: (popup: Instance) -> (),
 	key: Fusion.UsedAs<number>,
+	keybind: Enum.KeyCode?,
 }
 export type popup = {
 	currentContainer: Fusion.Value<Frame>?,
-	container: (self: popup, scope: types.Scope) -> Fusion.Child,
+	container: (self: popup, scope: types.Scope) -> (Fusion.Child, Fusion.Value<boolean>),
 	addPopup: (
 		self: popup,
 		scope: types.Scope,
@@ -27,6 +28,8 @@ export type popup = {
 	removePopup: (self: popup, newPopup: Instance) -> (),
 	enabled: Fusion.Value<boolean>,
 	currentPopup: Instance?,
+	parentScope: types.Scope,
+	keybinds: { [Enum.KeyCode]: (popup: Instance) -> () },
 }
 local popup = {} :: popup
 
@@ -41,21 +44,29 @@ function popup.addPopup(self, scope, props)
 	local currentContainer = scope.peek(self.currentContainer)
 	local currentTheme = RedonUI.theme.theme:now()
 	local newPopup
-	newPopup = scope:base {
+	local keybinds = {}
+	for _, action in ipairs(props.actions) do
+		if action.keybind ~= nil then
+			keybinds[action.keybind] = action.callback
+		end
+	end
+	self.keybinds = keybinds
+	newPopup = self.parentScope:base {
 		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundColor3 = currentTheme.colors.base,
 		Border = 2,
 		CornerRadius = UDim.new(0, 15),
+		ZIndex = 5001,
 
 		[Fusion.Children] = {
-			scope:New("UIPadding") {
+			self.parentScope:New("UIPadding") {
 				PaddingTop = UDim.new(0, 10),
 				PaddingBottom = UDim.new(0, 10),
 				PaddingLeft = UDim.new(0, 10),
 				PaddingRight = UDim.new(0, 10),
 			},
 
-			scope:New("UIListLayout") {
+			self.parentScope:New("UIListLayout") {
 				Padding = UDim.new(0, 15),
 				FillDirection = Enum.FillDirection.Vertical,
 				HorizontalAlignment = Enum.HorizontalAlignment.Center,
@@ -63,7 +74,7 @@ function popup.addPopup(self, scope, props)
 				SortOrder = Enum.SortOrder.LayoutOrder,
 			},
 
-			scope:textLabel {
+			self.parentScope:textLabel {
 				Size = UDim2.fromOffset(300, 50),
 				AnchorPoint = Vector2.new(0.5, 0),
 				Position = UDim2.fromScale(0.5, 0),
@@ -72,9 +83,10 @@ function popup.addPopup(self, scope, props)
 				MaxTextSize = 30,
 				FontWeight = Enum.FontWeight.Bold,
 				LayoutOrder = 1,
+				ZIndex = 5001,
 			},
 
-			scope:textLabel {
+			self.parentScope:textLabel {
 				Size = if props.forceDescriptionSize ~= nil
 					then props.forceDescriptionSize
 					else UDim2.fromOffset(400, 50),
@@ -92,17 +104,19 @@ function popup.addPopup(self, scope, props)
 					then Enum.AutomaticSize.Y
 					else Enum.AutomaticSize.None,
 				LayoutOrder = 2,
+				ZIndex = 5001,
 			},
 
-			scope:base {
+			self.parentScope:base {
 				Size = UDim2.fromOffset(300, 50),
 				AnchorPoint = Vector2.new(0.5, 1),
 				Position = UDim2.fromScale(0.5, 1),
 				BackgroundTransparency = 1,
 				LayoutOrder = 3,
+				ZIndex = 5001,
 
 				[Fusion.Children] = Fusion.Child {
-					scope:New("UIListLayout") {
+					self.parentScope:New("UIListLayout") {
 						Padding = UDim.new(0, 15),
 						FillDirection = Enum.FillDirection.Horizontal,
 						HorizontalAlignment = Enum.HorizontalAlignment.Center,
@@ -111,16 +125,16 @@ function popup.addPopup(self, scope, props)
 					},
 
 					--selene: allow(shadowing)
-					scope:ForValues(props.actions, function(_, scope: typeof(scope), value: action)
+					self.parentScope:ForValues(props.actions, function(_, newScope: types.Scope, value: action)
 						local BackgroundColor = if value.type == "primary"
-							then currentTheme.colors.blue
+							then currentTheme.colors.sky
 							elseif value.type == "danger" then currentTheme.colors.red
 							else currentTheme.colors.crust
 						local TextColor = if value.type == "standard"
 							then currentTheme.colors.text
 							else currentTheme.colors.crust
 						local ShadowColor = if value.type == "primary"
-							then currentTheme.colors.blue
+							then currentTheme.colors.sky
 							elseif value.type == "danger" then currentTheme.colors.red
 							else currentTheme.colors.crust
 						local ButtonGlowColor = if value.type == "primary"
@@ -128,7 +142,7 @@ function popup.addPopup(self, scope, props)
 								then currentTheme.colors.text
 								else currentTheme.colors.base
 							else currentTheme.colors.maroon
-						return scope:textButton {
+						return newScope:textButton {
 							Size = UDim2.fromOffset(175, 35),
 							Text = value.text,
 							TextScaled = true,
@@ -142,11 +156,16 @@ function popup.addPopup(self, scope, props)
 							Border = 2,
 							CornerRadius = UDim.new(0, 10),
 							[Fusion.OnEvent "Activated"] = function()
+								local mt = getmetatable(scope :: Fusion.Scope)
+								if typeof(mt) == "table" and mt._FUSION_POISONED then
+									return
+								end
 								value.callback(newPopup)
-							end,
+							end :: unknown,
 							LayoutOrder = value.key,
 
 							Reactive = true,
+							ZIndex = 5002,
 						}
 					end),
 				},
@@ -159,10 +178,12 @@ function popup.addPopup(self, scope, props)
 end
 
 function popup.removePopup(self, _)
+	self.keybinds = {}
 	self.enabled:set(false)
 end
 
 function popup.container(self, scope)
+	self.parentScope = scope
 	local currentTheme = RedonUI.theme.theme:now()
 	self.enabled = scope:Value(false)
 	local container = scope:base {
@@ -183,6 +204,17 @@ function popup.container(self, scope)
 			20,
 			0.6
 		),
+		ZIndex = 5001,
+
+		[Fusion.OnEvent "InputBegan"] = function(input)
+			if self.currentPopup ~= nil and self.keybinds[input.KeyCode] ~= nil then
+				local mt = getmetatable(scope :: Fusion.Scope)
+				if typeof(mt) == "table" and mt._FUSION_POISONED then
+					return
+				end
+				self.keybinds[input.KeyCode](self.currentPopup)
+			end
+		end :: unknown,
 
 		[Fusion.Children] = {
 			scope:New("UIListLayout") {
@@ -203,7 +235,7 @@ function popup.container(self, scope)
 	} :: Frame
 
 	self.currentContainer = scope:Value(container)
-	return container
+	return container, self.enabled
 end
 
 return popup

@@ -216,6 +216,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								[Fusion.Out "AbsolutePosition"] = value.position :: unknown,
 								[Fusion.Out "AbsoluteSize"] = value.size,
 								MaxSize = Vector2.new(185, 36),
+								Visible = scope:Computed(function(use)
+									return use(props.CurrentPanel) == value.panel
+								end),
 
 								[Fusion.Children] = {
 									scope:textLabel {
@@ -236,9 +239,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 												else currentTheme.font[Enum.FontWeight.Medium]
 										end),
 										BackgroundTransparency = 1,
-										Visible = scope:Computed(function(use)
-											return use(props.CurrentPanel) == value.panel
-										end),
 										MaxTextSize = 20,
 
 										[Fusion.OnEvent "MouseEnter"] = function()
