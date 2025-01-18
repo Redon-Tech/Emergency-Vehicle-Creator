@@ -111,6 +111,14 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						CurrentVehicle = props.CurrentVehicle,
 					}),
 
+					lightSettings(scope, {
+						UnsavedChanges = unsavedChanges,
+						CurrentPanel = currentPanel :: any,
+						CurrentPage = currentPage,
+						Mode = props.Mode,
+						CurrentVehicle = props.CurrentVehicle,
+					}),
+
 					flashers(scope, {
 						UnsavedChanges = unsavedChanges,
 						CurrentPanel = currentPanel :: any,

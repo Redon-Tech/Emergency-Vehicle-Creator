@@ -6,6 +6,7 @@ local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local popup = require(root.Plugin.Components.popup)
+local chassisHandler = require(root.Plugin.chassisHandler)
 
 type props = {
 	UnsavedChanges: Fusion.Value<boolean>,
@@ -97,49 +98,94 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		[Fusion.Out "AbsolutePosition"] = topbarPosition,
 
 		[Fusion.Children] = {
-			scope:textButton {
-				Size = UDim2.fromOffset(75, 30),
-				TextLabelSize = UDim2.fromScale(1, 1),
+			scope:base {
+				Size = UDim2.fromOffset(300, 30),
 				AnchorPoint = Vector2.new(1, 0.5),
 				Position = UDim2.new(1, -10, 0.5, 0),
-				TextScaled = true,
-				Text = scope:Computed(function(use)
-					return if use(props.UnsavedChanges) == true then "Save*" else "Save"
-				end),
 				BackgroundTransparency = 1,
-				TextXAlignment = Enum.TextXAlignment.Right,
-				TextColor3 = currentTheme.colors.text,
-				FontWeight = Enum.FontWeight.Medium,
-				MaxTextSize = 20,
-				Reactive = true,
-				AnimateSize = false,
 
-				[Fusion.OnEvent "Activated"] = function()
-					popup:addPopup(scope, {
-						title = "Save Changes",
-						description = "Would you like to save your changes?",
-						actions = {
-							{
-								text = "Cancel",
-								type = "standard",
-								key = 1,
-								callback = function(newPopup)
-									popup:removePopup(newPopup)
-									print("cancel")
-								end,
-							},
-							{
-								text = "Save",
-								type = "primary",
-								key = 2,
-								callback = function(newPopup)
-									popup:removePopup(newPopup)
-									print("save")
-								end,
-							},
-						},
-					})
-				end,
+				[Fusion.Children] = {
+					scope:New("UIListLayout") {
+						FillDirection = Enum.FillDirection.Horizontal,
+						HorizontalAlignment = Enum.HorizontalAlignment.Right,
+						VerticalAlignment = Enum.VerticalAlignment.Center,
+						SortOrder = Enum.SortOrder.LayoutOrder,
+						Padding = UDim.new(0, 10),
+					},
+
+					scope:textButton {
+						Size = UDim2.fromOffset(0, 30),
+						AutomaticSize = Enum.AutomaticSize.X,
+						TextLabelSize = UDim2.fromScale(1, 1),
+						TextScaled = true,
+						Text = scope:Computed(function(use)
+							return if use(props.UnsavedChanges) == true then "Export*" else "Export"
+						end),
+						BackgroundTransparency = 1,
+						TextXAlignment = Enum.TextXAlignment.Right,
+						TextColor3 = currentTheme.colors.text,
+						FontWeight = Enum.FontWeight.Medium,
+						MaxTextSize = 20,
+						Reactive = true,
+						AnimateSize = false,
+						LayoutOrder = 2,
+
+						[Fusion.OnEvent "Activated"] = function()
+							popup:addPopup(scope, {
+								title = "Export Changes",
+								description = "Would you like to export your changes?",
+								actions = {
+									{
+										text = "Cancel",
+										type = "standard",
+										key = 1,
+										callback = function(newPopup)
+											popup:removePopup(newPopup)
+											print("cancel")
+										end,
+										keybind = Enum.KeyCode.Escape,
+									},
+									{
+										text = "Export",
+										type = "primary",
+										key = 2,
+										callback = function(newPopup)
+											popup:removePopup(newPopup)
+											local currentVehicle = scope.peek(props.CurrentVehicle)
+											if currentVehicle == nil or typeof(currentVehicle) == "string" then
+												return
+											end
+											local saved = chassisHandler:saveConfiguration(currentVehicle)
+											if saved == true then
+												props.UnsavedChanges:set(false)
+											end
+										end,
+										keybind = Enum.KeyCode.Return,
+									},
+								},
+							})
+						end,
+					},
+
+					scope:textButton {
+						Size = UDim2.fromOffset(175, 30),
+						TextLabelSize = UDim2.fromScale(1, 1),
+						TextScaled = true,
+						Text = "Save/Load",
+						BackgroundTransparency = 1,
+						TextXAlignment = Enum.TextXAlignment.Right,
+						TextColor3 = currentTheme.colors.text,
+						FontWeight = Enum.FontWeight.Medium,
+						MaxTextSize = 20,
+						Reactive = true,
+						AnimateSize = false,
+						LayoutOrder = 1,
+
+						Visible = scope:Computed(function(use)
+							return use(props.CurrentPanel) == "ELS Setup"
+						end),
+					},
+				},
 			},
 
 			scope:textButton {
@@ -200,7 +246,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						FillDirection = Enum.FillDirection.Horizontal,
 						HorizontalAlignment = Enum.HorizontalAlignment.Center,
 						SortOrder = Enum.SortOrder.LayoutOrder,
-						Padding = UDim.new(0.015625, 0),
+						Padding = scope:Computed(function(use)
+							return UDim.new(0, 0.015625 * use(topbarSize).X)
+						end),
 					},
 
 					scope:ForPairs(pageButtons, function(_, scope: typeof(scope), key, value)

@@ -2,7 +2,12 @@
 local log = require(script.Parent.log)
 local types = require(script.Parent.types)
 local vehicle = require(script.Parent.vehicle)
-local utils = require(script.Parent.utils)
+local LuaEncode = require(script.Parent.Parent.Packages.LuaEncode)
+local LuaEncodeSettings = {
+	Prettify = true,
+}
+local exportHeader =
+	"-- Redon Tech Emnergency Vehicle Creator, MIT License\n\n--DO NOT MODIFY BELOW\n--SUPPORT WILL BE VOIDED IF MODIFIED\n\nreturn "
 
 export type color = {
 	name: string,
@@ -19,7 +24,10 @@ export type lightSettings = {
 		shouldChangeLightos: boolean,
 	},
 	lightGroups: {
-		[string]: { string },
+		{
+			name: string,
+			lights: { string },
+		}
 	},
 }
 
@@ -30,10 +38,19 @@ export type chassisConfiguration = {
 }
 
 type chassisHandler = {
-	cache: { [Model]: chassisConfiguration },
+	cache: {
+		[Model]: {
+			data: chassisConfiguration,
+			functions: ModuleScript,
+			sirens: ModuleScript,
+			lightSettings: ModuleScript,
+		},
+	},
 	hasPluginInstalled: (self: chassisHandler, model: Model) -> (boolean, LocalScript?),
 	installPlugin: (self: chassisHandler, model: Model) -> boolean,
 	getConfiguration: (self: chassisHandler, model: Model) -> chassisConfiguration?,
+	saveConfiguration: (self: chassisHandler, model: Model) -> boolean,
+	getLights: (currentConfiguration: chassisConfiguration, model: Instance) -> { string },
 	defaults: {
 		activations: { [string]: types.activation },
 		functions: types.elsFunction,
@@ -141,7 +158,7 @@ end
 
 function chassisHandler.getConfiguration(self: chassisHandler, model: Model): chassisConfiguration?
 	if self.cache[model] then
-		return self.cache[model]
+		return self.cache[model].data
 	end
 
 	local installed, Plugin = self:hasPluginInstalled(model)
@@ -175,14 +192,105 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 		return
 	end
 
+	--[[
+		This is done to ensure that we are not requiring a reference
+		but rather the actual data in the ModuleScript
+		because for reasons beyond me, some things like lightgroups
+		just wont show up in the data if its re-required after
+		exporting new data to it
+		DM parker if u dont understand this
+		I personally hate this 😎
+	]]
+	local clonedFunctions = functions:Clone()
+	local clonedSirens = sirens:Clone()
+	local clonedLightSettings = lightSettings:Clone()
 	local data = {
-		lightSettings = utils.deepCopy((require :: any)(lightSettings) :: lightSettings),
-		functions = utils.deepCopy((require :: any)(functions) :: { types.elsFunction }),
-		sirens = utils.deepCopy((require :: any)(sirens) :: { types.siren }),
+		functions = (require :: any)(clonedFunctions) :: { types.elsFunction },
+		sirens = (require :: any)(clonedSirens) :: { types.siren },
+		lightSettings = (require :: any)(clonedLightSettings) :: lightSettings,
 	}
+	clonedFunctions:Destroy()
+	clonedSirens:Destroy()
+	clonedLightSettings:Destroy()
+	log.debug("Loaded configuration for", model.Name, data)
 
-	self.cache[model] = data
+	self.cache[model] = {
+		data = data,
+		functions = functions,
+		sirens = sirens,
+		lightSettings = lightSettings,
+	}
 	return data
+end
+
+function chassisHandler.saveConfiguration(self: chassisHandler, model: Model): boolean
+	local configuration = self.cache[model]
+	if configuration == nil then
+		return false
+	end
+
+	local functionsSourceBase = LuaEncode(configuration.data.functions, LuaEncodeSettings)
+	local sirensSourceBase = LuaEncode(configuration.data.sirens, LuaEncodeSettings)
+	local lightSettingsSourceBase = LuaEncode(configuration.data.lightSettings, LuaEncodeSettings)
+
+	configuration.functions.Source = exportHeader .. functionsSourceBase
+	configuration.sirens.Source = exportHeader .. sirensSourceBase
+	configuration.lightSettings.Source = exportHeader .. lightSettingsSourceBase
+	log.debug(
+		"Saved configuration for",
+		model.Name,
+		configuration.data,
+		{ functionsSourceBase },
+		{ sirensSourceBase },
+		{ lightSettingsSourceBase }
+	)
+
+	return true
+end
+
+function chassisHandler.getLights(currentConfiguration: chassisConfiguration, model: Instance): { string }
+	local possibleLights = {}
+	for _, functions in pairs(currentConfiguration.functions) do
+		for _, pattern in pairs(functions.patterns) do
+			for _, flasher in pairs(pattern.flashers) do
+				for _, columns in pairs(flasher.columns) do
+					if table.find(possibleLights, columns.lightName) == nil then
+						table.insert(possibleLights, columns.lightName)
+					end
+				end
+			end
+
+			for _, fader in pairs(pattern.faders) do
+				if table.find(possibleLights, fader.lightName) == nil then
+					table.insert(possibleLights, fader.lightName)
+				end
+			end
+
+			for _, rotator in pairs(pattern.rotators) do
+				if table.find(possibleLights, rotator.lightName) == nil then
+					table.insert(possibleLights, rotator.lightName)
+				end
+			end
+		end
+	end
+
+	if vehicle:isValidVehicle(model) then
+		if vehicle:isVehicleCustomizable(model) then
+			local outfittingFolder = vehicle:getOutfitting(model)
+			if outfittingFolder ~= nil then
+				for _, lightPart in pairs(outfittingFolder.model:GetDescendants()) do
+					if lightPart:IsA("BasePart") and lightPart.Parent ~= nil and lightPart.Parent.Name == "_LIGHTS" then
+						if table.find(possibleLights, lightPart.Name) == nil then
+							table.insert(possibleLights, lightPart.Name)
+						end
+					end
+				end
+			end
+		end
+	end
+
+	table.sort(possibleLights)
+	return possibleLights
 end
 
 return chassisHandler

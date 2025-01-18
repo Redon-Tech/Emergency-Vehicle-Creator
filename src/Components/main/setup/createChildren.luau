@@ -7,6 +7,7 @@ local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
+local colorPicker = require(root.Plugin.Components.base.colorPicker)
 
 export type option = {
 	type: "select",
@@ -14,27 +15,39 @@ export type option = {
 	options: Fusion.UsedAs<{ [any]: unknown }>,
 	initialValue: any,
 	OverrideXSize: number?,
+	disabled: boolean?,
 } | {
 	type: "string",
 	layoutOrder: number,
 	initialValue: string,
 	OverrideXSize: number?,
+	disabled: boolean?,
 } | {
 	type: "keycode",
 	layoutOrder: number,
 	initialValue: Enum.KeyCode,
 	OverrideXSize: number?,
+	disabled: boolean?,
 } | {
 	type: "number",
 	layoutOrder: number,
 	initialValue: number,
 	OverrideXSize: number?,
+	disabled: boolean?,
 } | {
 	type: "button",
 	layoutOrder: number,
-	callback: () -> (),
 	text: Fusion.UsedAs<string>,
 	OverrideXSize: number?,
+	callback: () -> (),
+	disabled: boolean?,
+} | {
+	type: "color",
+	layoutOrder: number,
+	initialValue: Color3,
+	OverrideXSize: number?,
+	label: string,
+	disabled: boolean?,
 }
 
 export type childOption = {
@@ -167,6 +180,11 @@ local function createChildren(
 										FontWeight = Enum.FontWeight.Regular,
 										LayoutOrder = data.layoutOrder,
 									}
+									if data.disabled == true then
+										baseProps.Interactable = false
+										baseProps.BackgroundColor3 = currentTheme.colors.base
+										baseProps.BorderColor3 = currentTheme.colors.overlay0
+									end
 									local textBaseProps = {
 										MaxSize = Vector2.new(300, 50),
 										PaddingBottom = UDim.new(0.2, 0),
@@ -226,6 +244,66 @@ local function createChildren(
 														)
 													end
 												end,
+											}))
+									elseif data.type == "color" then
+										local value = scope:Value(data.initialValue)
+										local isHovered = scope:Value(false)
+										return key,
+											scope:textButton(scope.CombineProperties(baseProps, {
+												MaxSize = Vector2.new(300, 50),
+												TextLabelSize = UDim2.fromScale(1, 1),
+												Text = scope:Computed(function(use)
+													local currentValue = use(value)
+													return ("%d, %d, %d"):format(
+														currentValue.R * 255,
+														currentValue.G * 255,
+														currentValue.B * 255
+													)
+												end),
+												TextXAlignment = Enum.TextXAlignment.Left,
+												[Fusion.OnEvent "Activated"] = function()
+													local newColor = colorPicker(scope, {
+														id = "evcColorPicker",
+														initialColor = scope.peek(value),
+													})
+													if newColor then
+														value:set(newColor)
+														if props.onOptionChange then
+															props.onOptionChange(data.layoutOrder, newColor)
+														end
+													end
+												end,
+												Reactive = true,
+
+												MouseEnter = function()
+													isHovered:set(true)
+												end,
+												MouseLeave = function()
+													isHovered:set(false)
+												end,
+
+												[Fusion.Children] = {
+													scope:New("UIPadding") {
+														PaddingTop = UDim.new(0.2, 0),
+														PaddingBottom = UDim.new(0.2, 0),
+														PaddingLeft = UDim.new(10 / size, 0),
+														PaddingRight = UDim.new(10 / size, 0),
+													},
+
+													scope:base {
+														Size = UDim2.fromScale(0.1304347826, 1),
+														Position = UDim2.fromScale(1, 0.5),
+														AnchorPoint = Vector2.new(1, 0.5),
+														CornerRadius = UDim.new(1, 0),
+														BackgroundColor3 = value,
+
+														[Fusion.Children] = {
+															scope:New("UIAspectRatioConstraint") {
+																AspectRatio = 1,
+															},
+														},
+													},
+												},
 											}))
 									elseif data.type == "button" then
 										return key,
