@@ -1,4 +1,4 @@
--- Redon Tech Emnergency Vehicle Creator, MIT License
+-- Redon Tech Emergency Vehicle Creator, MIT License
 local HttpService = game:GetService("HttpService")
 local log = require(script.Parent.log)
 
