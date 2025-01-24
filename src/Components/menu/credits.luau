@@ -60,7 +60,14 @@ EasyLS (EasyLS Studios) - Driving Improvement (v3 wouldn't exist without it)]],
 		{
 			type = "text",
 			name = "Testers",
-			content = [[There will be a list of testers here whenever we get to that part of development 👍]],
+			content = [[Thank you for helping test the plugin and provide feedback!
+- Ashi_Division
+- SnowGlobeYT1 
+- BoltedChase
+- Ryan
+- mopsagfh
+- NewPlayerqwerty
+- Holt_Official]],
 		},
 	}
 
