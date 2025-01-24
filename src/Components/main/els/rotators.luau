@@ -81,6 +81,26 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	local function updateCurrentConfiguration()
 		local currentPattern = scope.peek(props.CurrentPattern)
 		if currentConfiguration ~= nil and currentPattern ~= nil then
+			local assembledRotators = {}
+			for _, rotator in scope.peek(rotators) do
+				local assembledData = {}
+				for _, angle in scope.peek(rotator.data) do
+					print(scope.peek(angle.type))
+					table.insert(assembledData, {
+						type = scope.peek(angle.type) :: any,
+						color = if angle.color then scope.peek(angle.color) else nil,
+						angle = if angle.angle then scope.peek(angle.angle) else nil,
+						velocity = if angle.velocity then scope.peek(angle.velocity) else nil,
+						time = if angle.time then scope.peek(angle.time) else nil,
+					})
+				end
+				table.insert(assembledRotators, {
+					lightName = scope.peek(rotator.lightName),
+					data = assembledData,
+				})
+			end
+			currentPattern.pattern.rotators = assembledRotators
+
 			props.UnsavedChanges:set(true)
 		end
 	end
@@ -121,6 +141,30 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
 			if currentConfiguration ~= nil then
 				colors:set(currentConfiguration.lightSettings.colors)
+
+				local newRotators = {}
+				for i, rotator in currentPattern.pattern.rotators do
+					local data = {}
+					for angleId, angle in rotator.data do
+						table.insert(data, angleId, {
+							type = scope:Value(angle.type) :: any,
+							color = if angle.color then scope:Value(angle.color) else nil,
+							angle = if angle.angle then scope:Value(angle.angle) else nil,
+							velocity = if angle.velocity then scope:Value(angle.velocity) else nil,
+							time = if angle.time then scope:Value(angle.time) else nil,
+						})
+					end
+					local newRotator = {
+						lightName = scope:Value(rotator.lightName),
+						currentPercentage = scope:Value(0),
+						currentAngle = scope:Value(1),
+						currentValue = scope:Value(0),
+						previousGoal = 0,
+						data = scope:Value(data),
+					}
+					table.insert(newRotators, i, newRotator)
+				end
+				rotators:set(newRotators)
 			end
 
 			updateCurrentConfiguration()
