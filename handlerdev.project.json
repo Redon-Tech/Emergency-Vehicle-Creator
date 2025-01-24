@@ -1,0 +1,12 @@
+{
+    "name": "Emergency-Vehicle-Creator",
+    "tree": {
+        "$className": "DataModel",
+        "ServerScriptService": {
+            "$className": "ServerScriptService",
+            "EVH": {
+                "$path": "src/handler"
+            }
+        }
+    }
+}

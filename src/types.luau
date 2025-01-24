@@ -44,16 +44,20 @@ export type faderSection = {
 	lightName: string,
 	data: {
 		{
-			type: "Simple" | "Advanced" | "Wait",
+			type: "Simple",
 			time: number,
-
-			-- Non-Wait Specific
-			goal: number?,
-			color: elsColor?,
-
-			-- Advanced Specific
-			easingStyle: Enum.EasingStyle?,
-			easingDirection: Enum.EasingDirection?,
+			goal: number,
+			color: elsColor,
+		} | {
+			type: "Advanced",
+			time: number,
+			goal: number,
+			color: elsColor,
+			easingStyle: Enum.EasingStyle,
+			easingDirection: Enum.EasingDirection,
+		} | {
+			type: "Wait",
+			time: number,
 		}
 	},
 }
@@ -62,16 +66,17 @@ export type rotatorSection = {
 	lightName: string,
 	data: {
 		{
-			type: "Angle" | "Infinite" | "Wait",
-			-- Non-Wait Specific
-			color: number?,
-			velocity: number?,
-
-			-- Angle Specific
-			angle: number?,
-
-			-- Wait Specific
-			time: number?,
+			type: "Angle",
+			color: elsColor,
+			velocity: number,
+			angle: number,
+		} | {
+			type: "Infinite",
+			color: elsColor,
+			velocity: number,
+		} | {
+			type: "Wait",
+			time: number,
 		}
 	},
 }
@@ -89,35 +94,32 @@ export type selectedPattern = {
 }
 
 export type activation = {
-	type: "Standard" | "Override" | "Conditional",
-	mode: "Cycle" | "Set Pattern" | "Siren Override" | "Park" | "Brake" | "Reverse",
-
-	-- Standard Specific
-	pattern: number?,
-
-	-- Standard Specific
-	keybinds: { Enum.KeyCode }?,
-
-	-- Siren Override Specific/Siren Condition
-	siren: number?,
-
-	-- Override Specific/Function Condition
-	dependentFunction: string?,
-	dependentPattern: number?,
-
-	-- Conditional Specific
-	conditionMode: ("Always Active" | "Keybind" | "Function" | "Siren")?,
+	type: "Standard",
+	mode: "Cycle" | "Set Pattern",
+	pattern: number,
+	keybinds: { Enum.KeyCode },
+} | {
+	type: "Default",
+	pattern: number,
+} | {
+	type: "Override",
+	mode: "Siren Override" | "Park" | "Brake" | "Reverse",
+	siren: string?,
+	dependentFunction: string,
+	dependentPattern: number,
+} | {
+	type: "Conditional",
+	mode: "Always Active" | "Keybind" | "Function" | "Siren",
 	conditions: {
 		{
 			type: "Function",
 			mode: "Is" | "Is Not",
-
-			-- Function Specific
 			dependentFunction: string,
 			dependentPattern: number,
 		}
-	}?,
+	},
 }
+
 export type elsFunction = {
 	weight: number,
 	name: string,
