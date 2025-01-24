@@ -1,4 +1,4 @@
--- Redon Tech Emnergency Vehicle Creator, MIT License
+-- Redon Tech Emergency Vehicle Creator, MIT License
 local log = require(script.Parent.log)
 local types = require(script.Parent.types)
 local vehicle = require(script.Parent.vehicle)
@@ -7,7 +7,7 @@ local LuaEncodeSettings = {
 	Prettify = true,
 }
 local exportHeader =
-	"-- Redon Tech Emnergency Vehicle Creator, MIT License\n\n--DO NOT MODIFY BELOW\n--SUPPORT WILL BE VOIDED IF MODIFIED\n\nreturn "
+	"-- Redon Tech Emergency Vehicle Creator, MIT License\n\n--DO NOT MODIFY BELOW\n--SUPPORT WILL BE VOIDED IF MODIFIED\n\nreturn "
 
 export type color = {
 	name: string,

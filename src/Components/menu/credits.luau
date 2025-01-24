@@ -1,4 +1,4 @@
--- Redon Tech Emnergency Vehicle Creator, MIT License
+-- Redon Tech Emergency Vehicle Creator, MIT License
 local root = script.Parent.Parent.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
