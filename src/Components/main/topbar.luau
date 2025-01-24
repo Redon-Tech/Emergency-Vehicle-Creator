@@ -7,6 +7,7 @@ local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local popup = require(root.Plugin.Components.popup)
 local chassisHandler = require(root.Plugin.chassisHandler)
+local vehicle = require(root.Plugin.vehicle)
 
 type props = {
 	UnsavedChanges: Fusion.Value<boolean>,
@@ -222,8 +223,14 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					elseif returnTo == "vehicleSetup" then
 						props.CurrentPanel:set("Vehicle Setup")
 						props.CurrentPage:set("Functions")
-						if scope.peek(props.CurrentVehicle) ~= nil then
-							props.ReturnTo:set("customizer")
+						local currentVehicle = scope.peek(props.CurrentVehicle)
+						if currentVehicle ~= nil and typeof(currentVehicle) == "Instance" then
+							-- props.ReturnTo:set("customizer")
+							if vehicle:isVehicleCustomizable(currentVehicle) == true then
+								props.ReturnTo:set("customizer")
+							else
+								props.ReturnTo:set("menu")
+							end
 						else
 							props.ReturnTo:set("menu")
 						end
