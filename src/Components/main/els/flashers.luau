@@ -310,6 +310,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		),
 		Size = UDim2.fromScale(1, 0.9537037037),
 		BackgroundTransparency = 1,
+		ClipsDescendants = true,
 
 		[Fusion.OnEvent "InputBegan"] = function(input: InputObject)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 then
