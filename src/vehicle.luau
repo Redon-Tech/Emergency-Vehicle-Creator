@@ -1,5 +1,5 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local InsertService = game:GetService("InsertService")
+
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local assets = require(script.Parent.assets)
 local log = require(script.Parent.log)
@@ -50,7 +50,7 @@ type vehicle = {
 	isValidVehicle: (self: vehicle, vehicle: Instance) -> false | "a" | "ag" | "mg" | "m",
 	isVehicleCustomizable: (self: vehicle, vehicle: Instance) -> boolean,
 	getOutfitting: (self: vehicle, vehicle: Instance) -> { model: Model, basePoint: BasePart }?,
-	_setupVehicle: (self: vehicle, vehicleName: string, vehicleFolder: Folder) -> vehicleFolder?,
+	_setupVehicle: (self: vehicle, vehicleName: string, vehicleModule: any, vehicleFolder: Folder) -> vehicleFolder?,
 	getVehicle: (self: vehicle, vehicleName: string) -> vehicleFolder?,
 	initVehicle: (self: vehicle, vehicleModel: Model) -> (),
 	changeConfiguration: (
@@ -145,7 +145,7 @@ function vehicle.getOutfitting(_, vehicleToCheck)
 end
 
 -- This function is meant to only be called from this module
-function vehicle._setupVehicle(self, vehicleName, vehicleFolder)
+function vehicle._setupVehicle(self, vehicleName, vehicleModule, vehicleFolder)
 	if self.cache[vehicleName] ~= nil then
 		return
 	end
@@ -171,11 +171,12 @@ function vehicle._setupVehicle(self, vehicleName, vehicleFolder)
 	end
 
 	-- Check and get the EVC_Config module
-	local EVC_Config = vehicleFolder:FindFirstChild("EVC_Config") :: ModuleScript?
-	if EVC_Config == nil or EVC_Config:IsA("ModuleScript") == false then
-		return
-	end
-	local data = (require :: any)(EVC_Config) :: vehicleData
+	-- local EVC_Config = vehicleFolder:FindFirstChild("EVC_Config") :: ModuleScript?
+	-- if EVC_Config == nil or EVC_Config:IsA("ModuleScript") == false then
+	-- 	return
+	-- end
+	-- local data = (require :: any)(EVC_Config) :: vehicleData
+	local data = vehicleModule
 
 	-- Update everything to ensure compliance
 	for _, v in pairs(customization:GetDescendants()) do
@@ -258,7 +259,9 @@ function vehicle._setupVehicle(self, vehicleName, vehicleFolder)
 	log.debug(data)
 
 	-- Freeze the data, so it can't be modified
-	table.freeze(data)
+	if table.isfrozen(data) == false then
+		table.freeze(data)
+	end
 	-- Create the vehicle data
 	local vehicleData = {
 		vehicle = vehicleModel,
@@ -279,22 +282,34 @@ function vehicle.getVehicle(self, vehicleName)
 	end
 
 	if self.vehicles[vehicleName] then
-		local success, vehicleFolder = pcall(function()
-			return InsertService:LoadAsset(self.vehicles[vehicleName].assetId)
+		local success, vehicleModule = pcall(function()
+			-- return InsertService:LoadAsset(self.vehicles[vehicleName].assetId)
+			log.debug("Loading vehicle", vehicleName, self.vehicles[vehicleName].assetId)
+			return (require :: any)(self.vehicles[vehicleName].assetId)
+			-- return (require :: any)(workspace["2020FPIU"].MainModule)
 		end)
 
 		if success then
-			vehicleFolder = vehicleFolder:FindFirstChildWhichIsA("Folder")
-			if vehicleFolder == nil then
-				log.warn("Failed to load vehicle", vehicleName, vehicleFolder)
-				return
-			end
-			log.debug("Inserted", vehicleFolder, vehicleFolder:GetDescendants())
+			local vehicleFolder = Instance.new("Folder")
+			vehicleFolder.Name = vehicleName
 			vehicleFolder.Parent = script:FindFirstAncestorOfClass("Plugin")
 
-			return self:_setupVehicle(vehicleName, vehicleFolder)
+			-- local vehicleModel, customizationModel = vehicleModule.getModels()
+			-- vehicleModel.Parent = vehicleFolder
+			-- customizationModel.Parent = vehicleFolder
+			vehicleModule.vehicleModel:Clone().Parent = vehicleFolder
+			vehicleModule.customizationModel:Clone().Parent = vehicleFolder
+			-- vehicleFolder = vehicleFolder:FindFirstChildWhichIsA("Folder")
+			-- if vehicleFolder == nil then
+			-- 	log.warn("Failed to load vehicle", vehicleName, vehicleFolder)
+			-- 	return
+			-- end
+			log.debug("Inserted", vehicleFolder, vehicleFolder:GetDescendants())
+			-- vehicleFolder.Parent = script:FindFirstAncestorOfClass("Plugin")
+
+			return self:_setupVehicle(vehicleName, vehicleModule, vehicleFolder)
 		end
-		log.warn("Failed to load vehicle", vehicleName, vehicleFolder)
+		log.warn("Failed to load vehicle", vehicleName, vehicleModule)
 	end
 
 	return
