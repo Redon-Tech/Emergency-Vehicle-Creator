@@ -9,6 +9,7 @@ local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local vehicle = require(root.Plugin.vehicle)
+local chassisHandler = require(root.Plugin.chassisHandler)
 local log = require(root.Plugin.log)
 
 local billboards = require(script.billboards)
@@ -280,7 +281,6 @@ return function(baseScope: types.Scope, props: props)
 				end :: unknown,
 
 				[Fusion.OnEvent "Activated"] = function()
-					ChangeHistoryService:SetWaypoint("Placed Vehicle")
 					local currentlyPlacing = scope.peek(placingVehicle)
 					local currentVehicle = scope.peek(props.CurrentVehicle)
 					if currentlyPlacing == nil or currentVehicle == nil then
@@ -292,6 +292,7 @@ return function(baseScope: types.Scope, props: props)
 					newVehicle.Parent = workspace
 					newVehicle:PivotTo(worldModel:GetPivot())
 					vehicle:initVehicle(newVehicle)
+					chassisHandler:installPlugin(newVehicle)
 					props.CurrentVehicle:set(newVehicle)
 					currentVehicleFolder:set(currentlyPlacing)
 					placingVehicle:set(nil)

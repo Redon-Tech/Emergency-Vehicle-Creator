@@ -14,6 +14,7 @@ local version = require(root.Plugin.version)
 type props = {
 	CurrentPanel: Fusion.Value<types.menuPanels>,
 	CurrentVehicle: Fusion.Value<Instance | string?>,
+	PossibleVehicle: Fusion.Value<Instance>,
 	Mode: Fusion.Value<types.mode>,
 }
 
@@ -149,6 +150,10 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						props.Mode:set("viewport")
 						Selection:Set({}) -- Deselect the vehicle, so it doesn't get in the way
 						plugin:Activate(true) -- Disable tools so it doesn't get in the way
+					else
+						props.CurrentVehicle:set(nil)
+						props.PossibleVehicle:set(selection)
+						props.Mode:set("main")
 					end
 				end,
 			},

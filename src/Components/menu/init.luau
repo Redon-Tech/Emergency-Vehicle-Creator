@@ -37,6 +37,7 @@ type props = {
 	Enabled: Fusion.UsedAs<boolean>,
 	Mode: Fusion.UsedAs<types.mode>,
 	CurrentVehicle: Fusion.Value<Model | string?>,
+	PossibleVehicle: Fusion.Value<Model?>,
 }
 
 --[[
@@ -126,6 +127,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 												CurrentPanel = currentPanel,
 												Version = props.Version,
 												CurrentVehicle = props.CurrentVehicle,
+												PossibleVehicle = props.PossibleVehicle,
 												Mode = props.Mode,
 											}),
 										},

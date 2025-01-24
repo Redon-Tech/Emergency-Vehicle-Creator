@@ -126,6 +126,7 @@ end
 local enabled = scope:Value(isRBXM and IS_DEV)
 local mode = scope:Value("menu" :: types.mode)
 local currentVehicle: Fusion.Value<Model | string?> = scope:Value(nil)
+local possibleVehicle: Fusion.Value<Model?> = scope:Value(nil)
 local returnTo = scope:Value("menu" :: types.returnTo)
 local theme = scope.peek(pluginSettings.values.theme)
 
@@ -157,6 +158,7 @@ local function initUI()
 			Enabled = enabled,
 			Mode = mode :: any, -- ROBLOX FIX YOUR DAMN TYPE SOLVER k thx love u bye
 			CurrentVehicle = currentVehicle,
+			PossibleVehicle = possibleVehicle,
 			ReturnTo = returnTo :: any,
 		} :: DockWidgetPluginGui -- idk man, I am tired
 		local mainWidget = activeScope:mainWidget {
@@ -166,6 +168,7 @@ local function initUI()
 			Enabled = enabled,
 			Mode = mode :: any,
 			CurrentVehicle = currentVehicle,
+			PossibleVehicle = possibleVehicle,
 			ReturnTo = returnTo :: any,
 			PopupShown = isPopupShown,
 
