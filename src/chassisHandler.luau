@@ -54,9 +54,7 @@ type chassisHandler = {
 	saveConfiguration: (self: chassisHandler, model: Model) -> boolean,
 	getLights: (currentConfiguration: chassisConfiguration, model: Instance) -> { string },
 	defaults: {
-		activations: { [string]: types.activation },
 		functions: types.elsFunction,
-		sirens: types.siren,
 		modifier: types.siren,
 	},
 }
@@ -64,27 +62,6 @@ type chassisHandler = {
 local chassisHandler = {
 	cache = {},
 	defaults = {
-		activations = {
-			Standard = {
-				type = "Standard",
-				mode = "Cycle",
-				pattern = 0,
-				keybinds = { Enum.KeyCode.J, Enum.KeyCode.DPadLeft },
-			},
-			Override = {
-				type = "Override",
-				mode = "Park",
-				dependentFunction = "",
-				dependentPattern = 0,
-			},
-			Conditional = {
-				type = "Conditional",
-				mode = "Cycle", -- This won't be used
-				conditionMode = "Keybind",
-				keybinds = { Enum.KeyCode.J, Enum.KeyCode.DPadLeft },
-				conditions = {},
-			},
-		},
 		functions = {
 			weight = 0,
 			name = "default",
@@ -101,13 +78,6 @@ local chassisHandler = {
 				faders = {},
 				rotators = {},
 			} },
-		},
-		sirens = {
-			name = "default",
-			type = "Siren",
-			behavoir = "Overrides Other Sounds",
-			keybinds = { Enum.KeyCode.R, Enum.KeyCode.DPadRight },
-			modifiers = {},
 		},
 		modifier = {
 			name = "default",

@@ -64,6 +64,65 @@ type props = {
 	ReturnTo: Fusion.Value<types.returnTo>,
 }
 
+-- type standardActivation = {
+-- 	type: Fusion.Value<"Standard">,
+-- 	mode: Fusion.Value<"Cycle" | "Set Pattern">,
+-- 	pattern: Fusion.Value<number>,
+-- 	keybinds: Fusion.Value<{ Fusion.Value<Enum.KeyCode> }>,
+-- }
+-- type defaultActivation = {
+-- 	type: Fusion.Value<"Default">,
+-- 	pattern: Fusion.Value<number>,
+-- }
+-- type overrideActivation = {
+-- 	type: Fusion.Value<"Override">,
+-- 	mode: Fusion.Value<"Siren Override" | "Park" | "Brake" | "Reverse">,
+-- 	siren: Fusion.Value<string?>,
+-- 	dependentFunction: Fusion.Value<string>,
+-- 	dependentPattern: Fusion.Value<number>,
+-- }
+-- type conditionalActivation = {
+-- 	type: Fusion.Value<"Conditional">,
+-- 	mode: Fusion.Value<"Always Active" | "Keybind" | "Function" | "Siren">,
+-- 	conditions: Fusion.Value<{
+-- 		{
+-- 			type: Fusion.Value<"Function">,
+-- 			mode: Fusion.Value<"Is" | "Is Not">,
+-- 			dependentFunction: Fusion.Value<string>,
+-- 			dependentPattern: Fusion.Value<number>,
+-- 		}
+-- 	}>,
+-- }
+-- type activationState = standardActivation | defaultActivation | overrideActivation | conditionalActivation
+type activationState = {
+	type: Fusion.Value<"Standard" | "Default" | "Override">,
+	mode: Fusion.Value<
+		"Cycle"
+		| "Set Pattern"
+		| "Siren Override"
+		| "Park"
+		| "Brake"
+		| "Reverse"
+		| "Always Active"
+		| "Keybind"
+		| "Function"
+		| "Siren"
+	>?,
+	pattern: Fusion.Value<number>?,
+	keybinds: Fusion.Value<{ Fusion.Value<Enum.KeyCode> }>?,
+	siren: Fusion.Value<string?>?,
+	dependentFunction: Fusion.Value<string>?,
+	dependentPattern: Fusion.Value<number>?,
+	conditions: Fusion.Value<{
+		{
+			type: Fusion.Value<"Function">,
+			mode: Fusion.Value<"Is" | "Is Not">,
+			dependentFunction: Fusion.Value<string>,
+			dependentPattern: Fusion.Value<number>,
+		}
+	}>?,
+}
+
 local SPRING_SPEED = 20
 local SPRING_DAMPING = 0.75
 --[[
@@ -77,7 +136,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	local currentConfiguration = nil
 	local functions: Fusion.Value<{ { name: string, weight: number } }> = scope:Value({})
 	local patterns: Fusion.Value<{ types.pattern }> = scope:Value({})
-	local activations: Fusion.Value<{ types.activation }> = scope:Value({})
+	local activations: Fusion.Value<{ activationState }> = scope:Value({})
 	local selectedFunction: Fusion.Value<number?> = scope:Value(nil)
 
 	scope:Observer(props.CurrentVehicle):onChange(function()
@@ -94,6 +153,59 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			end
 		end
 	end)
+
+	scope:Observer(selectedFunction):onChange(function()
+		local currentFunction = scope.peek(selectedFunction)
+		if currentConfiguration ~= nil and currentFunction ~= nil then
+			local newActivations: { activationState } = {}
+			for activationKey, activationData in pairs(currentConfiguration.functions[currentFunction].activations) do
+				local newActivation = {} :: activationState
+				for key, value in pairs(activationData) do
+					if typeof(value) == "table" then
+						local newTable = {}
+						for i, v in pairs(value) do
+							newTable[i] = scope:Value(v)
+						end
+						newActivation[key] = newTable
+					else
+						newActivation[key] = scope:Value(value)
+					end
+				end
+				table.insert(newActivations, activationKey, newActivation)
+			end
+			activations:set(newActivations)
+		else
+			activations:set({})
+		end
+	end)
+
+	local function updateActivationsConfiguration()
+		local currentFunction = scope.peek(selectedFunction)
+		if currentConfiguration ~= nil and currentFunction ~= nil then
+			local assembledActivations: { types.activation } = {}
+			for _, activation in scope.peek(activations) do
+				local newActivation = {} :: types.activation
+				for key, stateValue in pairs(activation) do
+					local value = scope.peek(stateValue)
+					if typeof(value) == "table" then
+						local newTable = {}
+						for i, v in pairs(value) do
+							newTable[i] = scope.peek(v)
+						end
+						newActivation[key] = newTable
+					else
+						newActivation[key] = value
+					end
+				end
+				table.insert(assembledActivations, newActivation)
+			end
+			log.debug(assembledActivations)
+			if currentConfiguration.functions[currentFunction].activations ~= assembledActivations then
+				props.UnsavedChanges:set(true)
+			end
+			currentConfiguration.functions[currentFunction].activations = assembledActivations
+		end
+	end
 
 	local newFunctionName = scope:Value("")
 	local contentChooserXSize = 0.1098901099
@@ -229,6 +341,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 							local rowSize = scope:Value(75)
 							local bg = scope:Spring(scope:Value(1), 10, 1)
 							bg:setPosition(0)
+
+							local weight = scope:Value(value.weight)
+							local name = scope:Value(value.name)
 							return key,
 								scope:base {
 									Size = scope:Computed(function(use)
@@ -240,71 +355,83 @@ return function(scope: types.Scope, props: props): Fusion.Child
 									[Fusion.Children] = createChildren(scope, {
 										rowSize = rowSize,
 										options = {
-											{ type = "number", initialValue = value.weight, layoutOrder = 1 },
-											{ type = "string", initialValue = value.name, layoutOrder = 2 },
-										} :: { createChildren.option },
-
-										onOptionChange = function(editing: number, newValue: any?)
-											if editing == 1 then
-												newValue = tonumber(newValue)
-												if currentConfiguration == nil or typeof(newValue) ~= "number" then
-													return
-												end
-												local currentFunctions = scope.peek(functions)
-												if currentFunctions[newValue] ~= nil then
-													local currentFunction = currentFunctions[key]
-													local otherFunction = currentFunctions[newValue]
-													if currentFunction == otherFunction then
-														log.warn("Attempted to swap function with itself")
+											{
+												type = "number",
+												value = weight,
+												focusLost = function()
+													if currentConfiguration == nil then
 														return
 													end
-													-- update the weights first
-													currentFunctions[key].weight = newValue
-													currentConfiguration.functions[key].weight = newValue
-													currentFunctions[newValue].weight = key
-													currentConfiguration.functions[newValue].weight = key
+													local newValue = scope.peek(weight)
+													local currentFunctions = scope.peek(functions)
+													if currentFunctions[newValue] ~= nil then
+														local currentFunction = currentFunctions[key]
+														local otherFunction = currentFunctions[newValue]
+														if currentFunction == otherFunction then
+															log.warn("Attempted to swap function with itself")
+															return
+														end
+														-- update the weights first
+														currentFunctions[key].weight = newValue
+														currentConfiguration.functions[key].weight = newValue
+														currentFunctions[newValue].weight = key
+														currentConfiguration.functions[newValue].weight = key
 
-													-- now swap the functions
-													scope.arraySwap(currentFunctions, key, newValue)
-													scope.arraySwap(currentConfiguration.functions, key, newValue)
+														-- now swap the functions
+														scope.arraySwap(currentFunctions, key, newValue)
+														scope.arraySwap(currentConfiguration.functions, key, newValue)
+														functions:set(currentFunctions)
+														props.UnsavedChanges:set(true)
+														return
+													end
+
+													local currentFunction = currentFunctions[key]
+													local currentData = currentConfiguration.functions[key]
+													-- Clear old
+													table.remove(currentFunctions, key)
+													table.remove(currentConfiguration.functions, key)
+
+													-- Insert new
+													scope.insertAtNumberOrEnd(
+														currentFunctions,
+														newValue,
+														currentFunction
+													)
+													scope.insertAtNumberOrEnd(
+														currentConfiguration.functions,
+														newValue,
+														currentData
+													)
+
+													-- Update weights
+													for i, func in currentFunctions do
+														func.weight = i
+														currentConfiguration.functions[i].weight = i
+													end
+
 													functions:set(currentFunctions)
 													props.UnsavedChanges:set(true)
-													return
-												end
+												end,
+												layoutOrder = 1,
+											},
+											{
+												type = "string",
+												value = name,
+												focusLost = function()
+													if currentConfiguration == nil then
+														return
+													end
+													local newValue = scope.peek(name)
+													local currentFunctions = scope.peek(functions)
+													currentFunctions[key].name = newValue
+													currentConfiguration.functions[key].name = newValue
+													functions:set(currentFunctions)
+													props.UnsavedChanges:set(true)
+												end,
+												layoutOrder = 2,
+											},
+										} :: { createChildren.option },
 
-												local currentFunction = currentFunctions[key]
-												local currentData = currentConfiguration.functions[key]
-												-- Clear old
-												table.remove(currentFunctions, key)
-												table.remove(currentConfiguration.functions, key)
-
-												-- Insert new
-												scope.insertAtNumberOrEnd(currentFunctions, newValue, currentFunction)
-												scope.insertAtNumberOrEnd(
-													currentConfiguration.functions,
-													newValue,
-													currentData
-												)
-
-												-- Update weights
-												for i, func in currentFunctions do
-													func.weight = i
-													currentConfiguration.functions[i].weight = i
-												end
-
-												functions:set(currentFunctions)
-												props.UnsavedChanges:set(true)
-											elseif editing == 2 then
-												if currentConfiguration == nil or typeof(newValue) ~= "string" then
-													return
-												end
-												local currentFunctions = scope.peek(functions)
-												currentFunctions[key].name = newValue
-												currentConfiguration.functions[key].name = newValue
-												functions:set(currentFunctions)
-												props.UnsavedChanges:set(true)
-											end
-										end,
 										onEdit = function()
 											if currentConfiguration == nil then
 												return
@@ -312,7 +439,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 											currentContent:set("patterns")
 											selectedFunction:set(key)
 											patterns:set(currentConfiguration.functions[key].patterns)
-											activations:set(currentConfiguration.functions[key].activations)
 										end,
 										onDelete = function()
 											if currentConfiguration == nil then
@@ -502,6 +628,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						local rowSize = scope:Value(75)
 						local bg = scope:Spring(scope:Value(1), 10, 1)
 						bg:setPosition(0)
+
+						local index = scope:Value(key)
 						return key,
 							scope:base {
 								Size = scope:Computed(function(use)
@@ -513,41 +641,43 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								[Fusion.Children] = createChildren(scope, {
 									rowSize = rowSize,
 									options = {
-										{ type = "number", initialValue = key, layoutOrder = 1 },
+										{
+											type = "number",
+											value = index,
+											focusLost = function()
+												local selectedFunction = scope.peek(selectedFunction)
+												if currentConfiguration == nil or selectedFunction == nil then
+													return
+												end
+												local newValue = scope.peek(index)
+												local currentPatterns = scope.peek(patterns)
+												if currentPatterns[newValue] ~= nil then
+													local currentPattern = currentPatterns[key]
+													local otherPattern = currentPatterns[newValue]
+													if currentPattern == otherPattern then
+														log.warn("Attempted to swap pattern with itself")
+														return
+													end
+													scope.arraySwap(currentPatterns, key, newValue)
+													currentConfiguration.functions[selectedFunction].patterns =
+														currentPatterns
+													patterns:set(currentPatterns)
+													props.UnsavedChanges:set(true)
+													return
+												end
+
+												local currentPattern = currentPatterns[key]
+												table.remove(currentPatterns, key)
+												scope.insertAtNumberOrEnd(currentPatterns, newValue, currentPattern)
+												currentConfiguration.functions[selectedFunction].patterns =
+													currentPatterns
+												patterns:set(currentPatterns)
+												props.UnsavedChanges:set(true)
+											end,
+											layoutOrder = 1,
+										},
 									} :: { createChildren.option },
 
-									onOptionChange = function(_: number, newValue: any?)
-										newValue = tonumber(newValue)
-										local selectedFunction = scope.peek(selectedFunction)
-										if
-											currentConfiguration == nil
-											or selectedFunction == nil
-											or typeof(newValue) ~= "number"
-										then
-											return
-										end
-										local currentPatterns = scope.peek(patterns)
-										if currentPatterns[newValue] ~= nil then
-											local currentPattern = currentPatterns[key]
-											local otherPattern = currentPatterns[newValue]
-											if currentPattern == otherPattern then
-												log.warn("Attempted to swap pattern with itself")
-												return
-											end
-											scope.arraySwap(currentPatterns, key, newValue)
-											currentConfiguration.functions[selectedFunction].patterns = currentPatterns
-											patterns:set(currentPatterns)
-											props.UnsavedChanges:set(true)
-											return
-										end
-
-										local currentPattern = currentPatterns[key]
-										table.remove(currentPatterns, key)
-										scope.insertAtNumberOrEnd(currentPatterns, newValue, currentPattern)
-										currentConfiguration.functions[selectedFunction].patterns = currentPatterns
-										patterns:set(currentPatterns)
-										props.UnsavedChanges:set(true)
-									end,
 									onEdit = function()
 										local selectedFunction = scope.peek(selectedFunction)
 										if currentConfiguration == nil or selectedFunction == nil then
@@ -636,247 +766,159 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					AutomaticSize = Enum.AutomaticSize.Y,
 					Rows = scope:ForPairs(
 						activations,
-						function(_, scope: typeof(scope), key: number, value: types.activation)
-							local options: { createChildren.option } = {
-								{
-									type = "select",
-									initialValue = value.type,
-									layoutOrder = 1,
-									options = { "Standard", "Override" }, --"Conditional" },
-								},
-							}
-							local onChange
-
-							-- Standard
-							if value.type == "Standard" and value.pattern ~= nil and value.keybinds ~= nil then
-								table.insert(options, {
-									type = "select",
-									initialValue = value.mode,
-									layoutOrder = 2,
-									options = { "Cycle", "Set Pattern" },
-								})
-
-								table.insert(
-									options,
-									{ type = "number", initialValue = value.pattern, layoutOrder = 3 }
-								)
-								for i, keybind in value.keybinds do
-									table.insert(
-										options,
-										{ type = "keycode", initialValue = keybind, layoutOrder = i + 3 }
-									)
-								end
-								onChange = function(
-									id: number,
-									newValue: any?,
-									currentActivations: { types.activation },
-									_
-								)
-									if id == 2 then
-										if newValue == "Cycle" then
-											currentActivations[key].mode = "Cycle"
-											currentActivations[key].pattern = 0
-										else
-											currentActivations[key].mode = "Set Pattern"
-										end
-									elseif id == 3 and typeof(newValue) == "number" then
-										currentActivations[key].pattern = newValue
-									elseif
-										currentActivations[key].keybinds ~= nil and typeof(newValue) == "EnumItem"
-									then
-										(currentActivations[key].keybinds :: { Enum.KeyCode })[id - 3] =
-											newValue :: Enum.KeyCode
-									end
-								end
-							-- Overrides
-							elseif
-								value.type == "Override"
-								and value.dependentFunction ~= nil
-								and value.dependentPattern ~= nil
-							then
-								table.insert(options, {
-									type = "select",
-									initialValue = value.mode,
-									layoutOrder = 2,
-									options = { "Siren Override", "Park", "Brake", "Reverse" },
-								})
-								if value.mode == "Siren Override" then
-									-- TODO: Siren by name
-									table.insert(
-										options,
-										{ type = "select", initialValue = value.siren, layoutOrder = 3, options = {} }
-									)
-								end
-								local currentFunctions = scope.peek(functions)
-								local byValue = scope.dictionaryValueToIndex(currentFunctions, "name")
-								local choices = { "No Dependent Function" }
-								for _, func in currentFunctions do
-									table.insert(choices, func.weight, func.name)
-								end
-								table.insert(options, {
-									type = "select",
-									initialValue = if byValue[value.dependentFunction]
-										then choices[byValue[value.dependentFunction].weight]
-										elseif value.dependentFunction == "" then "No Dependent Function"
-										else `Function {value.dependentFunction} Not Found`,
-									options = scope:Computed(function(use)
-										local choices = { "No Dependent Function" }
-										for _, func in use(functions) do
-											table.insert(choices, func.weight, func.name)
-										end
-										return choices
-									end),
-									layoutOrder = 4,
-								})
-								table.insert(
-									options,
-									{ type = "number", initialValue = value.dependentPattern, layoutOrder = 5 }
-								)
-								onChange = function(id, newValue, currentActivations, _)
-									if id == 2 and typeof(newValue) == "string" then
-										local deepCopy = scope.deepCopy(currentActivations[key])
-										if newValue == "Siren Override" then
-											if deepCopy.siren == nil then
-												deepCopy.siren = 0
-											end
-										end
-										deepCopy.mode = newValue :: "Siren Override" | "Park" | "Brake" | "Reverse"
-										currentActivations[key] = deepCopy
-										-- currentActivations[key].mode =
-										-- 	newValue :: "Siren Override" | "Park" | "Brake" | "Reverse"
-									elseif id == 3 and typeof(newValue) == "number" then
-										currentActivations[key].siren = newValue
-									elseif id == 4 and typeof(newValue) == "string" then
-										if newValue == "No Dependent Function" then
-											currentActivations[key].dependentFunction = ""
-										else
-											currentActivations[key].dependentFunction = newValue
-										end
-									elseif id == 5 and typeof(newValue) == "number" then
-										currentActivations[key].dependentPattern = newValue
-									end
-								end
-								--[[ Conditional
-							elseif
-								value.type == "Conditional"
-								and value.conditionMode ~= nil
-								and value.conditions ~= nil
-							then
-								table.insert(options, {
-									value = value.conditionMode,
-									layoutOrder = 2,
-									options = { "Always Active", "Keybind", "Function", "Siren" },
-								})
-								local count = 2
-								-- Initial Condition
-								-- Keybind
-								if value.conditionMode == "Keybind" and value.keybinds ~= nil then
-									count += 1
-									table.insert(options, { value = value.pattern, layoutOrder = count })
-									for _, keybind in value.keybinds do
-										count += 1
-										table.insert(options, { value = keybind, layoutOrder = count })
-									end
-								-- Function
-								elseif
-									value.conditionMode == "Function"
-									and value.dependentFunction ~= nil
-									and value.dependentPattern ~= nil
-								then
-									count += 1
-									local currentFunction = scope.peek(functions)
-									local byValue = scope.dictionaryValueToIndex(currentFunction, "name")
-									table.insert(options, {
-										value = byValue[value.dependentFunction]
-											or `Function {value.dependentFunction} Not Found`,
-										options = currentFunction,
-										layoutOrder = 3,
-									})
-									count += 1
-									table.insert(options, { value = value.dependentPattern, layoutOrder = count })
-									-- elseif value.conditionMode == "Siren" and value.siren ~= nil then
-									-- TODO: Siren Overrides
-								end
-
-								-- Conditions
-								for _, conditionData in value.conditions do
-									count += 1
-									table.insert(
-										options,
-										{ value = conditionData.type, layoutOrder = count, options = { "Function" } }
-									)
-									count += 1
-									local currentFunction = scope.peek(functions)
-									local byValue = scope.dictionaryValueToIndex(currentFunction, "name")
-									table.insert(options, {
-										value = byValue[conditionData.dependentFunction]
-											or `Function {conditionData.dependentFunction} Not Found`,
-										options = currentFunction,
-										layoutOrder = count,
-									})
-									count += 1
-									table.insert(options, {
-										value = conditionData.mode,
-										layoutOrder = count,
-										options = { "Is", "Is Not" },
-									})
-									count += 1
-									table.insert(
-										options,
-										{ value = conditionData.dependentPattern, layoutOrder = count }
-									)
-								end
-							]]
-							end
-							local rowSize = scope:Value(75)
-							local bg = scope:Spring(scope:Value(1), 10, 1)
-							bg:setPosition(0)
+						function(_, innerScope: typeof(scope), key: number, value: activationState)
+							local rowSize = innerScope:Value(75)
+							local activationType = innerScope:Value(innerScope.peek(value.type))
 							return key,
-								scope:base {
-									Size = scope:Computed(function(use)
+								innerScope:base {
+									Size = innerScope:Computed(function(use)
 										return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(actualTableSize).Y)
 									end),
-									BackgroundColor3 = currentTheme.colors.surface0,
-									BackgroundTransparency = bg,
+									BackgroundTransparency = 1,
 
-									[Fusion.Children] = createChildren(scope, {
+									[Fusion.Children] = createChildren(innerScope, {
 										rowSize = rowSize,
-										options = options,
+										options = innerScope:Computed(function(use)
+											local controls: { createChildren.option } = {
+												{
+													type = "select",
+													value = activationType,
+													layoutOrder = 1,
+													options = { "Standard", "Override", "Default" },
+													selectionChanged = function()
+														if currentConfiguration == nil then
+															return
+														end
+														local newType = innerScope.peek(activationType)
+														if newType == "Standard" then
+															value.mode = value.mode or scope:Value("Cycle") :: any
+															value.pattern = value.pattern or scope:Value(0)
+															value.keybinds = value.keybinds
+																or scope:Value({
+																	scope:Value(Enum.KeyCode.J),
+																	scope:Value(Enum.KeyCode.DPadLeft),
+																})
+															value.siren = nil
+															value.dependentFunction = nil
+															value.dependentPattern = nil
+															value.conditions = nil
+														elseif newType == "Override" then
+															value.pattern = nil
+															value.keybinds = nil
+															value.mode = value.mode or scope:Value("Park") :: any
+															value.siren = value.siren or scope:Value(nil)
+															value.dependentFunction = value.dependentFunction
+																or scope:Value("No Dependent Function")
+															value.dependentPattern = value.dependentPattern
+																or scope:Value(0)
+														elseif newType == "Default" then
+															value.pattern = value.pattern or scope:Value(0)
+															value.mode = nil
+															value.siren = nil
+															value.dependentFunction = nil
+															value.dependentPattern = nil
+															value.conditions = nil
+															value.keybinds = nil
+														end
+														value.type:set(newType :: any)
+														updateActivationsConfiguration()
+													end,
+												},
+											}
 
-										onOptionChange = function(id: number, newValue: any?)
-											local currentActivations = scope.peek(activations)
-											local selectedFunction = scope.peek(selectedFunction)
-											if currentConfiguration == nil or selectedFunction == nil then
-												return
-											end
-											if id == 1 then
-												if typeof(newValue) ~= "string" then
-													return
+											local currentType = use(value.type)
+											if
+												currentType == "Standard"
+												and value.mode ~= nil
+												and value.pattern ~= nil
+												and value.keybinds ~= nil
+											then
+												table.insert(controls, {
+													type = "select",
+													value = value.mode,
+													layoutOrder = 2,
+													options = { "Cycle", "Set Pattern" },
+													selectionChanged = updateActivationsConfiguration,
+												})
+												table.insert(controls, {
+													type = "number",
+													value = value.pattern,
+													layoutOrder = 3,
+													disabled = innerScope:Computed(function(use)
+														return if use(value.mode) == "Cycle" then true else false
+													end),
+													focusLost = updateActivationsConfiguration,
+												})
+												for i, keybind in use(value.keybinds) do
+													table.insert(controls, {
+														type = "keycode",
+														value = keybind,
+														layoutOrder = i + 3,
+														focusLost = updateActivationsConfiguration,
+													})
 												end
-												if newValue == value.type then
-													return
+											elseif
+												currentType == "Override"
+												and value.mode ~= nil
+												and value.siren ~= nil
+												and value.dependentFunction ~= nil
+												and value.dependentPattern ~= nil
+											then
+												table.insert(controls, {
+													type = "select",
+													value = value.mode,
+													layoutOrder = 2,
+													options = { "Siren Override", "Park", "Brake", "Reverse" },
+													selectionChanged = updateActivationsConfiguration,
+												})
+												if use(value.siren) ~= nil then
+													table.insert(controls, {
+														type = "select",
+														value = value.siren,
+														layoutOrder = 3,
+														options = {},
+														selectionChanged = updateActivationsConfiguration,
+													})
 												end
-												if chassisHandler.defaults.activations[newValue] == nil then
-													return
-												end
-												currentActivations[key] =
-													scope.deepCopy(chassisHandler.defaults.activations[newValue])
-											else
-												onChange(id, newValue, currentActivations, selectedFunction)
+
+												table.insert(controls, {
+													type = "select",
+													value = value.dependentFunction,
+													layoutOrder = 4,
+													options = innerScope:Computed(function(use)
+														local choices = { "No Dependent Function" }
+														for _, func in use(functions) do
+															table.insert(choices, func.weight, func.name)
+														end
+														return choices
+													end),
+													selectionChanged = updateActivationsConfiguration,
+												})
+												table.insert(controls, {
+													type = "number",
+													value = value.dependentPattern,
+													layoutOrder = 5,
+													focusLost = updateActivationsConfiguration,
+												})
+											elseif currentType == "Default" and value.pattern ~= nil then
+												table.insert(controls, {
+													type = "number",
+													value = value.pattern,
+													layoutOrder = 2,
+													focusLost = updateActivationsConfiguration,
+												})
 											end
 
-											currentConfiguration.functions[selectedFunction].activations =
-												currentActivations
-											activations:set(currentActivations)
-											props.UnsavedChanges:set(true)
-										end,
+											return controls
+										end),
+
 										onDelete = function()
-											local selectedFunction = scope.peek(selectedFunction)
+											local selectedFunction = innerScope.peek(selectedFunction)
 											if currentConfiguration == nil or selectedFunction == nil then
 												return
 											end
 
-											popup:addPopup(scope, {
+											popup:addPopup(innerScope, {
 												title = "Delete Activation",
 												description = "Are you sure you want to delete this activation?\n<b>All data will be lost.</b>",
 												actions = {
@@ -895,11 +937,10 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														key = 2,
 														callback = function(newPopup)
 															popup:removePopup(newPopup)
-															local currentActivations = scope.peek(activations)
+															local currentActivations = innerScope.peek(activations)
 															table.remove(currentActivations, key)
 															activations:set(currentActivations)
-															currentConfiguration.functions[selectedFunction].activations =
-																currentActivations
+															updateActivationsConfiguration()
 															props.UnsavedChanges:set(true)
 														end,
 														keybind = Enum.KeyCode.Return,
@@ -917,7 +958,13 @@ return function(scope: types.Scope, props: props): Fusion.Child
 							return
 						end
 						local currentActivations = scope.peek(activations)
-						table.insert(currentActivations, scope.deepCopy(chassisHandler.defaults.activations.Standard))
+						local newActivation: activationState = {
+							type = scope:Value("Standard") :: any,
+							mode = scope:Value("Cycle") :: any,
+							pattern = scope:Value(0),
+							keybinds = scope:Value({ scope:Value(Enum.KeyCode.J), scope:Value(Enum.KeyCode.DPadLeft) }),
+						}
+						table.insert(currentActivations, newActivation)
 						activations:set(currentActivations)
 						props.UnsavedChanges:set(true)
 					end),

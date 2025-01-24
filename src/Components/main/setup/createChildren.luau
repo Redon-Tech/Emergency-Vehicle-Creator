@@ -13,52 +13,57 @@ export type option = {
 	type: "select",
 	layoutOrder: number,
 	options: Fusion.UsedAs<{ [any]: unknown }>,
-	initialValue: any,
+	value: Fusion.Value<any>,
+	selectionChanged: (() -> ())?,
 	OverrideXSize: number?,
-	disabled: boolean?,
+	disabled: Fusion.UsedAs<boolean?>,
 } | {
 	type: "string",
 	layoutOrder: number,
-	initialValue: string,
+	value: Fusion.Value<string>,
+	focusLost: (() -> ())?,
 	OverrideXSize: number?,
-	disabled: boolean?,
+	disabled: Fusion.UsedAs<boolean?>,
 } | {
 	type: "keycode",
 	layoutOrder: number,
-	initialValue: Enum.KeyCode,
+	value: Fusion.Value<Enum.KeyCode>,
+	focusLost: (() -> ())?,
 	OverrideXSize: number?,
-	disabled: boolean?,
+	disabled: Fusion.UsedAs<boolean?>,
 } | {
 	type: "number",
 	layoutOrder: number,
-	initialValue: number,
+	value: Fusion.Value<number>,
+	focusLost: (() -> ())?,
 	OverrideXSize: number?,
-	disabled: boolean?,
+	disabled: Fusion.UsedAs<boolean?>,
 } | {
 	type: "button",
 	layoutOrder: number,
 	text: Fusion.UsedAs<string>,
 	OverrideXSize: number?,
 	callback: () -> (),
-	disabled: boolean?,
+	disabled: Fusion.UsedAs<boolean?>,
 } | {
 	type: "color",
 	layoutOrder: number,
-	initialValue: Color3,
-	OverrideXSize: number?,
+	value: Fusion.Value<Color3>,
+	colorChanged: (() -> ())?,
 	label: string,
-	disabled: boolean?,
+	disabled: Fusion.UsedAs<boolean?>,
 }
 
 export type childOption = {
 	options: { option },
-	onOptionChange: ((key: number, newValue: any?) -> ())?,
+	-- onOptionChange: ((key: number, newValue: any?) -> ())?,
+	onOptionChange: nil,
 	onEdit: (() -> ())?,
 	onDownload: (() -> ())?,
 	onDelete: (() -> ())?,
 }
 
-local function getSize(data: option): number
+local function getSize(data: { [any]: any }): number
 	return if data.OverrideXSize ~= nil
 		then data.OverrideXSize
 		elseif data.type == "number" then 50
@@ -75,7 +80,8 @@ local function createChildren(
 	props: {
 		options: Fusion.UsedAs<{ option }>,
 
-		onOptionChange: ((key: number, newValue: any?) -> ())?,
+		-- onOptionChange: ((key: number, newValue: any?) -> ())?,
+		onOptionChange: nil,
 		onEdit: (() -> ())?,
 		onDownload: (() -> ())?,
 		onDelete: (() -> ())?,
@@ -101,30 +107,41 @@ local function createChildren(
 		maxOptionsSize = maxOptionsSize - 35
 	end
 	local maxButtonSize = 1820 - maxOptionsSize
-	local rows = { {} }
-	local rowMeta = { { total = 0 } }
-	local currentRow = 1
-	local currentRowSize = maxOptionsSize
-	for key, data in scope.peek(props.options) do
-		local size = getSize(data)
-		if currentRowSize < size then
-			currentRow = currentRow + 1
-			currentRowSize = maxOptionsSize
-			props.rowSize:set(scope.peek(props.rowSize) + 75)
-			rows[currentRow] = {}
-			rowMeta[currentRow] = { total = 0 }
+
+	local rowMeta = scope:Value({ { total = 0 } })
+	local rows = scope:Computed(function(use)
+		local rows = { {} }
+		local newRowMeta = { { total = 0 } }
+		local currentRow = 1
+		local currentRowSize = maxOptionsSize
+
+		for key, data in use(props.options) do
+			local size = getSize(data)
+			if currentRowSize < size then
+				currentRow = currentRow + 1
+				currentRowSize = maxOptionsSize
+				props.rowSize:set(scope.peek(props.rowSize) + 75)
+				rows[currentRow] = {}
+				newRowMeta[currentRow] = { total = 0 }
+			end
+			currentRowSize -= size + 15
+			rows[currentRow][key] = data
+			newRowMeta[currentRow].total += size + 15
+			newRowMeta[currentRow][key] = newRowMeta[currentRow].total
 		end
-		currentRowSize -= size + 15
-		rows[currentRow][key] = data
-		rowMeta[currentRow].total += size + 15
-		rowMeta[currentRow][key] = rowMeta[currentRow].total
-	end
+		rowMeta:set(newRowMeta)
+		return rows
+	end)
 
 	local dropdownFrames = scope:Value({})
 	local function createDropdown(scope: typeof(scope), props: any)
 		local dropdown = scope:dropdown(props)
 		local currentDropdowns = scope.peek(dropdownFrames)
-		table.insert(currentDropdowns, dropdown[2])
+		if currentDropdowns[props.LayoutOrder] ~= nil then
+			currentDropdowns[props.LayoutOrder].Parent = nil
+		end
+		-- table.insert(currentDropdowns, props.LayoutOrder, dropdown[2])
+		currentDropdowns[props.LayoutOrder] = dropdown[2]
 		dropdownFrames:set(currentDropdowns)
 		return dropdown[1]
 	end
@@ -164,15 +181,29 @@ local function createChildren(
 									SortOrder = Enum.SortOrder.LayoutOrder,
 								},
 
-								scope:ForPairs(value, function(use, scope: typeof(scope), key: number, data: option)
+								scope:ForPairs(value, function(_, scope: typeof(scope), key: number, data: option)
 									local size = getSize(data)
 
 									local baseProps = {
-										Size = UDim2.fromScale(
-											size / maxOptionsSize,
-											(if props.baseSize < 70 then 45 else 50) / use(props.rowSize)
-										),
-										BackgroundColor3 = currentTheme.colors.crust,
+										Size = scope:Computed(function(use)
+											return UDim2.fromScale(
+												size / maxOptionsSize,
+												(if props.baseSize < 70 then 45 else 50) / use(props.rowSize)
+											)
+										end),
+										BackgroundColor3 = scope:Computed(function(use)
+											return if use(data.disabled) == true
+												then currentTheme.colors.base
+												else currentTheme.colors.crust
+										end),
+										BorderColor3 = scope:Computed(function(use)
+											return if use(data.disabled) == true
+												then currentTheme.colors.overlay0
+												else currentTheme.colors.white
+										end),
+										Interactable = scope:Computed(function(use)
+											return if use(data.disabled) == true then false else true
+										end),
 										CornerRadius = UDim.new(0, 5),
 										Border = 1,
 										TextScaled = true,
@@ -180,11 +211,11 @@ local function createChildren(
 										FontWeight = Enum.FontWeight.Regular,
 										LayoutOrder = data.layoutOrder,
 									}
-									if data.disabled == true then
-										baseProps.Interactable = false
-										baseProps.BackgroundColor3 = currentTheme.colors.base
-										baseProps.BorderColor3 = currentTheme.colors.overlay0
-									end
+									-- if data.disabled == true then
+									-- 	baseProps.Interactable = false
+									-- 	baseProps.BackgroundColor3 = currentTheme.colors.base
+									-- 	baseProps.BorderColor3 = currentTheme.colors.overlay0
+									-- end
 									local textBaseProps = {
 										MaxSize = Vector2.new(300, 50),
 										PaddingBottom = UDim.new(0.2, 0),
@@ -193,67 +224,72 @@ local function createChildren(
 										PaddingRight = UDim.new(10 / size, 0),
 									}
 									if data.type == "string" then
-										local value = scope:Value(data.initialValue)
 										return key,
 											scope:textBox(scope.CombineProperties(baseProps, textBaseProps, {
-												Text = data.initialValue,
-												[Fusion.Out "Text"] = value :: unknown,
+												Text = data.value,
+												[Fusion.Out "Text"] = data.value,
 												TextXAlignment = Enum.TextXAlignment.Left,
 												[Fusion.OnEvent "FocusLost"] = function()
-													if props.onOptionChange then
-														props.onOptionChange(data.layoutOrder, scope.peek(value))
+													if data.focusLost then
+														data.focusLost()
 													end
 												end,
 											}))
 									elseif data.type == "keycode" then
-										local value = scope:Value(data.initialValue)
+										local value = scope:Value(scope.peek(data.value).Name)
 										return key,
 											scope:textBox(scope.CombineProperties(baseProps, textBaseProps, {
-												Text = data.initialValue.Name,
-												[Fusion.Out "Text"] = value :: unknown,
+												Text = scope:Computed(function(use)
+													return use(data.value).Name
+												end),
+												[Fusion.Out "Text"] = value,
 												TextXAlignment = Enum.TextXAlignment.Left,
 												[Fusion.OnEvent "FocusLost"] = function()
-													local actualValue = scope.peek(value)
-													local success, result = pcall(function()
-														return (Enum.KeyCode :: any)[actualValue]
+													local success, actualValue = pcall(function()
+														return (Enum.KeyCode :: any)[scope.peek(value)]
 													end)
-													if success then
-														actualValue = result
-													else
-														log.warn("Unable to serialize keycode", result)
+													if not success then
+														log.warn("Unable to serialize keycode", actualValue)
 														return
 													end
+													data.value:set(actualValue)
 
-													if props.onOptionChange then
-														props.onOptionChange(data.layoutOrder, actualValue)
+													if data.focusLost then
+														data.focusLost()
 													end
 												end,
 											}))
 									elseif data.type == "number" then
-										local value = scope:Value(data.initialValue)
+										local value = scope:Value(tostring(scope.peek(data.value)))
 										return key,
 											scope:textBox(scope.CombineProperties(baseProps, textBaseProps, {
-												Text = data.initialValue,
-												[Fusion.Out "Text"] = value :: unknown,
+												Text = data.value,
+												[Fusion.Out "Text"] = value,
 												TextXAlignment = Enum.TextXAlignment.Center,
 												[Fusion.OnEvent "FocusLost"] = function()
-													if props.onOptionChange then
-														props.onOptionChange(
-															data.layoutOrder,
-															tonumber(scope.peek(value))
-														)
+													local success, actualValue = pcall(function()
+														return tonumber(scope.peek(value))
+													end)
+													if not success or actualValue == nil then
+														log.warn("Unable to serialize number", actualValue)
+														return
+													end
+													data.value:set(actualValue)
+
+													if data.focusLost then
+														data.focusLost()
 													end
 												end,
 											}))
 									elseif data.type == "color" then
-										local value = scope:Value(data.initialValue)
+										-- local value = scope:Value(data.initialValue)
 										local isHovered = scope:Value(false)
 										return key,
 											scope:textButton(scope.CombineProperties(baseProps, {
 												MaxSize = Vector2.new(300, 50),
 												TextLabelSize = UDim2.fromScale(1, 1),
 												Text = scope:Computed(function(use)
-													local currentValue = use(value)
+													local currentValue = use(data.value)
 													return ("%d, %d, %d"):format(
 														currentValue.R * 255,
 														currentValue.G * 255,
@@ -264,12 +300,12 @@ local function createChildren(
 												[Fusion.OnEvent "Activated"] = function()
 													local newColor = colorPicker(scope, {
 														id = "evcColorPicker",
-														initialColor = scope.peek(value),
+														initialColor = scope.peek(data.value),
 													})
 													if newColor then
-														value:set(newColor)
-														if props.onOptionChange then
-															props.onOptionChange(data.layoutOrder, newColor)
+														data.value:set(newColor)
+														if data.colorChanged then
+															data.colorChanged()
 														end
 													end
 												end,
@@ -317,7 +353,7 @@ local function createChildren(
 												Reactive = true,
 											}))
 									elseif data.type == "select" then
-										local value = scope:Value(data.initialValue)
+										-- local value = scope:Value(data.initialValue)
 										local absoluteSize = scope:Value(Vector2.one)
 										return key,
 											createDropdown(
@@ -325,24 +361,35 @@ local function createChildren(
 												scope.CombineProperties(baseProps, {
 													DropdownHeight = 100,
 													Options = data.options,
-													Text = value,
+													Text = data.value,
 													TextXAlignment = Enum.TextXAlignment.Left,
-													Position = UDim2.fromScale(
-														(
-															rowMeta[rowKey][key]
-															- size
-															- (if props.baseSize < 70 then -25 else 15)
-														) / maxOptionsSize,
-														0
-													),
+													Position = scope:Computed(function(use)
+														local currentRowMeta = use(rowMeta)
+														if
+															currentRowMeta[rowKey] == nil
+															or currentRowMeta[rowKey][key] == nil
+														then
+															return UDim2.fromScale(0, 0)
+														end
+														return UDim2.fromScale(
+															(
+																currentRowMeta[rowKey][key]
+																- size
+																- (if props.baseSize < 70 then -25 else 15)
+															) / maxOptionsSize,
+															0
+														)
+													end),
 													[Fusion.Out "AbsoluteSize"] = absoluteSize,
-													DropdownYOffset = UDim.new(0, use(absoluteSize).Y + 25),
+													DropdownYOffset = scope:Computed(function(use)
+														return UDim.new(0, use(absoluteSize).Y + 25)
+													end),
 													RemoveForPadding = UDim2.fromOffset(0, 10),
 
 													OnOptionSelected = function(_, v)
-														value:set(v)
-														if props.onOptionChange then
-															props.onOptionChange(data.layoutOrder, v)
+														data.value:set(v)
+														if data.selectionChanged then
+															data.selectionChanged()
 														end
 													end,
 												})
@@ -472,7 +519,8 @@ return function(
 		options: Fusion.UsedAs<{ option }>,
 		childOptions: Fusion.UsedAs<{ childOption }>?,
 
-		onOptionChange: ((key: number, newValue: any?) -> ())?,
+		-- onOptionChange: ((key: number, newValue: any?) -> ())?,
+		onOptionChange: nil,
 		onEdit: (() -> ())?,
 		onDownload: (() -> ())?,
 		onDelete: (() -> ())?,
@@ -486,7 +534,7 @@ return function(
 		local baseSize = props.baseSize or 75
 		return createChildren(scope, {
 			options = props.options,
-			onOptionChange = props.onOptionChange,
+			-- onOptionChange = props.onOptionChange,
 			onEdit = props.onEdit,
 			onDownload = props.onDownload,
 			onDelete = props.onDelete,
@@ -499,7 +547,7 @@ return function(
 		local currentOptions = use(props.childOptions)
 		local firstOption: childOption = {
 			options = props.options,
-			onOptionChange = props.onOptionChange,
+			-- onOptionChange = props.onOptionChange,
 			onEdit = props.onEdit,
 			onDownload = props.onDownload,
 			onDelete = props.onDelete,
@@ -543,7 +591,7 @@ return function(
 							[Fusion.Children] = createChildren(scope, {
 								options = value.options,
 
-								onOptionChange = value.onOptionChange,
+								-- onOptionChange = value.onOptionChange,
 								onEdit = value.onEdit,
 								onDownload = value.onDownload,
 								onDelete = value.onDelete,

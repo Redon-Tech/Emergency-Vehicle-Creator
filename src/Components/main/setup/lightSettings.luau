@@ -539,6 +539,18 @@ return function(scope: types.Scope, props: props): Fusion.Child
 							currentLightSettings.colors,
 							function(_, scope: typeof(scope), key: number, colorData)
 								local rowSize = scope:Value(75)
+								local function onOptionChange(option, value)
+									local changedIndex = colorKeyToIndex[option]
+									local currentColors = scope.peek(currentLightSettings.colors)
+									currentColors[key][changedIndex] = value
+									currentLightSettings.colors:set(currentColors)
+									updateCurrentConfiguration()
+								end
+								local name = scope:Value(colorData.name)
+								local partColor = scope:Value(colorData.partColor)
+								local lightColor = scope:Value(colorData.lightColor)
+								local lightoColor = scope:Value(colorData.lightoColor)
+
 								local childrenProps = {
 									rowSize = rowSize,
 									actualTableSize = actualTableSize,
@@ -547,36 +559,40 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										{
 											type = "string",
 											layoutOrder = 1,
-											initialValue = colorData.name,
+											value = name,
 											disabled = key < 7,
+											focusLost = function()
+												onOptionChange(1, scope.peek(name))
+											end,
 										},
 										{
 											type = "color",
 											layoutOrder = 2,
-											initialValue = colorData.partColor,
+											value = partColor,
 											label = "Part Color",
+											colorChanged = function()
+												onOptionChange(2, scope.peek(partColor))
+											end,
 										},
 										{
 											type = "color",
 											layoutOrder = 3,
-											initialValue = colorData.lightColor,
+											value = lightColor,
 											label = "Light Color",
+											colorChanged = function()
+												onOptionChange(3, scope.peek(lightColor))
+											end,
 										},
 										{
 											type = "color",
 											layoutOrder = 4,
-											initialValue = colorData.lightoColor,
+											value = lightoColor,
 											label = "Lighto Color",
+											colorChanged = function()
+												onOptionChange(4, scope.peek(lightoColor))
+											end,
 										},
 									} :: { createChildren.option },
-
-									onOptionChange = function(option, value)
-										local changedIndex = colorKeyToIndex[option]
-										local currentColors = scope.peek(currentLightSettings.colors)
-										currentColors[key][changedIndex] = value
-										currentLightSettings.colors:set(currentColors)
-										updateCurrentConfiguration()
-									end,
 								}
 
 								if key > 6 then
