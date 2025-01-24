@@ -540,9 +540,6 @@ function chassisHandler.saveConfiguration(self: chassisHandler, model: Model): b
 	local sirensSourceBase = LuaEncode(configuration.data.sirens, LuaEncodeSettings)
 	local lightSettingsSourceBase = LuaEncode(configuration.data.lightSettings, LuaEncodeSettings)
 
-	configuration.functions.Source = exportHeader .. functionsSourceBase
-	configuration.sirens.Source = exportHeader .. sirensSourceBase
-	configuration.lightSettings.Source = exportHeader .. lightSettingsSourceBase
 	log.debug(
 		"Saved configuration for",
 		model.Name,
@@ -551,6 +548,9 @@ function chassisHandler.saveConfiguration(self: chassisHandler, model: Model): b
 		{ sirensSourceBase },
 		{ lightSettingsSourceBase }
 	)
+	configuration.functions.Source = exportHeader .. functionsSourceBase
+	configuration.sirens.Source = exportHeader .. sirensSourceBase
+	configuration.lightSettings.Source = exportHeader .. lightSettingsSourceBase
 
 	return true
 end
@@ -578,6 +578,13 @@ function chassisHandler.getLights(currentConfiguration: chassisConfiguration, mo
 					table.insert(possibleLights, rotator.lightName)
 				end
 			end
+		end
+	end
+
+	for _, lightGroup in pairs(currentConfiguration.lightSettings.lightGroups) do
+		local possibleIndex = table.find(possibleLights, lightGroup.name)
+		if possibleIndex ~= nil then
+			table.remove(possibleLights, possibleIndex)
 		end
 	end
 
