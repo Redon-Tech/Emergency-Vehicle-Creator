@@ -49,17 +49,17 @@ Emergency Vehicle Handler
 [tree gen](https://tree.nathanfriend.com/?s=(%27op0s!(%27fancy!true~fullPath!false~trailingSlash!true~rootDot!false)~2(%272%27.Emergency%20Vehicle%20Handler.-EVHEv3loader*modules*-TODO6Server%20%7BOnly%20runs%20in%20studio%7D6Cli3configura04F5*f5s*sirens4Groups%27)~version!%271%27)*.----%20%20.%5Cn0tion2source!3ent.--4*light5unc06*EVH%01654320.-*)
 
 Known Bugs:
--[ ] Need an UIAspectRatio Constraint somewhere
--[ ] Sirens delete two when you delete one
--[ ] Renaming a fader doesnt rename it properly on the export sometimes
--[ ] Flashers fake bloom zindex problem
--[ ] Settings menu dropdowns text is small
--[ ] If no colors are available, completely fucks everything
--[ ] V2 to V3 scrambles everything around in the menu (it also needs to ensure that each activation has two keybinds)
--[ ] Sometimes setting weight or pattern higher can cause problems
--[x] Going to vehicle setup can sometimes cause return to to be set to vehicle setup instead of main menu
--[ ] Color selector appears on ui reload
--[x] Explorer badges not working
--[ ] No credits
--[ ] Light prefix needs to take the name of lights from the original customization model then replace it with the new name
--[ ] Does not like name without numbers (or not hitting enter)
+- [ ] Need an UIAspectRatio Constraint somewhere
+- [ ] ~~Sirens delete two when you delete one~~
+- [ ] Renaming a fader doesnt rename it properly on the export sometimes
+- [ ] Flashers fake bloom zindex problem
+- [ ] Settings menu dropdowns text is small
+- [ ] If no colors are available, completely fucks everything
+- [ ] V2 to V3 scrambles everything around in the menu (it also needs to ensure that each activation has two keybinds)
+- [ ] Sometimes setting weight or pattern higher can cause problems
+- [x] Going to vehicle setup can sometimes cause return to to be set to vehicle setup instead of main menu
+- [ ] Color selector appears on ui reload
+- [x] Explorer badges not working
+- [x] No credits
+- [ ] Light prefix needs to take the name of lights from the original customization model then replace it with the new name
+- [ ] Does not like name without numbers (or not hitting enter)
