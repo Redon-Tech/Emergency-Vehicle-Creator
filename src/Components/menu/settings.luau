@@ -100,6 +100,8 @@ return function(baseScope: types.Scope, props: props)
 
 							Options = valueData.type,
 							Text = setting,
+							TextScaled = true,
+							AnimateSize = false,
 
 							OnOptionSelected = function(_, value)
 								setting:set(value)
