@@ -44,12 +44,12 @@ local settings = {
 			type = "boolean",
 			key = "debugMode",
 		},
-		{
-			title = "Save Backup Mode",
-			description = "Enable or disable saving backups of your patterns in any open place.",
-			type = { "Encrypted", "Unencrypted", "None" },
-			key = "saveBackupMode",
-		},
+		-- {
+		-- 	title = "Save Backup Mode",
+		-- 	description = "Enable or disable saving backups of your patterns in any open place.",
+		-- 	type = { "Encrypted", "Unencrypted", "None" },
+		-- 	key = "saveBackupMode",
+		-- },
 	},
 } :: settings
 
