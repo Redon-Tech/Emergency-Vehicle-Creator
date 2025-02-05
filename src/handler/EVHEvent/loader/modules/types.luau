@@ -118,34 +118,30 @@ export type selectedPattern = {
 }
 
 export type activation = {
-	type: "Standard" | "Override" | "Conditional",
-	mode: "Cycle" | "Set Pattern" | "Siren Override" | "Park" | "Brake" | "Reverse",
-
-	-- Standard Specific
-	pattern: number?,
-
-	-- Standard Specific
-	keybinds: { Enum.KeyCode }?,
-
-	-- Siren Override Specific/Siren Condition
-	siren: number?,
-
-	-- Override Specific/Function Condition
-	dependentFunction: string?,
-	dependentPattern: number?,
-
-	-- Conditional Specific
-	conditionMode: ("Always Active" | "Keybind" | "Function" | "Siren")?,
+	type: "Standard",
+	mode: "Cycle" | "Set Pattern",
+	pattern: number,
+	keybinds: { Enum.KeyCode },
+} | {
+	type: "Default",
+	pattern: number,
+} | {
+	type: "Override",
+	mode: "Siren Override" | "Park" | "Brake" | "Reverse",
+	siren: string?,
+	dependentFunction: string,
+	dependentPattern: number,
+} | {
+	type: "Conditional",
+	mode: "Always Active" | "Keybind" | "Function" | "Siren",
 	conditions: {
 		{
 			type: "Function",
 			mode: "Is" | "Is Not",
-
-			-- Function Specific
 			dependentFunction: string,
 			dependentPattern: number,
 		}
-	}?,
+	},
 }
 
 export type elsFunction = {

@@ -40,45 +40,45 @@ export type flasherSection = {
 	columns: { [number]: { lightName: string, rows: { elsColor } } },
 }
 
+export type faderData = {
+	type: "Simple",
+	time: number,
+	goal: number,
+	color: elsColor,
+} | {
+	type: "Advanced",
+	time: number,
+	goal: number,
+	color: elsColor,
+	easingStyle: Enum.EasingStyle,
+	easingDirection: Enum.EasingDirection,
+} | {
+	type: "Wait",
+	time: number,
+}
+
 export type faderSection = {
 	lightName: string,
-	data: {
-		{
-			type: "Simple",
-			time: number,
-			goal: number,
-			color: elsColor,
-		} | {
-			type: "Advanced",
-			time: number,
-			goal: number,
-			color: elsColor,
-			easingStyle: Enum.EasingStyle,
-			easingDirection: Enum.EasingDirection,
-		} | {
-			type: "Wait",
-			time: number,
-		}
-	},
+	data: { faderData },
+}
+
+export type rotatorData = {
+	type: "Angle",
+	color: elsColor,
+	velocity: number,
+	angle: number,
+} | {
+	type: "Infinite",
+	color: elsColor,
+	velocity: number,
+} | {
+	type: "Wait",
+	time: number,
 }
 
 export type rotatorSection = {
 	lightName: string,
-	data: {
-		{
-			type: "Angle",
-			color: elsColor,
-			velocity: number,
-			angle: number,
-		} | {
-			type: "Infinite",
-			color: elsColor,
-			velocity: number,
-		} | {
-			type: "Wait",
-			time: number,
-		}
-	},
+	data: { rotatorData },
 }
 
 export type pattern = {
