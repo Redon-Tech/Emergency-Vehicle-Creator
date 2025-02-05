@@ -171,6 +171,10 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						newActivation[key] = scope:Value(value)
 					end
 				end
+				if activationData.type == "Override" and activationData.siren == nil then
+					newActivation.siren = scope:Value(nil)
+				end
+
 				table.insert(newActivations, activationKey, newActivation)
 			end
 			activations:set(newActivations)
@@ -869,17 +873,39 @@ return function(scope: types.Scope, props: props): Fusion.Child
 													value = value.mode,
 													layoutOrder = 2,
 													options = { "Siren Override", "Park", "Brake", "Reverse" },
-													selectionChanged = updateActivationsConfiguration,
+													selectionChanged = function()
+														if scope.peek(value.mode) == "Siren Override" then
+															if scope.peek(value.siren) == nil then
+																value.siren:set("Unknown Siren")
+															end
+														else
+															value.siren:set(nil)
+														end
+														updateActivationsConfiguration()
+													end,
 												})
-												if use(value.siren) ~= nil then
-													table.insert(controls, {
-														type = "select",
-														value = value.siren,
-														layoutOrder = 3,
-														options = {},
-														selectionChanged = updateActivationsConfiguration,
-													})
-												end
+												-- if use(value.siren) ~= nil then
+												table.insert(controls, {
+													type = "select",
+													value = value.siren,
+													layoutOrder = 3,
+													options = scope:Computed(function()
+														if currentConfiguration == nil then
+															return {}
+														end
+
+														local sirensByName = {}
+														for _, siren in pairs(currentConfiguration.sirens) do
+															table.insert(sirensByName, siren.name)
+														end
+														return sirensByName
+													end),
+													selectionChanged = updateActivationsConfiguration,
+													Visible = innerScope:Computed(function(use)
+														return use(value.mode) == "Siren Override"
+													end),
+												})
+												-- end
 
 												table.insert(controls, {
 													type = "select",
@@ -941,7 +967,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 															table.remove(currentActivations, key)
 															activations:set(currentActivations)
 															updateActivationsConfiguration()
-															props.UnsavedChanges:set(true)
 														end,
 														keybind = Enum.KeyCode.Return,
 													},
@@ -991,6 +1016,10 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		BackgroundColor3 = currentTheme.colors.base,
 
 		[Fusion.Children] = {
+			scope:New("UIAspectRatioConstraint") {
+				AspectRatio = 1.8640776699,
+			},
+
 			scope:New("UIPadding") {
 				PaddingTop = UDim.new(0.0231481481, 0),
 				PaddingBottom = UDim.new(0.0231481481, 0),

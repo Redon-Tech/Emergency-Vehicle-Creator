@@ -331,7 +331,7 @@ local function createChildren(
 														Position = UDim2.fromScale(1, 0.5),
 														AnchorPoint = Vector2.new(1, 0.5),
 														CornerRadius = UDim.new(1, 0),
-														BackgroundColor3 = value,
+														BackgroundColor3 = data.value,
 
 														[Fusion.Children] = {
 															scope:New("UIAspectRatioConstraint") {
@@ -517,7 +517,7 @@ return function(
 	scope: types.Scope,
 	props: {
 		options: Fusion.UsedAs<{ option }>,
-		childOptions: Fusion.UsedAs<{ childOption }>?,
+		childOptions: Fusion.UsedAs<{ childOption }?>?,
 
 		-- onOptionChange: ((key: number, newValue: any?) -> ())?,
 		onOptionChange: nil,
@@ -530,6 +530,7 @@ return function(
 		rowSize: Fusion.Value<number>,
 	}
 ): Fusion.Child
+	log.debug(props)
 	if props.childOptions == nil or props.actualTableSize == nil then
 		local baseSize = props.baseSize or 75
 		return createChildren(scope, {
@@ -543,8 +544,12 @@ return function(
 		})
 	end
 
-	local childOptions = scope:Computed(function(use)
+	local combinedOptions = scope:Computed(function(use)
 		local currentOptions = use(props.childOptions)
+		if currentOptions == nil then
+			currentOptions = {}
+		end
+		log.debug(currentOptions)
 		local firstOption: childOption = {
 			options = props.options,
 			-- onOptionChange = props.onOptionChange,
@@ -562,7 +567,7 @@ return function(
 			SortOrder = Enum.SortOrder.LayoutOrder,
 		},
 
-		scope:ForPairs(childOptions, function(_, scope: typeof(scope), key: number, value: childOption)
+		scope:ForPairs(combinedOptions, function(_, scope: typeof(scope), key: number, value: childOption)
 			local thisRowSize = scope:Value(if key == 1 then 75 else 62)
 			scope:Observer(thisRowSize):onChange(function()
 				local this = scope.peek(thisRowSize)
