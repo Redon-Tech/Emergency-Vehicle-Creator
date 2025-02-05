@@ -4,6 +4,7 @@
 --SUPPORT WILL BE VOIDED IF MODIFIED
 
 return {
+	version = 0.01,
 	colors = {
 		{
 			name = "Blue",
@@ -42,10 +43,11 @@ return {
 			lightoColor = Color3.fromRGB(188, 12, 211),
 		},
 	},
-	optimizations = {
+	configuration = {
 		shouldChangeNeons = true,
 		shouldChangeLights = true,
 		shouldChangeLightos = true,
+		partTransparency = 0.011,
 	},
 	lightGroups = {},
 }

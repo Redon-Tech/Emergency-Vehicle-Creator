@@ -37,21 +37,28 @@ local colorKeyToIndex = {
 
 type lightSettingsState = {
 	colors: Fusion.Value<{ chassisHandler.color }>,
-	optimizations: {
+	configuration: {
 		shouldChangeNeons: Fusion.Value<boolean>,
 		shouldChangeLights: Fusion.Value<boolean>,
 		shouldChangeLightos: Fusion.Value<boolean>,
+		partTransparency: Fusion.Value<number>,
 	},
 	lightGroups: Fusion.Value<{ { name: Fusion.Value<string>, lights: Fusion.Value<{ string }> } }>,
 }
 
 local mainSettings = {
 	{
-		name = "Optimizations",
+		name = "Enabled Effects",
 		data = {
-			{ index = "shouldChangeNeons", name = "Enable Neon Lights" },
-			{ index = "shouldChangeLights", name = "Enable Light Emitters" },
-			{ index = "shouldChangeLightos", name = "Enable Lightos" },
+			{ index = "shouldChangeNeons", name = "Enable Neon Lights", type = "boolean" },
+			{ index = "shouldChangeLights", name = "Enable Light Emitters", type = "boolean" },
+			{ index = "shouldChangeLightos", name = "Enable Lightos", type = "boolean" },
+		},
+	},
+	{
+		name = "Light Configuration",
+		data = {
+			{ index = "partTransparency", name = "Part Transparency", type = "number" },
 		},
 	},
 }
@@ -90,14 +97,15 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				end
 				newLightSettings.colors = scope:Value(newColors)
 
-				newLightSettings.optimizations = {
-					shouldChangeNeons = scope:Value(currentConfiguration.lightSettings.optimizations.shouldChangeNeons),
+				newLightSettings.configuration = {
+					shouldChangeNeons = scope:Value(currentConfiguration.lightSettings.configuration.shouldChangeNeons),
 					shouldChangeLights = scope:Value(
-						currentConfiguration.lightSettings.optimizations.shouldChangeLights
+						currentConfiguration.lightSettings.configuration.shouldChangeLights
 					),
 					shouldChangeLightos = scope:Value(
-						currentConfiguration.lightSettings.optimizations.shouldChangeLightos
+						currentConfiguration.lightSettings.configuration.shouldChangeLightos
 					),
+					partTransparency = scope:Value(currentConfiguration.lightSettings.configuration.partTransparency),
 				}
 
 				local newLightGroups = {}
@@ -120,11 +128,13 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		local currentLightSettings = scope.peek(lightSettings)
 		if currentConfiguration ~= nil and currentLightSettings ~= nil then
 			local assembledLightSettings = {
+				version = currentConfiguration.lightSettings.version,
 				colors = {},
-				optimizations = {
-					shouldChangeNeons = scope.peek(currentLightSettings.optimizations.shouldChangeNeons),
-					shouldChangeLights = scope.peek(currentLightSettings.optimizations.shouldChangeLights),
-					shouldChangeLightos = scope.peek(currentLightSettings.optimizations.shouldChangeLightos),
+				configuration = {
+					shouldChangeNeons = scope.peek(currentLightSettings.configuration.shouldChangeNeons),
+					shouldChangeLights = scope.peek(currentLightSettings.configuration.shouldChangeLights),
+					shouldChangeLightos = scope.peek(currentLightSettings.configuration.shouldChangeLightos),
+					partTransparency = scope.peek(currentLightSettings.configuration.partTransparency),
 				},
 				lightGroups = {},
 			}
@@ -349,7 +359,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										return UDim2.new(1, 0, 0, 0.0914634146 * use(actualTableSize).Y)
 									end),
 									BackgroundColor3 = currentTheme.colors.crust,
-									BackgroundTransparency = if key % 2 == 0 then 1 else 0,
+									-- BackgroundTransparency = if key % 2 == 0 then 1 else 0,
+									BackgroundTransparency = 0,
 									Text = value.name,
 									FontWeight = Enum.FontWeight.Bold,
 									TextXAlignment = Enum.TextXAlignment.Left,
@@ -370,94 +381,166 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										_,
 										scope: typeof(scope),
 										key: number,
-										value: { index: string, name: string }
+										value: { index: string, name: string, type: string }
 									)
-										local isHovered = scope:Value(false)
-										local isPushed = scope:Value(false)
-										return key,
-											scope:base {
-												Size = scope:Computed(function(use)
-													return UDim2.new(1, 0, 0, 0.0914634146 * use(actualTableSize).Y)
-												end),
-												BackgroundColor3 = currentTheme.colors.crust,
-												BackgroundTransparency = if key % 2 == 0 then 0 else 1,
-												LayoutOrder = key,
+										if value.type == "boolean" then
+											local isHovered = scope:Value(false)
+											local isPushed = scope:Value(false)
+											return key,
+												scope:base {
+													Size = scope:Computed(function(use)
+														return UDim2.new(1, 0, 0, 0.0914634146 * use(actualTableSize).Y)
+													end),
+													BackgroundColor3 = currentTheme.colors.crust,
+													BackgroundTransparency = if key % 2 == 0 then 0 else 1,
+													LayoutOrder = key,
 
-												[Fusion.Children] = {
-													scope:New("UIPadding") {
-														PaddingLeft = UDim.new(0.0164835164, 0),
-														PaddingRight = UDim.new(0.0164835164, 0),
-													},
+													[Fusion.Children] = {
+														scope:New("UIPadding") {
+															PaddingLeft = UDim.new(0.0164835164, 0),
+															PaddingRight = UDim.new(0.0164835164, 0),
+														},
 
-													scope:baseButton {
-														Size = UDim2.fromScale(1, 1),
-														BackgroundTransparency = 1,
-														ZIndex = 2,
+														scope:baseButton {
+															Size = UDim2.fromScale(1, 1),
+															BackgroundTransparency = 1,
+															ZIndex = 2,
 
-														MouseEnter = function()
-															isHovered:set(true)
-														end,
-														MouseLeave = function()
-															isHovered:set(false)
-														end,
-														MouseButton1Down = function()
-															isPushed:set(true)
-														end,
-														MouseButton1Up = function()
-															isPushed:set(false)
-														end,
+															MouseEnter = function()
+																isHovered:set(true)
+															end,
+															MouseLeave = function()
+																isHovered:set(false)
+															end,
+															MouseButton1Down = function()
+																isPushed:set(true)
+															end,
+															MouseButton1Up = function()
+																isPushed:set(false)
+															end,
 
-														[Fusion.OnEvent "Activated"] = function()
-															local currentLightSettings = scope.peek(lightSettings)
-															if currentLightSettings then
-																local currentOptimization =
-																	currentLightSettings.optimizations[value.index]
-																if currentOptimization then
-																	currentOptimization:set(
-																		not scope.peek(currentOptimization)
-																	)
+															[Fusion.OnEvent "Activated"] = function()
+																local currentLightSettings = scope.peek(lightSettings)
+																if currentLightSettings then
+																	local currentOptimization =
+																		currentLightSettings.configuration[value.index]
+																	if currentOptimization then
+																		currentOptimization:set(
+																			not scope.peek(currentOptimization)
+																		)
+																	end
 																end
-															end
-															updateCurrentConfiguration()
-														end :: unknown,
-													},
+																updateCurrentConfiguration()
+															end :: unknown,
+														},
 
-													scope:textButton {
-														Size = UDim2.fromScale(0.5, 1),
-														Text = value.name,
-														FontWeight = Enum.FontWeight.Regular,
-														TextXAlignment = Enum.TextXAlignment.Left,
-														TextScaled = true,
-														MaxTextSize = 30,
-														BackgroundTransparency = 1,
-														TextLabelSize = UDim2.fromScale(1, 1),
-														AnimateSize = false,
-														TriggerHover = isHovered,
-														TriggerPush = isPushed,
-													},
+														scope:textButton {
+															Size = UDim2.fromScale(0.5, 1),
+															Text = value.name,
+															FontWeight = Enum.FontWeight.Regular,
+															TextXAlignment = Enum.TextXAlignment.Left,
+															TextScaled = true,
+															MaxTextSize = 30,
+															BackgroundTransparency = 1,
+															TextLabelSize = UDim2.fromScale(1, 1),
+															AnimateSize = false,
+															TriggerHover = isHovered,
+															TriggerPush = isPushed,
+														},
 
-													scope:checkBox {
-														Size = UDim2.fromScale(0.0274725275, 0.6666666667),
-														AnchorPoint = Vector2.new(1, 0.5),
-														Position = UDim2.fromScale(1, 0.5),
-														BackgroundColor3 = currentTheme.colors.crust,
-														CornerRadius = scope:Computed(function(use)
-															return UDim.new(0, 0.0121951220 * use(actualTableSize).Y)
-														end),
-														Border = 1,
-														BorderColor3 = currentTheme.colors.white,
-														SelectedColor3 = currentTheme.colors.blue,
-														SelectedCheckColor3 = currentTheme.colors.crust,
-														Enabled = scope:Computed(function(use)
-															local currentLightSettings = use(lightSettings)
-															return currentLightSettings
-																and use(currentLightSettings.optimizations[value.index])
-														end),
-														TriggerHover = isHovered,
-														TriggerPush = isPushed,
+														scope:checkBox {
+															Size = UDim2.fromScale(0.0274725275, 0.6666666667),
+															AnchorPoint = Vector2.new(1, 0.5),
+															Position = UDim2.fromScale(1, 0.5),
+															BackgroundColor3 = currentTheme.colors.crust,
+															CornerRadius = scope:Computed(function(use)
+																return UDim.new(
+																	0,
+																	0.0121951220 * use(actualTableSize).Y
+																)
+															end),
+															Border = 1,
+															BorderColor3 = currentTheme.colors.white,
+															SelectedColor3 = currentTheme.colors.blue,
+															SelectedCheckColor3 = currentTheme.colors.crust,
+															Enabled = scope:Computed(function(use)
+																local currentLightSettings = use(lightSettings)
+																return currentLightSettings
+																	and use(
+																		currentLightSettings.configuration[value.index]
+																	)
+															end),
+															TriggerHover = isHovered,
+															TriggerPush = isPushed,
+														},
 													},
-												},
-											}
+												}
+										else
+											local currentLightSettings = scope.peek(lightSettings)
+											local text = scope:Value(
+												currentLightSettings
+														and tostring(currentLightSettings.configuration[value.index])
+													or "0.011"
+											)
+
+											return key,
+												scope:base {
+													Size = scope:Computed(function(use)
+														return UDim2.new(1, 0, 0, 0.0914634146 * use(actualTableSize).Y)
+													end),
+													BackgroundColor3 = currentTheme.colors.crust,
+													BackgroundTransparency = if key % 2 == 0 then 0 else 1,
+													LayoutOrder = key,
+
+													[Fusion.Children] = {
+														scope:New("UIPadding") {
+															PaddingLeft = UDim.new(0.0164835164, 0),
+															PaddingRight = UDim.new(0.0164835164, 0),
+														},
+
+														scope:textLabel {
+															Size = UDim2.fromScale(0.5, 1),
+															Text = value.name,
+															FontWeight = Enum.FontWeight.Regular,
+															TextXAlignment = Enum.TextXAlignment.Left,
+															TextScaled = true,
+															MaxTextSize = 30,
+															BackgroundTransparency = 1,
+														},
+
+														scope:textBox {
+															Size = UDim2.fromScale(0.0274725275, 0.6666666667),
+															AnchorPoint = Vector2.new(1, 0.5),
+															Position = UDim2.fromScale(1, 0.5),
+															BackgroundColor3 = currentTheme.colors.crust,
+															CornerRadius = scope:Computed(function(use)
+																return UDim.new(
+																	0,
+																	0.0121951220 * use(actualTableSize).Y
+																)
+															end),
+															Border = 1,
+															Text = text,
+															[Fusion.Out "Text"] = text :: unknown,
+
+															[Fusion.OnEvent "FocusLost"] = function()
+																local currentLightSettings = scope.peek(lightSettings)
+																if currentLightSettings then
+																	local currentConfiguration =
+																		currentLightSettings.configuration[value.index]
+																	if currentConfiguration then
+																		local newValue = tonumber(scope.peek(text))
+																		if newValue then
+																			currentConfiguration:set(newValue)
+																		end
+																	end
+																end
+																updateCurrentConfiguration()
+															end,
+														},
+													},
+												}
+										end
 									end
 								),
 							},
@@ -1113,6 +1196,10 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		end :: unknown,
 
 		[Fusion.Children] = {
+			scope:New("UIAspectRatioConstraint") {
+				AspectRatio = 1.8640776699,
+			},
+
 			scope:New("UIPadding") {
 				PaddingTop = UDim.new(0.0231481481, 0),
 				PaddingBottom = UDim.new(0.0231481481, 0),

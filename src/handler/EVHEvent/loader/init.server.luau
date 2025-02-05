@@ -1,13 +1,16 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 
 -- version format: minor.{if rc then 1 else 0}patch
-local version = 0
+local types = require(script.modules.types)
+local configuration = script.Parent.configuration
+local lightSettingsModule = configuration:WaitForChild("lightSettings")
+local lightSettings = (require :: any)(lightSettingsModule) :: types.lightSettings
+local version = lightSettings.version or 0
 local versionInstance = Instance.new("NumberValue")
 versionInstance.Name = "version"
 versionInstance.Value = version
 versionInstance.Parent = script
 
-local types = require(script.modules.types)
 -- Trigger the start of handshaking
 local initiator = script.EVHClient
 local newContainer = Instance.new("Folder")
@@ -103,21 +106,15 @@ local function load()
 	car:SetAttribute("uuid", uuid)
 	car:SetAttribute("version", version)
 
-	local configuration = script.Parent.configuration
 	local functionsModule = configuration:WaitForChild("functions")
 	local sirensModule = configuration:WaitForChild("sirens")
-	local lightSettingsModule = configuration:WaitForChild("lightSettings")
-	if
-		functionsModule:IsA("ModuleScript") == false
-		or sirensModule:IsA("ModuleScript") == false
-		or lightSettingsModule:IsA("ModuleScript") == false
-	then
+	if functionsModule:IsA("ModuleScript") == false or sirensModule:IsA("ModuleScript") == false then
 		return
 	end
 
 	functions = (require :: any)(functionsModule) :: { types.elsFunction }
 	sirens = (require :: any)(sirensModule) :: { types.siren }
-	local lightSettings = (require :: any)(lightSettingsModule) :: types.lightSettings
+
 
 	local lightTemplate = car:FindFirstChild("lightTemplate")
 	if lightTemplate ~= nil then
