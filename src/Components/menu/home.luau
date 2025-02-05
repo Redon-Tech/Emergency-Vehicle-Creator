@@ -14,7 +14,7 @@ local version = require(root.Plugin.version)
 type props = {
 	CurrentPanel: Fusion.Value<types.menuPanels>,
 	CurrentVehicle: Fusion.Value<Instance | string?>,
-	PossibleVehicle: Fusion.Value<Instance>,
+	PossibleVehicle: Fusion.Value<Instance?>,
 	Mode: Fusion.Value<types.mode>,
 }
 
@@ -181,6 +181,12 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					else currentTheme.colors.base,
 				Shadow = true,
 				ShadowColor3 = currentTheme.colors.sky,
+
+				[Fusion.OnEvent "Activated"] = function()
+					props.CurrentVehicle:set(nil)
+					props.PossibleVehicle:set(nil)
+					props.Mode:set("main")
+				end,
 			},
 
 			--selene: allow(shadowing)

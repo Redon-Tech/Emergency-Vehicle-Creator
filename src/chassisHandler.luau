@@ -61,6 +61,7 @@ type chassisHandler = {
 	defaults: {
 		functions: types.elsFunction,
 		modifier: types.siren,
+		colors: { color },
 	},
 }
 
@@ -88,6 +89,44 @@ local chassisHandler = {
 			name = "default",
 			type = "Modifier",
 			keybinds = { Enum.KeyCode.T, Enum.KeyCode.Unknown },
+		},
+		colors = {
+			{
+				name = "Blue",
+				partColor = Color3.fromRGB(110, 153, 202),
+				lightColor = Color3.fromRGB(0, 0, 255),
+				lightoColor = Color3.fromRGB(47, 71, 255),
+			},
+			{
+				name = "Red",
+				partColor = Color3.fromRGB(190, 104, 98),
+				lightColor = Color3.fromRGB(255, 0, 0),
+				lightoColor = Color3.fromRGB(185, 58, 60),
+			},
+			{
+				name = "Yellow",
+				partColor = Color3.fromRGB(226, 155, 64),
+				lightColor = Color3.fromRGB(255, 200, 0),
+				lightoColor = Color3.fromRGB(253, 194, 66),
+			},
+			{
+				name = "White",
+				partColor = Color3.fromRGB(255, 255, 255),
+				lightColor = Color3.fromRGB(255, 255, 255),
+				lightoColor = Color3.fromRGB(255, 255, 255),
+			},
+			{
+				name = "Green",
+				partColor = Color3.fromRGB(0, 255, 0),
+				lightColor = Color3.fromRGB(0, 255, 0),
+				lightoColor = Color3.fromRGB(75, 255, 75),
+			},
+			{
+				name = "Purple",
+				partColor = Color3.fromRGB(170, 0, 170),
+				lightColor = Color3.fromRGB(200, 0, 200),
+				lightoColor = Color3.fromRGB(188, 12, 211),
+			},
 		},
 	},
 } :: chassisHandler
@@ -332,6 +371,8 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 													rowCount = 1,
 													waitTime = waitTime,
 												}
+												local sortedNames: { string } = {}
+												local unsortedColumns: { [string]: { [any]: any } } = {}
 												if
 													loadedModule.Lights ~= nil
 													and typeof(loadedModule.Lights) == "table"
@@ -344,10 +385,17 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 														for _, color in lightData do
 															table.insert(newColumn.rows, color)
 														end
-														table.insert(newFlasher.columns, newColumn)
+
+														table.insert(sortedNames, lightName)
+														unsortedColumns[lightName] = newColumn
 														if newFlasher.rowCount < #newColumn.rows then
 															newFlasher.rowCount = #newColumn.rows
 														end
+													end
+
+													table.sort(sortedNames)
+													for _, lightName in sortedNames do
+														table.insert(newFlasher.columns, unsortedColumns[lightName])
 													end
 
 													table.insert(newPattern.flashers, newFlasher)

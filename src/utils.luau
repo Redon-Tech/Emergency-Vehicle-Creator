@@ -57,4 +57,38 @@ function utils.dictionaryValueToIndex<I, V, K>(dictionary: { [I]: V }, valueInde
 	return output
 end
 
+function utils.compareTables(table1: { [any]: any }, table2: { [any]: any }): boolean
+	for index, value in table1 do
+		if table2[index] == nil then
+			return false
+		end
+
+		if typeof(value) == "table" then
+			if utils.compareTables(value, table2[index]) == false then
+				return false
+			end
+		else
+			if table2[index] ~= value then
+				return false
+			end
+		end
+	end
+	for index, value in table2 do
+		if table1[index] == nil then
+			return false
+		end
+
+		if typeof(value) == "table" then
+			if utils.compareTables(value, table1[index]) == false then
+				return false
+			end
+		else
+			if table1[index] ~= value then
+				return false
+			end
+		end
+	end
+	return true
+end
+
 return utils
