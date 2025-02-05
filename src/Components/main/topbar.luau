@@ -8,6 +8,7 @@ local types = require(root.Plugin.types)
 local popup = require(root.Plugin.Components.popup)
 local chassisHandler = require(root.Plugin.chassisHandler)
 local vehicle = require(root.Plugin.vehicle)
+local savePopup = require(script.Parent.savePopup)
 
 type props = {
 	UnsavedChanges: Fusion.Value<boolean>,
@@ -16,6 +17,7 @@ type props = {
 	CurrentPage: Fusion.Value<types.pages?>,
 	ReturnTo: Fusion.Value<types.returnTo>,
 	CurrentVehicle: Fusion.Value<Model | string?>,
+	CurrentPattern: Fusion.Value<types.selectedPattern?>,
 }
 
 local pageButtons: {
@@ -47,6 +49,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		value.position = scope:Value(Vector2.new(0, 0))
 		value.size = scope:Value(Vector2.new(0, 0))
 	end
+
+	local savePopup = savePopup(scope, props)
 
 	local topbarSize = scope:Value(Vector2.one)
 	local topbarPosition = scope:Value(Vector2.one)
@@ -130,6 +134,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						Reactive = true,
 						AnimateSize = false,
 						LayoutOrder = 2,
+						Visible = scope:Computed(function(use)
+							return use(props.CurrentVehicle) ~= nil
+						end),
 
 						[Fusion.OnEvent "Activated"] = function()
 							popup:addPopup(scope, {
@@ -142,7 +149,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										key = 1,
 										callback = function(newPopup)
 											popup:removePopup(newPopup)
-											print("cancel")
 										end,
 										keybind = Enum.KeyCode.Escape,
 									},
@@ -185,6 +191,14 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						Visible = scope:Computed(function(use)
 							return use(props.CurrentPanel) == "ELS Setup"
 						end),
+
+						[Fusion.OnEvent "Activated"] = function()
+							local currentPattern = scope.peek(props.CurrentPattern)
+							if currentPattern == nil then
+								return
+							end
+							popup:customPopup(scope, savePopup)
+						end,
 					},
 				},
 			},

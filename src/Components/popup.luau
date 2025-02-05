@@ -25,9 +25,11 @@ export type popup = {
 			actions: { action },
 		}
 	) -> (),
-	removePopup: (self: popup, newPopup: Instance) -> (),
+	customPopup: (self: popup, scope: types.Scope, child: Instance) -> (),
+	removePopup: (self: popup, newPopup: Instance?) -> (),
 	enabled: Fusion.Value<boolean>,
 	currentPopup: Instance?,
+	currentCustomPopup: Instance?,
 	parentScope: types.Scope,
 	keybinds: { [Enum.KeyCode]: (popup: Instance) -> () },
 }
@@ -40,6 +42,10 @@ function popup.addPopup(self, scope, props)
 	if self.currentPopup ~= nil then
 		self.currentPopup:Destroy()
 		self.currentPopup = nil
+	end
+	if self.currentCustomPopup ~= nil then
+		self.currentCustomPopup.Parent = nil
+		self.currentCustomPopup = nil
 	end
 	local currentContainer = scope.peek(self.currentContainer)
 	local currentTheme = RedonUI.theme.theme:now()
@@ -175,6 +181,24 @@ function popup.addPopup(self, scope, props)
 	self.enabled:set(true)
 	newPopup.Parent = currentContainer
 	self.currentPopup = newPopup
+end
+
+function popup.customPopup(self, scope, child)
+	if self.currentContainer == nil then
+		return
+	end
+	if self.currentPopup ~= nil then
+		self.currentPopup:Destroy()
+		self.currentPopup = nil
+	end
+	if self.currentCustomPopup ~= nil then
+		self.currentCustomPopup.Parent = nil
+		self.currentCustomPopup = nil
+	end
+	local currentContainer = scope.peek(self.currentContainer)
+	self.currentCustomPopup = child
+	self.enabled:set(true)
+	child.Parent = currentContainer
 end
 
 function popup.removePopup(self, _)
