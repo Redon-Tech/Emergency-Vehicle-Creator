@@ -16,8 +16,8 @@ return function(
 )
 	local currentTheme = RedonUI.theme.theme:now()
 	--selene: allow(shadowing)
-	return scope:Computed(function(use, scope: typeof(scope))
-		return scope:ForValues(use(props.attachments), function(_, scope: typeof(scope), value: Attachment)
+	return {
+		scope:ForValues(props.attachments, function(_, scope: typeof(scope), value: Attachment)
 			local children = {}
 			local allAttachments = { value }
 			for _, attachment in pairs(value:GetDescendants()) do
@@ -71,6 +71,6 @@ return function(
 			end
 
 			return children
-		end)
-	end)
+		end),
+	}
 end
