@@ -29,6 +29,7 @@ local EVHEvent = script.Parent
 local initialized = false
 local car: Model
 local driveSeat: VehicleSeat
+local sirensLocation: Instance? = nil
 local uuid: string
 
 local functions: { types.elsFunction } = {}
@@ -42,6 +43,14 @@ local keybindsToFunction: {
 } =
 	{}
 local sirens: { types.siren } = {}
+local sirensByKeycode: {
+	{
+		keybind: Enum.KeyCode,
+		mode: "Hold" | "Siren" | "Modifier",
+		sirenId: number,
+	}
+} = {}
+local sirenNames: { string } = {}
 
 local function setupRotator(rotator: BasePart)
 	local motorPart = Instance.new("Part")
@@ -115,6 +124,16 @@ local function load()
 	functions = (require :: any)(functionsModule) :: { types.elsFunction }
 	sirens = (require :: any)(sirensModule) :: { types.siren }
 
+	for i, siren in sirens do
+		table.insert(sirenNames, i, siren.name)
+		for _, keybind in siren.keybinds :: { Enum.KeyCode } do
+			table.insert(sirensByKeycode, {
+				keybind = keybind,
+				mode = siren.type,
+				sirenId = i,
+			})
+		end
+	end
 
 	local lightTemplate = car:FindFirstChild("lightTemplate")
 	if lightTemplate ~= nil then
@@ -122,6 +141,19 @@ local function load()
 			lightTemplate = nil
 		end
 	end
+	local sirensLocationValue = car:FindFirstChild("SirensLocation")
+	if sirensLocationValue ~= nil and sirensLocationValue:IsA("ObjectValue") then
+		if sirensLocationValue.Value ~= nil then
+			sirensLocation = sirensLocationValue.Value
+
+			for _, sound in sirensLocationValue.Value:GetDescendants() do
+				if sound:IsA("Sound") then
+					sound:SetAttribute("defaultVolume", sound.Volume)
+				end
+			end
+		end
+	end
+
 	local possibleLights = {}
 	local possibleRotators = {}
 	for functionId, currentFunction in functions do
@@ -170,6 +202,8 @@ local function load()
 						)
 					end
 				end)
+			elseif activation.type == "Default" and activation.pattern ~= nil then
+				car:SetAttribute(currentFunction.name, activation.pattern)
 			end
 		end
 
@@ -229,6 +263,9 @@ local function load()
 			end
 		end
 	end
+	if lightTemplate ~= nil then
+		lightTemplate:Destroy()
+	end
 
 	car:AddTag("EVHVehicle")
 	initialized = true
@@ -246,6 +283,125 @@ if EVHEvent.Parent == nil or EVHEvent.Parent:IsA("Model") == false then
 	end)
 else
 	load()
+end
+
+local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
+	if sirensLocation == nil or siren.type == "Modifier" then
+		return
+	end
+
+	for _, modifier in siren.modifiers do
+		local modifierId = table.find(sirenNames, modifier.name)
+		if modifierId == nil then
+			continue
+		end
+		local modifierData = sirens[modifierId]
+		if modifierData == nil then
+			continue
+		end
+
+		if modifierData.enabled == true and siren.enabled == true then
+			if modifier.behavoir == "Play Automatically" or sirenTriggered == true then
+				for _, sound in sirensLocation:GetDescendants() do
+					if sound:IsA("Sound") and sound.Name == modifier.name then
+						sound:Play()
+						sound.TimePosition += modifier.delay
+					end
+				end
+
+				if modifier.parentSoundBehavior ~= "Plays Simultaneously" then
+					for _, sound in sirensLocation:GetDescendants() do
+						if sound:IsA("Sound") and sound.Name == siren.name then
+							sound:Stop()
+						end
+					end
+				end
+			end
+		else
+			for _, sound in sirensLocation:GetDescendants() do
+				if sound:IsA("Sound") and sound.Name == modifier.name then
+					sound:Stop()
+				end
+			end
+
+			if modifier.parentSoundBehavior ~= "Plays Simultaneously" then
+				for _, sound in sirensLocation:GetDescendants() do
+					if sound:IsA("Sound") and sound.Name == siren.name then
+						sound:Play()
+						sound.TimePosition -= modifier.delay
+					end
+				end
+			end
+		end
+	end
+end
+
+local function changeSiren(siren: types.siren, state: boolean)
+	if sirensLocation == nil then
+		return
+	end
+
+	if siren.type ~= "Modifier" then
+		for _, sound in sirensLocation:GetDescendants() do
+			if sound:IsA("Sound") then
+				local sirenId = table.find(sirenNames, sound.Name)
+				if sound.Name == siren.name then
+					if state == true then
+						sound:Play()
+						local originalVolume = sound:GetAttribute("defaultVolume")
+						if originalVolume ~= nil and typeof(originalVolume) == "number" then
+							sound.Volume = originalVolume
+						end
+					else
+						sound:Stop()
+					end
+				elseif siren.behavoir == "Overrides Other Sounds" and sirenId ~= nil then
+					if state == true then
+						if siren.type == "Hold" then
+							sound.Volume = 0
+						else
+							local sirenData = sirens[sirenId]
+							changeSiren(sirenData, false)
+						end
+					else
+						if siren.type == "Hold" then
+							local originalVolume = sound:GetAttribute("defaultVolume")
+							if originalVolume ~= nil and typeof(originalVolume) == "number" then
+								sound.Volume = originalVolume
+							end
+						end
+					end
+				end
+			end
+		end
+
+		siren.enabled = state
+		updateModifiers(siren, true)
+	else
+		siren.enabled = state
+		for _, sirenData in sirens do
+			updateModifiers(sirenData, false)
+		end
+	end
+
+	for _, currentFunction in functions do
+		for _, activation in currentFunction.activations do
+			if
+				activation.type == "Override"
+				and activation.mode == "Siren Override"
+				and activation.siren == siren.name
+			then
+				if activation.dependentFunction ~= nil and activation.dependentFunction ~= "" then
+					if car:GetAttribute(activation.dependentFunction) >= activation.dependentPattern then
+						car:SetAttribute(currentFunction.name, if state then 1 else 0)
+					end
+					car:SetAttribute(`shouldOverride{currentFunction.name}`, state)
+				else
+					car:SetAttribute(currentFunction.name, if state then 1 else 0)
+				end
+			end
+		end
+	end
 end
 
 script.Parent.OnServerEvent:Connect(function(player: Player, type: string, ...)
@@ -281,6 +437,31 @@ script.Parent.OnServerEvent:Connect(function(player: Player, type: string, ...)
 						car:SetAttribute(currentFunction.name, currentValue + 1)
 					elseif data.mode == "Set Pattern" then
 						car:SetAttribute(currentFunction.name, data.patternId or 0)
+					end
+				end
+			end
+
+			for _, data in sirensByKeycode do
+				if data.keybind == KeyCode then
+					local siren = sirens[data.sirenId]
+					if siren == nil then
+						continue
+					end
+					changeSiren(
+						siren,
+						if siren.type ~= "Hold" then if siren.enabled == true then false else true else true
+					)
+				end
+			end
+		elseif UserInputState == Enum.UserInputState.End then
+			for _, data in sirensByKeycode do
+				if data.keybind == KeyCode then
+					if data.mode == "Hold" then
+						local siren = sirens[data.sirenId]
+						if siren == nil then
+							continue
+						end
+						changeSiren(siren, false)
 					end
 				end
 			end

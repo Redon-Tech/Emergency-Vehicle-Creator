@@ -199,6 +199,8 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 
 	local newHandler = script.Parent.handler:Clone()
 	newHandler.Name = "Emergency Vehicle Handler"
+	local SirensLocation = Instance.new("ObjectValue")
+	SirensLocation.Name = "SirensLocation"
 
 	local isOldPluginInstalled, oldPlugin = self:hasEVCChassisPluginInstalled(model)
 	if isOldPluginInstalled == true and oldPlugin ~= nil then
@@ -277,6 +279,7 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 
 		local convertedFunctions: { types.elsFunction } = {}
 		local lightbarName = loadedSettings.LightbarName or loadedSettings.LightbarLocation or "Lightbar"
+		local sirenName = loadedSettings.SirenName or loadedSettings.SirenLocation or "middle"
 		local car = oldPlugin:FindFirstAncestorWhichIsA("Model")
 
 		if car ~= nil then
@@ -284,6 +287,11 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 			if body ~= nil then
 				local lightbar = body:FindFirstChild(lightbarName)
 				if lightbar ~= nil then
+					local sirenInstance = lightbar:FindFirstChild(sirenName)
+					if sirenInstance ~= nil then
+						SirensLocation.Value = sirenInstance
+					end
+
 					local moduleStore = lightbar:FindFirstChild("ModuleStore")
 					if moduleStore ~= nil then
 						for _, functionFolder in moduleStore:GetChildren() do
@@ -424,6 +432,7 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 
 						newHandler.EVHEvent.configuration.functions.Source = exportHeader
 							.. LuaEncode(convertedFunctions, LuaEncodeSettings)
+						moduleStore.Name = "NO LONGER USED, KEPT AS A BACKUP -> ModuleStore"
 					end
 				end
 			end
@@ -434,6 +443,7 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 
 	newHandler.Parent = plugins
 	newHandler.Enabled = true
+	SirensLocation.Parent = model
 	-- newHandler.EVHEvent.loader.Enabled = true
 	return true
 end

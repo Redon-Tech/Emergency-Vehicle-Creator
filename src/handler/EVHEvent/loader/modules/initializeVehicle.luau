@@ -26,6 +26,18 @@ return function(vehicle: Instance): types.vehicle?
 	local lights = {}
 	local lightConnectedGroups = {}
 
+	-- setup backwards compatibility
+	local oldLightConfiguration = (currentConfiguration.lightSettings :: any).optimizations
+	if oldLightConfiguration ~= nil then
+		currentConfiguration.lightSettings.configuration = {
+			shouldChangeNeons = oldLightConfiguration.shouldChangeNeons,
+			shouldChangeLights = oldLightConfiguration.shouldChangeLights,
+			shouldChangeLightos = oldLightConfiguration.shouldChangeLightos,
+			partTransparency = 0.011,
+		};
+		(currentConfiguration.lightSettings :: any).optimizations = nil
+	end
+
 	-- get lights
 	for _, currentFunction in pairs(currentConfiguration.functions) do
 		-- also since we are here, format the name properly

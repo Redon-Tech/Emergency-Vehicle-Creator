@@ -166,12 +166,14 @@ export type modifier = {
 export type siren = {
 	name: string,
 	type: "Siren" | "Hold",
+	enabled: boolean?,
 	behavoir: "Overrides Other Sounds" | "Plays Simultaneously",
 	keybinds: { Enum.KeyCode },
 	modifiers: { modifier },
 } | {
 	name: string,
 	type: "Modifier",
+	enabled: boolean?,
 	keybinds: { Enum.KeyCode },
 }
 
