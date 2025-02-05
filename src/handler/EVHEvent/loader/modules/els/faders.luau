@@ -8,6 +8,7 @@ local TweenService = game:GetService("TweenService")
 
 type faders = {
 	runningPatterns: { types.pattern },
+	returnToZero: { { vehicle: Instance, section: types.faderSection } },
 	setLightTransparency: (
 		vehicle: Instance,
 		functionId: number,
@@ -15,10 +16,12 @@ type faders = {
 		color: number,
 		transpareny: number
 	) -> (),
+	resetLightTransparency: (vehicle: Instance, lightName: string) -> (),
 	heartbeat: (deltaTime: number) -> (),
 }
 local faders = {
 	runningPatterns = {},
+	returnToZero = {},
 } :: faders
 
 function faders.heartbeat(deltaTime: number)
@@ -66,6 +69,40 @@ function faders.heartbeat(deltaTime: number)
 				)
 			end
 		end
+	end
+
+	for i, data in pairs(faders.returnToZero) do
+		local lastTween = data.section.data[data.section.currentTween or 1]
+		local currentPercentage = data.section.currentPercentage or 0
+
+		if currentPercentage >= 1 then
+			table.remove(faders.returnToZero, i)
+			data.section.currentPercentage = 0
+			data.section.previousGoal = 1
+			data.section.currentValue = 1
+			faders.resetLightTransparency(data.vehicle, data.section.lightName)
+			continue
+		end
+
+		currentPercentage += deltaTime / lastTween.time
+		data.section.currentPercentage = currentPercentage
+
+		local previousGoal = data.section.previousGoal or 0
+		data.section.currentValue = 1
+				* TweenService:GetValue(
+					currentPercentage,
+					lastTween.easingStyle or Enum.EasingStyle.Linear,
+					lastTween.easingDirection or Enum.EasingDirection.InOut
+				)
+			+ previousGoal
+
+		faders.setLightTransparency(
+			data.vehicle,
+			nil :: any,
+			data.section.lightName,
+			lastTween.color or 0,
+			data.section.currentValue or 0
+		)
 	end
 end
 

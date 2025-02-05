@@ -103,6 +103,7 @@ export type rotatorSection = {
 	currentPercentage: number?,
 	currentValue: number?,
 	previousGoal: number?,
+	currentLightState: number?,
 }
 
 export type pattern = {

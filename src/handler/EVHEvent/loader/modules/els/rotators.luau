@@ -31,10 +31,12 @@ function rotators.heartbeat(deltaTime: number)
 			data.currentAngle = angleId
 			local currentAngle = currentAngles[angleId]
 			if currentAngle.type == "Angle" then
-				rotators.flash(pattern.vehicle, pattern.functionId, data.lightName, currentAngle.color or 0)
+				if currentAngle.color ~= 0 then
+					rotators.flash(pattern.vehicle, pattern.functionId, data.lightName, currentAngle.color or 0)
+				end
 				local currentRotation = data.currentValue or 0
 				local goal = math.rad(currentAngle.angle or 90)
-				local velocity: number = currentAngle.velocity or 0.1
+				local velocity: number = math.abs(currentAngle.velocity or 0.1)
 
 				local difference = goal - currentRotation
 				if math.abs(difference) == 0 then
@@ -49,7 +51,9 @@ function rotators.heartbeat(deltaTime: number)
 					rotators.setRotation(pattern.vehicle, pattern.functionId, data.lightName, currentRotation)
 				end
 			elseif currentAngle.type == "Infinite" then
-				rotators.flash(pattern.vehicle, pattern.functionId, data.lightName, currentAngle.color or 0)
+				if currentAngle.color ~= 0 then
+					rotators.flash(pattern.vehicle, pattern.functionId, data.lightName, currentAngle.color or 0)
+				end
 				local currentRotation = data.currentValue or 0
 				local velocity: number = currentAngle.velocity or 0.1
 
@@ -68,9 +72,10 @@ function rotators.heartbeat(deltaTime: number)
 	end
 
 	for i, data in rotators.returnToZero do
+		-- data.section.currentLightState = 0
 		local lastAngle = data.section.data[data.section.currentAngle or 1]
 		local currentRotation = (data.section.currentValue or 0) % (math.pi * 2)
-		local velocity: number = lastAngle.velocity or 0.1
+		local velocity: number = math.abs(lastAngle.velocity or 0.1)
 
 		local difference = -currentRotation
 		if math.abs(difference) == 0 then

@@ -173,7 +173,7 @@ local function setLightTransparency(
 	if colorData == nil then
 		return
 	end
-	if lightData.runningFunction ~= functionId then
+	if lightData.runningFunction ~= functionId and lightData.returnToZero ~= true then
 		return
 	end
 
@@ -183,7 +183,7 @@ local function setLightTransparency(
 
 	for _, part in lightData.parts do
 		if part.Name ~= lightName then
-			if vehicleData.lights[part.Name].runningFunction ~= functionId then
+			if vehicleData.lights[part.Name].runningFunction ~= functionId and lightData.returnToZero ~= true then
 				continue
 			end
 			if vehicleData.lights[part.Name].currentState ~= color then
@@ -231,9 +231,58 @@ local function setLightTransparency(
 	lightData.currentState = color
 end
 
+local function resetLightTransparency(vehicle: Instance, lightName: string)
+	local vehicleData = vehicles[vehicle]
+	if vehicleData == nil then
+		return
+	end
+	local lightData = vehicleData.lights[lightName]
+	if lightData.returnToZero ~= true then
+		return
+	end
+
+	for _, part in lightData.parts do
+		if part.Name ~= lightName then
+			if lightData.returnToZero ~= true then
+				continue
+			end
+			local otherLightData = vehicleData.lights[part.Name]
+			changeLight(vehicle, otherLightData.runningFunction :: any, lightName, false)
+			otherLightData.currentState = 0
+		end
+		local lightInstances = lights[part]
+		if lightInstances == nil then
+			continue
+		end
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeLights == true then
+			for _, light in lightInstances.lights do
+				light.Brightness = light:GetAttribute("defaultBrightness") :: number
+			end
+		end
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeLightos == true then
+			for _, lighto in lightInstances.colorableLightos do
+				for _, image in lighto.images do
+					image.ImageTransparency = image:GetAttribute("defaultImageTransparency") :: number
+				end
+			end
+
+			for _, nonColorableLightos in lightInstances.lightos do
+				for _, lighto in nonColorableLightos do
+					for _, image in lighto.images do
+						image.ImageTransparency = image:GetAttribute("defaultImageTransparency") :: number
+					end
+				end
+			end
+		end
+	end
+	changeLight(vehicle, lightData.runningFunction :: any, lightName, false)
+	lightData.currentState = 0
+end
+
 flashers.flash = flashLight
 rotators.flash = flashLight
 faders.setLightTransparency = setLightTransparency
+faders.resetLightTransparency = resetLightTransparency
 
 local function setRotation(vehicle: Instance, functionId: number, lightName: string, rad: number)
 	local vehicleData = vehicles[vehicle]
@@ -378,34 +427,7 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 
 		for _, fader in pattern.faders do
 			updateLightRunningFunction(vehicle, fader.lightName, functionId, false)
-			local lightData = vehicleData.lights[fader.lightName]
-			for _, part in lightData.parts do
-				local lightInstances = lights[part]
-				if lightInstances == nil then
-					continue
-				end
-				if vehicleData.configuration.lightSettings.optimizations.shouldChangeLights == true then
-					for _, light in lightInstances.lights do
-						light.Enabled = true
-						light.Brightness = light:GetAttribute("defaultBrightness") :: number
-					end
-				end
-				if vehicleData.configuration.lightSettings.optimizations.shouldChangeLightos == true then
-					for _, lighto in lightInstances.colorableLightos do
-						for _, image in lighto.images do
-							image.ImageTransparency = image:GetAttribute("defaultImageTransparency") :: number
-						end
-					end
-
-					for _, nonColorableLightos in lightInstances.lightos do
-						for _, lighto in nonColorableLightos do
-							for _, image in lighto.images do
-								image.ImageTransparency = image:GetAttribute("defaultImageTransparency") :: number
-							end
-						end
-					end
-				end
-			end
+			table.insert(faders.returnToZero, { vehicle = vehicle, section = fader })
 		end
 
 		for _, rotator in pattern.rotators do
@@ -424,6 +446,7 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 
 		for _, fader in pattern.faders do
 			updateLightRunningFunction(vehicle, fader.lightName, functionId, true)
+			vehicleData.lights[fader.lightName].returnToZero = false
 		end
 
 		for _, rotator in pattern.rotators do
@@ -506,7 +529,7 @@ local function vehicleAdded(vehicle: Instance)
 	end
 
 	if
-		(isPrimary == true and vehicle:GetAttribute("version") >= version)
+		(isPrimary == true and vehicle:GetAttribute("version") <= version)
 		or (isPrimary == false and vehicle:GetAttribute("version") == version)
 	then
 		local uuid = vehicle:GetAttribute("uuid")
@@ -546,10 +569,14 @@ local function vehicleAdded(vehicle: Instance)
 						vehicleFunctionUpdate(vehicle, functionData.name, functionId)
 					end)
 				)
-				vehicleFunctionUpdate(vehicle, functionData.name, functionId)
 			end
 
 			vehicles[vehicle] = vehicleData
+
+			-- Check for existing function values
+			for functionId, functionData in vehicleData.configuration.functions do
+				vehicleFunctionUpdate(vehicle, functionData.name, functionId)
+			end
 		end
 	end
 end

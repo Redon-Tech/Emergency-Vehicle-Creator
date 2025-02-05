@@ -61,7 +61,7 @@ function flashers.removePattern(pattern: types.pattern)
 		end
 
 		for i, runningData in pairs(threads[flasherSection.waitTime].running) do
-			if runningData.functionId == pattern.functionId then
+			if runningData.functionId == pattern.functionId and runningData.vehicle == pattern.vehicle then
 				table.remove(threads[flasherSection.waitTime].running, i)
 			end
 		end
