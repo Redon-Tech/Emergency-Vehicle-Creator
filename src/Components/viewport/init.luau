@@ -211,6 +211,9 @@ return function(baseScope: types.Scope, props: props)
 				-- to ensure proper cascading of changes
 				currentVehicleFolder:set(vehicleFolder)
 			end
+		elseif scope.peek(props.Mode) == "viewport" and currentVehicle == nil then
+			props.Mode:set("menu")
+			log.warn("Got sent to viewport mode without a vehicle")
 		end
 	end
 	scope:Observer(props.Mode):onChange(modeChange)

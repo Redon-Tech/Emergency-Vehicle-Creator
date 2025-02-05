@@ -211,8 +211,8 @@ return function(
 								return
 							end
 							props.cleanupCustomization()
-							props.CurrentVehicle:set(nil)
 							props.Mode:set("menu")
+							props.CurrentVehicle:set(nil)
 						end :: unknown,
 
 						MaxTextSize = 35,
