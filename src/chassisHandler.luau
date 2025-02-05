@@ -211,7 +211,7 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 		local loadedSettings = (require :: any)(oldSettings)
 		local secondaryKeybinds: { [Enum.KeyCode]: Enum.KeyCode } = {}
 		if loadedSettings.SecondaryKeybinds ~= nil and typeof(loadedSettings.SecondaryKeybinds) == "table" then
-			for keybind: Enum.KeyCode, secondaryKeybind: Enum.KeyCode in pairs(loadedSettings.SecondaryKeybinds) do
+			for keybind: Enum.KeyCode, secondaryKeybind: Enum.KeyCode in loadedSettings.SecondaryKeybinds do
 				secondaryKeybinds[keybind] = secondaryKeybind
 			end
 		end
@@ -328,12 +328,12 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 													loadedModule.Lights ~= nil
 													and typeof(loadedModule.Lights) == "table"
 												then
-													for lightName, lightData in pairs(loadedModule.Lights) do
+													for lightName, lightData in loadedModule.Lights do
 														local newColumn = {
 															lightName = lightName,
 															rows = {},
 														}
-														for _, color in pairs(lightData) do
+														for _, color in lightData do
 															table.insert(newColumn.rows, color)
 														end
 														table.insert(newFlasher.columns, newColumn)
@@ -349,12 +349,12 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 													loadedModule.Rotators ~= nil
 													and typeof(loadedModule.Rotators) == "table"
 												then
-													for lightName, lightData in pairs(loadedModule.Rotators) do
+													for lightName, lightData in loadedModule.Rotators do
 														local newRotator: types.rotatorSection = {
 															lightName = lightName,
 															data = {},
 														}
-														for _, data in pairs(lightData) do
+														for _, data in lightData do
 															local newData = {
 																type = "Angle" :: "Angle",
 																color = data.Color,
@@ -371,12 +371,12 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 													loadedModule.Faders ~= nil
 													and typeof(loadedModule.Faders) == "table"
 												then
-													for lightName, lightData in pairs(loadedModule.Faders) do
+													for lightName, lightData in loadedModule.Faders do
 														local newFader: types.faderSection = {
 															lightName = lightName,
 															data = {},
 														}
-														for _, data in pairs(lightData) do
+														for _, data in lightData do
 															local newData = {
 																type = "Advanced" :: "Advanced",
 																time = data.Time,
@@ -559,23 +559,23 @@ end
 
 function chassisHandler.getLights(currentConfiguration: chassisConfiguration, model: Instance): { string }
 	local possibleLights = {}
-	for _, functions in pairs(currentConfiguration.functions) do
-		for _, pattern in pairs(functions.patterns) do
-			for _, flasher in pairs(pattern.flashers) do
-				for _, columns in pairs(flasher.columns) do
+	for _, functions in currentConfiguration.functions do
+		for _, pattern in functions.patterns do
+			for _, flasher in pattern.flashers do
+				for _, columns in flasher.columns do
 					if table.find(possibleLights, columns.lightName) == nil then
 						table.insert(possibleLights, columns.lightName)
 					end
 				end
 			end
 
-			for _, fader in pairs(pattern.faders) do
+			for _, fader in pattern.faders do
 				if table.find(possibleLights, fader.lightName) == nil then
 					table.insert(possibleLights, fader.lightName)
 				end
 			end
 
-			for _, rotator in pairs(pattern.rotators) do
+			for _, rotator in pattern.rotators do
 				if table.find(possibleLights, rotator.lightName) == nil then
 					table.insert(possibleLights, rotator.lightName)
 				end
@@ -583,7 +583,7 @@ function chassisHandler.getLights(currentConfiguration: chassisConfiguration, mo
 		end
 	end
 
-	for _, lightGroup in pairs(currentConfiguration.lightSettings.lightGroups) do
+	for _, lightGroup in currentConfiguration.lightSettings.lightGroups do
 		local possibleIndex = table.find(possibleLights, lightGroup.name)
 		if possibleIndex ~= nil then
 			table.remove(possibleLights, possibleIndex)
@@ -594,7 +594,7 @@ function chassisHandler.getLights(currentConfiguration: chassisConfiguration, mo
 		if vehicle:isVehicleCustomizable(model) then
 			local outfittingFolder = vehicle:getOutfitting(model)
 			if outfittingFolder ~= nil then
-				for _, lightPart in pairs(outfittingFolder.model:GetDescendants()) do
+				for _, lightPart in outfittingFolder.model:GetDescendants() do
 					if lightPart:IsA("BasePart") and lightPart.Parent ~= nil and lightPart.Parent.Name == "_LIGHTS" then
 						if table.find(possibleLights, lightPart.Name) == nil then
 							table.insert(possibleLights, lightPart.Name)

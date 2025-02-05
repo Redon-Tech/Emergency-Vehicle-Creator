@@ -41,7 +41,6 @@ local keybindsToFunction: {
 local sirens: { types.siren } = {}
 
 local function setupRotator(rotator: BasePart)
-	print(rotator)
 	local motorPart = Instance.new("Part")
 	motorPart.Name = `motor{rotator.Name}`
 	motorPart.Size = Vector3.new(0.1, 0.1, 0.1)
@@ -72,19 +71,19 @@ local function setupRotator(rotator: BasePart)
 	motor:SetAttribute("C1", motor.C1)
 	motor.Parent = rotator
 
-	for _, v in pairs(rotator:GetChildren()) do
+	for _, v in rotator:GetChildren() do
 		if v:IsA("WeldConstraint") and v.Part1 == driveSeat then
 			v:Destroy()
 		end
 	end
 
-	for _, v in pairs(driveSeat:GetChildren()) do
+	for _, v in driveSeat:GetChildren() do
 		if v:IsA("Weld") and v.Part1 == rotator then
 			v:Destroy()
 		end
 	end
 
-	for _, v in pairs(JointsService:GetDescendants()) do
+	for _, v in JointsService:GetDescendants() do
 		if v:IsA("Weld") and v.Part1 == rotator then
 			v:Destroy()
 		end
@@ -128,7 +127,7 @@ local function load()
 	end
 	local possibleLights = {}
 	local possibleRotators = {}
-	for functionId, currentFunction in pairs(functions) do
+	for functionId, currentFunction in functions do
 		currentFunction.name = currentFunction.name:gsub("[^%a%d]", "")
 		car:SetAttribute(currentFunction.name, 0)
 		car:GetAttributeChangedSignal(currentFunction.name):Connect(function()
@@ -144,10 +143,10 @@ local function load()
 			end
 		end)
 
-		for _, activation in pairs(currentFunction.activations) do
+		for _, activation in currentFunction.activations do
 			if activation.type == "Standard" then
 				if activation.keybinds then
-					for _, keybind in pairs(activation.keybinds) do
+					for _, keybind in activation.keybinds do
 						table.insert(keybindsToFunction, {
 							keybind = keybind,
 							functionId = functionId,
@@ -177,22 +176,22 @@ local function load()
 			end
 		end
 
-		for _, pattern in pairs(currentFunction.patterns) do
-			for _, flasher in pairs(pattern.flashers) do
-				for _, columns in pairs(flasher.columns) do
+		for _, pattern in currentFunction.patterns do
+			for _, flasher in pattern.flashers do
+				for _, columns in flasher.columns do
 					if table.find(possibleLights, columns.lightName) == nil then
 						table.insert(possibleLights, columns.lightName)
 					end
 				end
 			end
 
-			for _, fader in pairs(pattern.faders) do
+			for _, fader in pattern.faders do
 				if table.find(possibleLights, fader.lightName) == nil then
 					table.insert(possibleLights, fader.lightName)
 				end
 			end
 
-			for _, rotator in pairs(pattern.rotators) do
+			for _, rotator in pattern.rotators do
 				if table.find(possibleLights, rotator.lightName) == nil then
 					table.insert(possibleLights, rotator.lightName)
 				end
@@ -202,9 +201,9 @@ local function load()
 			end
 		end
 	end
-	for _, lightGroup in pairs(lightSettings.lightGroups) do
+	for _, lightGroup in lightSettings.lightGroups do
 		local isRotator = if table.find(possibleRotators, lightGroup.name) ~= nil then true else false
-		for _, lightName in pairs(lightGroup.lights) do
+		for _, lightName in lightGroup.lights do
 			if table.find(possibleLights, lightName) == nil then
 				table.insert(possibleLights, lightName)
 			end
@@ -216,8 +215,7 @@ local function load()
 		end
 	end
 
-	print(possibleRotators)
-	for _, light in pairs(car:GetDescendants()) do
+	for _, light in car:GetDescendants() do
 		if light:IsA("BasePart") then
 			if table.find(possibleLights, light.Name) ~= nil then
 				light:AddTag(`{uuid}_LIGHT`)
@@ -275,7 +273,7 @@ script.Parent.OnServerEvent:Connect(function(player: Player, type: string, ...)
 		end
 
 		if UserInputState == Enum.UserInputState.Begin then
-			for _, data in pairs(keybindsToFunction) do
+			for _, data in keybindsToFunction do
 				if data.keybind == KeyCode then
 					local currentFunction = functions[data.functionId]
 					if data.mode == "Cycle" then
