@@ -1,1 +1,1 @@
-rojo build --output "$env:localappdata\Roblox\Plugins\Emergency-Vehicle-Creator.rbxmx"
+pesde x pesde/rojo -- build --output "$env:localappdata\Roblox\Plugins\Emergency-Vehicle-Creator-v3.rbxmx"

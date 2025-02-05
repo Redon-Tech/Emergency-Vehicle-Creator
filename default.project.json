@@ -2,11 +2,11 @@
 	"name": "Emergency-Vehicle-Creator",
 	"tree": {
 		"$className": "Folder",
-		"src": {
+		"Plugin": {
 			"$path": "src"
 		},
-		"packages": {
-			"$path": "packages"
+		"Packages": {
+			"$path": "roblox_packages"
 		},
 		"LICENSE": {
 			"$path": "LICENSE.luau"

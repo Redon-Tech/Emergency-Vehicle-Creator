@@ -1,40 +1,65 @@
-<h1 align="center">Emergency Vehicle Creator</h1>
+<h1 align="center"> <img src="/docs/assets/EVC.png" alt="Icon" height=35 vertical-align="middle" /> Emergency Vehicle Creator </h1>
 
 <div align="center">
   
+  [![Install on Roblox](https://img.shields.io/badge/Install%20on-Roblox-00A2FF?style=for-the-badge&logo=robloxstudio&logoColor=ffffff&labelColor=302d41)](https://create.roblox.com/store/asset/9953321418/)
+  [![Static Badge](https://img.shields.io/badge/Documentation-cba6f7?style=for-the-badge&logo=materialformkdocs&logoColor=ffffff&labelColor=302d41)](https://evc.redon.tech)
   [![Discord](https://img.shields.io/discord/536555061510144020?label=discord&logo=discord&logoColor=rgb(255,255,255)&labelColor=302d41&style=for-the-badge)](https://discord.gg/Eb384Xw)
-  [![GitHub](https://img.shields.io/github/license/redon-tech/Emergency-Vehicle-Creator?&logoColor=rgb(255,255,255)&labelColor=302d41&style=for-the-badge)](https://mit-license.org/)
-  [![Latest Release](https://img.shields.io/github/v/release/redon-tech/Emergency-Vehicle-Creator?&logoColor=rgb(255,255,255)&labelColor=302d41&style=for-the-badge)](https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases)
-  [![Commits Since Latest](https://img.shields.io/github/commits-since/redon-tech/Emergency-Vehicle-Creator/latest?logoColor=rgb(255,255,255)&labelColor=302d41&style=for-the-badge)](https://github.com/Redon-Tech/Emergency-Vehicle-Creator/commits/main)
-  
+  [![Latest Release](https://img.shields.io/github/v/release/redon-tech/Emergency-Vehicle-Creator?logo=githubactions&logoColor=rgb(255,255,255)&labelColor=302d41&style=for-the-badge)](https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases)
+
 </div>
 
-# Overview
+---
 
-The Redon Tech Emergency Vehcile Creator is a plugin for Roblox inspired by Siren Tool by Dawnstar FiveM. This plugin aims to make the creation of emergency vehicles on Roblox faster and easier for everyone, while being 100% free and open source.
+![Beautiful screenshot of rotator creator](/docs/assets/img/EVC-Dropshadow.png)
 
-## Features
+# Unleash your creativity
 
-- ELS Creation
-- Saving/Loading Patterns
-- Exporting as a standard ELS controller
-- Custom A-Chassis plugin for ELS controlling
-- AG-Chassis support
-- Rotators
-- Fading Light Support
+Emergency Vehicle Creator is a plugin that allows you to easily create emergency vehicles in Roblox Studio.
 
-## Planned Features
+Version 3 is designed to be more user-friendly and efficient than ever before.
 
-- And much more features yet to be disclosed!
+No coding required, just your creativity. Start creating your vehicles today.
 
-## Installation
+## Interested?
 
-[Video](https://youtu.be/V2dkDgH1Sio)
+Installing is easy, just get it from the [Roblox marketplace](https://create.roblox.com/store/asset/9953321418/) or download and manually install from the [latest release](https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/latest).
 
-# Contributor Information
+---
 
-The "build" branch is only for full releases, any development should go onto the "main" branch.
+## Contributing & Issues
 
-## To Do
+Coming Soon
 
-**To Be Updated**
+Emergency Vehicle Handler Outline
+```
+Emergency Vehicle Handler
+  EVHEvent
+    loader
+      modules
+        TODO
+      EVHServer (Only runs in studio)
+      EVHClient
+    configuration
+      lightFunction
+      functions
+      sirens
+      lightGroups
+```
+[tree gen](https://tree.nathanfriend.com/?s=(%27op0s!(%27fancy!true~fullPath!false~trailingSlash!true~rootDot!false)~2(%272%27.Emergency%20Vehicle%20Handler.-EVHEv3loader*modules*-TODO6Server%20%7BOnly%20runs%20in%20studio%7D6Cli3configura04F5*f5s*sirens4Groups%27)~version!%271%27)*.----%20%20.%5Cn0tion2source!3ent.--4*light5unc06*EVH%01654320.-*)
+
+Known Bugs:
+- [ ] Need an UIAspectRatio Constraint somewhere
+- [ ] ~~Sirens delete two when you delete one~~
+- [ ] Renaming a fader doesnt rename it properly on the export sometimes
+- [ ] Flashers fake bloom zindex problem
+- [ ] Settings menu dropdowns text is small
+- [ ] If no colors are available, completely fucks everything
+- [ ] V2 to V3 scrambles everything around in the menu (it also needs to ensure that each activation has two keybinds)
+- [ ] Sometimes setting weight or pattern higher can cause problems
+- [x] Going to vehicle setup can sometimes cause return to to be set to vehicle setup instead of main menu
+- [ ] Color selector appears on ui reload
+- [x] Explorer badges not working
+- [x] No credits
+- [ ] Light prefix needs to take the name of lights from the original customization model then replace it with the new name
+- [ ] Does not like name without numbers (or not hitting enter)
