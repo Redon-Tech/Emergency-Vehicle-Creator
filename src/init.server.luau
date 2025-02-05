@@ -131,6 +131,7 @@ local returnTo = scope:Value("menu" :: types.returnTo)
 local theme = scope.peek(pluginSettings.values.theme)
 
 -- UI Initialization
+colorPicker(scope, { id = "evcColorPicker", initialColor = Color3.fromRGB(255, 255, 255) })
 local activeScope: Fusion.Scope<typeof(scope)>? = nil
 local function initUI()
 	local themeToUse = nil
@@ -149,7 +150,6 @@ local function initUI()
 		if activeScope == nil then
 			return {}
 		end
-		colorPicker(scope, { id = "evcColorPicker", initialColor = Color3.fromRGB(255, 255, 255) })
 		local popupFrame, isPopupShown = activeScope.popup:container(scope)
 		local menuWidget = activeScope:menu {
 			Name = name,
