@@ -81,8 +81,8 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 		Title = scope:Computed(function(use)
 			return `EVC {use(currentPanel)} ({use(props.Version)}) {if use(unsavedChanges)
-				then "Unsaved Changes"
-				else ""} 1152x648`
+				then "Unsaved Changes*"
+				else ""}`
 		end),
 
 		Enabled = scope:Computed(function(use)
@@ -91,6 +91,15 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				currentPanel:set("Vehicle Setup")
 				currentPage:set("Functions")
 			elseif enable and scope.peek(props.PossibleVehicle) == nil then
+				currentPattern:set({
+					functionId = 0,
+					patternId = 0,
+					pattern = {
+						flashers = {},
+						faders = {},
+						rotators = {},
+					},
+				})
 				currentPanel:set("ELS Setup")
 				currentPage:set("Flashers")
 			end
@@ -116,6 +125,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						CurrentVehicle = props.CurrentVehicle,
 						ReturnTo = props.ReturnTo,
 						Mode = props.Mode,
+						CurrentPattern = currentPattern,
 					},
 
 					functions(scope, {

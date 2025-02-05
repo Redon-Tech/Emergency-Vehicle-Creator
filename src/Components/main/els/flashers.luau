@@ -10,6 +10,7 @@ local chassisHandler = require(root.Plugin.chassisHandler)
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
 local settings = require(root.Plugin.settings)
+local utils = require(root.Plugin.utils)
 
 type props = {
 	UnsavedChanges: Fusion.Value<boolean>,
@@ -61,7 +62,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	end
 
 	local currentConfiguration: chassisHandler.chassisConfiguration? = nil
-	local colors: Fusion.Value<{ chassisHandler.color }> = scope:Value({})
+	local colors: Fusion.Value<{ chassisHandler.color }> = scope:Value(chassisHandler.defaults.colors)
 	local currentColor = scope:Value(1)
 	local drawing = 0 -- -1 = remove, 0 = none, 1 = add
 	local playing = scope:Value(false)
@@ -76,7 +77,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 	local function updateCurrentConfiguration()
 		local currentPattern = scope.peek(props.CurrentPattern)
-		if currentConfiguration ~= nil and currentPattern ~= nil then
+		if currentPattern ~= nil then
 			local assembledSections = {}
 			for i, section in scope.peek(sections) do
 				local assembledSection: types.flasherSection = {
@@ -98,13 +99,11 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				table.insert(assembledSections, i, assembledSection)
 			end
 
-			if currentPattern.pattern.flashers == assembledSections then
+			if utils.compareTables(currentPattern.pattern.flashers, assembledSections) == true then
 				return
 			end
 
 			currentPattern.pattern.flashers = assembledSections
-			currentConfiguration.functions[currentPattern.functionId].patterns[currentPattern.patternId] =
-				currentPattern.pattern
 			props.UnsavedChanges:set(true)
 		end
 	end
@@ -145,10 +144,14 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	scope:Observer(props.CurrentPattern):onChange(function()
 		local currentPattern = scope.peek(props.CurrentPattern)
 		local currentVehicle = scope.peek(props.CurrentVehicle)
-		if currentPattern ~= nil and typeof(currentVehicle) == "Instance" then
-			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
-			if currentConfiguration ~= nil then
-				colors:set(currentConfiguration.lightSettings.colors)
+		if currentPattern ~= nil then
+			if typeof(currentVehicle) == "Instance" then
+				currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
+				if currentConfiguration ~= nil then
+					colors:set(currentConfiguration.lightSettings.colors)
+				else
+					colors:set(chassisHandler.defaults.colors)
+				end
 			end
 
 			local flashers = currentPattern.pattern.flashers
@@ -178,7 +181,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			columns = newColumns
 			log.debug(newSections)
 			sections:set(newSections)
-			updateCurrentConfiguration()
 		end
 	end)
 
@@ -310,7 +312,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		),
 		Size = UDim2.fromScale(1, 0.9537037037),
 		BackgroundTransparency = 1,
-		ClipsDescendants = true,
 
 		[Fusion.OnEvent "InputBegan"] = function(input: InputObject)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -346,921 +347,672 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 		[Fusion.Children] = {
 			scope:base {
-				ClassName = "ScrollingFrame",
 				Name = "Header",
 				AnchorPoint = Vector2.new(0, 0),
 				Position = UDim2.fromScale(0, 0),
 				Size = UDim2.fromScale(1, 0.0582524272),
 				BackgroundColor3 = currentTheme.colors.mantle,
-				CanvasSize = UDim2.new(),
-				ScrollBarThickness = 3,
-				ScrollBarImageColor3 = currentTheme.colors.text,
-				TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
-				BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
-				AutomaticCanvasSize = Enum.AutomaticSize.X,
-				ClipsDescendants = false,
 
-				[Fusion.Children] = Fusion.Child {
-					scope:New "UIListLayout" {
-						Padding = UDim.new(0.0078125, 0),
-						FillDirection = Enum.FillDirection.Horizontal,
-						HorizontalAlignment = scope:Computed(function(use)
-							return use(headerSize).X > use(size).X and Enum.HorizontalAlignment.Left
-								or Enum.HorizontalAlignment.Center
-						end),
-						VerticalAlignment = Enum.VerticalAlignment.Center,
-						SortOrder = Enum.SortOrder.LayoutOrder,
-						[Fusion.Out "AbsoluteContentSize"] = headerSize :: unknown,
-					},
+				[Fusion.Children] = {
+					scope:base {
+						ClassName = "ScrollingFrame",
+						AnchorPoint = Vector2.new(0.5, 0.5),
+						Position = UDim2.fromScale(0.5, 0.5),
+						Size = UDim2.fromScale(1, 1),
+						BackgroundTransparency = 1,
+						CanvasSize = UDim2.new(),
+						ScrollBarThickness = 3,
+						ScrollBarImageColor3 = currentTheme.colors.text,
+						TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+						BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+						AutomaticCanvasSize = Enum.AutomaticSize.X,
+						ClipsDescendants = false,
 
-					scope:ForPairs(colors, function(_, scope: typeof(scope), key: number, value: chassisHandler.color)
-						local color = getColorByName(value.name, value.lightoColor)
-						return key,
-							scope:textButton {
-								Size = UDim2.fromScale(0.078125, 0.8333333333),
-								Text = value.name,
-								TextScaled = true,
-								MaxTextSize = 35,
+						[Fusion.Children] = Fusion.Child {
+							scope:New("UIAspectRatioConstraint") {
+								AspectRatio = 32,
+							},
+
+							scope:New "UIListLayout" {
+								Padding = UDim.new(0.0078125, 0),
+								FillDirection = Enum.FillDirection.Horizontal,
+								HorizontalAlignment = scope:Computed(function(use)
+									return use(headerSize).X > use(size).X and Enum.HorizontalAlignment.Left
+										or Enum.HorizontalAlignment.Center
+								end),
+								VerticalAlignment = Enum.VerticalAlignment.Center,
+								SortOrder = Enum.SortOrder.LayoutOrder,
+								[Fusion.Out "AbsoluteContentSize"] = headerSize :: unknown,
+							},
+
+							scope:ForPairs(
+								colors,
+								function(_, scope: typeof(scope), key: number, value: chassisHandler.color)
+									local color = getColorByName(value.name, value.lightoColor)
+									return key,
+										scope:textButton {
+											Size = UDim2.fromScale(0.078125, 0.8333333333),
+											Text = value.name,
+											TextScaled = true,
+											MaxTextSize = 35,
+											CornerRadius = UDim.new(0.2, 0),
+											Border = 2,
+											Reactive = true,
+											BackgroundColor3 = scope:Computed(function(use)
+												return if use(currentColor) == key
+													then color
+													else currentTheme.colors.mantle
+											end),
+											TextColor3 = scope:Computed(function(use)
+												return if use(currentColor) == key
+													then currentTheme.colors.mantle
+													else color
+											end),
+											LayoutOrder = key,
+
+											[Fusion.OnEvent "Activated"] = function()
+												currentColor:set(key)
+											end,
+										}
+								end
+							),
+
+							scope:iconButton {
+								Size = UDim2.fromScale(0.0260416667, 0.8333333333),
 								CornerRadius = UDim.new(0.2, 0),
 								Border = 2,
 								Reactive = true,
-								BackgroundColor3 = scope:Computed(function(use)
-									return if use(currentColor) == key then color else currentTheme.colors.mantle
+								LayoutOrder = 100,
+								Image = scope:Computed(function(use)
+									local isPlaying = use(playing)
+									return if isPlaying
+										then assets.images.redonUI.pause
+										else if use(playHovered)
+											then assets.images.redonUI.playFilled
+											else assets.images.redonUI.play
 								end),
-								TextColor3 = scope:Computed(function(use)
-									return if use(currentColor) == key then currentTheme.colors.mantle else color
-								end),
-								LayoutOrder = key,
-
-								[Fusion.OnEvent "Activated"] = function()
-									currentColor:set(key)
+								BackgroundColor3 = currentTheme.colors.mantle,
+								ImageColor3 = currentTheme.colors.text,
+								MouseEnter = function()
+									playHovered:set(true)
 								end,
-							}
-					end),
+								MouseLeave = function()
+									playHovered:set(false)
+								end,
+								[Fusion.OnEvent "Activated"] = function()
+									playing:set(not scope.peek(playing))
+								end,
+							},
 
-					scope:iconButton {
-						Size = UDim2.fromScale(0.0260416667, 0.8333333333),
-						CornerRadius = UDim.new(0.2, 0),
-						Border = 2,
-						Reactive = true,
-						LayoutOrder = 100,
-						Image = scope:Computed(function(use)
-							local isPlaying = use(playing)
-							return if isPlaying
-								then assets.images.redonUI.pause
-								else if use(playHovered)
-									then assets.images.redonUI.playFilled
-									else assets.images.redonUI.play
-						end),
-						BackgroundColor3 = currentTheme.colors.mantle,
-						ImageColor3 = currentTheme.colors.text,
-						MouseEnter = function()
-							playHovered:set(true)
-						end,
-						MouseLeave = function()
-							playHovered:set(false)
-						end,
-						[Fusion.OnEvent "Activated"] = function()
-							playing:set(not scope.peek(playing))
-						end,
-					},
+							scope:iconButton {
+								Size = UDim2.fromScale(0.0260416667, 0.8333333333),
+								CornerRadius = UDim.new(0.2, 0),
+								Border = 2,
+								Reactive = true,
+								LayoutOrder = 101,
+								Image = scope:Computed(function(use)
+									local hovering = use(lockedHovered)
+									return if use(locked)
+										then if hovering
+											then assets.images.redonUI.lockClosedFilled
+											else assets.images.redonUI.lockClosed
+										else if hovering
+											then assets.images.redonUI.lockOpenFilled
+											else assets.images.redonUI.lockOpen
+								end),
+								BackgroundColor3 = currentTheme.colors.mantle,
+								ImageColor3 = currentTheme.colors.text,
+								MouseEnter = function()
+									lockedHovered:set(true)
+								end,
+								MouseLeave = function()
+									lockedHovered:set(false)
+								end,
+								[Fusion.OnEvent "Activated"] = function()
+									locked:set(not scope.peek(locked))
+								end,
+							},
 
-					scope:iconButton {
-						Size = UDim2.fromScale(0.0260416667, 0.8333333333),
-						CornerRadius = UDim.new(0.2, 0),
-						Border = 2,
-						Reactive = true,
-						LayoutOrder = 101,
-						Image = scope:Computed(function(use)
-							local hovering = use(lockedHovered)
-							return if use(locked)
-								then if hovering
-									then assets.images.redonUI.lockClosedFilled
-									else assets.images.redonUI.lockClosed
-								else if hovering
-									then assets.images.redonUI.lockOpenFilled
-									else assets.images.redonUI.lockOpen
-						end),
-						BackgroundColor3 = currentTheme.colors.mantle,
-						ImageColor3 = currentTheme.colors.text,
-						MouseEnter = function()
-							lockedHovered:set(true)
-						end,
-						MouseLeave = function()
-							lockedHovered:set(false)
-						end,
-						[Fusion.OnEvent "Activated"] = function()
-							locked:set(not scope.peek(locked))
-						end,
-					},
-
-					scope:iconButton {
-						Size = UDim2.fromScale(0.0260416667, 0.8333333333),
-						CornerRadius = UDim.new(0.2, 0),
-						Border = 2,
-						Reactive = true,
-						LayoutOrder = 102,
-						Image = assets.images.redonUI.refresh,
-						BackgroundColor3 = currentTheme.colors.mantle,
-						ImageColor3 = currentTheme.colors.text,
-						[Fusion.OnEvent "Activated"] = function()
-							promptReset()
-						end,
+							scope:iconButton {
+								Size = UDim2.fromScale(0.0260416667, 0.8333333333),
+								CornerRadius = UDim.new(0.2, 0),
+								Border = 2,
+								Reactive = true,
+								LayoutOrder = 102,
+								Image = assets.images.redonUI.refresh,
+								BackgroundColor3 = currentTheme.colors.mantle,
+								ImageColor3 = currentTheme.colors.text,
+								[Fusion.OnEvent "Activated"] = function()
+									promptReset()
+								end,
+							},
+						},
 					},
 				},
 			},
 
 			scope:base {
-				ClassName = "ScrollingFrame",
-				Name = "Content",
-				Size = UDim2.fromScale(0.9739583333, 0.9174757282), -- 1870, 945
+				Size = UDim2.fromScale(1, 1),
 				AnchorPoint = Vector2.new(0.5, 1),
 				Position = UDim2.fromScale(0.5, 1),
 				BackgroundTransparency = 1,
-				CanvasSize = UDim2.new(),
-				AutomaticCanvasSize = Enum.AutomaticSize.X,
-				ScrollBarThickness = 3,
-				ScrollBarImageColor3 = currentTheme.colors.text,
-				TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
-				BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
-				[Fusion.Out "AbsoluteSize"] = size :: unknown,
-				ClipsDescendants = false,
+				ClipsDescendants = true,
 
-				[Fusion.Children] = Fusion.Child {
-					scope:New("UIListLayout") {
-						Padding = UDim.new(0.0130208333, 0),
-						FillDirection = Enum.FillDirection.Horizontal,
-						HorizontalAlignment = scope:Computed(function(use)
-							return if use(sectionsTotalSpace).X > use(size).X
-								then Enum.HorizontalAlignment.Left
-								else Enum.HorizontalAlignment.Center
-						end),
-						VerticalAlignment = Enum.VerticalAlignment.Top,
-						SortOrder = Enum.SortOrder.LayoutOrder,
-						[Fusion.Out "AbsoluteContentSize"] = sectionsTotalSpace :: unknown,
+				[Fusion.Children] = {
+					scope:New("UIAspectRatioConstraint") {
+						AspectRatio = 1.9793814433,
 					},
 
-					scope:ForPairs(sections, function(_, scope: typeof(scope), key: number, value: section)
-						log.debug("Creating section", key, value)
-						local position = scope:Value(Vector2.one)
-						local contentSize = scope:Value(Vector2.one)
-						local canvasSize = scope:Value(Vector2.one)
-						local canvasPosition = scope:Value(Vector2.zero)
-						local columnPositions: { Fusion.Value<Vector2> } = {
-							[1] = scope:Value(Vector2.one),
-						}
-						local currentlyHovering = scope:Value(1)
-						local hoverPosition = scope:Computed(function(use)
-							return use(columnPositions[use(currentlyHovering)]).X
-								- use(position).X
-								- 0.0133689840 * use(size).X
-						end)
-						local rowCount = scope:Value(value.rowCount)
-						local waitTime = scope:Value(tostring(value.waitTime))
+					scope:base {
+						ClassName = "ScrollingFrame",
+						Name = "Content",
+						Size = UDim2.fromScale(0.9739583333, 0.9174757282), -- 1870, 945
+						AnchorPoint = Vector2.new(0.5, 1),
+						Position = UDim2.fromScale(0.5, 1),
+						BackgroundTransparency = 1,
+						CanvasSize = UDim2.new(),
+						AutomaticCanvasSize = Enum.AutomaticSize.X,
+						ScrollBarThickness = 3,
+						ScrollBarImageColor3 = currentTheme.colors.text,
+						TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+						BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+						[Fusion.Out "AbsoluteSize"] = size :: unknown,
+						ClipsDescendants = false,
 
-						scope:Observer(rowCount):onChange(function()
-							if scope.peek(playing) == true then
-								return
-							end
-							local currentRowCount = scope.peek(rowCount)
-							if scope.peek(value.currentRow) > currentRowCount then
-								value.currentRow:set(1)
-							end
-						end)
-
-						local function propagateNameChange(
-							columnData: {
-								currentName: Fusion.Value<string>?,
-								lightName: Fusion.Value<string>,
-								rows: Fusion.Value<{ types.elsColor }>,
-							},
-							columnKey: number
-						)
-							if columnData.currentName == nil then
-								return
-							end
-							local newName = scope.peek(columnData.lightName)
-							local pattern = scope.peek(newName):gsub("%d+$", "")
-							local originalNumber = tonumber(newName:match("%d+$")) or 1
-							local originalPattern = scope.peek(columnData.currentName):gsub("%d+$", "")
-
-							if
-								value.nameTemplate == nil
-								or value.nameTemplate.originalPosition <= columnKey
-								or value.nameTemplate.pattern == originalPattern
-							then
-								value.nameTemplate = {
-									pattern = pattern,
-									originalPosition = columnKey,
-									originalNumber = originalNumber,
-								}
-							end
-
-							for columnId, column in pairs(scope.peek(columns[key])) do
-								if columnId < columnKey then
-									continue
-								end
-								local name = scope.peek(column.lightName)
-								if value.nameTemplate ~= nil then
-									log.debug(
-										value.nameTemplate.originalPosition,
-										columnKey,
-										columnId,
-										originalPattern,
-										columnData.currentName
-									)
-									if
-										value.nameTemplate.originalPosition > columnKey
-										and (
-											columnId >= value.nameTemplate.originalPosition
-											or not name:match(originalPattern)
-										)
-									then
-										log.debug("Position or match not met")
-										continue
-									elseif not name:match(originalPattern) then
-										log.debug("Not matching")
-										continue
-									end
-								end
-								log.debug("Setting name", pattern, originalNumber, columnId, columnKey)
-								column.lightName:set(pattern .. originalNumber + columnId - columnKey)
-
-								if column.currentName ~= nil then
-									column.currentName:set(scope.peek(column.lightName))
-								end
-							end
-							columnData.currentName:set(newName)
-						end
-
-						return key,
-							scope:base {
-								Name = key,
-								BackgroundColor3 = currentTheme.colors.mantle,
-								Size = UDim2.fromScale(0, 0.9259259259),
-								CornerRadius = scope:Computed(function(use)
-									return UDim.new(0, 0.0171428571 * use(size).Y) -- I shouldn't have to do this
+						[Fusion.Children] = Fusion.Child {
+							scope:New("UIListLayout") {
+								Padding = UDim.new(0.0130208333, 0),
+								FillDirection = Enum.FillDirection.Horizontal,
+								HorizontalAlignment = scope:Computed(function(use)
+									return if use(sectionsTotalSpace).X > use(size).X
+										then Enum.HorizontalAlignment.Left
+										else Enum.HorizontalAlignment.Center
 								end),
-								LayoutOrder = key,
-								AutomaticSize = Enum.AutomaticSize.X,
-								[Fusion.Out "AbsolutePosition"] = position :: unknown,
+								VerticalAlignment = Enum.VerticalAlignment.Top,
+								SortOrder = Enum.SortOrder.LayoutOrder,
+								[Fusion.Out "AbsoluteContentSize"] = sectionsTotalSpace :: unknown,
+							},
 
-								[Fusion.Children] = Fusion.Child {
-									scope:New("UIPadding") {
-										PaddingTop = UDim.new(0.0285714286, 0),
-										PaddingBottom = UDim.new(0.0285714286, 0),
-										PaddingLeft = scope:Computed(function(use)
-											return UDim.new(0, 0.0133689840 * use(size).X)
-										end),
-										PaddingRight = scope:Computed(function(use)
-											return UDim.new(0, 0.0133689840 * use(size).X)
-										end),
+							scope:ForPairs(sections, function(_, scope: typeof(scope), key: number, value: section)
+								log.debug("Creating section", key, value)
+								local position = scope:Value(Vector2.one)
+								local contentSize = scope:Value(Vector2.one)
+								local canvasSize = scope:Value(Vector2.one)
+								local canvasPosition = scope:Value(Vector2.zero)
+								local columnPositions: { Fusion.Value<Vector2> } = {
+									[1] = scope:Value(Vector2.one),
+								}
+								local currentlyHovering = scope:Value(1)
+								local hoverPosition = scope:Computed(function(use)
+									return math.clamp(
+										use(columnPositions[use(currentlyHovering)]).X
+											- use(position).X
+											- 0.0133689840 * use(size).X,
+										0,
+										use(contentSize).X
+									)
+								end)
+								local rowCount = scope:Value(value.rowCount)
+								local waitTime = scope:Value(tostring(value.waitTime))
+
+								scope:Observer(rowCount):onChange(function()
+									if scope.peek(playing) == true then
+										return
+									end
+									local currentRowCount = scope.peek(rowCount)
+									if scope.peek(value.currentRow) > currentRowCount then
+										value.currentRow:set(1)
+									end
+								end)
+
+								local function propagateNameChange(
+									columnData: {
+										currentName: Fusion.Value<string>?,
+										lightName: Fusion.Value<string>,
+										rows: Fusion.Value<{ types.elsColor }>,
 									},
+									columnKey: number
+								)
+									if columnData.currentName == nil then
+										return
+									end
+									local newName = scope.peek(columnData.lightName)
+									local pattern = scope.peek(newName):gsub("%d+$", "")
+									local originalNumber = tonumber(newName:match("%d+$"))
+									if originalNumber == nil then
+										return
+									end
+									local originalPattern = scope.peek(columnData.currentName):gsub("%d+$", "")
 
-									scope:base {
-										Name = "Controls",
-										Size = UDim2.fromScale(1, 0.0571428571),
-										AutomaticSize = Enum.AutomaticSize.X,
-										BackgroundTransparency = 1,
+									if
+										value.nameTemplate == nil
+										or value.nameTemplate.originalPosition <= columnKey
+										or value.nameTemplate.pattern == originalPattern
+									then
+										value.nameTemplate = {
+											pattern = pattern,
+											originalPosition = columnKey,
+											originalNumber = originalNumber,
+										}
+									end
 
-										[Fusion.Children] = {
-											scope:New("UIListLayout") {
-												Padding = scope:Computed(function(use)
-													return UDim.new(0, 0.0080213904 * use(size).X)
-												end),
-												FillDirection = Enum.FillDirection.Horizontal,
-												HorizontalAlignment = Enum.HorizontalAlignment.Center,
-												SortOrder = Enum.SortOrder.LayoutOrder,
-											},
-
-											scope:iconButton {
-												Size = scope:Computed(function(use)
-													return UDim2.new(0, 0.0267379679 * use(size).X, 1, 0)
-												end),
-												LayoutOrder = 1,
-												CornerRadius = UDim.new(0.2, 0),
-												Border = 2,
-												Reactive = true,
-												Image = assets.images.redonUI.remove,
-												BackgroundColor3 = currentTheme.colors.mantle,
-												ImageColor3 = currentTheme.colors.text,
-
-												[Fusion.OnEvent "Activated"] = function()
-													popup:addPopup(scope, {
-														title = "Remove Section",
-														description = `Are you sure you want to delete section <b>{key}</b>?\n<b>All data will be lost.</b>`,
-														actions = {
-															{
-																text = "Cancel",
-																type = "primary",
-																key = 1,
-																callback = function(newPopup)
-																	popup:removePopup(newPopup)
-																end,
-																keybind = Enum.KeyCode.Escape,
-															},
-															{
-																text = "Delete",
-																type = "danger",
-																key = 2,
-																callback = function(newPopup)
-																	popup:removePopup(newPopup)
-																	local currentSections = scope.peek(sections)
-																	table.remove(currentSections, key)
-																	table.remove(columns, key)
-																	sections:set(currentSections)
-																	updateCurrentConfiguration()
-																end,
-																keybind = Enum.KeyCode.Return,
-															},
-														},
-													})
-												end,
-											},
-
-											scope:textBox {
-												Size = scope:Computed(function(use)
-													return UDim2.new(0, 0.0534759358 * use(size).X, 1, 0)
-												end),
-												LayoutOrder = 2,
-												CornerRadius = UDim.new(0.2, 0),
-												Border = 1,
-												Text = waitTime,
-												BackgroundColor3 = currentTheme.colors.mantle,
-												[Fusion.OnChange "Text"] = function(text: string)
-													playing:set(false)
-													local currentSections = scope.peek(sections)
-													local currentSection = currentSections[key]
-													currentSection.waitTime = tonumber(text) or 0.05
-													sections:set(currentSections)
-													updateCurrentConfiguration()
-												end,
-												[Fusion.OnEvent "FocusLost"] = function()
-													local currentSections = scope.peek(sections)
-													local currentSection = currentSections[key]
-													waitTime:set(tostring(currentSection.waitTime))
-												end,
-											},
-
-											scope:iconButton {
-												Size = scope:Computed(function(use)
-													return UDim2.new(0, 0.0267379679 * use(size).X, 1, 0)
-												end),
-												LayoutOrder = 3,
-												CornerRadius = UDim.new(0.2, 0),
-												Border = 2,
-												Reactive = true,
-												Image = assets.images.redonUI.add,
-												BackgroundColor3 = currentTheme.colors.mantle,
-												ImageColor3 = currentTheme.colors.text,
-
-												[Fusion.OnEvent "Activated"] = function()
-													addSection(key + 1)
-												end,
-											},
-										},
-									},
-
-									scope:base {
-										Name = "Headers",
-										Size = UDim2.fromScale(1, 0.0342857143),
-										Position = UDim2.fromScale(0, 0.0857142857),
-										AutomaticSize = Enum.AutomaticSize.X,
-										BackgroundTransparency = 1,
-										ZIndex = 3,
-
-										[Fusion.Children] = Fusion.Child {
-											scope:New("UIListLayout") {
-												Padding = scope:Computed(function(use)
-													return UDim.new(0, 0.0053475936 * use(size).X)
-												end),
-												FillDirection = Enum.FillDirection.Horizontal,
-												HorizontalAlignment = Enum.HorizontalAlignment.Center,
-												SortOrder = Enum.SortOrder.LayoutOrder,
-											},
-
-											scope:ForPairs(
-												columns[key],
-												function(use, scope: typeof(scope), columnKey: number, columnData)
-													local color = scope:Computed(function(use)
-														if use(playing) == false then
-															return currentTheme.colors.base
-														end
-														local currentRow = use(value.currentRow)
-														local colorData =
-															scope.peek(colors)[scope.peek(columnData.rows)[currentRow]]
-														return if colorData == nil
-															then currentTheme.colors.base
-															else if bloomColors[colorData.name] ~= nil
-																then bloomColors[colorData.name]
-																else colorData.lightoColor
-													end)
-													local baseProps = {
-														Name = columnKey,
-														Size = scope:Computed(function(use)
-															return UDim2.new(0, 0.0401069519 * use(size).X, 1, 0)
-														end),
-														CornerRadius = UDim.new(0.1666666667, 0),
-														LayoutOrder = columnKey,
-													}
-													local children = {}
-													if use(settings.values.fakeBloom) then
-														local visible = scope:Computed(function(use)
-															return use(color) ~= currentTheme.colors.base
-														end)
-														baseProps.BackgroundColor3 =
-															currentTheme.colors.base :: Fusion.UsedAs<Color3>
-														children = {
-															scope:base {
-																Size = UDim2.fromScale(1, 1),
-																BackgroundColor3 = Color3.new(1, 1, 1),
-																CornerRadius = UDim.new(0.1666666667, 0),
-																ZIndex = 2,
-																Visible = visible,
-															},
-
-															scope:base {
-																ClassName = "ImageLabel",
-																Name = "Light",
-																AnchorPoint = Vector2.new(0.5, 0.5),
-																BackgroundTransparency = 1,
-																Image = assets.images.elsCreator.bloom,
-																ImageColor3 = color,
-																Position = UDim2.fromScale(0.5, 0.5),
-																ScaleType = Enum.ScaleType.Slice,
-																Size = UDim2.new(1, 25, 1, 25),
-																SliceCenter = Rect.new(256, 256, 256, 256),
-																Visible = visible,
-															},
-
-															scope:base {
-																ClassName = "ImageLabel",
-																Name = "Light1",
-																AnchorPoint = Vector2.new(0.5, 0.5),
-																BackgroundTransparency = 1,
-																Image = assets.images.elsCreator.bloom,
-																ImageColor3 = color,
-																ImageTransparency = 0.2,
-																Position = UDim2.fromScale(0.5, 0.5),
-																ScaleType = Enum.ScaleType.Slice,
-																Size = UDim2.new(1, 150, 1, 150),
-																SliceCenter = Rect.new(256, 256, 256, 256),
-																Visible = visible,
-															},
-
-															scope:base {
-																ClassName = "ImageLabel",
-																Name = "Light2",
-																AnchorPoint = Vector2.new(0.5, 0.5),
-																BackgroundTransparency = 1,
-																Image = assets.images.elsCreator.bloom,
-																ImageColor3 = color,
-																ImageTransparency = 0.5,
-																Position = UDim2.fromScale(0.5, 0.5),
-																ScaleType = Enum.ScaleType.Slice,
-																Size = UDim2.new(1, 200, 1, 200),
-																SliceCenter = Rect.new(256, 256, 256, 256),
-																Visible = visible,
-															},
-														}
-													else
-														baseProps.BackgroundColor3 = color
-													end
-													columnData.currentName =
-														scope:Value(scope.peek(columnData.lightName))
-													table.insert(
-														children,
-														scope:textBox {
-															BackgroundTransparency = 1,
-															Visible = scope:Computed(function(use)
-																return use(playing) == false
-															end),
-															Size = UDim2.fromScale(1, 1),
-															Text = columnData.lightName,
-															[Fusion.Out "Text"] = columnData.lightName :: unknown,
-
-															[Fusion.OnEvent "FocusLost"] = function(
-																enterPressed: boolean
-															)
-																if enterPressed == false then
-																	return
-																end
-																propagateNameChange(columnData, columnKey)
-																updateCurrentConfiguration()
-															end,
-														}
-													)
-													baseProps[Fusion.Children] = children
-
-													return columnKey, scope:base(baseProps)
-												end
-											),
-										},
-									},
-
-									scope:base {
-										Size = scope:Computed(function(use)
-											return UDim2.new(
-												0,
-												use(contentSize).X - (0.0106951872 * use(size).X),
-												0.0114285714,
-												0
+									for columnId, column in pairs(scope.peek(columns[key])) do
+										if columnId < columnKey then
+											continue
+										end
+										local name = scope.peek(column.lightName)
+										if value.nameTemplate ~= nil then
+											log.debug(
+												value.nameTemplate.originalPosition,
+												columnKey,
+												columnId,
+												originalPattern,
+												columnData.currentName
 											)
-										end),
-										AnchorPoint = Vector2.new(0.5, 0),
-										Position = UDim2.fromScale(0.5, 0.1428571429),
-										BackgroundColor3 = currentTheme.colors.base,
-										CornerRadius = UDim.new(1, 0),
-									},
+											if
+												value.nameTemplate.originalPosition > columnKey
+												and (
+													columnId >= value.nameTemplate.originalPosition
+													or not name:match(originalPattern)
+												)
+											then
+												log.debug("Position or match not met")
+												continue
+											elseif not name:match(originalPattern) then
+												log.debug("Not matching")
+												continue
+											end
+										end
+										log.debug("Setting name", pattern, originalNumber, columnId, columnKey)
+										column.lightName:set(pattern .. originalNumber + columnId - columnKey)
 
+										if column.currentName ~= nil then
+											column.currentName:set(scope.peek(column.lightName))
+										end
+									end
+									columnData.currentName:set(newName)
+								end
+
+								return key,
 									scope:base {
-										Name = "controls",
-										Size = scope:Computed(function(use)
-											return UDim2.new(0, 0.0401069519 * use(size).X, 0.04, 0)
-										end),
-										Position = scope:Spring(
-											scope:Computed(function(use)
-												return UDim2.new(0, use(hoverPosition), 0.1291428571, 0) -- 0.1285714286
-											end),
-											SPRING_SPEED,
-											SPRING_DAMPING
-										),
+										Name = key,
 										BackgroundColor3 = currentTheme.colors.mantle,
-
-										[Fusion.Children] = {
-											scope:New("UIListLayout") {
-												Padding = UDim.new(0.1333333333, 0),
-												FillDirection = Enum.FillDirection.Horizontal,
-												HorizontalAlignment = Enum.HorizontalAlignment.Center,
-												VerticalAlignment = Enum.VerticalAlignment.Center,
-												SortOrder = Enum.SortOrder.LayoutOrder,
-											},
-
-											scope:iconButton {
-												Size = UDim2.fromScale(0.4, 0.8571428571),
-												BackgroundColor3 = currentTheme.colors.crust,
-												CornerRadius = UDim.new(0.1666666667, 0),
-												Image = assets.images.redonUI.remove,
-												Border = 1,
-												Reactive = true,
-
-												[Fusion.OnEvent "Activated"] = function()
-													if #scope.peek(columns[key]) == 1 then
-														log.warn("Cannot remove last column")
-														return
-													end
-													local deleting = scope.peek(currentlyHovering)
-
-													local function remove()
-														currentlyHovering:set(
-															math.clamp(
-																deleting,
-																if deleting == 1 then 2 else 1,
-																#scope.peek(columns[key]) - 1
-															)
-														)
-														local currentColumns = scope.peek(columns[key])
-														table.remove(currentColumns, deleting)
-														columns[key]:set(currentColumns)
-														updateCurrentConfiguration()
-													end
-
-													if holdingShift then
-														remove()
-														return
-													end
-
-													popup:addPopup(scope, {
-														title = "Remove Column",
-														description = `Are you sure you want to delete column <b>{deleting}</b>?\n<b>All data will be lost.</b>`,
-														actions = {
-															{
-																text = "Cancel",
-																type = "primary",
-																key = 1,
-																callback = function(newPopup)
-																	popup:removePopup(newPopup)
-																end,
-																keybind = Enum.KeyCode.Escape,
-															},
-															{
-																text = "Delete",
-																type = "danger",
-																key = 2,
-																callback = function(newPopup)
-																	popup:removePopup(newPopup)
-																	remove()
-																end,
-																keybind = Enum.KeyCode.Return,
-															},
-														},
-													})
-												end,
-											},
-
-											scope:iconButton {
-												Size = UDim2.fromScale(0.4, 0.8571428571),
-												LayoutOrder = 2,
-												BackgroundColor3 = currentTheme.colors.crust,
-												CornerRadius = UDim.new(0.1666666667, 0),
-												Image = assets.images.redonUI.add,
-												Border = 1,
-												Reactive = true,
-
-												[Fusion.OnEvent "Activated"] = function()
-													local adding = scope.peek(currentlyHovering)
-													local currentColumns = scope.peek(columns[key])
-													local rows = {}
-													for _ = 1, scope.peek(rowCount) do
-														table.insert(rows, 0)
-													end
-
-													local lightName = `Light {adding + 1}`
-													local addingNumber = tonumber(
-														scope.peek(currentColumns[adding].lightName):match("%d+$")
-													) or adding
-													local pattern =
-														scope.peek(currentColumns[adding].lightName):gsub("%d+$", "")
-													lightName = pattern .. addingNumber + 1
-
-													table.insert(currentColumns, adding + 1, {
-														lightName = scope:Value(lightName),
-														color = scope:Value(currentTheme.colors.base),
-														rows = scope:Value(rows),
-													})
-													columns[key]:set(currentColumns)
-													propagateNameChange(currentColumns[adding + 1], adding + 1)
-													updateCurrentConfiguration()
-													task.delay(1 / 16, function()
-														currentlyHovering:set(adding + 1)
-													end)
-												end,
-											},
-										},
-									},
-
-									scope:base {
-										ClassName = "ScrollingFrame",
-										Name = "Columns",
-										Size = UDim2.fromScale(1, 0.8285714286),
-										Position = UDim2.fromScale(0, 0.1771428571),
-										BackgroundTransparency = 1,
-										CanvasSize = UDim2.new(),
-										ScrollBarThickness = 3,
-										ScrollBarImageColor3 = currentTheme.colors.text,
-										TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
-										BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
-										AutomaticCanvasSize = Enum.AutomaticSize.Y,
-										[Fusion.Out "CanvasPosition"] = canvasPosition :: unknown,
-										[Fusion.Out "AbsoluteCanvasSize"] = canvasSize :: unknown,
-										ZIndex = 2,
+										Size = UDim2.fromScale(0, 0.9259259259),
+										CornerRadius = scope:Computed(function(use)
+											return UDim.new(0, 0.0171428571 * use(size).Y) -- I shouldn't have to do this
+										end),
+										LayoutOrder = key,
+										AutomaticSize = Enum.AutomaticSize.X,
+										[Fusion.Out "AbsolutePosition"] = position :: unknown,
 
 										[Fusion.Children] = Fusion.Child {
-											scope:New("UIListLayout") {
-												Padding = scope:Computed(function(use)
-													return UDim.new(0, 0.0053475936 * use(size).X)
+											scope:New("UIPadding") {
+												PaddingTop = UDim.new(0.0285714286, 0),
+												PaddingBottom = UDim.new(0.0285714286, 0),
+												PaddingLeft = scope:Computed(function(use)
+													return UDim.new(0, 0.0133689840 * use(size).X)
 												end),
-												FillDirection = Enum.FillDirection.Horizontal,
-												HorizontalAlignment = Enum.HorizontalAlignment.Center,
-												SortOrder = Enum.SortOrder.LayoutOrder,
-												[Fusion.Out "AbsoluteContentSize"] = contentSize :: unknown,
+												PaddingRight = scope:Computed(function(use)
+													return UDim.new(0, 0.0133689840 * use(size).X)
+												end),
 											},
 
-											scope:ForPairs(
-												columns[key],
-												function(_, scope: typeof(scope), columnKey: number, value)
-													columnPositions[columnKey] = scope:Value(Vector2.one)
-													return columnKey,
-														scope:base {
+											scope:base {
+												Name = "Controls",
+												Size = UDim2.fromScale(1, 0.0571428571),
+												AutomaticSize = Enum.AutomaticSize.X,
+												BackgroundTransparency = 1,
+
+												[Fusion.Children] = {
+													scope:New("UIListLayout") {
+														Padding = scope:Computed(function(use)
+															return UDim.new(0, 0.0080213904 * use(size).X)
+														end),
+														FillDirection = Enum.FillDirection.Horizontal,
+														HorizontalAlignment = Enum.HorizontalAlignment.Center,
+														SortOrder = Enum.SortOrder.LayoutOrder,
+													},
+
+													scope:iconButton {
+														Size = scope:Computed(function(use)
+															return UDim2.new(0, 0.0267379679 * use(size).X, 1, 0)
+														end),
+														LayoutOrder = 1,
+														CornerRadius = UDim.new(0.2, 0),
+														Border = 2,
+														Reactive = true,
+														Image = assets.images.redonUI.remove,
+														BackgroundColor3 = currentTheme.colors.mantle,
+														ImageColor3 = currentTheme.colors.text,
+
+														[Fusion.OnEvent "Activated"] = function()
+															popup:addPopup(scope, {
+																title = "Remove Section",
+																description = `Are you sure you want to delete section <b>{key}</b>?\n<b>All data will be lost.</b>`,
+																actions = {
+																	{
+																		text = "Cancel",
+																		type = "primary",
+																		key = 1,
+																		callback = function(newPopup)
+																			popup:removePopup(newPopup)
+																		end,
+																		keybind = Enum.KeyCode.Escape,
+																	},
+																	{
+																		text = "Delete",
+																		type = "danger",
+																		key = 2,
+																		callback = function(newPopup)
+																			popup:removePopup(newPopup)
+																			local currentSections = scope.peek(sections)
+																			table.remove(currentSections, key)
+																			table.remove(columns, key)
+																			sections:set(currentSections)
+																			updateCurrentConfiguration()
+																		end,
+																		keybind = Enum.KeyCode.Return,
+																	},
+																},
+															})
+														end,
+													},
+
+													scope:textBox {
+														Size = scope:Computed(function(use)
+															return UDim2.new(0, 0.0534759358 * use(size).X, 1, 0)
+														end),
+														LayoutOrder = 2,
+														CornerRadius = UDim.new(0.2, 0),
+														Border = 1,
+														Text = waitTime,
+														BackgroundColor3 = currentTheme.colors.mantle,
+														[Fusion.OnChange "Text"] = function(text: string)
+															playing:set(false)
+															local currentSections = scope.peek(sections)
+															local currentSection = currentSections[key]
+															currentSection.waitTime = tonumber(text) or 0.05
+															sections:set(currentSections)
+															updateCurrentConfiguration()
+														end,
+														[Fusion.OnEvent "FocusLost"] = function()
+															local currentSections = scope.peek(sections)
+															local currentSection = currentSections[key]
+															waitTime:set(tostring(currentSection.waitTime))
+														end,
+													},
+
+													scope:iconButton {
+														Size = scope:Computed(function(use)
+															return UDim2.new(0, 0.0267379679 * use(size).X, 1, 0)
+														end),
+														LayoutOrder = 3,
+														CornerRadius = UDim.new(0.2, 0),
+														Border = 2,
+														Reactive = true,
+														Image = assets.images.redonUI.add,
+														BackgroundColor3 = currentTheme.colors.mantle,
+														ImageColor3 = currentTheme.colors.text,
+
+														[Fusion.OnEvent "Activated"] = function()
+															addSection(key + 1)
+														end,
+													},
+												},
+											},
+
+											scope:base {
+												Name = "Headers",
+												Size = UDim2.fromScale(1, 0.0342857143),
+												Position = UDim2.fromScale(0.5, 0.0857142857),
+												AnchorPoint = Vector2.new(0.5, 0),
+												-- AutomaticSize = Enum.AutomaticSize.X,
+												BackgroundTransparency = 1,
+												ZIndex = 3,
+
+												-- [Fusion.Children] = Fusion.Child {
+												-- 	scope:New("UIListLayout") {
+												-- 		Padding = scope:Computed(function(use)
+												-- 			return UDim.new(0, 0.0053475936 * use(size).X)
+												-- 		end),
+												-- 		FillDirection = Enum.FillDirection.Horizontal,
+												-- 		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+												-- 		SortOrder = Enum.SortOrder.LayoutOrder,
+												-- 	},
+
+												-- },
+
+												[Fusion.Children] = scope:ForPairs(
+													columns[key],
+													function(use, scope: typeof(scope), columnKey: number, columnData)
+														columnPositions[columnKey] = scope:Value(Vector2.zero)
+														local color = scope:Computed(function(use)
+															if use(playing) == false then
+																return currentTheme.colors.base
+															end
+															local currentRow = use(value.currentRow)
+															local colorData = scope.peek(colors)[scope.peek(
+																columnData.rows
+															)[currentRow]]
+															return if colorData == nil
+																then currentTheme.colors.base
+																else if bloomColors[colorData.name]
+																		~= nil
+																	then bloomColors[colorData.name]
+																	else colorData.lightoColor
+														end)
+														local baseProps = {
 															Name = columnKey,
 															Size = scope:Computed(function(use)
 																return UDim2.new(0, 0.0401069519 * use(size).X, 1, 0)
 															end),
-															BackgroundTransparency = 1,
-															LayoutOrder = columnKey,
-
-															[Fusion.OnEvent "MouseEnter"] = function()
-																currentlyHovering:set(columnKey)
-															end :: unknown,
-
-															[Fusion.Out "AbsolutePosition"] = columnPositions[columnKey],
-
-															[Fusion.Children] = Fusion.Child {
-																scope:New("UIListLayout") {
-																	Padding = UDim.new(0.0114285714, 0),
-																	SortOrder = Enum.SortOrder.LayoutOrder,
-																},
-
-																scope:ForPairs(
-																	value.rows,
-																	function(
-																		use,
-																		scope: typeof(scope),
-																		rowKey: number,
-																		rowColor: number
-																	)
-																		local function update()
-																			if drawing == 0 then
-																				return
-																			end
-																			local isLocked = scope.peek(locked)
-																			log.debug(isLocked)
-																			if isLocked == true then
-																				log.debug(lockedTo)
-																				if lockedTo ~= nil then
-																					if
-																						lockedTo.section ~= key
-																						or lockedTo.column
-																							~= columnKey
-																					then
-																						return
-																					end
-																				else
-																					lockedTo = {
-																						section = key,
-																						column = columnKey,
-																					}
-																				end
-																			end
-
-																			local currentRows = scope.peek(value.rows)
-																			print(currentRows, #currentRows)
-																			if drawing == 1 then
-																				currentRows[rowKey] =
-																					scope.peek(currentColor)
-																			elseif drawing == -1 then
-																				currentRows[rowKey] = 0
-																			end
-																			value.rows:set(currentRows)
-																			updateCurrentConfiguration()
-																		end
-
-																		local color = use(colors)[rowColor]
-																		return rowKey,
-																			scope:base {
-																				Name = rowKey,
-																				Size = UDim2.fromScale(1, 0.0447761194),
-																				BackgroundColor3 = if rowColor
-																						== 0
-																					then currentTheme.colors.base
-																					else getColorByName(
-																						color.name,
-																						color.lightoColor
-																					),
-																				CornerRadius = UDim.new(
-																					0.1666666667,
-																					0
-																				),
-																				LayoutOrder = rowKey,
-
-																				[Fusion.OnEvent "MouseEnter"] = function()
-																					currentlyHovering:set(columnKey)
-																					update()
-																				end :: unknown,
-																				[Fusion.OnEvent "InputBegan"] = function(
-																					input: InputObject
-																				)
-																					if
-																						input.UserInputType
-																						== Enum.UserInputType.MouseButton1
-																					then
-																						drawing = 1
-																					elseif
-																						input.UserInputType
-																						== Enum.UserInputType.MouseButton2
-																					then
-																						drawing = -1
-																					end
-																					update()
-																				end,
-																			}
-																	end
-																),
-
-																scope:base {
-																	Size = UDim2.fromScale(1, 0.0447761194),
-																	BackgroundTransparency = 1,
-																	LayoutOrder = 4000,
-																},
-																scope:base {
-																	Size = UDim2.fromScale(1, 0.0447761194),
-																	BackgroundTransparency = 1,
-																	LayoutOrder = 4000,
-																},
-															},
+															CornerRadius = UDim.new(0.1666666667, 0),
+															Position = scope:Computed(function(use)
+																return UDim2.new(
+																	0,
+																	use(columnPositions[columnKey]).X
+																		- use(position).X
+																		- 0.0133689840 * use(size).X,
+																	0,
+																	0
+																)
+															end),
+															-- LayoutOrder = columnKey,
+															ZIndex = 2,
 														}
-												end
-											),
-										},
-									},
+														local descendants, children = {}, {}
+														if use(settings.values.fakeBloom) then
+															local visible = scope:Computed(function(use)
+																return use(color) ~= currentTheme.colors.base
+															end)
+															baseProps.BackgroundColor3 =
+																currentTheme.colors.base :: Fusion.UsedAs<Color3>
 
-									scope:base {
-										ClassName = "ScrollingFrame",
-										Name = "ColumnIndicators",
-										Size = UDim2.fromScale(1.05, 0.8285714286),
-										Position = UDim2.fromScale(0.5, 0.1771428571),
-										AnchorPoint = Vector2.new(0.5, 0),
-										BackgroundTransparency = 1,
-										AutomaticCanvasSize = Enum.AutomaticSize.Y,
-										CanvasPosition = canvasPosition,
-										ScrollingEnabled = false,
-										ScrollBarThickness = 0,
-										ClipsDescendants = scope:Computed(function(use)
-											return if use(value.currentRow) == 1 then false else true
-										end),
+															children = {
+																scope:base {
+																	Size = UDim2.fromScale(1, 1),
+																	BackgroundColor3 = Color3.new(1, 1, 1),
+																	CornerRadius = UDim.new(0.1666666667, 0),
+																	ZIndex = 2,
+																	Visible = visible,
+																},
+															}
+															descendants = {
+																scope:base {
+																	ClassName = "ImageLabel",
+																	Name = `{columnKey}Light`,
+																	AnchorPoint = Vector2.new(0, 0.5),
+																	BackgroundTransparency = 1,
+																	Image = assets.images.elsCreator.bloom,
+																	ImageColor3 = color,
+																	-- Position = UDim2.fromScale(0.5, 0.5),
+																	ScaleType = Enum.ScaleType.Slice,
+																	Size = scope:Computed(function(use)
+																		return UDim2.new(
+																			0,
+																			(0.0401069519 * use(size).X) + 25,
+																			1,
+																			25
+																		)
+																	end),
+																	Position = scope:Computed(function(use)
+																		return UDim2.new(
+																			0,
+																			use(columnPositions[columnKey]).X
+																				- use(position).X
+																				- 0.0133689840 * use(size).X
+																				- 12.5,
+																			0.5,
+																			0
+																		)
+																	end),
+																	SliceCenter = Rect.new(256, 256, 256, 256),
+																	Visible = visible,
+																},
 
-										[Fusion.Children] = {
-											scope:base {
-												BackgroundTransparency = 1,
-												Size = scope:Computed(function(use)
-													return UDim2.new(0, 10, 0, use(canvasSize).Y)
-												end),
+																scope:base {
+																	ClassName = "ImageLabel",
+																	Name = `{columnKey}Light1`,
+																	AnchorPoint = Vector2.new(0, 0.5),
+																	BackgroundTransparency = 1,
+																	Image = assets.images.elsCreator.bloom,
+																	ImageColor3 = color,
+																	ImageTransparency = 0.2,
+																	-- Position = UDim2.fromScale(0.5, 0.5),
+																	ScaleType = Enum.ScaleType.Slice,
+																	Size = scope:Computed(function(use)
+																		return UDim2.new(
+																			0,
+																			(0.0401069519 * use(size).X) + 150,
+																			1,
+																			150
+																		)
+																	end),
+																	Position = scope:Computed(function(use)
+																		return UDim2.new(
+																			0,
+																			use(columnPositions[columnKey]).X
+																				- use(position).X
+																				- 0.0133689840 * use(size).X
+																				- 75,
+																			0.5,
+																			0
+																		)
+																	end),
+																	SliceCenter = Rect.new(256, 256, 256, 256),
+																	Visible = visible,
+																},
+
+																scope:base {
+																	ClassName = "ImageLabel",
+																	Name = `{columnKey}Light2`,
+																	AnchorPoint = Vector2.new(0, 0.5),
+																	BackgroundTransparency = 1,
+																	Image = assets.images.elsCreator.bloom,
+																	ImageColor3 = color,
+																	ImageTransparency = 0.5,
+																	-- Position = UDim2.fromScale(0.5, 0.5),
+																	ScaleType = Enum.ScaleType.Slice,
+																	Size = scope:Computed(function(use)
+																		return UDim2.new(
+																			0,
+																			(0.0401069519 * use(size).X) + 200,
+																			1,
+																			200
+																		)
+																	end),
+																	Position = scope:Computed(function(use)
+																		return UDim2.new(
+																			0,
+																			use(columnPositions[columnKey]).X
+																				- use(position).X
+																				- 0.0133689840 * use(size).X
+																				- 100,
+																			0.5,
+																			0
+																		)
+																	end),
+																	SliceCenter = Rect.new(256, 256, 256, 256),
+																	Visible = visible,
+																},
+															}
+														else
+															baseProps.BackgroundColor3 = color
+														end
+														columnData.currentName =
+															scope:Value(scope.peek(columnData.lightName))
+														table.insert(
+															children,
+															1,
+															scope:textBox {
+																BackgroundTransparency = 1,
+																Visible = scope:Computed(function(use)
+																	return use(playing) == false
+																end),
+																Size = UDim2.fromScale(1, 1),
+																Text = columnData.lightName,
+																[Fusion.Out "Text"] = columnData.lightName :: unknown,
+
+																[Fusion.OnEvent "FocusLost"] = function(
+																	enterPressed: boolean
+																)
+																	if enterPressed == false then
+																		updateCurrentConfiguration()
+																		return
+																	end
+																	propagateNameChange(columnData, columnKey)
+																	updateCurrentConfiguration()
+																end,
+															}
+														)
+														baseProps[Fusion.Children] = children
+
+														table.insert(descendants, 1, scope:base(baseProps))
+														return columnKey, descendants
+													end
+												),
 											},
 
 											scope:base {
-												Name = "indicator",
 												Size = scope:Computed(function(use)
 													return UDim2.new(
 														0,
-														use(contentSize).X + (0.0053475936 * use(size).X),
-														0.0597014925,
+														use(contentSize).X - (0.0106951872 * use(size).X),
+														0.0114285714,
 														0
 													)
 												end),
-												Position = scope:Computed(function(use)
-													local currentRow = use(value.currentRow) - 1
-													return UDim2.fromScale(
-														0.5,
-														(currentRow * 0.0447761194)
-															+ (currentRow * 0.0114285714)
-															- 0.0074626866
-													)
-												end),
 												AnchorPoint = Vector2.new(0.5, 0),
-												BackgroundColor3 = currentTheme.colors.crust,
-												CornerRadius = UDim.new(0.175, 0),
-											},
-										},
-									},
-
-									scope:base {
-										ClassName = "ScrollingFrame",
-										Name = "ColumnControls",
-										Size = UDim2.fromScale(1, 0.8285714286),
-										Position = UDim2.fromScale(0, 0.1771428571),
-										BackgroundTransparency = 1,
-										AutomaticCanvasSize = Enum.AutomaticSize.Y,
-										CanvasPosition = canvasPosition,
-										ScrollingEnabled = false,
-										ScrollBarThickness = 0,
-
-										[Fusion.Children] = {
-											scope:base {
-												BackgroundTransparency = 1,
-												Size = scope:Computed(function(use)
-													return UDim2.new(0, 10, 0, use(canvasSize).Y)
-												end),
+												Position = UDim2.fromScale(0.5, 0.1428571429),
+												BackgroundColor3 = currentTheme.colors.base,
+												CornerRadius = UDim.new(1, 0),
 											},
 
 											scope:base {
 												Name = "controls",
 												Size = scope:Computed(function(use)
-													return UDim2.new(0, 0.0401069519 * use(size).X, 1, 0)
+													return UDim2.new(0, 0.0401069519 * use(size).X, 0.04, 0)
 												end),
 												Position = scope:Spring(
 													scope:Computed(function(use)
-														return UDim2.new(0, use(hoverPosition), 0, 0)
+														return UDim2.new(0, use(hoverPosition), 0.1291428571, 0) -- 0.1285714286
 													end),
 													SPRING_SPEED,
 													SPRING_DAMPING
 												),
-												BackgroundTransparency = 1,
+												BackgroundColor3 = currentTheme.colors.mantle,
 
-												[Fusion.Children] = Fusion.Child {
+												[Fusion.Children] = {
 													scope:New("UIListLayout") {
-														Padding = UDim.new(0.0114285714, 0),
+														Padding = UDim.new(0.1333333333, 0),
+														FillDirection = Enum.FillDirection.Horizontal,
 														HorizontalAlignment = Enum.HorizontalAlignment.Center,
+														VerticalAlignment = Enum.VerticalAlignment.Center,
 														SortOrder = Enum.SortOrder.LayoutOrder,
 													},
 
-													scope:Computed(function(use, scope: typeof(scope))
-														return scope:ForPairs(
-															table.create(use(rowCount), true),
-															function(_, scope: typeof(scope), key: number, _)
-																return key,
-																	scope:base {
-																		Name = key,
-																		Size = UDim2.fromScale(1, 0.0447761194),
-																		BackgroundTransparency = 1,
-																		LayoutOrder = key,
-																	}
-															end
-														)
-													end),
-
 													scope:iconButton {
-														Size = UDim2.fromScale(0.4, 0.0447761194),
-														LayoutOrder = 4000,
+														Size = UDim2.fromScale(0.4, 0.8571428571),
 														BackgroundColor3 = currentTheme.colors.crust,
 														CornerRadius = UDim.new(0.1666666667, 0),
 														Image = assets.images.redonUI.remove,
@@ -1268,24 +1020,23 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														Reactive = true,
 
 														[Fusion.OnEvent "Activated"] = function()
-															if scope.peek(rowCount) == 1 then
-																log.warn("Cannot remove last row")
+															if #scope.peek(columns[key]) == 1 then
+																log.warn("Cannot remove last column")
 																return
 															end
-															local deleting = scope.peek(rowCount)
+															local deleting = scope.peek(currentlyHovering)
 
 															local function remove()
+																currentlyHovering:set(
+																	math.clamp(
+																		deleting,
+																		if deleting == 1 then 2 else 1,
+																		#scope.peek(columns[key]) - 1
+																	)
+																)
 																local currentColumns = scope.peek(columns[key])
-																local currentSection = scope.peek(sections)[key]
-																rowCount:set(deleting - 1)
-																currentSection.rowCount = deleting - 1
-
-																for _, column in currentColumns do
-																	local currentRows = scope.peek(column.rows)
-																	table.remove(currentRows)
-																	column.rows:set(currentRows)
-																end
-
+																table.remove(currentColumns, deleting)
+																columns[key]:set(currentColumns)
 																updateCurrentConfiguration()
 															end
 
@@ -1296,7 +1047,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 															popup:addPopup(scope, {
 																title = "Remove Column",
-																description = `Are you sure you want to delete row <b>{deleting}</b>?\n<b>All data will be lost.</b>`,
+																description = `Are you sure you want to delete column <b>{deleting}</b>?\n<b>All data will be lost.</b>`,
 																actions = {
 																	{
 																		text = "Cancel",
@@ -1323,8 +1074,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 													},
 
 													scope:iconButton {
-														Size = UDim2.fromScale(0.4, 0.0447761194),
-														LayoutOrder = 4001,
+														Size = UDim2.fromScale(0.4, 0.8571428571),
+														LayoutOrder = 2,
 														BackgroundColor3 = currentTheme.colors.crust,
 														CornerRadius = UDim.new(0.1666666667, 0),
 														Image = assets.images.redonUI.add,
@@ -1332,60 +1083,451 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														Reactive = true,
 
 														[Fusion.OnEvent "Activated"] = function()
+															local adding = scope.peek(currentlyHovering)
 															local currentColumns = scope.peek(columns[key])
-															local currentRowCount = scope.peek(rowCount)
-															local currentSection = scope.peek(sections)[key]
-															currentRowCount += 1
-															rowCount:set(currentRowCount)
-															currentSection.rowCount = currentRowCount
-
-															for _, column in currentColumns do
-																local currentRows = scope.peek(column.rows)
-																while #currentRows < currentRowCount do
-																	table.insert(currentRows, 0)
-																end
-																column.rows:set(currentRows)
+															local rows = {}
+															for _ = 1, scope.peek(rowCount) do
+																table.insert(rows, 0)
 															end
 
+															local lightName = `Light {adding + 1}`
+															local addingNumber = tonumber(
+																scope
+																	.peek(currentColumns[adding].lightName)
+																	:match("%d+$")
+															) or adding
+															local pattern = scope
+																.peek(currentColumns[adding].lightName)
+																:gsub("%d+$", "")
+															lightName = pattern .. addingNumber + 1
+
+															table.insert(currentColumns, adding + 1, {
+																lightName = scope:Value(lightName),
+																color = scope:Value(currentTheme.colors.base),
+																rows = scope:Value(rows),
+															})
+															columns[key]:set(currentColumns)
+															propagateNameChange(currentColumns[adding + 1], adding + 1)
 															updateCurrentConfiguration()
+															task.delay(1 / 16, function()
+																currentlyHovering:set(adding + 1)
+															end)
 														end,
 													},
 												},
 											},
+
+											scope:base {
+												ClassName = "ScrollingFrame",
+												Name = "Columns",
+												Size = UDim2.fromScale(1, 0.8285714286),
+												AutomaticSize = Enum.AutomaticSize.X,
+												Position = UDim2.fromScale(0, 0.1771428571),
+												BackgroundTransparency = 1,
+												CanvasSize = UDim2.new(),
+												ScrollBarThickness = 3,
+												ScrollBarImageColor3 = currentTheme.colors.text,
+												TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+												BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+												AutomaticCanvasSize = Enum.AutomaticSize.Y,
+												[Fusion.Out "CanvasPosition"] = canvasPosition :: unknown,
+												[Fusion.Out "AbsoluteCanvasSize"] = canvasSize :: unknown,
+												ZIndex = 2,
+
+												[Fusion.Children] = Fusion.Child {
+													scope:New("UIListLayout") {
+														Padding = scope:Computed(function(use)
+															return UDim.new(0, 0.0053475936 * use(size).X)
+														end),
+														FillDirection = Enum.FillDirection.Horizontal,
+														HorizontalAlignment = Enum.HorizontalAlignment.Center,
+														SortOrder = Enum.SortOrder.LayoutOrder,
+														[Fusion.Out "AbsoluteContentSize"] = contentSize :: unknown,
+													},
+
+													scope:ForPairs(
+														columns[key],
+														function(_, scope: typeof(scope), columnKey: number, value)
+															-- columnPositions[columnKey] = scope:Value(Vector2.zero)
+															return columnKey,
+																scope:base {
+																	Name = columnKey,
+																	Size = scope:Computed(function(use)
+																		return UDim2.new(
+																			0,
+																			0.0401069519 * use(size).X,
+																			1,
+																			0
+																		)
+																	end),
+																	BackgroundTransparency = 1,
+																	LayoutOrder = columnKey,
+
+																	[Fusion.OnEvent "MouseEnter"] = function()
+																		currentlyHovering:set(columnKey)
+																	end :: unknown,
+
+																	[Fusion.Out "AbsolutePosition"] = columnPositions[columnKey],
+
+																	[Fusion.Children] = Fusion.Child {
+																		scope:New("UIListLayout") {
+																			Padding = UDim.new(0.0114285714, 0),
+																			SortOrder = Enum.SortOrder.LayoutOrder,
+																		},
+
+																		scope:ForPairs(
+																			value.rows,
+																			function(
+																				use,
+																				scope: typeof(scope),
+																				rowKey: number,
+																				rowColor: number
+																			)
+																				local function update()
+																					if drawing == 0 then
+																						return
+																					end
+																					local isLocked = scope.peek(locked)
+																					log.debug(isLocked)
+																					if isLocked == true then
+																						log.debug(lockedTo)
+																						if lockedTo ~= nil then
+																							if
+																								lockedTo.section
+																									~= key
+																								or lockedTo.column
+																									~= columnKey
+																							then
+																								return
+																							end
+																						else
+																							lockedTo = {
+																								section = key,
+																								column = columnKey,
+																							}
+																						end
+																					end
+
+																					local currentRows =
+																						scope.peek(value.rows)
+																					if drawing == 1 then
+																						currentRows[rowKey] =
+																							scope.peek(currentColor)
+																					elseif drawing == -1 then
+																						currentRows[rowKey] = 0
+																					end
+																					value.rows:set(currentRows)
+																					updateCurrentConfiguration()
+																				end
+
+																				local color = use(colors)[rowColor]
+																				return rowKey,
+																					scope:base {
+																						Name = rowKey,
+																						Size = UDim2.fromScale(
+																							1,
+																							0.0447761194
+																						),
+																						BackgroundColor3 = if rowColor
+																								== 0
+																							then currentTheme.colors.base
+																							else getColorByName(
+																								color.name,
+																								color.lightoColor
+																							),
+																						CornerRadius = UDim.new(
+																							0.1666666667,
+																							0
+																						),
+																						LayoutOrder = rowKey,
+
+																						[Fusion.OnEvent "MouseEnter"] = function()
+																							currentlyHovering:set(
+																								columnKey
+																							)
+																							update()
+																						end :: unknown,
+																						[Fusion.OnEvent "InputBegan"] = function(
+																							input: InputObject
+																						)
+																							if
+																								input.UserInputType
+																								== Enum.UserInputType.MouseButton1
+																							then
+																								drawing = 1
+																							elseif
+																								input.UserInputType
+																								== Enum.UserInputType.MouseButton2
+																							then
+																								drawing = -1
+																							end
+																							update()
+																						end,
+																					}
+																			end
+																		),
+
+																		scope:base {
+																			Size = UDim2.fromScale(1, 0.0447761194),
+																			BackgroundTransparency = 1,
+																			LayoutOrder = 4000,
+																		},
+																		scope:base {
+																			Size = UDim2.fromScale(1, 0.0447761194),
+																			BackgroundTransparency = 1,
+																			LayoutOrder = 4000,
+																		},
+																	},
+																}
+														end
+													),
+												},
+											},
+
+											scope:base {
+												ClassName = "ScrollingFrame",
+												Name = "ColumnIndicators",
+												Size = UDim2.fromScale(1.05, 0.8285714286),
+												Position = UDim2.fromScale(0.5, 0.1771428571),
+												AnchorPoint = Vector2.new(0.5, 0),
+												BackgroundTransparency = 1,
+												AutomaticCanvasSize = Enum.AutomaticSize.Y,
+												CanvasPosition = canvasPosition,
+												ScrollingEnabled = false,
+												ScrollBarThickness = 0,
+												ClipsDescendants = scope:Computed(function(use)
+													return if use(value.currentRow) == 1
+															and use(canvasPosition) == Vector2.zero
+														then false
+														else true
+												end),
+
+												[Fusion.Children] = {
+													scope:base {
+														BackgroundTransparency = 1,
+														Size = scope:Computed(function(use)
+															return UDim2.new(0, 10, 0, use(canvasSize).Y)
+														end),
+													},
+
+													scope:base {
+														Name = "indicator",
+														Size = scope:Computed(function(use)
+															return UDim2.new(
+																0,
+																use(contentSize).X + (0.0053475936 * use(size).X),
+																0.0597014925,
+																0
+															)
+														end),
+														Position = scope:Computed(function(use)
+															local currentRow = use(value.currentRow) - 1
+															return UDim2.fromScale(
+																0.5,
+																(currentRow * 0.0447761194)
+																	+ (currentRow * 0.0114285714)
+																	- 0.0074626866
+															)
+														end),
+														AnchorPoint = Vector2.new(0.5, 0),
+														BackgroundColor3 = scope:Computed(function(use)
+															return if use(playing) == true
+																then currentTheme.colors.lavender
+																else currentTheme.colors.crust
+														end),
+														BackgroundTransparency = scope:Computed(function(use)
+															return if use(playing) == true then 0.5 else 0
+														end),
+														CornerRadius = UDim.new(0.175, 0),
+													},
+												},
+											},
+
+											scope:base {
+												ClassName = "ScrollingFrame",
+												Name = "ColumnControls",
+												Size = UDim2.fromScale(1, 0.8285714286),
+												Position = UDim2.fromScale(0, 0.1771428571),
+												BackgroundTransparency = 1,
+												AutomaticCanvasSize = Enum.AutomaticSize.Y,
+												CanvasPosition = canvasPosition,
+												ScrollingEnabled = false,
+												ScrollBarThickness = 0,
+
+												[Fusion.Children] = {
+													scope:base {
+														BackgroundTransparency = 1,
+														Size = scope:Computed(function(use)
+															return UDim2.new(0, 10, 0, use(canvasSize).Y)
+														end),
+													},
+
+													scope:base {
+														Name = "controls",
+														Size = scope:Computed(function(use)
+															return UDim2.new(0, 0.0401069519 * use(size).X, 1, 0)
+														end),
+														Position = scope:Spring(
+															scope:Computed(function(use)
+																return UDim2.new(0, use(hoverPosition), 0, 0)
+															end),
+															SPRING_SPEED,
+															SPRING_DAMPING
+														),
+														BackgroundTransparency = 1,
+
+														[Fusion.Children] = Fusion.Child {
+															scope:New("UIListLayout") {
+																Padding = UDim.new(0.0114285714, 0),
+																HorizontalAlignment = Enum.HorizontalAlignment.Center,
+																SortOrder = Enum.SortOrder.LayoutOrder,
+															},
+
+															scope:Computed(function(use, scope: typeof(scope))
+																return scope:ForPairs(
+																	table.create(use(rowCount), true),
+																	function(_, scope: typeof(scope), key: number, _)
+																		return key,
+																			scope:base {
+																				Name = key,
+																				Size = UDim2.fromScale(1, 0.0447761194),
+																				BackgroundTransparency = 1,
+																				LayoutOrder = key,
+																			}
+																	end
+																)
+															end),
+
+															scope:iconButton {
+																Size = UDim2.fromScale(0.4, 0.0447761194),
+																LayoutOrder = 4000,
+																BackgroundColor3 = currentTheme.colors.crust,
+																CornerRadius = UDim.new(0.1666666667, 0),
+																Image = assets.images.redonUI.remove,
+																Border = 1,
+																Reactive = true,
+
+																[Fusion.OnEvent "Activated"] = function()
+																	if scope.peek(rowCount) == 1 then
+																		log.warn("Cannot remove last row")
+																		return
+																	end
+																	local deleting = scope.peek(rowCount)
+
+																	local function remove()
+																		local currentColumns = scope.peek(columns[key])
+																		local currentSection = scope.peek(sections)[key]
+																		rowCount:set(deleting - 1)
+																		currentSection.rowCount = deleting - 1
+
+																		for _, column in currentColumns do
+																			local currentRows = scope.peek(column.rows)
+																			table.remove(currentRows)
+																			column.rows:set(currentRows)
+																		end
+
+																		updateCurrentConfiguration()
+																	end
+
+																	if holdingShift then
+																		remove()
+																		return
+																	end
+
+																	popup:addPopup(scope, {
+																		title = "Remove Column",
+																		description = `Are you sure you want to delete row <b>{deleting}</b>?\n<b>All data will be lost.</b>`,
+																		actions = {
+																			{
+																				text = "Cancel",
+																				type = "primary",
+																				key = 1,
+																				callback = function(newPopup)
+																					popup:removePopup(newPopup)
+																				end,
+																				keybind = Enum.KeyCode.Escape,
+																			},
+																			{
+																				text = "Delete",
+																				type = "danger",
+																				key = 2,
+																				callback = function(newPopup)
+																					popup:removePopup(newPopup)
+																					remove()
+																				end,
+																				keybind = Enum.KeyCode.Return,
+																			},
+																		},
+																	})
+																end,
+															},
+
+															scope:iconButton {
+																Size = UDim2.fromScale(0.4, 0.0447761194),
+																LayoutOrder = 4001,
+																BackgroundColor3 = currentTheme.colors.crust,
+																CornerRadius = UDim.new(0.1666666667, 0),
+																Image = assets.images.redonUI.add,
+																Border = 1,
+																Reactive = true,
+
+																[Fusion.OnEvent "Activated"] = function()
+																	local currentColumns = scope.peek(columns[key])
+																	local currentRowCount = scope.peek(rowCount)
+																	local currentSection = scope.peek(sections)[key]
+																	currentRowCount += 1
+																	rowCount:set(currentRowCount)
+																	currentSection.rowCount = currentRowCount
+
+																	for _, column in currentColumns do
+																		local currentRows = scope.peek(column.rows)
+																		while #currentRows < currentRowCount do
+																			table.insert(currentRows, 0)
+																		end
+																		column.rows:set(currentRows)
+																	end
+
+																	updateCurrentConfiguration()
+																end,
+															},
+														},
+													},
+												},
+											},
 										},
-									},
-								},
-							}
-					end),
+									}
+							end),
+						},
+					},
+
+					scope:textButton {
+						Size = UDim2.fromScale(0.1822916667, 0.0776699029),
+						AnchorPoint = Vector2.new(0.5, 0.5),
+						Position = UDim2.fromScale(0.5, 0.5),
+						BackgroundColor3 = Color3.new(1, 1, 1),
+						Gradient = ColorSequence.new(currentTheme.colors.sky, currentTheme.colors.sapphire),
+						CornerRadius = UDim.new(0.2, 0),
+						Text = "Add Section",
+						TextScaled = true,
+						MaxTextSize = 40,
+						TextColor3 = currentTheme.colors.mantle,
+						Border = 2,
+						Reactive = true,
+						ButtonGlow = true,
+						ButtonGlowColor3 = if currentTheme.colors.white == Color3.new(1, 1, 1)
+							then currentTheme.colors.text
+							else currentTheme.colors.base,
+						Shadow = true,
+						ShadowColor3 = currentTheme.colors.sky,
+						Visible = scope:Computed(function(use)
+							return #use(sections) == 0
+						end),
+
+						[Fusion.OnEvent "Activated"] = function()
+							addSection()
+						end,
+					},
 				},
-			},
-
-			scope:textButton {
-				Size = UDim2.fromScale(0.1822916667, 0.0776699029),
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.fromScale(0.5, 0.5),
-				BackgroundColor3 = Color3.new(1, 1, 1),
-				Gradient = ColorSequence.new(currentTheme.colors.sky, currentTheme.colors.sapphire),
-				CornerRadius = UDim.new(0.2, 0),
-				Text = "Add Section",
-				TextScaled = true,
-				MaxTextSize = 40,
-				TextColor3 = currentTheme.colors.mantle,
-				Border = 2,
-				Reactive = true,
-				ButtonGlow = true,
-				ButtonGlowColor3 = if currentTheme.colors.white == Color3.new(1, 1, 1)
-					then currentTheme.colors.text
-					else currentTheme.colors.base,
-				Shadow = true,
-				ShadowColor3 = currentTheme.colors.sky,
-				Visible = scope:Computed(function(use)
-					return #use(sections) == 0
-				end),
-
-				[Fusion.OnEvent "Activated"] = function()
-					addSection()
-				end,
 			},
 		},
 	}
