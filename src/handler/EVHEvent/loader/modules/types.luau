@@ -29,11 +29,13 @@ export type color = {
 }
 
 export type lightSettings = {
+	version: number,
 	colors: { color },
-	optimizations: {
+	configuration: {
 		shouldChangeNeons: boolean,
 		shouldChangeLights: boolean,
 		shouldChangeLightos: boolean,
+		partTransparency: number,
 	},
 	lightGroups: {
 		{

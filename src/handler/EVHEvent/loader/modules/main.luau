@@ -51,19 +51,19 @@ local function changeColor(vehicle: Instance, functionId: number, lightName: str
 				continue
 			end
 		end
-		if vehicleData.configuration.lightSettings.optimizations.shouldChangeNeons == true then
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeNeons == true then
 			part.Color = colorData.partColor
 		end
 		local lightInstances = lights[part]
 		if lightInstances == nil then
 			continue
 		end
-		if vehicleData.configuration.lightSettings.optimizations.shouldChangeLights == true then
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeLights == true then
 			for _, light in lightInstances.lights do
 				light.Color = colorData.lightColor
 			end
 		end
-		if vehicleData.configuration.lightSettings.optimizations.shouldChangeLightos == true then
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeLightos == true then
 			for _, lighto in lightInstances.colorableLightos do
 				for _, image in lighto.images do
 					image.ImageColor3 = colorData.lightoColor
@@ -98,19 +98,21 @@ local function changeLight(vehicle: Instance, functionId: number, lightName: str
 				continue
 			end
 		end
-		if vehicleData.configuration.lightSettings.optimizations.shouldChangeNeons == true then
-			part.Transparency = if state == true then 0.011 else 1
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeNeons == true then
+			part.Transparency = if state == true
+				then vehicleData.configuration.lightSettings.configuration.partTransparency
+				else 1
 		end
 		local lightInstances = lights[part]
 		if lightInstances == nil then
 			continue
 		end
-		if vehicleData.configuration.lightSettings.optimizations.shouldChangeLights == true then
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeLights == true then
 			for _, light in lightInstances.lights do
 				light.Enabled = state
 			end
 		end
-		if vehicleData.configuration.lightSettings.optimizations.shouldChangeLightos == true then
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeLightos == true then
 			for _, lighto in lightInstances.colorableLightos do
 				lighto.lighto.Enabled = state
 			end
@@ -188,20 +190,20 @@ local function setLightTransparency(
 				changeColor(vehicle, functionId, part.Name, color)
 			end
 		end
-		if vehicleData.configuration.lightSettings.optimizations.shouldChangeNeons == true then
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeNeons == true then
 			part.Transparency = transpareny
 		end
 		local lightInstances = lights[part]
 		if lightInstances == nil then
 			continue
 		end
-		if vehicleData.configuration.lightSettings.optimizations.shouldChangeLights == true then
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeLights == true then
 			for _, light in lightInstances.lights do
 				light.Enabled = true
 				light.Brightness = (light:GetAttribute("defaultBrightness") :: number) * (1 - transpareny)
 			end
 		end
-		if vehicleData.configuration.lightSettings.optimizations.shouldChangeLightos == true then
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeLightos == true then
 			for _, lighto in lightInstances.colorableLightos do
 				lighto.lighto.Enabled = true
 				for _, image in lighto.images do

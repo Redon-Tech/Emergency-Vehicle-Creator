@@ -10,6 +10,9 @@ local LuaEncodeSettings = {
 local exportHeader =
 	"-- Redon Tech Emergency Vehicle Creator, MIT License\n\n--DO NOT MODIFY BELOW\n--SUPPORT WILL BE VOIDED IF MODIFIED\n\nreturn "
 
+-- version format: minor.{if rc then 0 else 1}patch
+local latestVersion = 0.02
+
 export type color = {
 	name: string,
 	partColor: Color3,
@@ -18,11 +21,13 @@ export type color = {
 }
 
 export type lightSettings = {
+	version: number,
 	colors: { color },
-	optimizations: {
+	configuration: {
 		shouldChangeNeons: boolean,
 		shouldChangeLights: boolean,
 		shouldChangeLightos: boolean,
+		partTransparency: number,
 	},
 	lightGroups: {
 		{
@@ -490,6 +495,33 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 	clonedSirens:Destroy()
 	clonedLightSettings:Destroy()
 	log.debug("Loaded configuration for", model.Name, data)
+
+	--TODO: In the future abstract updating
+	if data.lightSettings.version == nil then
+		data.lightSettings.version = 0
+	end
+	local oldLightConfiguration = (data.lightSettings :: any).optimizations
+	if oldLightConfiguration ~= nil then
+		data.lightSettings.configuration = {
+			shouldChangeNeons = oldLightConfiguration.shouldChangeNeons,
+			shouldChangeLights = oldLightConfiguration.shouldChangeLights,
+			shouldChangeLightos = oldLightConfiguration.shouldChangeLightos,
+			partTransparency = 0.011,
+		};
+		(data.lightSettings :: any).optimizations = nil
+		log.info("Updated lightSettings from optimizations to configuration", oldLightConfiguration, data.lightSettings)
+	end
+	if data.lightSettings.version ~= latestVersion then
+		local oldLoader = event:FindFirstChild("loader")
+		if oldLoader ~= nil then
+			oldLoader:Destroy()
+		end
+		local newLoader = script.Parent.handler.EVHEvent.loader:Clone()
+		newLoader.Parent = event
+
+		Plugin.Source = script.Parent.handler.Source
+	end
+	data.lightSettings.version = 0.01
 
 	self.cache[model] = {
 		data = data,
