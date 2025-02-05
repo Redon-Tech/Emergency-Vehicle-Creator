@@ -59,7 +59,7 @@ type vehicle = {
 		equipmentModel: Model,
 		configuration: { [string]: boolean | { [string]: boolean } }
 	) -> (),
-	updateEquipmentLights: (self: vehicle, equipmentModel: Model, oldPrefix: string) -> (),
+	updateEquipmentLights: (self: vehicle, equipmentModel: Model) -> (),
 	changeEquipment: (
 		self: vehicle,
 		vehicleFolder: vehicleFolder,
@@ -192,6 +192,8 @@ function vehicle._setupVehicle(self, vehicleName, vehicleModule, vehicleFolder)
 					model.PrimaryPart = point
 				end
 			end
+		elseif v:IsA("BasePart") and v.Parent and v.Parent.Name == "_LIGHTS" then
+			v:SetAttribute("originalName", v.Name)
 		end
 	end
 
@@ -444,7 +446,7 @@ function vehicle.changeConfiguration(_, vehicleFolder, equipmentModel, configura
 			originalConfiguration:Destroy()
 			equipmentModel:SetAttribute(configurationName, configurationData)
 		end
-		vehicle:updateEquipmentLights(equipmentModel, equipmentModel:GetAttribute("LightPrefix") :: string)
+		vehicle:updateEquipmentLights(equipmentModel)
 	end
 end
 
@@ -563,22 +565,19 @@ function vehicle.cloneCustomizationBasePoint(_, vehicleFolder)
 	return customizationBasePoint
 end
 
-function vehicle.updateEquipmentLights(_, equipmentModel, oldPrefix)
+function vehicle.updateEquipmentLights(_, equipmentModel)
 	local lightPrefix = equipmentModel:GetAttribute("lightPrefix") :: string?
 	if lightPrefix == nil or typeof(lightPrefix) ~= "string" then
 		return
 	end
-	if oldPrefix == lightPrefix or oldPrefix == nil or typeof(oldPrefix) ~= "string" then
-		oldPrefix = ""
-	end
 
 	for _, v in pairs(equipmentModel:GetDescendants()) do
 		if v.Parent and v.Parent.Name == "_LIGHTS" then
-			local names = v.Name:gsub(oldPrefix, ""):split("%d+$")
-			if names[2] ~= nil then
-				v.Name = lightPrefix .. names[1] .. names[1]
+			local originalName = v:GetAttribute("originalName")
+			if originalName ~= nil and typeof(originalName) == "string" then
+				v.Name = lightPrefix .. originalName
 			else
-				v.Name = lightPrefix .. names[1]
+				v.Name = lightPrefix .. v.Name
 			end
 		end
 	end

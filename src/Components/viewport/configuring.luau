@@ -176,9 +176,8 @@ return function(
 							end
 							local newPrefix = scope.peek(lightPrefix)
 
-							local oldPrefix = currentEquipmentModel:GetAttribute("lightPrefix") :: string
 							currentEquipmentModel:SetAttribute("lightPrefix", newPrefix)
-							vehicle:updateEquipmentLights(currentEquipmentModel, oldPrefix)
+							vehicle:updateEquipmentLights(currentEquipmentModel)
 						end
 						rows["Light Prefix"] = scope:base {
 							Size = UDim2.fromOffset(300, 50),
