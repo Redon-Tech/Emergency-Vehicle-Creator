@@ -17,6 +17,7 @@ export type option = {
 	selectionChanged: (() -> ())?,
 	OverrideXSize: number?,
 	disabled: Fusion.UsedAs<boolean?>,
+	visible: Fusion.UsedAs<boolean?>,
 } | {
 	type: "string",
 	layoutOrder: number,
@@ -24,6 +25,7 @@ export type option = {
 	focusLost: (() -> ())?,
 	OverrideXSize: number?,
 	disabled: Fusion.UsedAs<boolean?>,
+	visible: Fusion.UsedAs<boolean?>,
 } | {
 	type: "keycode",
 	layoutOrder: number,
@@ -31,6 +33,7 @@ export type option = {
 	focusLost: (() -> ())?,
 	OverrideXSize: number?,
 	disabled: Fusion.UsedAs<boolean?>,
+	visible: Fusion.UsedAs<boolean?>,
 } | {
 	type: "number",
 	layoutOrder: number,
@@ -38,6 +41,7 @@ export type option = {
 	focusLost: (() -> ())?,
 	OverrideXSize: number?,
 	disabled: Fusion.UsedAs<boolean?>,
+	visible: Fusion.UsedAs<boolean?>,
 } | {
 	type: "button",
 	layoutOrder: number,
@@ -45,6 +49,7 @@ export type option = {
 	OverrideXSize: number?,
 	callback: () -> (),
 	disabled: Fusion.UsedAs<boolean?>,
+	visible: Fusion.UsedAs<boolean?>,
 } | {
 	type: "color",
 	layoutOrder: number,
@@ -52,6 +57,7 @@ export type option = {
 	colorChanged: (() -> ())?,
 	label: string,
 	disabled: Fusion.UsedAs<boolean?>,
+	visible: Fusion.UsedAs<boolean?>,
 }
 
 export type childOption = {
@@ -204,6 +210,7 @@ local function createChildren(
 										Interactable = scope:Computed(function(use)
 											return if use(data.disabled) == true then false else true
 										end),
+										Visible = data.visible,
 										CornerRadius = UDim.new(0, 5),
 										Border = 1,
 										TextScaled = true,

@@ -901,7 +901,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														return sirensByName
 													end),
 													selectionChanged = updateActivationsConfiguration,
-													Visible = innerScope:Computed(function(use)
+													visible = innerScope:Computed(function(use)
 														return use(value.mode) == "Siren Override"
 													end),
 												})
