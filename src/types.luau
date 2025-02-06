@@ -13,7 +13,7 @@ export type Scope = Fusion.Scope<typeof(Fusion) & typeof(RedonUI.Components) & t
 
 export type mode = "menu" | "main" | "viewport"
 
-export type menuPanels = "Home" | "Vehicle" | "Settings" | "Help" | "Credits"
+export type menuPanels = "Home" | "Vehicle" | "Settings" | "Help" | "Credits" | "Permission Needed"
 
 export type mainPanels = "Vehicle Setup" | "ELS Setup"
 export type vehicleSetupPages = "Functions" | "Sirens" | "Light Settings"

@@ -15,12 +15,14 @@ local help = require(script.help)
 local credits = require(script.credits)
 local settings = require(script.settings)
 local vehicle = require(script.vehicle)
+local scriptInjectionRequired = require(script.scriptInjectionRequired)
 local panels: { [number]: (scope: types.Scope, props: any) -> Fusion.Child } = {
 	[1] = home,
 	[2] = help,
 	[3] = credits,
 	[4] = settings,
 	[5] = vehicle,
+	[6] = scriptInjectionRequired,
 }
 local panelByName = {
 	Home = 1,
@@ -28,6 +30,7 @@ local panelByName = {
 	Credits = 3,
 	Settings = 4,
 	Vehicle = 5,
+	["Permission Needed"] = 6,
 }
 
 type props = {
