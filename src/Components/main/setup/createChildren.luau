@@ -9,6 +9,40 @@ local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
 local colorPicker = require(root.Plugin.Components.base.colorPicker)
 
+local specialKeycodeLookup = {
+	["+"] = Enum.KeyCode.Plus,
+	["-"] = Enum.KeyCode.Minus,
+	["*"] = Enum.KeyCode.Asterisk,
+	["/"] = Enum.KeyCode.Slash,
+	["."] = Enum.KeyCode.Period,
+	[";"] = Enum.KeyCode.Semicolon,
+	[","] = Enum.KeyCode.Comma,
+	["="] = Enum.KeyCode.Equals,
+	["["] = Enum.KeyCode.LeftBracket,
+	["]"] = Enum.KeyCode.RightBracket,
+	["\\"] = Enum.KeyCode.BackSlash,
+	["'"] = Enum.KeyCode.Quote,
+	["`"] = Enum.KeyCode.Backquote,
+	["~"] = Enum.KeyCode.Tilde,
+	["|"] = Enum.KeyCode.Pipe,
+	["@"] = Enum.KeyCode.At,
+	["#"] = Enum.KeyCode.Hash,
+	["$"] = Enum.KeyCode.Dollar,
+	["%"] = Enum.KeyCode.Percent,
+	["^"] = Enum.KeyCode.Caret,
+	["&"] = Enum.KeyCode.Ampersand,
+	["("] = Enum.KeyCode.LeftParenthesis,
+	[")"] = Enum.KeyCode.RightParenthesis,
+	["_"] = Enum.KeyCode.Underscore,
+	["{"] = Enum.KeyCode.LeftCurly,
+	["}"] = Enum.KeyCode.RightCurly,
+	[":"] = Enum.KeyCode.Colon,
+	['"'] = Enum.KeyCode.QuotedDouble,
+	["<"] = Enum.KeyCode.LessThan,
+	[">"] = Enum.KeyCode.GreaterThan,
+	["?"] = Enum.KeyCode.Question,
+}
+
 export type option = {
 	type: "select",
 	layoutOrder: number,
@@ -253,7 +287,11 @@ local function createChildren(
 												TextXAlignment = Enum.TextXAlignment.Left,
 												[Fusion.OnEvent "FocusLost"] = function()
 													local success, actualValue = pcall(function()
-														return (Enum.KeyCode :: any)[scope.peek(value)]
+														local possibleKeycode = scope.peek(value)
+														if specialKeycodeLookup[possibleKeycode] then
+															return specialKeycodeLookup[possibleKeycode]
+														end
+														return (Enum.KeyCode :: any)[possibleKeycode]
 													end)
 													if not success then
 														log.warn("Unable to serialize keycode", actualValue)
@@ -368,7 +406,10 @@ local function createChildren(
 												scope.CombineProperties(baseProps, {
 													DropdownHeight = 100,
 													Options = data.options,
-													Text = data.value,
+													Text = scope:Computed(function(use)
+														local currentValue = use(data.value)
+														return if currentValue == nil then "None" else currentValue
+													end),
 													TextXAlignment = Enum.TextXAlignment.Left,
 													Position = scope:Computed(function(use)
 														local currentRowMeta = use(rowMeta)
