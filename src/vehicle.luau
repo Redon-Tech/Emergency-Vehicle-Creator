@@ -448,6 +448,7 @@ function vehicle.changeConfiguration(_, vehicleFolder, equipmentModel, configura
 		end
 		vehicle:updateEquipmentLights(equipmentModel)
 	end
+	ChangeHistoryService:SetWaypoint("Changed equipment configuration")
 end
 
 function vehicle.changeEquipment(self, vehicleFolder, outfitting, location, equipmentName)
@@ -581,6 +582,7 @@ function vehicle.updateEquipmentLights(_, equipmentModel)
 			end
 		end
 	end
+	ChangeHistoryService:SetWaypoint("Updated equipment lights")
 end
 
 return vehicle

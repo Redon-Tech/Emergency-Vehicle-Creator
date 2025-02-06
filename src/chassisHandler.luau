@@ -493,6 +493,7 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 	newHandler.Parent = plugins
 	newHandler.Enabled = true
 	SirensLocation.Parent = model
+	ChangeHistoryService:SetWaypoint("Installed EVH")
 	-- newHandler.EVHEvent.loader.Enabled = true
 	return true
 end
@@ -579,6 +580,7 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 		newLoader.Parent = event
 
 		Plugin.Source = script.Parent.handler.Source
+		ChangeHistoryService:SetWaypoint("Updated EVH")
 	end
 	data.lightSettings.version = latestVersion
 
@@ -612,6 +614,7 @@ function chassisHandler.saveConfiguration(self: chassisHandler, model: Model): b
 	configuration.functions.Source = exportHeader .. functionsSourceBase
 	configuration.sirens.Source = exportHeader .. sirensSourceBase
 	configuration.lightSettings.Source = exportHeader .. lightSettingsSourceBase
+	ChangeHistoryService:SetWaypoint("Saved configuration")
 
 	return true
 end
