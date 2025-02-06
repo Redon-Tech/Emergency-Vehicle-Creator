@@ -11,7 +11,8 @@ local exportHeader =
 	"-- Redon Tech Emergency Vehicle Creator, MIT License\n\n--DO NOT MODIFY BELOW\n--SUPPORT WILL BE VOIDED IF MODIFIED\n\nreturn "
 
 -- version format: minor.{if rc then 0 else 1}patch
-local latestVersion = 0.02
+local latestVersion = 0.03
+-- please ensure to update handler/EVHEvent/configuration/lightSettings.luau if you update this
 
 export type color = {
 	name: string,
@@ -579,7 +580,7 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 
 		Plugin.Source = script.Parent.handler.Source
 	end
-	data.lightSettings.version = 0.01
+	data.lightSettings.version = latestVersion
 
 	self.cache[model] = {
 		data = data,
