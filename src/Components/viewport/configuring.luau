@@ -24,6 +24,7 @@ return function(
 		currentOptionData: Fusion.Value<{ [string]: boolean | { [string]: boolean } }>,
 
 		cleanupCustomization: () -> (),
+		recomputeLightParts: () -> (),
 	}
 )
 	local currentTheme = RedonUI.theme.theme:now()
@@ -116,6 +117,7 @@ return function(
 					vehicle:changeConfiguration(currentVehicleFolder, currentEquipmentModel, {
 						[name] = if typeof(current) == "table" then current else newValue,
 					})
+					props.recomputeLightParts()
 				end,
 			},
 		}
@@ -178,6 +180,7 @@ return function(
 
 							currentEquipmentModel:SetAttribute("lightPrefix", newPrefix)
 							vehicle:updateEquipmentLights(currentEquipmentModel)
+							props.recomputeLightParts()
 						end
 						rows["Light Prefix"] = scope:base {
 							Size = UDim2.fromOffset(300, 50),

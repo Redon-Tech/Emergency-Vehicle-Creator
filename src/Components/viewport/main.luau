@@ -123,6 +123,7 @@ local function construct(
 															log.warn("failed to change equipment")
 															return
 														end
+														props.recomputeLightParts()
 														props.currentEquipment:set(name)
 													end
 													props.currentlyConfiguring:set(name)
@@ -155,6 +156,7 @@ return function(
 		currentOptionData: Fusion.Value<{ [string]: boolean | { [string]: boolean } }>,
 
 		cleanupCustomization: () -> (),
+		recomputeLightParts: () -> (),
 		ReturnTo: Fusion.Value<types.returnTo>,
 	}
 )
@@ -363,6 +365,7 @@ return function(
 										log.warn("failed to change equipment")
 										return
 									end
+									props.recomputeLightParts()
 									props.currentEquipment:set("")
 									props.currentlyConfiguring:set(nil)
 								end :: unknown,
@@ -425,6 +428,7 @@ return function(
 						currentOptionData = props.currentOptionData,
 
 						cleanupCustomization = props.cleanupCustomization,
+						recomputeLightParts = props.recomputeLightParts,
 					},
 				},
 			},
