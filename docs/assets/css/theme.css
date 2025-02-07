@@ -54,6 +54,34 @@
 	--md-code-hl-comment-color:        var(--ctp-latte-overlay2);
 	--md-code-hl-generic-color:        var(--ctp-latte-text);
 	--md-code-hl-variable-color:       var(--ctp-latte-text);
+
+	--ctp-rosewater: var(--ctp-latte-rosewater-rgb);
+	--ctp-flamingo: var(--ctp-latte-flamingo-rgb);
+	--ctp-pink: var(--ctp-latte-pink-rgb);
+	--ctp-mauve: var(--ctp-latte-mauve-rgb);
+	--ctp-red: var(--ctp-latte-red-rgb);
+	--ctp-maroon: var(--ctp-latte-maroon-rgb);
+	--ctp-peach: var(--ctp-latte-peach-rgb);
+	--ctp-yellow: var(--ctp-latte-yellow-rgb);
+	--ctp-green: var(--ctp-latte-green-rgb);
+	--ctp-teal: var(--ctp-latte-teal-rgb);
+	--ctp-sky: var(--ctp-latte-sky-rgb);
+	--ctp-sapphire: var(--ctp-latte-sapphire-rgb);
+	--ctp-blue: var(--ctp-latte-blue-rgb);
+	--ctp-lavender: var(--ctp-latte-lavender-rgb);
+	--ctp-text: var(--ctp-latte-text-rgb);
+	--ctp-subtext1: var(--ctp-latte-subtext1-rgb);
+	--ctp-subtext0: var(--ctp-latte-subtext0-rgb);
+	--ctp-overlay2: var(--ctp-latte-overlay2-rgb);
+	--ctp-overlay1: var(--ctp-latte-overlay1-rgb);
+	--ctp-overlay0: var(--ctp-latte-overlay0-rgb);
+	--ctp-surface2: var(--ctp-latte-surface2-rgb);
+	--ctp-surface1: var(--ctp-latte-surface1-rgb);
+	--ctp-surface0: var(--ctp-latte-surface0-rgb);
+	--ctp-base: var(--ctp-latte-base-rgb);
+	--ctp-mantle: var(--ctp-latte-mantle-rgb);
+	--ctp-crust: var(--ctp-latte-crust-rgb);
+	--whiteshadow: #00000090;
 }
 
 [data-md-color-scheme="catppuccin-mocha"] {
@@ -110,6 +138,34 @@
 	--md-code-hl-comment-color:        var(--ctp-mocha-overlay2);
 	--md-code-hl-generic-color:        var(--ctp-mocha-text);
 	--md-code-hl-variable-color:       var(--ctp-mocha-text);
+
+	--ctp-rosewater: var(--ctp-mocha-rosewater-rgb);
+	--ctp-flamingo: var(--ctp-mocha-flamingo-rgb);
+	--ctp-pink: var(--ctp-mocha-pink-rgb);
+	--ctp-mauve: var(--ctp-mocha-mauve-rgb);
+	--ctp-red: var(--ctp-mocha-red-rgb);
+	--ctp-maroon: var(--ctp-mocha-maroon-rgb);
+	--ctp-peach: var(--ctp-mocha-peach-rgb);
+	--ctp-yellow: var(--ctp-mocha-yellow-rgb);
+	--ctp-green: var(--ctp-mocha-green-rgb);
+	--ctp-teal: var(--ctp-mocha-teal-rgb);
+	--ctp-sky: var(--ctp-mocha-sky-rgb);
+	--ctp-sapphire: var(--ctp-mocha-sapphire-rgb);
+	--ctp-blue: var(--ctp-mocha-blue-rgb);
+	--ctp-lavender: var(--ctp-mocha-lavender-rgb);
+	--ctp-text: var(--ctp-mocha-text-rgb);
+	--ctp-subtext1: var(--ctp-mocha-subtext1-rgb);
+	--ctp-subtext0: var(--ctp-mocha-subtext0-rgb);
+	--ctp-overlay2: var(--ctp-mocha-overlay2-rgb);
+	--ctp-overlay1: var(--ctp-mocha-overlay1-rgb);
+	--ctp-overlay0: var(--ctp-mocha-overlay0-rgb);
+	--ctp-surface2: var(--ctp-mocha-surface2-rgb);
+	--ctp-surface1: var(--ctp-mocha-surface1-rgb);
+	--ctp-surface0: var(--ctp-mocha-surface0-rgb);
+	--ctp-base: var(--ctp-mocha-base-rgb);
+	--ctp-mantle: var(--ctp-mocha-mantle-rgb);
+	--ctp-crust: var(--ctp-mocha-crust-rgb);
+	--whiteshadow: #ffffff90;
 }
 
 .md-footer a {
@@ -121,14 +177,36 @@
 	opacity: 1 !important;
 }
 
+.md-typeset .md-button {
+	background-color: rgb(var(--ctp-crust));
+	border: .1rem solid rgb(var(--ctp-text));
+	box-shadow: 0 0rem 1rem var(--ctp-crust);
+	border-radius: 10px;
+	transition: scale 0.3s ease;
+}
+
 .md-typeset .md-button:focus, .md-typeset .md-button:hover {
-	background-color: var(--md-typeset-a-color);
-	border-color: var(--md-typeset-a-color);
+	background-color: rgb(var(--ctp-crust));
+	border-color: rgb(var(--ctp-text));
+	color: rgb(var(--ctp-text));
+	scale: 1.1;
+}
+
+.md-typeset .md-button:active {
+	background-color: rgb(var(--ctp-crust));
+	border-color: rgb(var(--ctp-text));
+	color: rgb(var(--ctp-text));
+	scale: 0.9;
+}
+
+.button-left-margin {
+	margin-left: 15px;
 }
 
 .md-banner {
 	color: var(--md-primary-bg-color);
-	background-color: var(--md-default-bg-color--light);
+	background-color: transparent;
+	backdrop-filter: blur(1rem);
 	
 	display: flex;
 	align-items: center;
@@ -143,6 +221,10 @@
 	filter: drop-shadow(0 0rem .5rem rgba(198, 160, 246,.25));
 }
 
+.md-search-result__meta {
+	background-color: var(--md-default-bg-color--light);
+}
+
 .md-tabs__link {
 	opacity: 1;
 }
@@ -154,4 +236,19 @@
 .md-tabs__item--active .md-tabs__link {
 	color: var(--md-typeset-a-color);
 	text-shadow: 0 0rem 1rem rgba(198, 160, 246,.1);
+}
+
+.md-header {
+	background-color: transparent;
+	backdrop-filter: blur(1rem);
+}
+
+.md-header--shadow {
+	border-bottom: 1px solid var(--md-default-fg-color);
+}
+
+.md-tabs {
+	border-bottom: 1px solid var(--md-default-fg-color);
+	background-color: transparent;
+	backdrop-filter: blur(1rem);
 }
