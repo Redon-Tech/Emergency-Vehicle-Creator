@@ -11,7 +11,8 @@ local exportHeader =
 	"-- Redon Tech Emergency Vehicle Creator, MIT License\n\n--DO NOT MODIFY BELOW\n--SUPPORT WILL BE VOIDED IF MODIFIED\n\nreturn "
 
 -- version format: minor.{if rc then 0 else 1}patch
-local latestVersion = 0.02
+local latestVersion = 0.03
+-- please ensure to update handler/EVHEvent/configuration/lightSettings.luau if you update this
 
 export type color = {
 	name: string,
@@ -492,6 +493,7 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 	newHandler.Parent = plugins
 	newHandler.Enabled = true
 	SirensLocation.Parent = model
+	ChangeHistoryService:SetWaypoint("Installed EVH")
 	-- newHandler.EVHEvent.loader.Enabled = true
 	return true
 end
@@ -578,8 +580,9 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 		newLoader.Parent = event
 
 		Plugin.Source = script.Parent.handler.Source
+		ChangeHistoryService:SetWaypoint("Updated EVH")
 	end
-	data.lightSettings.version = 0.01
+	data.lightSettings.version = latestVersion
 
 	self.cache[model] = {
 		data = data,
@@ -611,6 +614,7 @@ function chassisHandler.saveConfiguration(self: chassisHandler, model: Model): b
 	configuration.functions.Source = exportHeader .. functionsSourceBase
 	configuration.sirens.Source = exportHeader .. sirensSourceBase
 	configuration.lightSettings.Source = exportHeader .. lightSettingsSourceBase
+	ChangeHistoryService:SetWaypoint("Saved configuration")
 
 	return true
 end

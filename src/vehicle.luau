@@ -287,6 +287,16 @@ function vehicle.getVehicle(self, vehicleName)
 		local success, vehicleModule = pcall(function()
 			-- return InsertService:LoadAsset(self.vehicles[vehicleName].assetId)
 			log.debug("Loading vehicle", vehicleName, self.vehicles[vehicleName].assetId)
+			if log.verbosity >= log.level.debug then
+				local inWorldFolder = workspace:FindFirstChild(vehicleName) :: Folder?
+				if inWorldFolder ~= nil and inWorldFolder:IsA("Folder") then
+					local MainModule = inWorldFolder:FindFirstChild("MainModule") :: ModuleScript?
+					if MainModule ~= nil and MainModule:IsA("ModuleScript") then
+						log.warn("Using MainModule found in workspace", vehicleName, MainModule)
+						return (require :: any)(MainModule)
+					end
+				end
+			end
 			return (require :: any)(self.vehicles[vehicleName].assetId)
 			-- return (require :: any)(workspace["2020FPIU"].MainModule)
 		end)
@@ -448,6 +458,7 @@ function vehicle.changeConfiguration(_, vehicleFolder, equipmentModel, configura
 		end
 		vehicle:updateEquipmentLights(equipmentModel)
 	end
+	ChangeHistoryService:SetWaypoint("Changed equipment configuration")
 end
 
 function vehicle.changeEquipment(self, vehicleFolder, outfitting, location, equipmentName)
@@ -581,6 +592,7 @@ function vehicle.updateEquipmentLights(_, equipmentModel)
 			end
 		end
 	end
+	ChangeHistoryService:SetWaypoint("Updated equipment lights")
 end
 
 return vehicle

@@ -796,6 +796,15 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														local newType = innerScope.peek(activationType)
 														if newType == "Standard" then
 															value.mode = value.mode or scope:Value("Cycle") :: any
+															if
+																value.mode ~= nil
+																and (
+																	scope.peek(value.mode) ~= "Cycle"
+																	or scope.peek(value.mode) ~= "Set Pattern"
+																)
+															then
+																value.mode:set("Cycle")
+															end
 															value.pattern = value.pattern or scope:Value(0)
 															value.keybinds = value.keybinds
 																or scope:Value({
@@ -810,6 +819,15 @@ return function(scope: types.Scope, props: props): Fusion.Child
 															value.pattern = nil
 															value.keybinds = nil
 															value.mode = value.mode or scope:Value("Park") :: any
+															if
+																value.mode ~= nil
+																and (
+																	scope.peek(value.mode) == "Cycle"
+																	or scope.peek(value.mode) == "Set Pattern"
+																)
+															then
+																value.mode:set("Park")
+															end
 															value.siren = value.siren or scope:Value(nil)
 															value.dependentFunction = value.dependentFunction
 																or scope:Value("No Dependent Function")
