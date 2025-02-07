@@ -61,13 +61,28 @@ EasyLS (EasyLS Studios) - Driving Improvement (v3 wouldn't exist without it)]],
 			type = "text",
 			name = "Testers",
 			content = [[Thank you for helping test the plugin and provide feedback!
+Pre-Teaser Testers:
 - Ashi_Division
 - SnowGlobeYT1 
 - BoltedChase
 - Ryan
 - mopsagfh
 - NewPlayerqwerty
-- Holt_Official]],
+- Holt_Official
+
+Post-Teaser Testers:
+- V4_0Z
+- Sam (infinityinnovator)
+- Reese (msfsaviator)
+- Bacon (ravenpopo)
+- DragosThyBeast (dragosofficial)
+- Jay (dillpickle2651)
+- Canada_Enforcer (calebh6)
+- Operator_Ace (berryboyau)
+- Phantom81 (fantap.)
+- AllStar (litrey_savage)
+- coolboyjtuh
+- whoreallycaresanymore]],
 		},
 	}
 
