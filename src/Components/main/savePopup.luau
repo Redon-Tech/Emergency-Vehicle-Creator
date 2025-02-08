@@ -86,6 +86,9 @@ return function(scope: types.Scope, props: props): Instance
 			}
 
 			for _, fader in data.faders do
+				if fader.Name == nil or fader.Tweens == nil then
+					continue
+				end
 				local newFader: types.faderSection = {
 					lightName = fader.Name,
 					data = {},
@@ -120,6 +123,9 @@ return function(scope: types.Scope, props: props): Instance
 			end
 
 			for _, rotator in data.rotators do
+				if rotator.Name == nil or rotator.Angles == nil then
+					continue
+				end
 				local newRotator: types.rotatorSection = {
 					lightName = rotator.Name,
 					data = {},
@@ -143,6 +149,9 @@ return function(scope: types.Scope, props: props): Instance
 			end
 
 			for _, els in data.elsCreator do
+				if els.Columns == nil or els.WaitTime == nil then
+					continue
+				end
 				local newEls: types.flasherSection = {
 					waitTime = els.WaitTime,
 					columns = {},
