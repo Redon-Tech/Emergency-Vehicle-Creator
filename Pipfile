@@ -4,8 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+mkdocs-material = "*"
+httpx = "*"
+mkdocs-literate-nav = "*"
+mkdocs-mermaid2-plugin = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.11"
+python_version = "3.13"

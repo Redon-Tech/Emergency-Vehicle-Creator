@@ -8,14 +8,22 @@ repo_url: 'https://github.com/Redon-Tech/Emergency-Vehicle-Creator/'
 nav:
   - Home: index.md
   - Getting Started:
-    - ELS Creator: get-started/els.md
-    - Faders: get-started/faders.md
-    - Rotators: get-started/rotators.md
-    - Save & Load: get-started/save-load.md
-    - Exporting: get-started/exporting.md
+    - Vehicle Creator: get-started/vehicle-setup/vehicle-creator/getting-started.md
+    - Configuring Equipment: get-started/vehicle-setup/vehicle-creator/configuring-equipment.md
+    - ELS Setup:
+      - Function Setup: get-started/els-setup/functions/setup.md
+      - Siren Setup: get-started/els-setup/siren-setup.md
+      - Light Settings: get-started/els-setup/light-settings.md
+    - Pattern Creator:
+      - Flashers: get-started/patterns/flashers.md
+      - Faders: get-started/patterns/faders.md
+      - Rotators: get-started/patterns/rotators.md
+    - Custom Vehicles:
+      - Pre-Outfitted Vehicles: get-started/vehicle-setup/custom-vehicles/preoutfitted.md
+      - V2 to V3 Conversion: get-started/vehicle-setup/custom-vehicles/v2-v3.md
   - Credits: credits.md
 
-copyright: Copyright &copy; 2024 Redon Tech
+copyright: Copyright &copy; 2024-2025 Redon Tech
 
 extra:
   social:
@@ -37,6 +45,8 @@ theme:
     - navigation.tracking
     - navigation.top
     - navigation.footer
+    - navigation.sections
+    - navigation.indexes
     - toc.follow
     - content.code.copy
     - content.tabs.link

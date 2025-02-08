@@ -1,5 +1,9 @@
+# Builds
+/EVC V3 Test.rbxm
+
 # Packages
-/Packages
+/lune_packages
+/roblox_packages
 
 # Roblox Studio lock files
 /*.rbxlx.lock
