@@ -782,7 +782,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 									[Fusion.Children] = createChildren(innerScope, {
 										rowSize = rowSize,
-										options = innerScope:Computed(function(use)
+										options = innerScope:Computed(function(use, innerScope: typeof(innerScope))
 											local controls: { createChildren.option } = {
 												{
 													type = "select",

@@ -156,6 +156,9 @@ local function createChildren(
 		local currentRowSize = maxOptionsSize
 
 		for key, data in use(props.options) do
+			if use(data.visible) == false then
+				continue
+			end
 			local size = getSize(data)
 			if currentRowSize < size then
 				currentRow = currentRow + 1
