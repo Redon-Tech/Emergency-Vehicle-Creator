@@ -15,8 +15,8 @@ if not game:GetService("RunService"):IsEdit() then
 	return
 end
 
-local VERSION = "3.0.0-alpha.5"
-local IS_DEV = true
+local VERSION = "3.0.0-beta.1"
+local IS_DEV = false
 if IS_DEV then
 	game:GetService("LogService"):ClearOutput()
 end
@@ -118,7 +118,7 @@ table.insert(scope, function()
 end)
 
 pluginSettings:setup(scope)
-if scope.peek(pluginSettings.values.debugMode) then
+if scope.peek(pluginSettings.values.debugMode) == true then
 	log.verbosity = log.level.debug
 end
 

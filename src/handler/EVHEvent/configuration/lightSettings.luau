@@ -4,7 +4,7 @@
 --SUPPORT WILL BE VOIDED IF MODIFIED
 
 return {
-	version = 0.03,
+	version = 0.04,
 	colors = {
 		{
 			name = "Blue",

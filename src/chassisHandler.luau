@@ -11,7 +11,7 @@ local exportHeader =
 	"-- Redon Tech Emergency Vehicle Creator, MIT License\n\n--DO NOT MODIFY BELOW\n--SUPPORT WILL BE VOIDED IF MODIFIED\n\nreturn "
 
 -- version format: minor.{if rc then 0 else 1}patch
-local latestVersion = 0.03
+local latestVersion = 0.04
 -- please ensure to update handler/EVHEvent/configuration/lightSettings.luau if you update this
 
 export type color = {
