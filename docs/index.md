@@ -27,7 +27,7 @@ No coding required, just your creativity. Start creating your vehicles today.
 </p>
 <div class="hero-links">
 <a href="https://create.roblox.com/marketplace/asset/9953321418">Download Now</a>
-<a href="/get-started/els">Guide to get started</a>
+<a href="get-started/vehicle-setup/vehicle-creator/getting-started/" class="padd">Guide to get started</a>
 </div>
 </div>
 
@@ -87,4 +87,4 @@ If you are interested in Emergency Vehicle Creator, you can download it from the
 Welcome to the Emergency Vehicle Creator community!
 
 [Download Now](https://create.roblox.com/marketplace/asset/9953321418){ .md-button .md-button--primary }
-[Get Started](get-started/els.md){ .md-button .md-button--primary }
+[Get Started](get-started/vehicle-setup/vehicle-creator/getting-started.md){ .md-button .md-button--primary .button-left-margin }
