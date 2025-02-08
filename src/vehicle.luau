@@ -382,14 +382,10 @@ local function getOriginalConfiguration(
 	if customizationPrimaryPart == nil then
 		return
 	end
-	local attachment = customizationPrimaryPart:FindFirstChildWhichIsA("Attachment")
-	if attachment == nil then
-		return
-	end
 
 	local newEquipment = originalEquipment:Clone()
 	newEquipment:SetAttribute("EVCEquipmentName", originalLocationName)
-	newEquipment:PivotTo(basePoint.CFrame * CFrame.new(-attachment.Position))
+	newEquipment:PivotTo(basePoint.CFrame)
 	newEquipment.Parent = equipmentModel.Parent
 
 	local originalOptions = newEquipment:FindFirstChild("Options") :: Model?
@@ -510,15 +506,10 @@ function vehicle.changeEquipment(self, vehicleFolder, outfitting, location, equi
 		log.warn("Failed to find primary part", newModel)
 		return false
 	end
-	local attachment = customizationPrimaryPart:FindFirstChildWhichIsA("Attachment")
-	if attachment == nil then
-		log.warn("Failed to find attachment", customizationPrimaryPart)
-		return false
-	end
 
 	local newEquipment = newModel:Clone()
 	newEquipment:SetAttribute("EVCEquipmentName", location)
-	newEquipment:PivotTo(basePoint.CFrame * CFrame.new(-attachment.Position))
+	newEquipment:PivotTo(basePoint.CFrame)
 	newEquipment.Parent = outfitting
 	outfitting:SetAttribute(location, equipmentName)
 	showModel(newEquipment)
