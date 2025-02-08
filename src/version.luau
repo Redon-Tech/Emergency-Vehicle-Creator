@@ -65,11 +65,8 @@ function version.isOutdated(self: version)
 	if
 		self.currentVer.major < self.latestVer.major
 		or (self.currentVer.major == self.latestVer.major and self.currentVer.minor < self.latestVer.minor)
-		or (
-			self.currentVer.major == self.latestVer.major
-			and self.currentVer.minor == self.latestVer.minor
-			and self.currentVer.patch < self.latestVer.patch
-		)
+		or (self.currentVer.major == self.latestVer.major and self.currentVer.minor == self.latestVer.minor and self.currentVer.patch < self.latestVer.patch)
+		or (self.currentVer.preRelease ~= self.latestVer.preRelease)
 	then
 		log.warn(
 			"Version Check:",
