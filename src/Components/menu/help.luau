@@ -19,7 +19,7 @@ local supportOptions = {
 	[1] = {
 		name = "YouTube Video",
 		description = "This video provides a overview of the entire plugin.",
-		link = "https://www.youtube.com/watch?v=",
+		link = "https://www.youtube.com/watch?v=NNoIUVLspzc&list=PL7OqW0xeBKZTbk4QMl-6v3V_x11pZBV0W",
 	},
 	[2] = {
 		name = "Discord",
