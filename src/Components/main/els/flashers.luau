@@ -539,13 +539,14 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								local contentSize = scope:Value(Vector2.one)
 								local canvasSize = scope:Value(Vector2.one)
 								local canvasPosition = scope:Value(Vector2.zero)
-								local columnPositions: { Fusion.Value<Vector2> } = {
-									[1] = scope:Value(Vector2.one),
-								}
 								local currentlyHovering = scope:Value(1)
+								local positionsScope = scope:innerScope()
+								local columnPositions: Fusion.Value<{ Fusion.Value<Vector2> }> = scope:Value({
+									[1] = positionsScope:Value(Vector2.one),
+								})
 								local hoverPosition = scope:Computed(function(use)
 									return math.clamp(
-										use(columnPositions[use(currentlyHovering)]).X
+										use(use(columnPositions)[use(currentlyHovering)]).X
 											- use(position).X
 											- 0.0133689840 * use(size).X,
 										0,
@@ -785,7 +786,11 @@ return function(scope: types.Scope, props: props): Fusion.Child
 												[Fusion.Children] = scope:ForPairs(
 													columns[key],
 													function(use, scope: typeof(scope), columnKey: number, columnData)
-														columnPositions[columnKey] = scope:Value(Vector2.zero)
+														local currentColumnPositions = use(columnPositions)
+														if currentColumnPositions[columnKey] == nil then
+															currentColumnPositions[columnKey] =
+																positionsScope:Value(Vector2.zero)
+														end
 														local color = scope:Computed(function(use)
 															if use(playing) == false then
 																return currentTheme.colors.base
@@ -810,7 +815,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 															Position = scope:Computed(function(use)
 																return UDim2.new(
 																	0,
-																	use(columnPositions[columnKey]).X
+																	use(currentColumnPositions[columnKey]).X
 																		- use(position).X
 																		- 0.0133689840 * use(size).X,
 																	0,
@@ -858,7 +863,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																	Position = scope:Computed(function(use)
 																		return UDim2.new(
 																			0,
-																			use(columnPositions[columnKey]).X
+																			use(currentColumnPositions[columnKey]).X
 																				- use(position).X
 																				- 0.0133689840 * use(size).X
 																				- 12.5,
@@ -891,7 +896,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																	Position = scope:Computed(function(use)
 																		return UDim2.new(
 																			0,
-																			use(columnPositions[columnKey]).X
+																			use(currentColumnPositions[columnKey]).X
 																				- use(position).X
 																				- 0.0133689840 * use(size).X
 																				- 75,
@@ -924,7 +929,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																	Position = scope:Computed(function(use)
 																		return UDim2.new(
 																			0,
-																			use(columnPositions[columnKey]).X
+																			use(currentColumnPositions[columnKey]).X
 																				- use(position).X
 																				- 0.0133689840 * use(size).X
 																				- 100,
@@ -1167,7 +1172,16 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																		currentlyHovering:set(columnKey)
 																	end :: unknown,
 
-																	[Fusion.Out "AbsolutePosition"] = columnPositions[columnKey],
+																	-- [Fusion.Out "AbsolutePosition"] = columnPositions[columnKey],
+																	[Fusion.OnChange "AbsolutePosition"] = function(
+																		newPosition: Vector2
+																	)
+																		local currentColumnPositions =
+																			scope.peek(columnPositions)
+																		currentColumnPositions[columnKey]:set(
+																			newPosition
+																		)
+																	end,
 
 																	[Fusion.Children] = Fusion.Child {
 																		scope:New("UIListLayout") {
