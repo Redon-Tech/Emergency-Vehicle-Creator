@@ -78,6 +78,13 @@ local vehicle = {
 			order = 1,
 			assetId = 95348918634521,
 		},
+		["2018 Dodge Charger Pursuit"] = {
+			icon = assets.images.vehicles.DODGECHARGER2018,
+			outfitter = "MiataVxbe",
+			credits = "EonWare/LT_haywood",
+			order = 2,
+			assetId = 90780122255551,
+		},
 	},
 	cache = {},
 } :: vehicle
