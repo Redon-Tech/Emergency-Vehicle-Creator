@@ -233,21 +233,25 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					if returnTo == "menu" then
 						props.Mode:set("menu")
 					elseif returnTo == "customizer" then
-						props.Mode:set("viewport")
+						local currentVehicle = scope.peek(props.CurrentVehicle)
+						if currentVehicle ~= nil and typeof(currentVehicle) == "Instance" then
+							if vehicle:isVehicleCustomizable(currentVehicle) == true then
+								props.Mode:set("viewport")
+								return
+							end
+						end
+						props.Mode:set("menu")
 					elseif returnTo == "vehicleSetup" then
 						props.CurrentPanel:set("Vehicle Setup")
 						props.CurrentPage:set("Functions")
 						local currentVehicle = scope.peek(props.CurrentVehicle)
 						if currentVehicle ~= nil and typeof(currentVehicle) == "Instance" then
-							-- props.ReturnTo:set("customizer")
 							if vehicle:isVehicleCustomizable(currentVehicle) == true then
 								props.ReturnTo:set("customizer")
-							else
-								props.ReturnTo:set("menu")
+								return
 							end
-						else
-							props.ReturnTo:set("menu")
 						end
+						props.ReturnTo:set("menu")
 					end
 				end,
 			},

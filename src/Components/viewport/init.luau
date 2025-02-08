@@ -247,7 +247,7 @@ return function(baseScope: types.Scope, props: props)
 				currentVehicleFolder:set(vehicleFolder)
 				recomputeLightParts()
 			end
-		elseif scope.peek(props.Mode) == "viewport" and currentVehicle == nil then
+		elseif scope.peek(props.Mode) == "viewport" then
 			props.Mode:set("menu")
 			log.warn("Got sent to viewport mode without a vehicle")
 		end
