@@ -5,7 +5,7 @@ local vehicle = require(script.Parent.vehicle)
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local LuaEncode = require(script.Parent.Parent.Packages.LuaEncode)
 local LuaEncodeSettings = {
-	Prettify = true,
+	Prettify = false,
 }
 local exportHeader =
 	"-- Redon Tech Emergency Vehicle Creator, MIT License\n\n--DO NOT MODIFY BELOW\n--SUPPORT WILL BE VOIDED IF MODIFIED\n\nreturn "
