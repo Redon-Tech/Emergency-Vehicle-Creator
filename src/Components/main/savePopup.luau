@@ -302,7 +302,7 @@ return function(scope: types.Scope, props: props): Instance
 							local name = scope.peek(newSaveName)
 							name = name:gsub('[\\"%.\n]', "")
 							name = testSaveName(name, saveNames, 0)
-							currentSaves[name] = currentPattern.pattern
+							currentSaves[name] = utils.deepCopy(currentPattern.pattern)
 
 							-- local currentPopup = scope.peek(savePopup)
 							-- if currentPopup then
@@ -447,6 +447,8 @@ return function(scope: types.Scope, props: props): Instance
 															key = 2,
 															callback = function(newPopup)
 																popup:removePopup(newPopup)
+																local value = utils.deepCopy(value)
+																log.debug("Loading", value)
 																props.CurrentPattern:set({
 																	functionId = currentPattern.functionId,
 																	patternId = currentPattern.patternId,
@@ -508,7 +510,8 @@ return function(scope: types.Scope, props: props): Instance
 															callback = function(newPopup)
 																popup:removePopup(newPopup)
 																popup:customPopup(scope, currentPopup)
-																currentSaves[name] = currentPattern.pattern
+																currentSaves[name] =
+																	utils.deepCopy(currentPattern.pattern)
 																saves:set(currentSaves)
 															end,
 														},
