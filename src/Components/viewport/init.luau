@@ -60,7 +60,7 @@ return function(baseScope: types.Scope, props: props)
 	local basePoint: Instance? = nil
 	local outfitting: Fusion.Value<Model?> = scope:Value(nil)
 	local attachments: Fusion.Value<{ Attachment }> = scope:Value({})
-	local lightParts: Fusion.Value<{ { name: string, attachment: Attachment } }> = scope:Value({})
+	local lightParts: Fusion.Value<{ BasePart }> = scope:Value({})
 	local connections: { RBXScriptConnection } = {}
 	local currentLocation: Fusion.Value<string?> = scope:Value(nil)
 	local currentEquipment = scope:Value("")
@@ -75,9 +75,6 @@ return function(baseScope: types.Scope, props: props)
 		end
 		outfitting:set(nil)
 		attachments:set({})
-		for _, lightPart in scope.peek(lightParts) do
-			lightPart.attachment:Destroy()
-		end
 		lightParts:set({})
 		currentLocation:set(nil)
 		currentlyConfiguring:set(nil)
@@ -171,14 +168,7 @@ return function(baseScope: types.Scope, props: props)
 		local newLightParts = {}
 		for _, lightPart in pairs(carOutfitting.model:GetDescendants()) do
 			if lightPart:IsA("BasePart") and lightPart.Parent ~= nil and lightPart.Parent.Name == "_LIGHTS" then
-				local attachment = lightPart:FindFirstChild("lightNameAttachment")
-				if attachment == nil or attachment:IsA("Attachment") == false then
-					local newAttachment = Instance.new("Attachment")
-					newAttachment.Name = "lightNameAttachment"
-					newAttachment.Parent = lightPart
-					attachment = newAttachment
-				end
-				table.insert(newLightParts, { name = lightPart.Name, attachment = attachment :: Attachment })
+				table.insert(newLightParts, lightPart)
 			end
 		end
 		log.debug("Recomputed light parts", newLightParts)
