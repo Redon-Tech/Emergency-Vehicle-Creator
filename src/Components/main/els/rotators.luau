@@ -76,6 +76,13 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	local currentConfiguration: chassisHandler.chassisConfiguration? = nil
 	local colors: Fusion.Value<{ chassisHandler.color }> = scope:Value(chassisHandler.defaults.colors)
 	local playing = scope:Value(false)
+	local function temporarlyPause()
+		local wasPlaying = scope.peek(playing)
+		playing:set(false)
+		return function()
+			playing:set(wasPlaying)
+		end
+	end
 	local holdingShift = false -- This is used to skip certain popups
 	local rotators: Fusion.Value<{ rotatorSectionState }> = scope:Value({})
 
@@ -154,6 +161,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		local currentPattern = scope.peek(props.CurrentPattern)
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if currentPattern ~= nil then
+			playing:set(false)
 			if typeof(currentVehicle) == "Instance" then
 				currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
 				if currentConfiguration ~= nil then
@@ -203,6 +211,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	end)
 
 	local function addRotator(atPoint: number?)
+		local unpause = temporarlyPause()
 		local currentRotators = scope.peek(rotators)
 		if atPoint == nil then
 			atPoint = #currentRotators + 1
@@ -230,6 +239,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 		rotators:set(currentRotators)
 		updateCurrentConfiguration()
+		unpause()
 	end
 
 	-- player
@@ -671,10 +681,12 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 														[Fusion.OnEvent "Activated"] = function()
 															local function remove()
+																local unpause = temporarlyPause()
 																local currentRotators = scope.peek(rotators)
 																table.remove(currentRotators, key)
 																rotators:set(currentRotators)
 																updateCurrentConfiguration()
+																unpause()
 															end
 
 															if holdingShift then
@@ -734,7 +746,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														ImageColor3 = currentTheme.colors.text,
 
 														[Fusion.OnEvent "Activated"] = function()
-															playing:set(false)
 															addRotator(key + 1)
 														end,
 													},
