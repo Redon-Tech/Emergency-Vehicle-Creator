@@ -22,6 +22,7 @@ local lights: {
 		lights: { Light },
 		colorableLightos: { { lighto: LayerCollector, images: { ImageLabel } } },
 		lightos: { [string]: { { lighto: LayerCollector, images: { ImageLabel } } } },
+		particleEmitters: { ParticleEmitter },
 	},
 } =
 	{}
@@ -125,6 +126,11 @@ local function changeLight(vehicle: Instance, functionId: number, lightName: str
 				end
 			end
 		end
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeParticleEmitters == true then
+			for _, particleEmitter in lightInstances.particleEmitters do
+				particleEmitter.Enabled = state
+			end
+		end
 	end
 end
 
@@ -162,7 +168,7 @@ local function setLightTransparency(
 	functionId: number,
 	lightName: string,
 	color: number,
-	transpareny: number
+	transparency: number
 )
 	local vehicleData = vehicles[vehicle]
 	if vehicleData == nil then
@@ -191,7 +197,7 @@ local function setLightTransparency(
 			end
 		end
 		if vehicleData.configuration.lightSettings.configuration.shouldChangeNeons == true then
-			part.Transparency = transpareny
+			part.Transparency = transparency
 		end
 		local lightInstances = lights[part]
 		if lightInstances == nil then
@@ -200,14 +206,14 @@ local function setLightTransparency(
 		if vehicleData.configuration.lightSettings.configuration.shouldChangeLights == true then
 			for _, light in lightInstances.lights do
 				light.Enabled = true
-				light.Brightness = (light:GetAttribute("defaultBrightness") :: number) * (1 - transpareny)
+				light.Brightness = (light:GetAttribute("defaultBrightness") :: number) * (1 - transparency)
 			end
 		end
 		if vehicleData.configuration.lightSettings.configuration.shouldChangeLightos == true then
 			for _, lighto in lightInstances.colorableLightos do
 				lighto.lighto.Enabled = true
 				for _, image in lighto.images do
-					image.ImageTransparency = transpareny
+					image.ImageTransparency = transparency
 				end
 			end
 
@@ -216,7 +222,7 @@ local function setLightTransparency(
 					for _, lighto in nonColorableLightos do
 						lighto.lighto.Enabled = true
 						for _, image in lighto.images do
-							image.ImageTransparency = transpareny
+							image.ImageTransparency = transparency
 						end
 					end
 				else
@@ -224,6 +230,11 @@ local function setLightTransparency(
 						lighto.lighto.Enabled = false
 					end
 				end
+			end
+		end
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeParticleEmitters == true then
+			for _, particleEmitter in lightInstances.particleEmitters do
+				particleEmitter.Transparency = NumberSequence.new(transparency)
 			end
 		end
 	end
@@ -272,6 +283,11 @@ local function resetLightTransparency(vehicle: Instance, lightName: string)
 						image.ImageTransparency = image:GetAttribute("defaultImageTransparency") :: number
 					end
 				end
+			end
+		end
+		if vehicleData.configuration.lightSettings.configuration.shouldChangeParticleEmitters == true then
+			for _, particleEmitter in lightInstances.particleEmitters do
+				particleEmitter.Transparency = NumberSequence.new(0)
 			end
 		end
 	end
@@ -472,6 +488,7 @@ local function addLight(vehicleData: types.vehicle, light: Instance)
 		local newLights = {}
 		local colorableLightos = {}
 		local lightos = {}
+		local particleEmitters = {}
 		local colorNames = {}
 		for _, color in vehicleData.configuration.lightSettings.colors do
 			table.insert(colorNames, color.name)
@@ -500,6 +517,10 @@ local function addLight(vehicleData: types.vehicle, light: Instance)
 					end
 					table.insert(lightos[lighto.Name], { lighto = lighto, images = images })
 				end
+			elseif lighto:IsA("ParticleEmitter") then
+				lighto.Enabled = false
+				lighto.Transparency = NumberSequence.new(0)
+				table.insert(particleEmitters, lighto)
 			end
 		end
 
@@ -507,6 +528,7 @@ local function addLight(vehicleData: types.vehicle, light: Instance)
 			lights = newLights,
 			colorableLightos = colorableLightos,
 			lightos = lightos,
+			particleEmitters = particleEmitters,
 		}
 	end
 end

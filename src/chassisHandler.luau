@@ -29,6 +29,7 @@ export type lightSettings = {
 		shouldChangeNeons: boolean,
 		shouldChangeLights: boolean,
 		shouldChangeLightos: boolean,
+		shouldChangeParticleEmitters: boolean,
 		partTransparency: number,
 	},
 	lightGroups: {
@@ -567,10 +568,14 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 			shouldChangeNeons = oldLightConfiguration.shouldChangeNeons,
 			shouldChangeLights = oldLightConfiguration.shouldChangeLights,
 			shouldChangeLightos = oldLightConfiguration.shouldChangeLightos,
+			shouldChangeParticleEmitters = false,
 			partTransparency = 0.011,
 		};
 		(data.lightSettings :: any).optimizations = nil
 		log.info("Updated lightSettings from optimizations to configuration", oldLightConfiguration, data.lightSettings)
+	end
+	if data.lightSettings.configuration.shouldChangeParticleEmitters == nil then
+		data.lightSettings.configuration.shouldChangeParticleEmitters = false
 	end
 	if data.lightSettings.version ~= latestVersion then
 		local oldLoader = event:FindFirstChild("loader")

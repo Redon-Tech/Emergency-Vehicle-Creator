@@ -35,6 +35,7 @@ export type lightSettings = {
 		shouldChangeNeons: boolean,
 		shouldChangeLights: boolean,
 		shouldChangeLightos: boolean,
+		shouldChangeParticleEmitters: boolean?,
 		partTransparency: number,
 	},
 	lightGroups: {

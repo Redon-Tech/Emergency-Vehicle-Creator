@@ -47,6 +47,7 @@ return {
 		shouldChangeNeons = true,
 		shouldChangeLights = true,
 		shouldChangeLightos = true,
+		shouldChangeParticleEmitters = false,
 		partTransparency = 0.011,
 	},
 	lightGroups = {},

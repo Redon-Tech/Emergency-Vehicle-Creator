@@ -41,6 +41,7 @@ type lightSettingsState = {
 		shouldChangeNeons: Fusion.Value<boolean>,
 		shouldChangeLights: Fusion.Value<boolean>,
 		shouldChangeLightos: Fusion.Value<boolean>,
+		shouldChangeParticleEmitters: Fusion.Value<boolean>,
 		partTransparency: Fusion.Value<number>,
 	},
 	lightGroups: Fusion.Value<{ { name: Fusion.Value<string>, lights: Fusion.Value<{ string }> } }>,
@@ -53,6 +54,7 @@ local mainSettings = {
 			{ index = "shouldChangeNeons", name = "Enable Neon Lights", type = "boolean" },
 			{ index = "shouldChangeLights", name = "Enable Light Emitters", type = "boolean" },
 			{ index = "shouldChangeLightos", name = "Enable Lightos", type = "boolean" },
+			{ index = "shouldChangeParticleEmitters", name = "Enable Particle Emitters", type = "boolean" },
 		},
 	},
 	{
@@ -105,6 +107,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					shouldChangeLightos = scope:Value(
 						currentConfiguration.lightSettings.configuration.shouldChangeLightos
 					),
+					shouldChangeParticleEmitters = scope:Value(
+						currentConfiguration.lightSettings.configuration.shouldChangeParticleEmitters
+					),
 					partTransparency = scope:Value(currentConfiguration.lightSettings.configuration.partTransparency),
 				}
 
@@ -134,6 +139,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					shouldChangeNeons = scope.peek(currentLightSettings.configuration.shouldChangeNeons),
 					shouldChangeLights = scope.peek(currentLightSettings.configuration.shouldChangeLights),
 					shouldChangeLightos = scope.peek(currentLightSettings.configuration.shouldChangeLightos),
+					shouldChangeParticleEmitters = scope.peek(
+						currentLightSettings.configuration.shouldChangeParticleEmitters
+					),
 					partTransparency = scope.peek(currentLightSettings.configuration.partTransparency),
 				},
 				lightGroups = {},
