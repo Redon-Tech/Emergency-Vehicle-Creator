@@ -190,6 +190,10 @@ local function load()
 				and activation.dependentFunction ~= ""
 				and activation.dependentPattern ~= nil
 			then
+				if activation.dependentFunction == "No Dependent Function" then
+					activation.dependentFunction = nil :: any
+					continue
+				end
 				car:GetAttributeChangedSignal(activation.dependentFunction):Connect(function()
 					local dependentValue = car:GetAttribute(activation.dependentFunction)
 					if dependentValue == nil or typeof(dependentValue) ~= "number" then
