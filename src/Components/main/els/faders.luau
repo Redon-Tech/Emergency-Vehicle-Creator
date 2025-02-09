@@ -73,6 +73,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		end
 		return color
 	end
+	local firstScope = scope:innerScope()
 
 	local currentConfiguration: chassisHandler.chassisConfiguration? = nil
 	local colors: Fusion.Value<{ chassisHandler.color }> = scope:Value(chassisHandler.defaults.colors)
@@ -164,35 +165,35 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			local newFaders = {}
 			for faderId, fader in currentPattern.pattern.faders do
 				local newFader = {
-					lightName = scope:Value(fader.lightName),
-					currentPercentage = scope:Value(0),
-					currentTween = scope:Value(1),
-					currentValue = scope:Value(0),
+					lightName = firstScope:Value(fader.lightName),
+					currentPercentage = firstScope:Value(0),
+					currentTween = firstScope:Value(1),
+					currentValue = firstScope:Value(0),
 					previousGoal = 1,
-					data = scope:Value({}),
+					data = firstScope:Value({}),
 				}
 				local newData = {}
 				for tweenId, tween in fader.data do
 					if tween.type == "Simple" then
 						table.insert(newData, tweenId, {
-							type = scope:Value(tween.type),
-							time = scope:Value(tween.time),
-							goal = tween.goal and scope:Value(tween.goal) or nil,
+							type = firstScope:Value(tween.type),
+							time = firstScope:Value(tween.time),
+							goal = tween.goal and firstScope:Value(tween.goal) or nil,
 							color = tween.color and scope:Value(tween.color) or nil,
 						})
 					elseif tween.type == "Advanced" then
 						table.insert(newData, tweenId, {
-							type = scope:Value(tween.type),
-							time = scope:Value(tween.time),
-							goal = tween.goal and scope:Value(tween.goal) or nil,
-							color = tween.color and scope:Value(tween.color) or nil,
-							easingStyle = tween.easingStyle and scope:Value(tween.easingStyle) or nil,
-							easingDirection = tween.easingDirection and scope:Value(tween.easingDirection) or nil,
+							type = firstScope:Value(tween.type),
+							time = firstScope:Value(tween.time),
+							goal = tween.goal and firstScope:Value(tween.goal) or nil,
+							color = tween.color and firstScope:Value(tween.color) or nil,
+							easingStyle = tween.easingStyle and firstScope:Value(tween.easingStyle) or nil,
+							easingDirection = tween.easingDirection and firstScope:Value(tween.easingDirection) or nil,
 						})
 					elseif tween.type == "Wait" then
 						table.insert(newData, tweenId, {
-							type = scope:Value(tween.type),
-							time = scope:Value(tween.time),
+							type = firstScope:Value(tween.type),
+							time = firstScope:Value(tween.time),
 						})
 					end
 				end
@@ -211,24 +212,24 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			atPoint = #currentFaders + 1
 		end
 		table.insert(currentFaders, atPoint :: number, {
-			lightName = scope:Value("Fader " .. atPoint :: number),
-			data = scope:Value({
+			lightName = firstScope:Value("Fader " .. atPoint :: number),
+			data = firstScope:Value({
 				{
-					type = scope:Value("Simple" :: any), -- me when luau types
-					time = scope:Value(0.5),
-					goal = scope:Value(0),
-					color = scope:Value(4),
+					type = firstScope:Value("Simple" :: any), -- me when luau types
+					time = firstScope:Value(0.5),
+					goal = firstScope:Value(0),
+					color = firstScope:Value(4),
 				},
 				{
-					type = scope:Value("Simple" :: any), -- me when luau types
-					time = scope:Value(0.5),
-					goal = scope:Value(1),
-					color = scope:Value(4),
+					type = firstScope:Value("Simple" :: any), -- me when luau types
+					time = firstScope:Value(0.5),
+					goal = firstScope:Value(1),
+					color = firstScope:Value(4),
 				},
 			}),
-			currentTween = scope:Value(1),
-			currentPercentage = scope:Value(0),
-			currentValue = scope:Value(0),
+			currentTween = firstScope:Value(1),
+			currentPercentage = firstScope:Value(0),
+			currentValue = firstScope:Value(0),
 		})
 
 		faders:set(currentFaders)
@@ -805,29 +806,29 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																	elseif newType == "Simple" then
 																		tween.goal = if tween.goal ~= nil
 																			then tween.goal
-																			else scope:Value(0)
+																			else firstScope:Value(0)
 																		tween.color = if tween.color ~= nil
 																			then tween.color
-																			else scope:Value(4)
+																			else firstScope:Value(4)
 																		tween.easingStyle = nil
 																		tween.easingDirection = nil
 																	elseif newType == "Advanced" then
 																		tween.goal = if tween.goal ~= nil
 																			then tween.goal
-																			else scope:Value(0)
+																			else firstScope:Value(0)
 																		tween.color = if tween.color ~= nil
 																			then tween.color
-																			else scope:Value(4)
+																			else firstScope:Value(4)
 																		tween.easingStyle = if tween.easingStyle
 																				~= nil
 																			then tween.easingStyle
-																			else scope:Value(
+																			else firstScope:Value(
 																				Enum.EasingStyle.Linear
 																			)
 																		tween.easingDirection = if tween.easingDirection
 																				~= nil
 																			then tween.easingDirection
-																			else scope:Value(
+																			else firstScope:Value(
 																				Enum.EasingDirection.InOut
 																			)
 																	end
@@ -1287,8 +1288,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																[Fusion.OnEvent "Activated"] = function()
 																	local currentData = scope.peek(value.data)
 																	table.insert(currentData, {
-																		type = scope:Value("Wait" :: any), -- the day I dont need this I will be so glad
-																		time = scope:Value(0.5),
+																		type = firstScope:Value("Wait" :: any), -- the day I dont need this I will be so glad
+																		time = firstScope:Value(0.5),
 																	})
 																	value.data:set(currentData)
 																end,

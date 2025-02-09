@@ -72,6 +72,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		end
 		return color
 	end
+	local firstScope = scope:innerScope()
 
 	local currentConfiguration: chassisHandler.chassisConfiguration? = nil
 	local colors: Fusion.Value<{ chassisHandler.color }> = scope:Value(chassisHandler.defaults.colors)
@@ -177,31 +178,31 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				for angleId, angle in rotator.data do
 					if angle.type == "Angle" then
 						table.insert(data, angleId, {
-							type = scope:Value(angle.type :: any),
-							color = angle.color and scope:Value(angle.color) or nil,
-							angle = angle.angle and scope:Value(angle.angle) or nil,
-							velocity = angle.velocity and scope:Value(angle.velocity) or nil,
+							type = firstScope:Value(angle.type :: any),
+							color = angle.color and firstScope:Value(angle.color) or nil,
+							angle = angle.angle and firstScope:Value(angle.angle) or nil,
+							velocity = angle.velocity and firstScope:Value(angle.velocity) or nil,
 						})
 					elseif angle.type == "Infinite" then
 						table.insert(data, angleId, {
-							type = scope:Value(angle.type :: any),
-							color = angle.color and scope:Value(angle.color) or nil,
-							velocity = angle.velocity and scope:Value(angle.velocity) or nil,
+							type = firstScope:Value(angle.type :: any),
+							color = angle.color and firstScope:Value(angle.color) or nil,
+							velocity = angle.velocity and firstScope:Value(angle.velocity) or nil,
 						})
 					elseif angle.type == "Wait" then
 						table.insert(data, angleId, {
-							type = scope:Value(angle.type :: any),
-							time = angle.time and scope:Value(angle.time) or nil,
+							type = firstScope:Value(angle.type :: any),
+							time = angle.time and firstScope:Value(angle.time) or nil,
 						})
 					end
 				end
 				local newRotator = {
-					lightName = scope:Value(rotator.lightName),
-					currentPercentage = scope:Value(0),
-					currentAngle = scope:Value(1),
-					currentValue = scope:Value(0),
+					lightName = firstScope:Value(rotator.lightName),
+					currentPercentage = firstScope:Value(0),
+					currentAngle = firstScope:Value(1),
+					currentValue = firstScope:Value(0),
 					previousGoal = 0,
-					data = scope:Value(data),
+					data = firstScope:Value(data),
 				}
 				table.insert(newRotators, i, newRotator)
 			end
@@ -217,24 +218,24 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			atPoint = #currentRotators + 1
 		end
 		table.insert(currentRotators, atPoint :: number, {
-			lightName = scope:Value("Rotator " .. atPoint :: number),
-			data = scope:Value({
+			lightName = firstScope:Value("Rotator " .. atPoint :: number),
+			data = firstScope:Value({
 				{
-					type = scope:Value("Angle" :: any), -- me when luau types
-					color = scope:Value(1),
-					angle = scope:Value(90),
-					velocity = scope:Value(0.1),
+					type = firstScope:Value("Angle" :: any), -- me when luau types
+					color = firstScope:Value(1),
+					angle = firstScope:Value(90),
+					velocity = firstScope:Value(0.1),
 				},
 				{
-					type = scope:Value("Angle" :: any), -- me when luau types
-					color = scope:Value(1),
-					angle = scope:Value(-90),
-					velocity = scope:Value(0.1),
+					type = firstScope:Value("Angle" :: any), -- me when luau types
+					color = firstScope:Value(1),
+					angle = firstScope:Value(-90),
+					velocity = firstScope:Value(0.1),
 				},
 			}),
-			currentAngle = scope:Value(1),
-			currentPercentage = scope:Value(0),
-			currentValue = scope:Value(0),
+			currentAngle = firstScope:Value(1),
+			currentPercentage = firstScope:Value(0),
+			currentValue = firstScope:Value(0),
 		})
 
 		rotators:set(currentRotators)
@@ -816,27 +817,27 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																		angle.velocity = nil
 																		angle.time = if angle.time ~= nil
 																			then angle.time
-																			else scope:Value(0.1)
+																			else firstScope:Value(0.1)
 																	elseif newType == "Infinite" then
 																		angle.angle = nil
 																		angle.time = nil
 																		angle.color = if angle.color ~= nil
 																			then angle.color
-																			else scope:Value(1)
+																			else firstScope:Value(1)
 																		angle.velocity = if angle.velocity ~= nil
 																			then angle.velocity
-																			else scope:Value(0.1)
+																			else firstScope:Value(0.1)
 																	elseif newType == "Angle" then
 																		angle.time = nil
 																		angle.angle = if angle.angle ~= nil
 																			then angle.angle
-																			else scope:Value(90)
+																			else firstScope:Value(90)
 																		angle.color = if angle.color ~= nil
 																			then angle.color
-																			else scope:Value(1)
+																			else firstScope:Value(1)
 																		angle.velocity = if angle.velocity ~= nil
 																			then angle.velocity
-																			else scope:Value(0.1)
+																			else firstScope:Value(0.1)
 																	end
 
 																	angle.type:set(
@@ -1231,8 +1232,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																[Fusion.OnEvent "Activated"] = function()
 																	local currentData = scope.peek(value.data)
 																	table.insert(currentData, {
-																		type = scope:Value("Wait" :: any), -- the day I dont need this I will be so glad
-																		time = scope:Value(0.5),
+																		type = firstScope:Value("Wait" :: any), -- the day I dont need this I will be so glad
+																		time = firstScope:Value(0.5),
 																	})
 																	value.data:set(currentData)
 																end,
