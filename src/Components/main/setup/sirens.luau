@@ -86,7 +86,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			end
 		end
 	end)
-	scope:Observer(sirens):onChange(function()
+	local function updateModifiers()
 		local currentSirens = scope.peek(sirens)
 		local currentModifiers = {}
 		for _, siren in currentSirens do
@@ -95,7 +95,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			end
 		end
 		modifiers:set(currentModifiers)
-	end)
+	end
+	scope:Observer(sirens):onChange(updateModifiers)
 
 	local function updateCurrentConfiguration()
 		if currentConfiguration ~= nil then
@@ -263,7 +264,12 @@ return function(scope: types.Scope, props: props): Fusion.Child
 												type = "string",
 												value = value.name,
 												layoutOrder = 1,
-												focusLost = updateCurrentConfiguration,
+												focusLost = function()
+													updateCurrentConfiguration()
+													if scope.peek(value.type) == "Modifier" then
+														updateModifiers()
+													end
+												end,
 											},
 											{
 												type = "select",
