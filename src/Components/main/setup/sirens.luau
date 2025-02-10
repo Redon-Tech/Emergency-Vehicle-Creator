@@ -53,6 +53,7 @@ export type sirenState = {
 ]]
 return function(scope: types.Scope, props: props): Fusion.Child
 	local currentTheme = RedonUI.theme.theme:now()
+	local firstScope = scope:innerScope()
 
 	local currentConfiguration = nil
 	local sirens: Fusion.Value<{ sirenState }> = scope:Value({})
@@ -71,11 +72,11 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						if typeof(value) == "table" then
 							local newTable = {}
 							for i, v in pairs(value) do
-								newTable[i] = scope:Value(v)
+								newTable[i] = firstScope:Value(v)
 							end
-							newSiren[key] = scope:Value(newTable)
+							newSiren[key] = firstScope:Value(newTable)
 						else
-							newSiren[key] = scope:Value(value)
+							newSiren[key] = firstScope:Value(value)
 						end
 					end
 					table.insert(newSirens, sirenKey, newSiren)
@@ -198,14 +199,14 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								newSirenName = testFunctionName(newSirenName, sirensByName, 0)
 
 								local newSirenData = {
-									name = scope:Value(newSirenName),
-									type = scope:Value("Siren" :: any),
-									behavoir = scope:Value("Overrides Other Sounds" :: any),
-									keybinds = scope:Value({
-										scope:Value(Enum.KeyCode.R),
-										scope:Value(Enum.KeyCode.DPadRight),
+									name = firstScope:Value(newSirenName),
+									type = firstScope:Value("Siren" :: any),
+									behavoir = firstScope:Value("Overrides Other Sounds" :: any),
+									keybinds = firstScope:Value({
+										firstScope:Value(Enum.KeyCode.R),
+										firstScope:Value(Enum.KeyCode.DPadRight),
 									}),
-									modifiers = scope:Value({}),
+									modifiers = firstScope:Value({}),
 								}
 								table.insert(currentSirens, newSirenData)
 								sirens:set(currentSirens)
@@ -240,248 +241,244 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					CornerRadius = UDim.new(0.0182926829, 0),
 					AutomaticSize = Enum.AutomaticSize.Y,
 					[Fusion.Out "AbsoluteSize"] = actualTableSize,
-					Rows = scope:ForPairs(
-						sirens,
-						function(_, innerScope: typeof(scope), key: number, value: sirenState)
-							local rowSize = innerScope:Value(75)
-							local bg = innerScope:Spring(innerScope:Value(1), 10, 1)
-							bg:setPosition(0)
+					Rows = scope:ForPairs(sirens, function(_, scope: typeof(scope), key: number, value: sirenState)
+						local rowSize = scope:Value(75)
+						local bg = scope:Spring(scope:Value(1), 10, 1)
+						bg:setPosition(0)
 
-							local sirenType = innerScope:Value(innerScope.peek(value.type))
-							return key,
-								innerScope:base {
-									Size = innerScope:Computed(function(use)
-										return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(actualTableSize).Y)
+						local sirenType = scope:Value(scope.peek(value.type))
+						return key,
+							scope:base {
+								Size = scope:Computed(function(use)
+									return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(actualTableSize).Y)
+								end),
+								BackgroundColor3 = currentTheme.colors.surface0,
+								BackgroundTransparency = bg,
+
+								[Fusion.Children] = createChildren(scope, {
+									rowSize = rowSize,
+									options = scope:Computed(function(use)
+										local options: { createChildren.option } = {
+											{
+												type = "string",
+												value = value.name,
+												layoutOrder = 1,
+												focusLost = updateCurrentConfiguration,
+											},
+											{
+												type = "select",
+												value = sirenType,
+												layoutOrder = 2,
+												options = { "Siren", "Hold", "Modifier" },
+												selectionChanged = function()
+													if currentConfiguration == nil then
+														return
+													end
+													local newType = scope.peek(sirenType)
+													local value = value :: any
+													if newType == "Modifier" then
+														value.modifiers = nil
+														value.behavoir = nil
+													else
+														value.modifiers = value.modifiers or firstScope:Value({})
+														value.behavoir = value.behavoir
+															or firstScope:Value("Overrides Other Sounds")
+													end
+													value.type:set(newType)
+													updateCurrentConfiguration()
+													if newType == "Modifier" then
+														updateModifiers()
+													end
+												end,
+											},
+										}
+
+										if use(value.type) ~= "Modifier" then
+											table.insert(options, {
+												type = "select",
+												value = (value :: any).behavoir,
+												layoutOrder = 3,
+												options = { "Overrides Other Sounds", "Plays Simultaneously" },
+												selectionChanged = updateCurrentConfiguration,
+											})
+
+											table.insert(options, {
+												type = "button",
+												text = "Add Modifier",
+												layoutOrder = 4000,
+												callback = function()
+													if
+														currentConfiguration == nil
+														or scope.peek(value.type) == "Modifier"
+													then
+														return
+													end
+													local value = value :: any
+													log.debug(value)
+
+													local currentModifiers = scope.peek(modifiers)
+													local currentSirenModifiers =
+														scope.peek(value.modifiers) :: { modifierState }
+													table.insert(currentSirenModifiers, {
+														name = firstScope:Value(currentModifiers[1] or "New Modifier"),
+														modifiedSirenName = firstScope:Value(
+															scope.peek(value.name) .. (currentModifiers[1] or "Unknown")
+														),
+														parentSoundBehavior = firstScope:Value(
+															"Play Parent Sound" :: any
+														),
+														behavoir = firstScope:Value("Play Automatically" :: any),
+														delay = firstScope:Value(0),
+													})
+													value.modifiers:set(currentSirenModifiers)
+													updateCurrentConfiguration()
+												end,
+											})
+										end
+
+										for i, keybind in use(value.keybinds) do
+											table.insert(options, {
+												type = "keycode",
+												value = keybind,
+												layoutOrder = i + 3,
+												focusLost = updateCurrentConfiguration,
+											})
+										end
+
+										return options
 									end),
-									BackgroundColor3 = currentTheme.colors.surface0,
-									BackgroundTransparency = bg,
+									childOptions = scope:Computed(function(use): { createChildren.childOption }?
+										if use(value.type) ~= "Modifier" then
+											local options = {}
 
-									[Fusion.Children] = createChildren(innerScope, {
-										rowSize = rowSize,
-										options = innerScope:Computed(function(use, innerScope: typeof(innerScope))
-											local options: { createChildren.option } = {
-												{
-													type = "string",
-													value = value.name,
-													layoutOrder = 1,
-													focusLost = updateCurrentConfiguration,
-												},
-												{
-													type = "select",
-													value = sirenType,
-													layoutOrder = 2,
-													options = { "Siren", "Hold", "Modifier" },
-													selectionChanged = function()
+											for i, modifier: modifierState in use((value :: any).modifiers) do
+												table.insert(options, i, {
+													options = {
+														{
+															type = "select",
+															value = modifier.name,
+															layoutOrder = 1,
+															options = modifiers,
+															selectionChanged = updateCurrentConfiguration,
+														} :: createChildren.option,
+														{
+															type = "string",
+															value = modifier.modifiedSirenName,
+															layoutOrder = 2,
+															focusLost = updateCurrentConfiguration,
+														},
+														{
+															type = "select",
+															value = modifier.parentSoundBehavior,
+															layoutOrder = 3,
+															options = {
+																"Play Parent Sound",
+																"Plays Simultaneously",
+															},
+															selectionChanged = updateCurrentConfiguration,
+														},
+														{
+															type = "select",
+															value = modifier.behavoir,
+															layoutOrder = 4,
+															options = {
+																"Play Automatically",
+																"Require Parent Replay",
+															},
+															selectionChanged = updateCurrentConfiguration,
+														},
+														{
+															type = "number",
+															value = modifier.delay,
+															layoutOrder = 5,
+															focusLost = updateCurrentConfiguration,
+														},
+													},
+													onDelete = function()
 														if currentConfiguration == nil then
 															return
 														end
-														local newType = innerScope.peek(sirenType)
-														local value = value :: any
-														if newType == "Modifier" then
-															value.modifiers = nil
-															value.behavoir = nil
-														else
-															value.modifiers = value.modifiers or scope:Value({})
-															value.behavoir = value.behavoir
-																or scope:Value("Overrides Other Sounds")
-														end
-														value.type:set(newType)
-														updateCurrentConfiguration()
-													end,
-												},
-											}
 
-											if use(value.type) ~= "Modifier" then
-												table.insert(options, {
-													type = "select",
-													value = (value :: any).behavoir,
-													layoutOrder = 3,
-													options = { "Overrides Other Sounds", "Plays Simultaneously" },
-													selectionChanged = updateCurrentConfiguration,
-												})
-
-												table.insert(options, {
-													type = "button",
-													text = "Add Modifier",
-													layoutOrder = 4000,
-													callback = function()
-														if
-															currentConfiguration == nil
-															or innerScope.peek(value.type) == "Modifier"
-														then
-															return
-														end
-														local value = value :: any
-														log.debug(value)
-
-														local currentModifiers = innerScope.peek(modifiers)
-														local currentSirenModifiers =
-															innerScope.peek(value.modifiers) :: { modifierState }
-														table.insert(currentSirenModifiers, {
-															name = scope:Value(currentModifiers[1] or "New Modifier"),
-															modifiedSirenName = scope:Value(
-																scope.peek(value.name)
-																	.. (currentModifiers[1] or "Unknown")
-															),
-															parentSoundBehavior = scope:Value(
-																"Play Parent Sound" :: any
-															),
-															behavoir = scope:Value("Play Automatically" :: any),
-															delay = scope:Value(0),
+														popup:addPopup(scope, {
+															title = "Delete Modifier",
+															description = "Are you sure you want to delete this modifier?\n<b>All data will be lost.</b>",
+															actions = {
+																{
+																	text = "Cancel",
+																	type = "primary",
+																	key = 1,
+																	callback = function(newPopup)
+																		popup:removePopup(newPopup)
+																	end,
+																	keybind = Enum.KeyCode.Escape,
+																},
+																{
+																	text = "Delete",
+																	type = "danger",
+																	key = 2,
+																	callback = function(newPopup)
+																		popup:removePopup(newPopup)
+																		local value = value :: any
+																		local currentSirenModifiers = scope.peek(
+																			value.modifiers
+																		) :: { modifierState }
+																		table.remove(currentSirenModifiers, i)
+																		value.modifiers:set(currentSirenModifiers)
+																		updateCurrentConfiguration()
+																	end,
+																	keybind = Enum.KeyCode.Return,
+																},
+															},
 														})
-														value.modifiers:set(currentSirenModifiers)
-														updateCurrentConfiguration()
 													end,
-												})
-											end
-
-											for i, keybind in use(value.keybinds) do
-												table.insert(options, {
-													type = "keycode",
-													value = keybind,
-													layoutOrder = i + 3,
-													focusLost = updateCurrentConfiguration,
 												})
 											end
 
 											return options
-										end),
-										childOptions = innerScope:Computed(
-											function(use): { createChildren.childOption }?
-												if use(value.type) ~= "Modifier" then
-													local options = {}
+										end
 
-													for i, modifier: modifierState in use((value :: any).modifiers) do
-														table.insert(options, i, {
-															options = {
-																{
-																	type = "select",
-																	value = modifier.name,
-																	layoutOrder = 1,
-																	options = modifiers,
-																	selectionChanged = updateCurrentConfiguration,
-																} :: createChildren.option,
-																{
-																	type = "string",
-																	value = modifier.modifiedSirenName,
-																	layoutOrder = 2,
-																	focusLost = updateCurrentConfiguration,
-																},
-																{
-																	type = "select",
-																	value = modifier.parentSoundBehavior,
-																	layoutOrder = 3,
-																	options = {
-																		"Play Parent Sound",
-																		"Plays Simultaneously",
-																	},
-																	selectionChanged = updateCurrentConfiguration,
-																},
-																{
-																	type = "select",
-																	value = modifier.behavoir,
-																	layoutOrder = 4,
-																	options = {
-																		"Play Automatically",
-																		"Require Parent Replay",
-																	},
-																	selectionChanged = updateCurrentConfiguration,
-																},
-																{
-																	type = "number",
-																	value = modifier.delay,
-																	layoutOrder = 5,
-																	focusLost = updateCurrentConfiguration,
-																},
-															},
-															onDelete = function()
-																if currentConfiguration == nil then
-																	return
-																end
+										return
+									end),
+									actualTableSize = actualTableSize,
 
-																popup:addPopup(innerScope, {
-																	title = "Delete Modifier",
-																	description = "Are you sure you want to delete this modifier?\n<b>All data will be lost.</b>",
-																	actions = {
-																		{
-																			text = "Cancel",
-																			type = "primary",
-																			key = 1,
-																			callback = function(newPopup)
-																				popup:removePopup(newPopup)
-																			end,
-																			keybind = Enum.KeyCode.Escape,
-																		},
-																		{
-																			text = "Delete",
-																			type = "danger",
-																			key = 2,
-																			callback = function(newPopup)
-																				popup:removePopup(newPopup)
-																				local value = value :: any
-																				local currentSirenModifiers =
-																					innerScope.peek(value.modifiers) :: { modifierState }
-																				table.remove(currentSirenModifiers, i)
-																				value.modifiers:set(
-																					currentSirenModifiers
-																				)
-																				updateCurrentConfiguration()
-																			end,
-																			keybind = Enum.KeyCode.Return,
-																		},
-																	},
-																})
-															end,
-														})
-													end
+									onDelete = function()
+										if currentConfiguration == nil then
+											return
+										end
 
-													return options
-												end
-
-												return
-											end
-										),
-										actualTableSize = actualTableSize,
-
-										onDelete = function()
-											if currentConfiguration == nil then
-												return
-											end
-
-											popup:addPopup(innerScope, {
-												title = "Delete Siren",
-												description = "Are you sure you want to delete this siren?\n<b>All data will be lost.</b>",
-												actions = {
-													{
-														text = "Cancel",
-														type = "primary",
-														key = 1,
-														callback = function(newPopup)
-															popup:removePopup(newPopup)
-														end,
-														keybind = Enum.KeyCode.Escape,
-													},
-													{
-														text = "Delete",
-														type = "danger",
-														key = 2,
-														callback = function(newPopup)
-															popup:removePopup(newPopup)
-															local currentSirens = innerScope.peek(sirens)
-															table.remove(currentSirens, key)
-															sirens:set(currentSirens)
-															updateCurrentConfiguration()
-														end,
-														keybind = Enum.KeyCode.Return,
-													},
+										popup:addPopup(scope, {
+											title = "Delete Siren",
+											description = "Are you sure you want to delete this siren?\n<b>All data will be lost.</b>",
+											actions = {
+												{
+													text = "Cancel",
+													type = "primary",
+													key = 1,
+													callback = function(newPopup)
+														popup:removePopup(newPopup)
+													end,
+													keybind = Enum.KeyCode.Escape,
 												},
-											})
-										end,
-										onDownload = function() end,
-									}),
-								}
-						end
-					),
+												{
+													text = "Delete",
+													type = "danger",
+													key = 2,
+													callback = function(newPopup)
+														popup:removePopup(newPopup)
+														local currentSirens = scope.peek(sirens)
+														table.remove(currentSirens, key)
+														sirens:set(currentSirens)
+														updateCurrentConfiguration()
+													end,
+													keybind = Enum.KeyCode.Return,
+												},
+											},
+										})
+									end,
+									onDownload = function() end,
+								}),
+							}
+					end),
 				},
 			},
 		},

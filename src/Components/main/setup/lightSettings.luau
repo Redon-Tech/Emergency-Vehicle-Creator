@@ -7,7 +7,7 @@ local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local assets = require(root.Plugin.assets)
 local chassisHandler = require(root.Plugin.chassisHandler)
--- local log = require(root.Plugin.log)
+local log = require(root.Plugin.log)
 local popup = require(root.Plugin.Components.popup)
 local createChildren = require(script.Parent.createChildren)
 
@@ -73,6 +73,7 @@ local SPRING_DAMPING = 0.75
 ]]
 return function(scope: types.Scope, props: props): Fusion.Child
 	local currentTheme = RedonUI.theme.theme:now()
+	local firstScope = scope:innerScope()
 
 	local currentContent: Fusion.Value<"settings" | "colors" | "light groups"> = scope:Value("settings" :: any)
 	local currentConfiguration = nil
@@ -97,31 +98,35 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					}
 					table.insert(newColors, colorId, colorState)
 				end
-				newLightSettings.colors = scope:Value(newColors)
+				newLightSettings.colors = firstScope:Value(newColors)
 
 				newLightSettings.configuration = {
-					shouldChangeNeons = scope:Value(currentConfiguration.lightSettings.configuration.shouldChangeNeons),
-					shouldChangeLights = scope:Value(
+					shouldChangeNeons = firstScope:Value(
+						currentConfiguration.lightSettings.configuration.shouldChangeNeons
+					),
+					shouldChangeLights = firstScope:Value(
 						currentConfiguration.lightSettings.configuration.shouldChangeLights
 					),
-					shouldChangeLightos = scope:Value(
+					shouldChangeLightos = firstScope:Value(
 						currentConfiguration.lightSettings.configuration.shouldChangeLightos
 					),
-					shouldChangeParticleEmitters = scope:Value(
+					shouldChangeParticleEmitters = firstScope:Value(
 						currentConfiguration.lightSettings.configuration.shouldChangeParticleEmitters
 					),
-					partTransparency = scope:Value(currentConfiguration.lightSettings.configuration.partTransparency),
+					partTransparency = firstScope:Value(
+						currentConfiguration.lightSettings.configuration.partTransparency
+					),
 				}
 
 				local newLightGroups = {}
 				for groupName, group in currentConfiguration.lightSettings.lightGroups do
 					local newLightGroup = {
-						name = scope:Value(group.name),
-						lights = scope:Value(group.lights),
+						name = firstScope:Value(group.name),
+						lights = firstScope:Value(group.lights),
 					}
 					newLightGroups[groupName] = newLightGroup
 				end
-				newLightSettings.lightGroups = scope:Value(newLightGroups)
+				newLightSettings.lightGroups = firstScope:Value(newLightGroups)
 
 				lightParts:set(chassisHandler.getLights(currentConfiguration, currentVehicle))
 				lightSettings:set(newLightSettings)
@@ -1155,8 +1160,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 								if currentLightSettings then
 									local currentLightGroups = scope.peek(currentLightSettings.lightGroups)
 									table.insert(currentLightGroups, {
-										name = scope:Value("Group"),
-										lights = scope:Value({}),
+										name = firstScope:Value("Group"),
+										lights = firstScope:Value({}),
 									})
 									currentLightSettings.lightGroups:set(currentLightGroups)
 									updateCurrentConfiguration()

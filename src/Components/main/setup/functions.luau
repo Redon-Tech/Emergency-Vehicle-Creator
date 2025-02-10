@@ -131,6 +131,7 @@ local SPRING_DAMPING = 0.75
 ]]
 return function(scope: types.Scope, props: props): Fusion.Child
 	local currentTheme = RedonUI.theme.theme:now()
+	local firstScope = scope:innerScope()
 
 	local currentContent: Fusion.Value<"functions" | "activation" | "patterns"> = scope:Value("functions" :: any)
 	local currentConfiguration = nil
@@ -164,15 +165,15 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					if typeof(value) == "table" then
 						local newTable = {}
 						for i, v in pairs(value) do
-							newTable[i] = scope:Value(v)
+							newTable[i] = firstScope:Value(v)
 						end
 						newActivation[key] = newTable
 					else
-						newActivation[key] = scope:Value(value)
+						newActivation[key] = firstScope:Value(value)
 					end
 				end
 				if activationData.type == "Override" and activationData.siren == nil then
-					newActivation.siren = scope:Value(nil)
+					newActivation.siren = firstScope:Value(nil)
 				end
 
 				table.insert(newActivations, activationKey, newActivation)
@@ -770,19 +771,22 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					AutomaticSize = Enum.AutomaticSize.Y,
 					Rows = scope:ForPairs(
 						activations,
-						function(_, innerScope: typeof(scope), key: number, value: activationState)
-							local rowSize = innerScope:Value(75)
-							local activationType = innerScope:Value(innerScope.peek(value.type))
+						function(_, scope: typeof(scope), key: number, value: activationState)
+							local sirenVisible = scope:Computed(function(use)
+								return use(value.mode) == "Siren Override"
+							end)
+							local rowSize = scope:Value(75)
+							local activationType = scope:Value(scope.peek(value.type))
 							return key,
-								innerScope:base {
-									Size = innerScope:Computed(function(use)
+								scope:base {
+									Size = scope:Computed(function(use)
 										return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(actualTableSize).Y)
 									end),
 									BackgroundTransparency = 1,
 
-									[Fusion.Children] = createChildren(innerScope, {
+									[Fusion.Children] = createChildren(scope, {
 										rowSize = rowSize,
-										options = innerScope:Computed(function(use, innerScope: typeof(innerScope))
+										options = scope:Computed(function(use)
 											local controls: { createChildren.option } = {
 												{
 													type = "select",
@@ -793,9 +797,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														if currentConfiguration == nil then
 															return
 														end
-														local newType = innerScope.peek(activationType)
+														local newType = scope.peek(activationType)
 														if newType == "Standard" then
-															value.mode = value.mode or scope:Value("Cycle") :: any
+															value.mode = value.mode or firstScope:Value("Cycle") :: any
 															if
 																value.mode ~= nil
 																and (
@@ -805,11 +809,11 @@ return function(scope: types.Scope, props: props): Fusion.Child
 															then
 																value.mode:set("Cycle")
 															end
-															value.pattern = value.pattern or scope:Value(0)
+															value.pattern = value.pattern or firstScope:Value(0)
 															value.keybinds = value.keybinds
-																or scope:Value({
-																	scope:Value(Enum.KeyCode.J),
-																	scope:Value(Enum.KeyCode.DPadLeft),
+																or firstScope:Value({
+																	firstScope:Value(Enum.KeyCode.J),
+																	firstScope:Value(Enum.KeyCode.DPadLeft),
 																})
 															value.siren = nil
 															value.dependentFunction = nil
@@ -818,7 +822,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														elseif newType == "Override" then
 															value.pattern = nil
 															value.keybinds = nil
-															value.mode = value.mode or scope:Value("Park") :: any
+															value.mode = value.mode or firstScope:Value("Park") :: any
 															if
 																value.mode ~= nil
 																and (
@@ -828,13 +832,13 @@ return function(scope: types.Scope, props: props): Fusion.Child
 															then
 																value.mode:set("Park")
 															end
-															value.siren = value.siren or scope:Value(nil)
+															value.siren = value.siren or firstScope:Value(nil)
 															value.dependentFunction = value.dependentFunction
-																or scope:Value("No Dependent Function")
+																or firstScope:Value("No Dependent Function")
 															value.dependentPattern = value.dependentPattern
-																or scope:Value(0)
+																or firstScope:Value(0)
 														elseif newType == "Default" then
-															value.pattern = value.pattern or scope:Value(0)
+															value.pattern = value.pattern or firstScope:Value(0)
 															value.mode = nil
 															value.siren = nil
 															value.dependentFunction = nil
@@ -866,7 +870,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 													type = "number",
 													value = value.pattern,
 													layoutOrder = 3,
-													disabled = innerScope:Computed(function(use)
+													disabled = scope:Computed(function(use)
 														return if use(value.mode) == "Cycle" then true else false
 													end),
 													focusLost = updateActivationsConfiguration,
@@ -919,9 +923,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														return sirensByName
 													end),
 													selectionChanged = updateActivationsConfiguration,
-													visible = innerScope:Computed(function(use)
-														return use(value.mode) == "Siren Override"
-													end),
+													visible = sirenVisible,
 												})
 												-- end
 
@@ -929,7 +931,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 													type = "select",
 													value = value.dependentFunction,
 													layoutOrder = 4,
-													options = innerScope:Computed(function(use)
+													options = scope:Computed(function(use)
 														local choices = { "No Dependent Function" }
 														for _, func in use(functions) do
 															table.insert(choices, func.weight, func.name)
@@ -957,12 +959,12 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										end),
 
 										onDelete = function()
-											local selectedFunction = innerScope.peek(selectedFunction)
+											local selectedFunction = scope.peek(selectedFunction)
 											if currentConfiguration == nil or selectedFunction == nil then
 												return
 											end
 
-											popup:addPopup(innerScope, {
+											popup:addPopup(scope, {
 												title = "Delete Activation",
 												description = "Are you sure you want to delete this activation?\n<b>All data will be lost.</b>",
 												actions = {
@@ -981,7 +983,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														key = 2,
 														callback = function(newPopup)
 															popup:removePopup(newPopup)
-															local currentActivations = innerScope.peek(activations)
+															local currentActivations = scope.peek(activations)
 															table.remove(currentActivations, key)
 															activations:set(currentActivations)
 															updateActivationsConfiguration()
@@ -1002,10 +1004,13 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						end
 						local currentActivations = scope.peek(activations)
 						local newActivation: activationState = {
-							type = scope:Value("Standard") :: any,
-							mode = scope:Value("Cycle") :: any,
-							pattern = scope:Value(0),
-							keybinds = scope:Value({ scope:Value(Enum.KeyCode.J), scope:Value(Enum.KeyCode.DPadLeft) }),
+							type = firstScope:Value("Standard") :: any,
+							mode = firstScope:Value("Cycle") :: any,
+							pattern = firstScope:Value(0),
+							keybinds = firstScope:Value({
+								firstScope:Value(Enum.KeyCode.J),
+								firstScope:Value(Enum.KeyCode.DPadLeft),
+							}),
 						}
 						table.insert(currentActivations, newActivation)
 						activations:set(currentActivations)
