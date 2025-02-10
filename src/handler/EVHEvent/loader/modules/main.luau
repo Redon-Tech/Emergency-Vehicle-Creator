@@ -493,7 +493,7 @@ local function addLight(vehicleData: types.vehicle, light: Instance)
 		for _, color in vehicleData.configuration.lightSettings.colors do
 			table.insert(colorNames, color.name)
 		end
-		for _, lighto in light:GetChildren() do
+		for _, lighto in light:GetDescendants() do
 			if lighto:IsA("Light") then
 				lighto.Enabled = false
 				lighto:SetAttribute("defaultBrightness", lighto.Brightness)
