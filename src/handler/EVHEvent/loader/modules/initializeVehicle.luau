@@ -39,13 +39,28 @@ return function(vehicle: Instance): types.vehicle?
 	end
 
 	-- get lights
-	for _, currentFunction in pairs(currentConfiguration.functions) do
+	for functionIndex, currentFunction in currentConfiguration.functions do
+		if currentFunction.patterns == nil or currentFunction.name == nil or currentFunction.weight == nil then
+			table.remove(currentConfiguration.functions, functionIndex)
+			continue
+		end
 		-- also since we are here, format the name properly
 		currentFunction.name = currentFunction.name:gsub("[^%a%d]", "")
 
-		for _, pattern in pairs(currentFunction.patterns) do
-			for _, flasher in pairs(pattern.flashers) do
-				for _, columns in pairs(flasher.columns) do
+		for _, pattern in currentFunction.patterns do
+			if pattern.flashers == nil and pattern.faders == nil and pattern.rotators == nil then
+				pattern.flashers = {}
+				pattern.faders = {}
+				pattern.rotators = {}
+			end
+			for _, flasher in pattern.flashers do
+				if flasher.columns == nil then
+					flasher.columns = {}
+				end
+				for _, columns in flasher.columns do
+					if columns.lightName == nil then
+						columns.lightName = "corruptedLightName"
+					end
 					if lights[columns.lightName] == nil then
 						lights[columns.lightName] = {
 							isLightGroup = false,
@@ -57,7 +72,10 @@ return function(vehicle: Instance): types.vehicle?
 				end
 			end
 
-			for _, fader in pairs(pattern.faders) do
+			for _, fader in pattern.faders do
+				if fader.lightName == nil then
+					fader.lightName = "corruptedLightName"
+				end
 				if lights[fader.lightName] == nil then
 					lights[fader.lightName] = {
 						isLightGroup = false,
@@ -68,7 +86,10 @@ return function(vehicle: Instance): types.vehicle?
 				end
 			end
 
-			for _, rotator in pairs(pattern.rotators) do
+			for _, rotator in pattern.rotators do
+				if rotator.lightName == nil then
+					rotator.lightName = "corruptedLightName"
+				end
 				if lights[rotator.lightName] == nil then
 					lights[rotator.lightName] = {
 						isLightGroup = false,
@@ -82,14 +103,17 @@ return function(vehicle: Instance): types.vehicle?
 	end
 
 	-- get light connected groups
-	for _, lightGroup in pairs(currentConfiguration.lightSettings.lightGroups) do
+	for _, lightGroup in currentConfiguration.lightSettings.lightGroups do
+		if lightGroup.name == nil or lightGroup.lights == nil then
+			continue
+		end
 		lights[lightGroup.name] = {
 			isLightGroup = true,
 			possibleFunctions = {},
 			parts = {},
 			currentState = 0,
 		}
-		for _, lightName in pairs(lightGroup.lights) do
+		for _, lightName in lightGroup.lights do
 			if lightConnectedGroups[lightName] == nil then
 				lightConnectedGroups[lightName] = {}
 			end

@@ -125,8 +125,14 @@ local function load()
 	sirens = (require :: any)(sirensModule) :: { types.siren }
 
 	for i, siren in sirens do
+		if siren.keybinds == nil or siren.name == nil or siren.type == nil then
+			continue
+		end
 		table.insert(sirenNames, i, siren.name)
 		for _, keybind in siren.keybinds :: { Enum.KeyCode } do
+			if keybind == Enum.KeyCode.Unknown then
+				continue
+			end
 			table.insert(sirensByKeycode, {
 				keybind = keybind,
 				mode = siren.type,
@@ -157,6 +163,14 @@ local function load()
 	local possibleLights = {}
 	local possibleRotators = {}
 	for functionId, currentFunction in functions do
+		if
+			currentFunction.activations == nil
+			or currentFunction.patterns == nil
+			or currentFunction.name == nil
+			or currentFunction.weight == nil
+		then
+			continue
+		end
 		currentFunction.name = currentFunction.name:gsub("[^%a%d]", "")
 		car:SetAttribute(currentFunction.name, 0)
 		car:GetAttributeChangedSignal(currentFunction.name):Connect(function()
@@ -176,6 +190,9 @@ local function load()
 			if activation.type == "Standard" then
 				if activation.keybinds then
 					for _, keybind in activation.keybinds do
+						if keybind == Enum.KeyCode.Unknown then
+							continue
+						end
 						table.insert(keybindsToFunction, {
 							keybind = keybind,
 							functionId = functionId,
@@ -212,8 +229,19 @@ local function load()
 		end
 
 		for _, pattern in currentFunction.patterns do
+			if pattern.flashers == nil or pattern.faders == nil or pattern.rotators == nil then
+				pattern.flashers = {}
+				pattern.faders = {}
+				pattern.rotators = {}
+			end
 			for _, flasher in pattern.flashers do
+				if flasher.columns == nil then
+					flasher.columns = {}
+				end
 				for _, columns in flasher.columns do
+					if columns.lightName == nil then
+						continue
+					end
 					if table.find(possibleLights, columns.lightName) == nil then
 						table.insert(possibleLights, columns.lightName)
 					end
@@ -221,12 +249,18 @@ local function load()
 			end
 
 			for _, fader in pattern.faders do
+				if fader.lightName == nil then
+					continue
+				end
 				if table.find(possibleLights, fader.lightName) == nil then
 					table.insert(possibleLights, fader.lightName)
 				end
 			end
 
 			for _, rotator in pattern.rotators do
+				if rotator.lightName == nil then
+					continue
+				end
 				if table.find(possibleLights, rotator.lightName) == nil then
 					table.insert(possibleLights, rotator.lightName)
 				end
