@@ -173,6 +173,20 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		end
 	end
 
+	scope:Observer(props.CurrentPage):onChange(function()
+		if scope.peek(props.CurrentPage) ~= "Light Settings" then
+			return
+		end
+		log.debug("Recomputing light parts")
+		local currentVehicle = scope.peek(props.CurrentVehicle)
+		if currentVehicle ~= nil and typeof(currentVehicle) == "Instance" then
+			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
+			if currentConfiguration ~= nil then
+				lightParts:set(chassisHandler.getLights(currentConfiguration, currentVehicle))
+			end
+		end
+	end)
+
 	local actualTableSize = scope:Value(Vector2.one)
 	local topbarSize = scope:Value(Vector2.one)
 	local topbarPosition = scope:Value(Vector2.one)
