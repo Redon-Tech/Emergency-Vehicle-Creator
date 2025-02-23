@@ -47,6 +47,29 @@ export type sirenState = {
 	keybinds: Fusion.Value<{ Fusion.Value<Enum.KeyCode> }>,
 }
 
+local function decodeState(scope: types.Scope, state: Fusion.Value<any>): any
+	local value = scope.peek(state)
+	if typeof(value) == "table" then
+		local newValue = {}
+		for i, v in pairs(value) do
+			newValue[i] = decodeState(scope, v)
+		end
+		return newValue
+	end
+	return value
+end
+
+local function encodeState(scope: types.Scope, value: any): Fusion.Value<any>
+	if typeof(value) == "table" then
+		local newValue = {}
+		for i, v in pairs(value) do
+			newValue[i] = encodeState(scope, v)
+		end
+		return scope:Value(newValue)
+	end
+	return scope:Value(value)
+end
+
 --[[
 	Sirens
 	Creates the sirens page for the main app
@@ -69,15 +92,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				for sirenKey, sirenData in currentConfiguration.sirens do
 					local newSiren = {} :: sirenState
 					for key, value in pairs(sirenData) do
-						if typeof(value) == "table" then
-							local newTable = {}
-							for i, v in pairs(value) do
-								newTable[i] = firstScope:Value(v)
-							end
-							newSiren[key] = firstScope:Value(newTable)
-						else
-							newSiren[key] = firstScope:Value(value)
-						end
+						newSiren[key] = encodeState(firstScope, value)
 					end
 					table.insert(newSirens, sirenKey, newSiren)
 				end
@@ -104,16 +119,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			for _, siren in scope.peek(sirens) do
 				local newSiren = {} :: types.siren
 				for key, stateValue in pairs(siren) do
-					local value = scope.peek(stateValue)
-					if typeof(value) == "table" then
-						local newTable = {}
-						for i, v in pairs(value) do
-							newTable[i] = scope.peek(v)
-						end
-						newSiren[key] = newTable
-					else
-						newSiren[key] = value
-					end
+					newSiren[key] = decodeState(firstScope, stateValue)
 				end
 				table.insert(assembledSirens, newSiren)
 			end
@@ -324,18 +330,24 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 													local currentModifiers = scope.peek(modifiers)
 													local currentSirenModifiers =
-														scope.peek(value.modifiers) :: { modifierState }
-													table.insert(currentSirenModifiers, {
-														name = firstScope:Value(currentModifiers[1] or "New Modifier"),
-														modifiedSirenName = firstScope:Value(
-															scope.peek(value.name) .. (currentModifiers[1] or "Unknown")
-														),
-														parentSoundBehavior = firstScope:Value(
-															"Play Parent Sound" :: any
-														),
-														behavoir = firstScope:Value("Play Automatically" :: any),
-														delay = firstScope:Value(0),
-													})
+														scope.peek(value.modifiers) :: { Fusion.Value<modifierState> }
+													table.insert(
+														currentSirenModifiers,
+														firstScope:Value({
+															name = firstScope:Value(
+																currentModifiers[1] or "New Modifier"
+															),
+															modifiedSirenName = firstScope:Value(
+																scope.peek(value.name)
+																	.. (currentModifiers[1] or "Unknown")
+															),
+															parentSoundBehavior = firstScope:Value(
+																"Play Parent Sound" :: any
+															),
+															behavoir = firstScope:Value("Play Automatically" :: any),
+															delay = firstScope:Value(0),
+														})
+													)
 													value.modifiers:set(currentSirenModifiers)
 													updateCurrentConfiguration()
 												end,
@@ -357,7 +369,10 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										if use(value.type) ~= "Modifier" then
 											local options = {}
 
-											for i, modifier: modifierState in use((value :: any).modifiers) do
+											for i, modifierState: Fusion.Value<modifierState> in
+												use((value :: any).modifiers)
+											do
+												local modifier = scope.peek(modifierState)
 												table.insert(options, i, {
 													options = {
 														{
@@ -427,7 +442,11 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																		local value = value :: any
 																		local currentSirenModifiers = scope.peek(
 																			value.modifiers
-																		) :: { modifierState }
+																		) :: {
+																			Fusion.Value<
+																				modifierState
+																			>
+																		}
 																		table.remove(currentSirenModifiers, i)
 																		value.modifiers:set(currentSirenModifiers)
 																		updateCurrentConfiguration()
