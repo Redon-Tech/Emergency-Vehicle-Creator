@@ -9,6 +9,7 @@ local chassisHandler = require(root.Plugin.chassisHandler)
 local log = require(root.Plugin.log)
 local popup = require(root.Plugin.Components.popup)
 local createChildren = require(script.Parent.createChildren)
+local vehicle = require(root.Plugin.vehicle)
 
 local function testFunctionName(name: string, functions: { string }, currentDepth: number): string
 	local actualName = if currentDepth == 0 then name else `{name} ({currentDepth})`
@@ -95,7 +96,7 @@ type props = {
 -- }
 -- type activationState = standardActivation | defaultActivation | overrideActivation | conditionalActivation
 type activationState = {
-	type: Fusion.Value<"Standard" | "Default" | "Override">,
+	type: Fusion.Value<"Standard" | "Default" | "Override" | "AG-Event">,
 	mode: Fusion.Value<
 		"Cycle"
 		| "Set Pattern"
@@ -107,6 +108,12 @@ type activationState = {
 		| "Keybind"
 		| "Function"
 		| "Siren"
+		| "Stages"
+		| "Traffic Advisor"
+		| "Scene"
+		| "Ally Left"
+		| "Ally Right"
+		| "Rear Scene"
 	>?,
 	pattern: Fusion.Value<number>?,
 	keybinds: Fusion.Value<{ Fusion.Value<Enum.KeyCode> }>?,
@@ -792,7 +799,20 @@ return function(scope: types.Scope, props: props): Fusion.Child
 													type = "select",
 													value = activationType,
 													layoutOrder = 1,
-													options = { "Standard", "Override", "Default" },
+													options = scope:Computed(function(use)
+														local defaultOptions = { "Standard", "Default", "Override" }
+														local currentVehicle = use(props.CurrentVehicle)
+														if
+															currentVehicle ~= nil
+															and typeof(currentVehicle) == "Instance"
+														then
+															local vehicleType = vehicle:isValidVehicle(currentVehicle)
+															if vehicleType == "ag" or vehicleType == "mg" then
+																table.insert(defaultOptions, "AG-Event")
+															end
+														end
+														return defaultOptions
+													end),
 													selectionChanged = function()
 														if currentConfiguration == nil then
 															return
@@ -840,6 +860,27 @@ return function(scope: types.Scope, props: props): Fusion.Child
 														elseif newType == "Default" then
 															value.pattern = value.pattern or firstScope:Value(0)
 															value.mode = nil
+															value.siren = nil
+															value.dependentFunction = nil
+															value.dependentPattern = nil
+															value.conditions = nil
+															value.keybinds = nil
+														elseif newType == "AG-Event" then
+															value.pattern = nil
+															value.mode = value.mode or firstScope:Value("Stages") :: any
+															if
+																value.mode ~= nil
+																and (
+																	scope.peek(value.mode) ~= "Stages"
+																	or scope.peek(value.mode) ~= "Traffic Advisor"
+																	or scope.peek(value.mode) ~= "Scene"
+																	or scope.peek(value.mode) ~= "Ally Left"
+																	or scope.peek(value.mode) ~= "Ally Right"
+																	or scope.peek(value.mode) ~= "Rear Scene"
+																)
+															then
+																value.mode:set("Stages")
+															end
 															value.siren = nil
 															value.dependentFunction = nil
 															value.dependentPattern = nil
@@ -952,6 +993,21 @@ return function(scope: types.Scope, props: props): Fusion.Child
 													value = value.pattern,
 													layoutOrder = 2,
 													focusLost = updateActivationsConfiguration,
+												})
+											elseif currentType == "AG-Event" and value.mode ~= nil then
+												table.insert(controls, {
+													type = "select",
+													value = value.mode,
+													layoutOrder = 2,
+													options = {
+														"Stages",
+														"Traffic Advisor",
+														"Scene",
+														"Ally Left",
+														"Ally Right",
+														"Rear Scene",
+													},
+													selectionChanged = updateActivationsConfiguration,
 												})
 											end
 

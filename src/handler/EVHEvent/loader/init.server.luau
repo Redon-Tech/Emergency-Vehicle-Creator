@@ -305,6 +305,60 @@ local function load()
 		lightTemplate:Destroy()
 	end
 
+	-- AG-Chassis Handling
+	local Body = car:FindFirstChild("Body")
+	if Body then
+		local ELS = Body:FindFirstChild("ELS")
+		if ELS then
+			local PTRNS = ELS:FindFirstChild("PTRNS")
+			if PTRNS then
+				local ELSRunning = PTRNS:FindFirstChild("ELSRunning")
+				local PatternNumber = PTRNS:FindFirstChild("PatternNumber")
+				if ELSRunning and ELSRunning:IsA("BoolValue") and PatternNumber and PatternNumber:IsA("IntValue") then
+					local function AGELSChange()
+						for _, currentFunction in functions do
+							for _, activation in currentFunction.activations do
+								if activation.type == "AG-Event" then
+									if activation.mode == "Stages" then
+										car:SetAttribute(
+											currentFunction.name,
+											if ELSRunning.Value then PatternNumber.Value + 1 else 0
+										)
+									end
+								end
+							end
+						end
+					end
+					ELSRunning:GetPropertyChangedSignal("Value"):Connect(AGELSChange)
+					PatternNumber:GetPropertyChangedSignal("Value"):Connect(AGELSChange)
+					AGELSChange()
+				end
+
+				local TARunning = PTRNS:FindFirstChild("TARunning")
+				local TAPatternNumber = PTRNS:FindFirstChild("TAPatternNumber")
+				if TARunning and TARunning:IsA("BoolValue") and TAPatternNumber and TAPatternNumber:IsA("IntValue") then
+					local function AGTAChange()
+						for _, currentFunction in functions do
+							for _, activation in currentFunction.activations do
+								if activation.type == "AG-Event" then
+									if activation.mode == "Traffic Advisor" then
+										car:SetAttribute(
+											currentFunction.name,
+											if TARunning.Value then TAPatternNumber.Value + 1 else 0
+										)
+									end
+								end
+							end
+						end
+					end
+					TARunning:GetPropertyChangedSignal("Value"):Connect(AGTAChange)
+					TAPatternNumber:GetPropertyChangedSignal("Value"):Connect(AGTAChange)
+					AGTAChange()
+				end
+			end
+		end
+	end
+
 	car:AddTag("EVHVehicle")
 	initialized = true
 end
@@ -548,6 +602,35 @@ script.Parent.OnServerEvent:Connect(function(player: Player, type: string, ...)
 						else
 							car:SetAttribute(currentFunction.name, if State < 0 then 1 else 0)
 						end
+					end
+				end
+			end
+		end
+	elseif type == "AGSceneLights" then
+		local Scene: boolean, AllyLeft: boolean, AllyRight: boolean, RearScene: boolean = ...
+		if Scene == nil or AllyLeft == nil or AllyRight == nil or RearScene == nil then
+			return
+		end
+		if
+			typeof(Scene) ~= "boolean"
+			or typeof(AllyLeft) ~= "boolean"
+			or typeof(AllyRight) ~= "boolean"
+			or typeof(RearScene) ~= "boolean"
+		then
+			return
+		end
+
+		for _, currentFunction in functions do
+			for _, activation in currentFunction.activations do
+				if activation.type == "AG-Event" then
+					if activation.mode == "Scene" then
+						car:SetAttribute(currentFunction.name, if Scene then 1 else 0)
+					elseif activation.mode == "Ally Left" then
+						car:SetAttribute(currentFunction.name, if AllyLeft then 1 else 0)
+					elseif activation.mode == "Ally Right" then
+						car:SetAttribute(currentFunction.name, if AllyRight then 1 else 0)
+					elseif activation.mode == "Rear Scene" then
+						car:SetAttribute(currentFunction.name, if RearScene then 1 else 0)
 					end
 				end
 			end

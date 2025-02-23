@@ -43,8 +43,8 @@ if CarReference:IsA("ObjectValue") == false then
 	error("[EVH ERROR]: Car ObjectValue not valid")
 end
 
-local Car = CarReference.Value
-local EVHEvent = Car:WaitForChild("EVHEvent")
+local Car = CarReference.Value :: Model
+local EVHEvent = Car:WaitForChild("EVHEvent") :: RemoteEvent
 if EVHEvent:IsA("RemoteEvent") == false then
 	error("[EVH ERROR]: EVHEvent RemoteEvent not valid")
 end
@@ -105,3 +105,17 @@ end
 UserInputService.InputBegan:Connect(input)
 UserInputService.InputChanged:Connect(input)
 UserInputService.InputEnded:Connect(input)
+
+-- AG-Chassis Handling
+
+local Events = Car:FindFirstChild("Events")
+if Events then
+	local SpecialEvent = Events:FindFirstChild("SpecialEvent") :: RemoteEvent
+	if SpecialEvent and SpecialEvent:IsA("RemoteEvent") then
+		SpecialEvent.OnClientEvent:Connect(function(EventType: string, ...)
+			if EventType == "LIGHT" then
+				EVHEvent:FireServer("AGSceneLights", ...)
+			end
+		end)
+	end
+end

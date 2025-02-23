@@ -146,6 +146,9 @@ export type activation = {
 			dependentPattern: number,
 		}
 	},
+} | {
+	type: "AG-Event",
+	mode: "Stages" | "Traffic Advisor" | "Scene" | "Ally Left" | "Ally Right" | "Rear Scene",
 }
 
 export type elsFunction = {
