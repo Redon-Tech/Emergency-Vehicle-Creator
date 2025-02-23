@@ -60,7 +60,7 @@ return function(baseScope: types.Scope, props: props)
 	local basePoint: Instance? = nil
 	local outfitting: Fusion.Value<Model?> = scope:Value(nil)
 	local attachments: Fusion.Value<{ Attachment }> = scope:Value({})
-	local lightParts: Fusion.Value<{ BasePart }> = scope:Value({})
+	local lightParts: Fusion.Value<{ { name: string, part: BasePart } }> = scope:Value({})
 	local connections: { RBXScriptConnection } = {}
 	local currentLocation: Fusion.Value<string?> = scope:Value(nil)
 	local currentEquipment = scope:Value("")
@@ -168,7 +168,7 @@ return function(baseScope: types.Scope, props: props)
 		local newLightParts = {}
 		for _, lightPart in pairs(carOutfitting.model:GetDescendants()) do
 			if lightPart:IsA("BasePart") and lightPart.Parent ~= nil and lightPart.Parent.Name == "_LIGHTS" then
-				table.insert(newLightParts, lightPart)
+				table.insert(newLightParts, { name = lightPart.Name, part = lightPart })
 			end
 		end
 		log.debug("Recomputed light parts", newLightParts)

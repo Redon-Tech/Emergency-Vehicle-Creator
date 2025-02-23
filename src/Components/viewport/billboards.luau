@@ -12,7 +12,7 @@ return function(
 		viewportSize: Fusion.UsedAs<Vector2>,
 		currentLocation: Fusion.Value<string?>,
 		currentlyConfiguring: Fusion.Value<string?>,
-		lightParts: Fusion.UsedAs<{ Instance }>,
+		lightParts: Fusion.UsedAs<{ { name: string, part: Instance } }>,
 	}
 )
 	local currentTheme = RedonUI.theme.theme:now()
@@ -74,16 +74,16 @@ return function(
 			return children
 		end),
 
-		scope:ForValues(props.lightParts, function(_, scope: typeof(scope), value: BasePart)
+		scope:ForValues(props.lightParts, function(_, scope: typeof(scope), value: { name: string, part: Instance })
 			return scope:New("BillboardGui") {
-				Adornee = value,
+				Adornee = value.part,
 				Size = scope:Computed(function(use)
 					local base = use(props.viewportSize)
 					return UDim2.fromScale(500 / base.X, 250 / base.Y)
 				end),
 				MaxDistance = 15,
 				AlwaysOnTop = true,
-				Name = value.Name,
+				Name = value.name,
 
 				[Fusion.Children] = {
 					scope:textLabel {
@@ -91,7 +91,7 @@ return function(
 						AnchorPoint = Vector2.new(0.5, 0.5),
 						Position = UDim2.fromScale(0.5, 0.5),
 						BackgroundColor3 = currentTheme.colors.base,
-						Text = value.Name,
+						Text = value.name,
 						TextScaled = true,
 						MaxTextSize = 20,
 
