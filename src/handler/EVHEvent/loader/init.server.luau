@@ -284,8 +284,25 @@ local function load()
 		end
 	end
 
+	local exclusionParents = {}
+	for _, possibleExclusion in car:GetDescendants() do
+		if possibleExclusion:GetAttribute("EVH_Ignore") == true then
+			table.insert(exclusionParents, possibleExclusion)
+		end
+	end
+
 	for _, light in car:GetDescendants() do
 		if light:IsA("BasePart") then
+			local excluded = false
+			for _, exclusionParent in exclusionParents do
+				if light:IsDescendantOf(exclusionParent) then
+					excluded = true
+					break
+				end
+			end
+			if excluded then
+				continue
+			end
 			if table.find(possibleLights, light.Name) ~= nil then
 				light:AddTag(`{uuid}_LIGHT`)
 				if lightTemplate ~= nil then
