@@ -17,15 +17,16 @@ local rotators = require(els:WaitForChild("rotators"))
 
 local vehicles: { [Instance]: types.vehicle } = {}
 local runningPatterns: { types.pattern } = {}
+type light = {
+	lights: { Light },
+	colorableLightos: { { lighto: LayerCollector, images: { ImageLabel } } },
+	lightos: { [string]: { { lighto: LayerCollector, images: { ImageLabel } } } },
+	particleEmitters: { ParticleEmitter },
+	connections: { RBXScriptConnection },
+}
 local lights: {
-	[BasePart]: {
-		lights: { Light },
-		colorableLightos: { { lighto: LayerCollector, images: { ImageLabel } } },
-		lightos: { [string]: { { lighto: LayerCollector, images: { ImageLabel } } } },
-		particleEmitters: { ParticleEmitter },
-	},
-} =
-	{}
+	[BasePart]: light,
+} = {}
 local version = 0
 local isPrimary = false
 
@@ -475,6 +476,37 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 	end
 end
 
+local function lightDescendantAdded(lighto: Instance, lightData: light, colorNames: { string })
+	if lighto:IsA("Light") then
+		lighto.Enabled = false
+		lighto:SetAttribute("defaultBrightness", lighto.Brightness)
+		table.insert(lightData.lights, lighto)
+	elseif lighto:IsA("LayerCollector") then
+		lighto.Enabled = false
+
+		local images = {}
+		for _, image in lighto:GetDescendants() do
+			if image:IsA("ImageLabel") or image:IsA("ImageButton") then
+				image:SetAttribute("defaultImageTransparency", image.ImageTransparency)
+				table.insert(images, image :: ImageLabel)
+			end
+		end
+
+		if table.find(colorNames, lighto.Name) == nil then
+			table.insert(lightData.colorableLightos, { lighto = lighto, images = images })
+		else
+			if lightData.lightos[lighto.Name] == nil then
+				lightData.lightos[lighto.Name] = {}
+			end
+			table.insert(lightData.lightos[lighto.Name], { lighto = lighto, images = images })
+		end
+	elseif lighto:IsA("ParticleEmitter") then
+		lighto.Enabled = false
+		lighto.Transparency = NumberSequence.new(0)
+		table.insert(lightData.particleEmitters, lighto)
+	end
+end
+
 local function addLight(vehicleData: types.vehicle, light: Instance)
 	if light:IsA("BasePart") then
 		table.insert(vehicleData.lights[light.Name].parts, light)
@@ -485,51 +517,57 @@ local function addLight(vehicleData: types.vehicle, light: Instance)
 		end
 		light.Transparency = 1
 
-		local newLights = {}
-		local colorableLightos = {}
-		local lightos = {}
-		local particleEmitters = {}
+		local lightData = {
+			lights = {},
+			colorableLightos = {},
+			lightos = {},
+			particleEmitters = {},
+			connections = {},
+		}
 		local colorNames = {}
 		for _, color in vehicleData.configuration.lightSettings.colors do
 			table.insert(colorNames, color.name)
 		end
 		for _, lighto in light:GetDescendants() do
-			if lighto:IsA("Light") then
-				lighto.Enabled = false
-				lighto:SetAttribute("defaultBrightness", lighto.Brightness)
-				table.insert(newLights, lighto)
-			elseif lighto:IsA("LayerCollector") then
-				lighto.Enabled = false
-
-				local images = {}
-				for _, image in lighto:GetDescendants() do
-					if image:IsA("ImageLabel") or image:IsA("ImageButton") then
-						image:SetAttribute("defaultImageTransparency", image.ImageTransparency)
-						table.insert(images, image :: ImageLabel)
-					end
-				end
-
-				if table.find(colorNames, lighto.Name) == nil then
-					table.insert(colorableLightos, { lighto = lighto, images = images })
-				else
-					if lightos[lighto.Name] == nil then
-						lightos[lighto.Name] = {}
-					end
-					table.insert(lightos[lighto.Name], { lighto = lighto, images = images })
-				end
-			elseif lighto:IsA("ParticleEmitter") then
-				lighto.Enabled = false
-				lighto.Transparency = NumberSequence.new(0)
-				table.insert(particleEmitters, lighto)
-			end
+			lightDescendantAdded(lighto, lightData, colorNames)
 		end
+		table.insert(
+			lightData.connections,
+			light.DescendantAdded:Connect(function(lighto: Instance)
+				lightDescendantAdded(lighto, lightData, colorNames)
+			end)
+		)
+		table.insert(
+			lightData.connections,
+			light.DescendantRemoving:Connect(function(lighto: Instance)
+				if lighto:IsA("Light") then
+					table.remove(lightData.lights, table.find(lightData.lights, lighto))
+				elseif lighto:IsA("LayerCollector") then
+					for _, colorableLighto in lightData.colorableLightos do
+						if colorableLighto.lighto == lighto then
+							table.remove(
+								lightData.colorableLightos,
+								table.find(lightData.colorableLightos, colorableLighto)
+							)
+							break
+						end
+					end
 
-		lights[light] = {
-			lights = newLights,
-			colorableLightos = colorableLightos,
-			lightos = lightos,
-			particleEmitters = particleEmitters,
-		}
+					for _, nonColorableLightos in lightData.lightos do
+						for _, nonColorableLighto in nonColorableLightos do
+							if nonColorableLighto.lighto == lighto then
+								table.remove(nonColorableLightos, table.find(nonColorableLightos, nonColorableLighto))
+								break
+							end
+						end
+					end
+				elseif lighto:IsA("ParticleEmitter") then
+					table.remove(lightData.particleEmitters, table.find(lightData.particleEmitters, lighto))
+				end
+			end)
+		)
+
+		lights[light] = lightData
 	end
 end
 
@@ -540,6 +578,9 @@ local function removeLight(vehicleData: types.vehicle, light: Instance)
 			for _, group in vehicleData.lightConnectedGroups[light.Name] do
 				table.remove(vehicleData.lights[group].parts, table.find(vehicleData.lights[group].parts, light))
 			end
+		end
+		for _, connection in lights[light].connections do
+			connection:Disconnect()
 		end
 		lights[light] = nil
 	end
@@ -603,8 +644,22 @@ local function vehicleAdded(vehicle: Instance)
 	end
 end
 
+local function vehicleRemoved(vehicle: Instance)
+	local vehicleData = vehicles[vehicle]
+	if vehicleData == nil then
+		return
+	end
+
+	for _, connection in vehicleData.connections do
+		connection:Disconnect()
+	end
+
+	vehicles[vehicle] = nil
+end
+
 local function setup()
 	CollectionService:GetInstanceAddedSignal("EVHVehicle"):Connect(vehicleAdded)
+	CollectionService:GetInstanceRemovedSignal("EVHVehicle"):Connect(vehicleRemoved)
 	for _, vehicle in CollectionService:GetTagged("EVHVehicle") do
 		vehicleAdded(vehicle)
 	end

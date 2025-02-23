@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Siren modifiers not being saved to a vehicle properly causing the vehicle to be corrupted
 - Light names not visually updating when changed
+- (EVH) Vehicles now work properly in StreamingEnabled games
 
 ## [3.0.0-beta.4] - 2025-02-09
 
