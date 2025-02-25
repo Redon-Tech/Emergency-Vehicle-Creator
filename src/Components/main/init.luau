@@ -123,6 +123,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						CurrentPanel = currentPanel :: any,
 						CurrentPage = currentPage,
 						CurrentVehicle = props.CurrentVehicle,
+						PossibleVehicle = props.PossibleVehicle,
 						ReturnTo = props.ReturnTo,
 						Mode = props.Mode,
 						CurrentPattern = currentPattern,

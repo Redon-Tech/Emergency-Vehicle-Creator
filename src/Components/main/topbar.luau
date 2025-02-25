@@ -17,6 +17,7 @@ type props = {
 	CurrentPage: Fusion.Value<types.pages?>,
 	ReturnTo: Fusion.Value<types.returnTo>,
 	CurrentVehicle: Fusion.Value<Model | string?>,
+	PossibleVehicle: Fusion.Value<Model?>,
 	CurrentPattern: Fusion.Value<types.selectedPattern?>,
 }
 
@@ -232,6 +233,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					local returnTo = scope.peek(props.ReturnTo)
 					if returnTo == "menu" then
 						props.Mode:set("menu")
+						props.CurrentVehicle:set(nil)
+						props.PossibleVehicle:set(nil)
 					elseif returnTo == "customizer" then
 						local currentVehicle = scope.peek(props.CurrentVehicle)
 						if currentVehicle ~= nil and typeof(currentVehicle) == "Instance" then
@@ -241,6 +244,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 							end
 						end
 						props.Mode:set("menu")
+						props.CurrentVehicle:set(nil)
+						props.PossibleVehicle:set(nil)
 					elseif returnTo == "vehicleSetup" then
 						props.CurrentPanel:set("Vehicle Setup")
 						props.CurrentPage:set("Functions")
