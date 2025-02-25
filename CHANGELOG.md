@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0-beta.6] - 2025-02-24
+
 ### Fixed
 
 - Export button dissapearing when returning to menu and editing previously opened vehicle
@@ -67,7 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public beta release.
 
-[unreleased]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/compare/3.0.0-beta.5...main
+[unreleased]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/compare/3.0.0-beta.6...main
+[3.0.0-beta.6]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-beta.6
 [3.0.0-beta.5]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-beta.5
 [3.0.0-beta.4]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-beta.4
 [3.0.0-beta.3]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-beta.3
