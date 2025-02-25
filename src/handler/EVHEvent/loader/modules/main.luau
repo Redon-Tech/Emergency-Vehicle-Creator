@@ -504,6 +504,16 @@ local function lightDescendantAdded(lighto: Instance, lightData: light, colorNam
 		lighto.Enabled = false
 		lighto.Transparency = NumberSequence.new(0)
 		table.insert(lightData.particleEmitters, lighto)
+	elseif lighto:IsA("ImageLabel") or lighto:IsA("ImageButton") then
+		local lightoCollector = lighto:FindFirstAncestorWhichIsA("LayerCollector")
+		for _, colorableLighto in pairs(lightData.colorableLightos) do
+			if
+				colorableLighto.lighto == lightoCollector
+				and table.find(colorableLighto.images, lighto :: ImageLabel) == nil
+			then
+				table.insert(colorableLighto.images, lighto :: ImageLabel)
+			end
+		end
 	end
 end
 

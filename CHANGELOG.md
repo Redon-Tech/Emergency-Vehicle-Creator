@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Export button dissapearing when returning to menu and editing previously opened vehicle
+- (EVH) ColorableLightos not loading correctly when streamed in
 
 ## [3.0.0-beta.5] - 2025-02-23
 
