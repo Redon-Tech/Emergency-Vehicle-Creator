@@ -39,7 +39,7 @@ No coding required, just your creativity. Start creating your vehicles today.
 </div>
 
 !!! warning
-	This documentation is still a work in progress. If you have any questions, feel free to [contact us](https://cdn.redon.tech/go/discord).
+	This documentation is still a work in progress. If you have any questions, feel free to [contact us](https://redon.tech/discord).
 
 # Advantages of Emergency Vehicle Creator
 
@@ -72,7 +72,7 @@ Emergency Vehicle Creator is designed to be error-free. We have spent countless 
 However, we understand that errors can still occur.
 
 To help solve any problems we provide full support for the plugin. If you encounter any issues, feel free to 
-[contact us](https://cdn.redon.tech/go/discord) and we will help you resolve them.
+[contact us](https://redon.tech/discord) and we will help you resolve them.
 
 Ontop of this, Emergency Vehicle Creator allows for consistency in your vehicles. No longer will you have to juggle 
 around different lighting frameworks, Emergency Vehicle Creator provides a single framework for all your vehicles.
