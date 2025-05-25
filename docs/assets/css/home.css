@@ -1,3 +1,20 @@
+.md-tabs, .md-header, .md-banner {
+	backdrop-filter: none;
+}
+
+.md-banner {
+	position: relative;
+	z-index: 2;
+}
+
+.md-header--shadow {
+	backdrop-filter: blur(1rem);
+}
+
+.md-tabs {
+	border: none;
+}
+
 .md-content {
 	max-width: none;
 	--distance-to-top-of-page: 4.8rem;
@@ -15,11 +32,6 @@
 
 .md-main__inner {
 	margin-top: 0;
-}
-
-.md-banner {
-	position: relative;
-	z-index: 2;
 }
 
 .hero {
@@ -65,6 +77,10 @@
 	object-fit: cover;
 	object-position: center top;
 	z-index: -1;
+}
+
+.hero-image {
+	z-index: -2;
 }
 
 .hero-content {

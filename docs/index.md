@@ -31,9 +31,8 @@ No coding required, just your creativity. Start creating your vehicles today.
 </div>
 </div>
 
-<video autoplay loop muted class="hero-video">
-<source src="/assets/home.mp4" type="video/mp4">
-</video>
+<img src="/assets/home.webp" class="hero-video">
+<img src="/assets/home.png" class="hero-image hero-video">
 
 
 </div>
