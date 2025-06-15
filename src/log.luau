@@ -16,6 +16,8 @@ local log = {
 	verbosity = 1,
 }
 
+--- Gets the location where a log was called from.
+--- This is a workaround for the log showing this file as the source of the log
 function log.getTraceback(): string
 	local s, l = debug.info(3, "sl")
 	return `{s}:{l}`
@@ -39,6 +41,8 @@ function log.warn(...)
 	end
 end
 
+--- Logs an error message and halts execution.
+--- This function should be used for critical errors that require immediate attention.
 function log.error(...)
 	-- Errors should always be sent, if this is called it expects execution to halt
 	error(`{log.format.error}{...}`, 2)

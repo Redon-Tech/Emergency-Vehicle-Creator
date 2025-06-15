@@ -89,6 +89,7 @@ local vehicle = {
 	cache = {},
 } :: vehicle
 
+--- Checks if the given instance is a valid vehicle model.
 function vehicle.isValidVehicle(_, vehicleToCheck)
 	if vehicleToCheck:IsA("Model") then
 		local tune = vehicleToCheck:FindFirstChild("A-Chassis Tune")
@@ -124,6 +125,7 @@ function vehicle.isValidVehicle(_, vehicleToCheck)
 	return false
 end
 
+--- Determines if a vehicle is customizable by the plugin.
 function vehicle.isVehicleCustomizable(self, vehicleToCheck)
 	if vehicleToCheck:GetAttribute("EVCHandled") == true and self:getOutfitting(vehicleToCheck) ~= nil then
 		return true
@@ -131,6 +133,7 @@ function vehicle.isVehicleCustomizable(self, vehicleToCheck)
 	return false
 end
 
+--- Retrieves the outfitting model and base point for a vehicle.
 function vehicle.getOutfitting(_, vehicleToCheck)
 	local carBody = vehicleToCheck:FindFirstChild("Body")
 	if carBody == nil then
@@ -151,7 +154,7 @@ function vehicle.getOutfitting(_, vehicleToCheck)
 	}
 end
 
--- This function is meant to only be called from this module
+--- Sets up the vehicle by loading its model, customization, and configuration data.
 function vehicle._setupVehicle(self, vehicleName, vehicleModule, vehicleFolder)
 	if self.cache[vehicleName] ~= nil then
 		return
@@ -282,6 +285,7 @@ function vehicle._setupVehicle(self, vehicleName, vehicleModule, vehicleFolder)
 	return vehicleData
 end
 
+--- Loads a vehicle by its name, checking the cache first.
 function vehicle.getVehicle(self, vehicleName)
 	log.debug("Loading vehicle", vehicleName)
 	if self.cache[vehicleName] ~= nil then
@@ -334,6 +338,7 @@ function vehicle.getVehicle(self, vehicleName)
 	return
 end
 
+--- Shows the model by setting its transparency to 0.
 local function showModel(path: Instance)
 	for _, v in pairs(path:GetDescendants()) do
 		if v:IsA("BasePart") and (v.Parent and v.Parent.Name ~= "_LIGHTS") then
@@ -356,6 +361,7 @@ local function showModel(path: Instance)
 	end
 end
 
+--- Retrieves the original configuration for a given equipment model.
 local function getOriginalConfiguration(
 	vehicleFolder: vehicleFolder,
 	basePoint: BasePart,
@@ -405,6 +411,7 @@ local function getOriginalConfiguration(
 	return new
 end
 
+--- Changes the configuration of a vehicle's equipment.
 function vehicle.changeConfiguration(_, vehicleFolder, equipmentModel, configuration)
 	local options = equipmentModel:FindFirstChild("Options") :: Model?
 	if options == nil or options:IsA("Model") == false then
@@ -464,6 +471,7 @@ function vehicle.changeConfiguration(_, vehicleFolder, equipmentModel, configura
 	ChangeHistoryService:SetWaypoint("Changed equipment configuration")
 end
 
+--- Changes the equipment for a vehicle at a specific location.
 function vehicle.changeEquipment(self, vehicleFolder, outfitting, location, equipmentName)
 	local basePoint = outfitting:FindFirstChild("BasePoint") :: BasePart?
 	if basePoint == nil or basePoint:IsA("BasePart") == false then
@@ -539,9 +547,10 @@ function vehicle.changeEquipment(self, vehicleFolder, outfitting, location, equi
 	return true
 end
 
+--- Initializes a vehicle by applying its default outfitting and equipment.
 function vehicle.initVehicle(self, vehicleModel)
 	if self.vehicles[vehicleModel.Name] then
-		local vehicleFolder = self.getVehicle(self, vehicleModel.Name)
+		local vehicleFolder = self:getVehicle(vehicleModel.Name)
 		if vehicleFolder == nil then
 			log.warn("Failed to outfit vehicle, no vehicle found", vehicleModel.Name)
 			return
@@ -563,6 +572,7 @@ function vehicle.initVehicle(self, vehicleModel)
 	end
 end
 
+--- Clones the customization base point from the vehicle folder to the current camera.
 function vehicle.cloneCustomizationBasePoint(_, vehicleFolder)
 	local basePoint = vehicleFolder.customization:FindFirstChild("BasePoint") :: BasePart?
 	if basePoint == nil or basePoint:IsA("BasePart") == false then
@@ -574,6 +584,7 @@ function vehicle.cloneCustomizationBasePoint(_, vehicleFolder)
 	return customizationBasePoint
 end
 
+--- Updates the names of the equipment lights based on the light prefix attribute.
 function vehicle.updateEquipmentLights(_, equipmentModel)
 	local lightPrefix = equipmentModel:GetAttribute("lightPrefix") :: string?
 	if lightPrefix == nil or typeof(lightPrefix) ~= "string" then

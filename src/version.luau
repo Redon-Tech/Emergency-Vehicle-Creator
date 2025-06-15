@@ -23,6 +23,7 @@ local version = {
 	latestVersion = nil,
 } :: version
 
+--- Parses a version string into a table with major, minor, patch, pre-release, and build components.
 function version.parseVersion(_: version, versionString: string): versionParsed
 	local parsedData = { string.match(versionString, "(%d+)%.(%d+)%.(%d+)%-?([%w%.]*)%+?(.*)$") }
 	log.debug("Parsed Version", versionString, parsedData)
@@ -35,6 +36,7 @@ function version.parseVersion(_: version, versionString: string): versionParsed
 	}
 end
 
+--- Initializes the version module with the current plugin version.
 function version.checkVersion(self: version)
 	local latestVersion = HttpService:RequestAsync({
 		Url = "https://api.github.com/repos/Redon-Tech/Emergency-Vehicle-Creator/releases/latest",
@@ -56,6 +58,8 @@ function version.checkVersion(self: version)
 	end
 end
 
+--- Checks if the current version is outdated compared to the latest version.
+--- Returns true if the current version is older than the latest version, false otherwise.
 function version.isOutdated(self: version)
 	if self.latestVer == nil or self.latestVersion == nil then
 		log.debug("Skipping version check, no latest version found")

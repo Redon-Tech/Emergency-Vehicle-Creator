@@ -36,6 +36,7 @@ rotators.runningPatterns = runningPatterns
 
 -- Light Handling
 
+--- Changes the color of a light and its associated parts.
 local function changeColor(vehicle: Instance, functionId: number, lightName: string, color: number)
 	local vehicleData = vehicles[vehicle]
 	if vehicleData == nil then
@@ -87,6 +88,7 @@ local function changeColor(vehicle: Instance, functionId: number, lightName: str
 	end
 end
 
+--- Turns on or off a light.
 local function changeLight(vehicle: Instance, functionId: number, lightName: string, state: boolean)
 	local vehicleData = vehicles[vehicle]
 	if vehicleData == nil then
@@ -135,6 +137,7 @@ local function changeLight(vehicle: Instance, functionId: number, lightName: str
 	end
 end
 
+--- Changes the color of a light and its associated parts, and toggles the light on or off.
 local function flashLight(vehicle: Instance, functionId: number, lightName: string, color: number)
 	local vehicleData = vehicles[vehicle]
 	if vehicleData == nil then
@@ -164,6 +167,7 @@ local function flashLight(vehicle: Instance, functionId: number, lightName: stri
 	end
 end
 
+--- Sets the transparency of a light and its associated parts.
 local function setLightTransparency(
 	vehicle: Instance,
 	functionId: number,
@@ -243,6 +247,7 @@ local function setLightTransparency(
 	lightData.currentState = color
 end
 
+--- Resets the transparency of a light and its associated parts to their default values.
 local function resetLightTransparency(vehicle: Instance, lightName: string)
 	local vehicleData = vehicles[vehicle]
 	if vehicleData == nil then
@@ -301,6 +306,7 @@ rotators.flash = flashLight
 faders.setLightTransparency = setLightTransparency
 faders.resetLightTransparency = resetLightTransparency
 
+--- Sets the rotation of a light and its associated parts.
 local function setRotation(vehicle: Instance, functionId: number, lightName: string, rad: number)
 	local vehicleData = vehicles[vehicle]
 	if vehicleData == nil then
@@ -329,6 +335,7 @@ rotators.setRotation = setRotation
 
 -- Vehicle Handling
 
+--- Updates the rotation of a rotator section based on the weld's rad attribute.
 local function updateRotatorRad(vehicleData: types.vehicle, rotator: types.rotatorSection)
 	if #vehicleData.lights[rotator.lightName].parts ~= 0 then
 		local light = vehicleData.lights[rotator.lightName].parts[1]
@@ -344,6 +351,8 @@ local function updateRotatorRad(vehicleData: types.vehicle, rotator: types.rotat
 	end
 end
 
+--- Updates the running function of a light based on the function ID and whether it is being added or removed.
+--- If the light is a group, it will update all connected lights in that group
 local function updateLightRunningFunction(vehicle: Instance, lightName: string, functionId: number, adding: boolean)
 	local vehicleData = vehicles[vehicle]
 	if vehicleData == nil then
@@ -414,6 +423,7 @@ local function updateLightRunningFunction(vehicle: Instance, lightName: string, 
 	end
 end
 
+--- Updates the internal state of a vehicle's function based on the function name and ID.
 local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, functionId: number)
 	local patternId = vehicle:GetAttribute(functionName)
 	if patternId == nil or typeof(patternId) ~= "number" then
@@ -476,6 +486,7 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 	end
 end
 
+--- Registers the descendants added to a light
 local function lightDescendantAdded(lighto: Instance, lightData: light, colorNames: { string })
 	if lighto:IsA("Light") then
 		lighto.Enabled = false
@@ -517,6 +528,7 @@ local function lightDescendantAdded(lighto: Instance, lightData: light, colorNam
 	end
 end
 
+--- Adds a light to the vehicle data and sets up its connections.
 local function addLight(vehicleData: types.vehicle, light: Instance)
 	if light:IsA("BasePart") then
 		table.insert(vehicleData.lights[light.Name].parts, light)
@@ -581,6 +593,7 @@ local function addLight(vehicleData: types.vehicle, light: Instance)
 	end
 end
 
+--- Removes a light from the vehicle data and disconnects its connections.
 local function removeLight(vehicleData: types.vehicle, light: Instance)
 	if light:IsA("BasePart") then
 		table.remove(vehicleData.lights[light.Name].parts, table.find(vehicleData.lights[light.Name].parts, light))
@@ -596,6 +609,7 @@ local function removeLight(vehicleData: types.vehicle, light: Instance)
 	end
 end
 
+--- Initializes a vehicle and its lights, setting up the necessary connections and data structures.
 local function vehicleAdded(vehicle: Instance)
 	if vehicles[vehicle] then
 		return
@@ -654,6 +668,7 @@ local function vehicleAdded(vehicle: Instance)
 	end
 end
 
+--- Removes a vehicle and its associated data, disconnecting all connections.
 local function vehicleRemoved(vehicle: Instance)
 	local vehicleData = vehicles[vehicle]
 	if vehicleData == nil then
@@ -667,6 +682,7 @@ local function vehicleRemoved(vehicle: Instance)
 	vehicles[vehicle] = nil
 end
 
+--- Sets up the event listeners for vehicle addition and removal, and initializes the heartbeat functions.
 local function setup()
 	CollectionService:GetInstanceAddedSignal("EVHVehicle"):Connect(vehicleAdded)
 	CollectionService:GetInstanceRemovedSignal("EVHVehicle"):Connect(vehicleRemoved)
@@ -680,6 +696,8 @@ local function setup()
 	end)
 end
 
+--- The main function that initializes the EVH system.
+--- It performs a handshake to determine if this is the primary instance and sets up the necessary data structures.
 return function(actualVersion: number)
 	version = actualVersion
 	if handshake(version) == true then

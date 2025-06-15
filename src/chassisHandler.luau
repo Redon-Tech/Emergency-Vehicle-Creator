@@ -135,6 +135,7 @@ local chassisHandler = {
 } :: chassisHandler
 table.freeze(chassisHandler.defaults)
 
+--- Checks if the Emergency Vehicle Handler plugin is installed on the given model.
 function chassisHandler.hasPluginInstalled(self: chassisHandler, model: Model): (boolean, LocalScript?)
 	if self.cache[model] then
 		return true
@@ -169,6 +170,8 @@ function chassisHandler.hasPluginInstalled(self: chassisHandler, model: Model): 
 	return true, Plugin
 end
 
+--- Checks if the EVC Chassis Plugin is installed on the given model.
+--- This is a legacy plugin that was used before the Emergency Vehicle Handler plugin.
 function chassisHandler.hasEVCChassisPluginInstalled(_: chassisHandler, model: Model): (boolean, LocalScript?)
 	local vehicleType = vehicle:isValidVehicle(model)
 	if vehicleType == false then
@@ -216,6 +219,8 @@ type oldSiren = {
 	Name: string,
 }
 
+--- Installs the Emergency Vehicle Handler plugin on the given model.
+--- This will convert any old EVC Chassis Plugin data to the new format.
 function chassisHandler.installPlugin(self: chassisHandler, model: Model): boolean
 	local vehicleType = vehicle:isValidVehicle(model)
 	if vehicleType == false then
@@ -500,6 +505,8 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 	return true
 end
 
+--- Retrieves the configuration for the given model.
+--- If the configuration is already cached, it will return the cached data.
 function chassisHandler.getConfiguration(self: chassisHandler, model: Model): chassisConfiguration?
 	if self.cache[model] then
 		return self.cache[model].data
@@ -545,6 +552,15 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 		DM parker if u dont understand this
 		I personally hate this 😎
 	]]
+	--[[
+		Hello, it is me again.
+		I understand this now.
+		Turns out I am a dumbass and the nightmare of this codebase
+		has caused issues like the above, hopefully in the future
+		this can be fixed so we can remove dumbass workarounds like
+		this.
+		- Parker, looking back at the codebase 6 months later
+	]]
 	local clonedFunctions = functions:Clone()
 	local clonedSirens = sirens:Clone()
 	local clonedLightSettings = lightSettings:Clone()
@@ -570,7 +586,7 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 			shouldChangeLightos = oldLightConfiguration.shouldChangeLightos,
 			shouldChangeParticleEmitters = false,
 			partTransparency = 0.011,
-		};
+		}
 		(data.lightSettings :: any).optimizations = nil
 		log.info("Updated lightSettings from optimizations to configuration", oldLightConfiguration, data.lightSettings)
 	end
@@ -644,6 +660,7 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 	return data
 end
 
+--- Saves the current configuration for the given model.
 function chassisHandler.saveConfiguration(self: chassisHandler, model: Model): boolean
 	local configuration = self.cache[model]
 	if configuration == nil then
@@ -670,6 +687,9 @@ function chassisHandler.saveConfiguration(self: chassisHandler, model: Model): b
 	return true
 end
 
+--TODO: Create some algorithm to detect possible lights that already havent been used.
+--- Retrieves the list of possible lights from the current configuration.
+--- This includes lights from the configuration, light groups, and any other light names referenced.
 function chassisHandler.getLights(currentConfiguration: chassisConfiguration, model: Instance): { string }
 	local possibleLights = {}
 	for _, functions in currentConfiguration.functions do

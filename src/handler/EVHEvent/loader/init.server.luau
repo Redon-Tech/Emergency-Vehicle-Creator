@@ -11,6 +11,7 @@ versionInstance.Name = "version"
 versionInstance.Value = version
 versionInstance.Parent = script
 
+-- TODO: Detect studio and run on server
 -- Trigger the start of handshaking
 local initiator = script.EVHClient
 local newContainer = Instance.new("Folder")

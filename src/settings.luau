@@ -61,10 +61,12 @@ local defaultValues = {
 	saveBackupMode = "Encrypted",
 }
 
+--- Generates a save key for the plugin settings.
 local function getSaveKey(key: string): string
 	return `RedonTech_EVC_{key}`
 end
 
+--- Sets up the settings module, loading saved values and setting up observers for changes.
 function settings:setup(scope: types.Scope)
 	self.scope = scope
 

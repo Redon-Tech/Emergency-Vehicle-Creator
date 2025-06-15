@@ -2,13 +2,14 @@
 --#selene: allow(global_usage)
 -- Redon Tech Emergency Vehicle Creator, MIT License
 
--- Ensures only one EVH is running at a time
--- and that the running EVH is the latest version
---[[
-    Edgecase: A newer verstion is inserted after handshake is done
-        To handle this, we will check allow that newer version to run
-        its vehicles by itself
-]]
+--[=[
+	Ensures only one EVH is running at a time
+	and that the running EVH is the latest version
+
+    Edgecase: A newer verstion is inserted after handshake is done.
+	To handle this, we will check allow that newer version to run
+	its vehicles by itself
+]=]
 return function(version: number): boolean
 	local uuid = game:GetService("HttpService"):GenerateGUID(false)
 

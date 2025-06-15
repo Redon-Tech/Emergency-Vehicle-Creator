@@ -17,6 +17,7 @@ local rotators = {
 	returnToZero = {},
 } :: rotators
 
+-- TODO: Rewrite this to allow for proper syncing of rotators
 function rotators.heartbeat(deltaTime: number)
 	for _, pattern in rotators.runningPatterns do
 		for _, data in pairs(pattern.rotators) do

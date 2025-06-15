@@ -4,6 +4,7 @@
 
 local types = require(script.Parent:WaitForChild("types"))
 
+--- Initializes a vehicle by loading its configuration and lights.
 return function(vehicle: Instance): types.vehicle?
 	if vehicle:IsA("Model") == false then
 		return
@@ -34,7 +35,7 @@ return function(vehicle: Instance): types.vehicle?
 			shouldChangeLights = oldLightConfiguration.shouldChangeLights,
 			shouldChangeLightos = oldLightConfiguration.shouldChangeLightos,
 			partTransparency = 0.011,
-		};
+		}
 		(currentConfiguration.lightSettings :: any).optimizations = nil
 	end
 
