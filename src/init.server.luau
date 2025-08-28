@@ -15,8 +15,8 @@ if not game:GetService("RunService"):IsEdit() then
 	return
 end
 
-local VERSION = "3.0.0-beta.6"
-local IS_DEV = false
+local VERSION = "3.0.0-rc.1"
+local IS_DEV = true
 if IS_DEV then
 	game:GetService("LogService"):ClearOutput()
 end
@@ -156,20 +156,20 @@ local function initUI()
 			Version = versionDisplay,
 
 			Enabled = enabled,
-			Mode = mode :: any, -- ROBLOX FIX YOUR DAMN TYPE SOLVER k thx love u bye
+			Mode = mode,
 			CurrentVehicle = currentVehicle,
 			PossibleVehicle = possibleVehicle,
-			ReturnTo = returnTo :: any,
-		} :: DockWidgetPluginGui -- idk man, I am tired
+			ReturnTo = returnTo,
+		} :: DockWidgetPluginGui
 		local mainWidget = activeScope:mainWidget {
 			Name = name,
 			Version = versionDisplay,
 
 			Enabled = enabled,
-			Mode = mode :: any,
+			Mode = mode,
 			CurrentVehicle = currentVehicle,
 			PossibleVehicle = possibleVehicle,
-			ReturnTo = returnTo :: any,
+			ReturnTo = returnTo,
 			PopupShown = isPopupShown,
 
 			[Fusion.Children] = {
@@ -181,9 +181,9 @@ local function initUI()
 			Version = versionDisplay,
 
 			Enabled = enabled,
-			Mode = mode :: any, -- ROBLOX FIX YOUR DAMN TYPE SOLVER k thx love u bye
+			Mode = mode,
 			CurrentVehicle = currentVehicle,
-			ReturnTo = returnTo :: any,
+			ReturnTo = returnTo,
 		}
 		viewportGui.Parent = game:GetService("CoreGui")
 

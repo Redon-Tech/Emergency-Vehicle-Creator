@@ -47,7 +47,7 @@ type props = {
 	Menu
 	Creates the main menu for the plugin
 ]]
-return function(baseScope: types.Scope, props: props): Fusion.Child
+return function(baseScope: types.Scope, props: props)
 	local scope = Fusion.innerScope(baseScope, components)
 	local currentTheme = RedonUI.theme.theme:now()
 

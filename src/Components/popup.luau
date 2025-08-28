@@ -97,7 +97,7 @@ function popup.addPopup(self, scope, props)
 					then props.forceDescriptionSize
 					else UDim2.fromOffset(400, 50),
 				AnchorPoint = Vector2.new(0, 0),
-				Position = UDim2.new(0, 0, 0, 65),
+				Position = UDim2.fromOffset(0, 65),
 				Text = props.description,
 				RichText = true,
 				TextScaled = props.forceDescriptionSize ~= nil,
@@ -162,7 +162,7 @@ function popup.addPopup(self, scope, props)
 							Border = 2,
 							CornerRadius = UDim.new(0, 10),
 							[Fusion.OnEvent "Activated"] = function()
-								local mt = getmetatable(scope :: Fusion.Scope)
+								local mt = getmetatable(scope :: any)
 								if typeof(mt) == "table" and mt._FUSION_POISONED then
 									return
 								end
@@ -232,7 +232,7 @@ function popup.container(self, scope)
 
 		[Fusion.OnEvent "InputBegan"] = function(input)
 			if self.currentPopup ~= nil and self.keybinds[input.KeyCode] ~= nil then
-				local mt = getmetatable(scope :: Fusion.Scope)
+				local mt = getmetatable(scope :: any)
 				if typeof(mt) == "table" and mt._FUSION_POISONED then
 					return
 				end
