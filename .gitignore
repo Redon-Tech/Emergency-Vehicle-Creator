@@ -5,6 +5,7 @@
 # Packages
 /lune_packages
 /roblox_packages
+/luau_packages
 
 # Roblox Studio lock files
 /*.rbxlx.lock
