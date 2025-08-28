@@ -119,7 +119,7 @@ end
 utils.bloomColors = {
 	Blue = Color3.fromRGB(17, 99, 207),
 	Red = Color3.fromRGB(255, 61, 61),
-	Yello = Color3.fromRGB(255, 230, 43),
+	Yellow = Color3.fromRGB(255, 230, 43),
 	White = Color3.fromRGB(255, 255, 255),
 	Green = Color3.fromRGB(94, 225, 110),
 	Purple = Color3.fromRGB(246, 114, 255),
