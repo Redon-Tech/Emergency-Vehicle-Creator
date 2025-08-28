@@ -40,6 +40,23 @@ export type flasherSection = {
 	columns: { [number]: { lightName: string, rows: { elsColor } } },
 }
 
+export type flasherColumnDataState = {
+	currentName: Fusion.Value<string>?,
+	lightName: Fusion.Value<string>,
+	rows: Fusion.Value<{ elsColor }>,
+}
+export type flasherSectionState = {
+	waitTime: Fusion.Value<number>,
+	rowCount: Fusion.Value<number>,
+	nameTemplate: {
+		pattern: string,
+		originalPosition: number,
+		originalNumber: number,
+	}?,
+	columns: Fusion.Value<{ [number]: flasherColumnDataState }>,
+	currentRow: Fusion.Value<number>,
+}
+
 export type faderData = {
 	type: "Simple",
 	time: number,
@@ -62,6 +79,28 @@ export type faderSection = {
 	data: { faderData },
 }
 
+export type faderTweenDataState = {
+	type: Fusion.Value<"Simple" | "Advanced" | "Wait">,
+	time: Fusion.Value<number>,
+
+	-- Non-Wait Specific
+	goal: Fusion.Value<number>?,
+	color: Fusion.Value<elsColor>?,
+
+	-- Advanced Specific
+	easingStyle: Fusion.Value<Enum.EasingStyle>?,
+	easingDirection: Fusion.Value<Enum.EasingDirection>?,
+}
+
+export type faderSectionState = {
+	lightName: Fusion.Value<string>,
+	currentPercentage: Fusion.Value<number>,
+	currentTween: Fusion.Value<number>,
+	currentValue: Fusion.Value<number>,
+	previousGoal: number?,
+	data: Fusion.Value<{ faderTweenDataState }>,
+}
+
 export type rotatorData = {
 	type: "Angle",
 	color: elsColor,
@@ -79,6 +118,28 @@ export type rotatorData = {
 export type rotatorSection = {
 	lightName: string,
 	data: { rotatorData },
+}
+
+export type rotatorDataState = {
+	type: Fusion.Value<"Angle" | "Infinite" | "Wait">,
+	-- Non-Wait Specific
+	velocity: Fusion.Value<number>?,
+	color: Fusion.Value<elsColor>?,
+
+	-- Angle Specific
+	angle: Fusion.Value<number>?,
+
+	-- Wait Specific
+	time: Fusion.Value<number>?,
+}
+
+export type rotatorSectionState = {
+	lightName: Fusion.Value<string>,
+	currentPercentage: Fusion.Value<number>,
+	currentAngle: Fusion.Value<number>,
+	currentValue: Fusion.Value<number>,
+	previousGoal: number?,
+	data: Fusion.Value<{ rotatorDataState }>,
 }
 
 export type pattern = {
@@ -121,6 +182,41 @@ export type activation = {
 } | {
 	type: "AG-Event",
 	mode: "Stages" | "Traffic Advisor" | "Scene" | "Ally Left" | "Ally Right" | "Rear Scene",
+}
+
+export type activationState = {
+	type: Fusion.Value<"Standard" | "Default" | "Override" | "AG-Event">,
+	mode: Fusion.Value<
+		"Cycle"
+		| "Set Pattern"
+		| "Siren Override"
+		| "Park"
+		| "Brake"
+		| "Reverse"
+		| "Always Active"
+		| "Keybind"
+		| "Function"
+		| "Siren"
+		| "Stages"
+		| "Traffic Advisor"
+		| "Scene"
+		| "Ally Left"
+		| "Ally Right"
+		| "Rear Scene"
+	>?,
+	pattern: Fusion.Value<number>?,
+	keybinds: Fusion.Value<{ Fusion.Value<Enum.KeyCode> }>?,
+	siren: Fusion.Value<string?>?,
+	dependentFunction: Fusion.Value<string>?,
+	dependentPattern: Fusion.Value<number>?,
+	conditions: Fusion.Value<{
+		{
+			type: Fusion.Value<"Function">,
+			mode: Fusion.Value<"Is" | "Is Not">,
+			dependentFunction: Fusion.Value<string>,
+			dependentPattern: Fusion.Value<number>,
+		}
+	}>?,
 }
 
 export type elsFunction = {

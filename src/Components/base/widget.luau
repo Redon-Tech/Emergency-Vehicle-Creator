@@ -24,7 +24,7 @@ type props = {
 	Widget
 	Creates a DockWidgetPluginGui
 ]]
-return function(scope: types.Scope, props: props): Fusion.Child
+return function(scope: types.Scope, props: props)
 	local pluginGuiId = scope.EatValue(props, "pluginGuiId") :: string
 	local InitialDockState = scope.EatValue(props, "InitialDockState") :: Enum.InitialDockState?
 	local InitialEnabled = scope.EatValue(props, "InitialEnabled") :: boolean?

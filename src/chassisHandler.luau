@@ -4,6 +4,7 @@ local types = require(script.Parent.types)
 local vehicle = require(script.Parent.vehicle)
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local LuaEncode = require(script.Parent.Parent.Packages.LuaEncode)
+local Fusion = require(script.Parent.Parent.Packages.fusion)
 local LuaEncodeSettings = {
 	Prettify = false,
 	OutputWarnings = false,
@@ -38,6 +39,18 @@ export type lightSettings = {
 			lights: { string },
 		}
 	},
+}
+
+export type lightSettingsState = {
+	colors: Fusion.Value<{ color }>,
+	configuration: {
+		shouldChangeNeons: Fusion.Value<boolean>,
+		shouldChangeLights: Fusion.Value<boolean>,
+		shouldChangeLightos: Fusion.Value<boolean>,
+		shouldChangeParticleEmitters: Fusion.Value<boolean>,
+		partTransparency: Fusion.Value<number>,
+	},
+	lightGroups: Fusion.Value<{ { name: Fusion.Value<string>, lights: Fusion.Value<{ string }> } }>,
 }
 
 export type chassisConfiguration = {

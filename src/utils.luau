@@ -1,4 +1,8 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
+local root = script.Parent.Parent
+
+local RedonUI = require(root.Packages["redon-ui"])
+
 local utils = {}
 
 --- Deep copies a table, including nested tables.
@@ -96,5 +100,29 @@ function utils.compareTables(table1: { [any]: any }, table2: { [any]: any }): bo
 	end
 	return true
 end
+
+--- Gets a color from the current theme by its name.
+--- Converts "purple" to "mauve".
+function utils.getColorByName(name: string, default: Color3): Color3
+	local currentTheme = RedonUI.theme.theme:now()
+
+	if name == "Purple" then
+		name = "Mauve"
+	end
+	local color = currentTheme.colors[name:lower()]
+	if color == nil then
+		return default
+	end
+	return color
+end
+
+utils.bloomColors = {
+	Blue = Color3.fromRGB(17, 99, 207),
+	Red = Color3.fromRGB(255, 61, 61),
+	Yellow = Color3.fromRGB(255, 230, 43),
+	White = Color3.fromRGB(255, 255, 255),
+	Green = Color3.fromRGB(94, 225, 110),
+	Purple = Color3.fromRGB(246, 114, 255),
+}
 
 return utils
