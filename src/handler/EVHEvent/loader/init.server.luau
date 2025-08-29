@@ -653,5 +653,17 @@ script.Parent.OnServerEvent:Connect(function(player: Player, type: string, ...)
 				end
 			end
 		end
+	elseif type == "UpdateFunction" then
+		local functionName: string, pattern: number = ...
+		if functionName == nil or pattern == nil or typeof(pattern) ~= "number" then
+			return
+		end
+		-- This is to prevent setting other attributes that may not be EVC related
+		for _, currentFunction in functions do
+			if currentFunction.name == functionName then
+				car:SetAttribute(currentFunction.name, pattern)
+				break
+			end
+		end
 	end
 end)
