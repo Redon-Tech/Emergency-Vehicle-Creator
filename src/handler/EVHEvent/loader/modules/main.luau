@@ -34,6 +34,29 @@ flashers.runningPatterns = runningPatterns
 faders.runningPatterns = runningPatterns
 rotators.runningPatterns = runningPatterns
 
+local isBinded = false
+local function bindToRender()
+	if isBinded then
+		return
+	end
+	isBinded = true
+	RunService:BindToRenderStep(`EVHClient_{version}`, Enum.RenderPriority.Last.Value, function(deltaTime: number)
+		for _, pattern in runningPatterns do
+			pattern.patternTime += deltaTime
+			faders.processPattern(pattern)
+			rotators.processPattern(pattern, deltaTime)
+			flashers.processPattern(pattern)
+		end
+		faders.processReturnToZero(deltaTime)
+		rotators.processReturnToZero()
+
+		if #runningPatterns == 0 and #faders.returnToZero == 0 and #rotators.returnToZero == 0 then
+			RunService:UnbindFromRenderStep(`EVHClient_{version}`)
+			isBinded = false
+		end
+	end)
+end
+
 -- Light Handling
 
 --- Changes the color of a light and its associated parts.
@@ -442,7 +465,7 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 		end
 		local runningId = table.find(runningPatterns, pattern)
 		if runningId then
-			flashers.removePattern(pattern)
+			-- flashers.removePattern(pattern)
 			table.remove(runningPatterns, runningId)
 		end
 
@@ -481,8 +504,10 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 			updateRotatorRad(vehicleData, rotator)
 			vehicleData.lights[rotator.lightName].returnToZero = false
 		end
+		pattern.patternTime = 0
 		table.insert(runningPatterns, pattern)
-		flashers.addPattern(pattern)
+		bindToRender()
+		-- flashers.addPattern(pattern)
 	end
 end
 
@@ -689,11 +714,6 @@ local function setup()
 	for _, vehicle in CollectionService:GetTagged("EVHVehicle") do
 		vehicleAdded(vehicle)
 	end
-
-	RunService.RenderStepped:Connect(function(deltaTime: number)
-		faders.heartbeat(deltaTime)
-		rotators.heartbeat(deltaTime)
-	end)
 end
 
 --- The main function that initializes the EVH system.

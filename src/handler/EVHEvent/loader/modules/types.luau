@@ -68,6 +68,8 @@ export type faderSection = {
 		{
 			type: "Simple" | "Advanced" | "Wait",
 			time: number,
+			timeStart: number,
+			timeEnd: number,
 
 			-- Non-Wait Specific
 			goal: number?,
@@ -82,6 +84,7 @@ export type faderSection = {
 	currentPercentage: number?,
 	currentValue: number?,
 	previousGoal: number?,
+	totalTime: number,
 }
 
 export type rotatorSection = {
@@ -113,6 +116,7 @@ export type pattern = {
 	rotators: { rotatorSection },
 	vehicle: Instance,
 	functionId: number,
+	patternTime: number,
 }
 
 export type selectedPattern = {

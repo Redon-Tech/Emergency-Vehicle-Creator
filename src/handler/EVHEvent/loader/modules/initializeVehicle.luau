@@ -49,6 +49,9 @@ return function(vehicle: Instance): types.vehicle?
 		currentFunction.name = currentFunction.name:gsub("[^%a%d]", "")
 
 		for _, pattern in currentFunction.patterns do
+			-- also since we are here, insert the time var
+			pattern.patternTime = 0
+
 			if pattern.flashers == nil and pattern.faders == nil and pattern.rotators == nil then
 				pattern.flashers = {}
 				pattern.faders = {}
@@ -85,6 +88,16 @@ return function(vehicle: Instance): types.vehicle?
 						currentState = 0,
 					}
 				end
+				local totalTime = 0
+				for _, data in fader.data do
+					if data.time == nil or data.type == nil then
+						continue
+					end
+					data.timeStart = totalTime
+					totalTime += data.time
+					data.timeEnd = totalTime
+				end
+				fader.totalTime = totalTime
 			end
 
 			for _, rotator in pattern.rotators do
