@@ -151,6 +151,14 @@ return function(baseScope: types.Scope, props: props)
 		end
 	end)
 
+	scope:Observer(props.Enabled):onChange(function()
+		if not scope.peek(props.Enabled) then
+			cleanupCustomization()
+			props.Mode:set("menu")
+			props.CurrentVehicle:set(nil)
+		end
+	end)
+
 	-- Shared
 	local function recomputeLightParts()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
