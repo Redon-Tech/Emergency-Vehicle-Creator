@@ -729,13 +729,6 @@ function chassisHandler.getLights(currentConfiguration: chassisConfiguration, mo
 		end
 	end
 
-	for _, lightGroup in currentConfiguration.lightSettings.lightGroups do
-		local possibleIndex = table.find(possibleLights, lightGroup.name)
-		if possibleIndex ~= nil then
-			table.remove(possibleLights, possibleIndex)
-		end
-	end
-
 	if vehicle:isValidVehicle(model) then
 		if vehicle:isVehicleCustomizable(model) then
 			local outfittingFolder = vehicle:getOutfitting(model)
@@ -748,6 +741,13 @@ function chassisHandler.getLights(currentConfiguration: chassisConfiguration, mo
 					end
 				end
 			end
+		end
+	end
+
+	for _, lightGroup in currentConfiguration.lightSettings.lightGroups do
+		local possibleIndex = table.find(possibleLights, lightGroup.name)
+		if possibleIndex ~= nil then
+			table.remove(possibleLights, possibleIndex)
 		end
 	end
 

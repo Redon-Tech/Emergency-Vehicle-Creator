@@ -85,6 +85,12 @@ return function(scope: types.Scope, props: props)
 							local size = scope:Value(Vector2.one)
 
 							local function lightClicked(lightKey: number, lightName: string)
+								for _, testGroup in scope.peek(currentLightSettings.lightGroups) do
+									if scope.peek(testGroup.name) == lightName then
+										return
+									end
+								end
+
 								local currentLightParts = scope.peek(props.lightParts)
 								local currentLights = scope.peek(value.lights)
 								local lightIndex = table.find(currentLights, lightName)
