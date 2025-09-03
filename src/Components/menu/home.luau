@@ -56,6 +56,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	scope:Observer(props.CurrentPanel):onChange(checkIfEnabled)
 	checkIfEnabled()
 
+	local isOutdated, failedCheck = version:isOutdated()
 	return scope:base {
 		Name = "Home",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -256,7 +257,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				Position = UDim2.new(0.5, 0, 1, -41),
 				Size = UDim2.fromOffset(400, 73),
 				BackgroundTransparency = 1,
-				Visible = if version:isOutdated() then true else false,
+				Visible = isOutdated or failedCheck,
 
 				[Fusion.Children] = {
 					scope:textLabel {
@@ -277,7 +278,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						Position = UDim2.new(0.5, 0, 0, 37),
 						Size = UDim2.fromOffset(400, 60),
 
-						Text = `You are running an outdated version of the plugin, please update to the latest version ({version.latestVersion}) to ensure a great experience!`,
+						Text = if failedCheck
+							then "The plugin was unable to check for the latest version of the plugin. Please enable HTTP requests using manage plugins."
+							else `You are running an outdated version of the plugin, please update to the latest version ({version.latestVersion or "Unknown Error Occurred"}) to ensure a great experience!`,
 						FontWeight = Enum.FontWeight.Regular,
 						TextSize = 20,
 						TextWrapped = true,

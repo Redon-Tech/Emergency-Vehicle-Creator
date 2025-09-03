@@ -16,7 +16,7 @@ type version = {
 	latestVer: versionParsed?,
 	parseVersion: (self: version, versionString: string) -> versionParsed,
 	checkVersion: (self: version) -> (),
-	isOutdated: (self: version) -> boolean,
+	isOutdated: (self: version) -> (boolean, boolean?),
 }
 local version = {
 	currentVersion = "",
@@ -38,12 +38,16 @@ end
 
 --- Initializes the version module with the current plugin version.
 function version.checkVersion(self: version)
-	local latestVersion = HttpService:RequestAsync({
-		Url = "https://api.github.com/repos/Redon-Tech/Emergency-Vehicle-Creator/releases/latest",
-		Method = "GET",
-	})
+	local success, latestVersion = pcall(function()
+		return HttpService:RequestAsync({
+			Url = "https://api.github.com/repos/Redon-Tech/Emergency-Vehicle-Creator/releases/latest",
+			Method = "GET",
+		})
+	end)
+	success = false
+	latestVersion = "unknown"
 
-	if latestVersion.Success == true then
+	if success == true and latestVersion.Success == true then
 		local latestVersionData = HttpService:JSONDecode(latestVersion.Body)
 		local ver = latestVersionData.tag_name
 		if ver ~= nil and typeof(ver) == "string" then
@@ -53,7 +57,8 @@ function version.checkVersion(self: version)
 	else
 		log.warn(
 			"Version Check",
-			"Failed to check for the latest version\nPlease manually check the latest version or fix permissions"
+			"Failed to check for the latest version\n                    Please manually check the latest version or fix permissions",
+			`\n                    {latestVersion}`
 		)
 	end
 end
@@ -62,8 +67,13 @@ end
 --- Returns true if the current version is older than the latest version, false otherwise.
 function version.isOutdated(self: version)
 	if self.latestVer == nil or self.latestVersion == nil then
-		log.debug("Skipping version check, no latest version found")
-		return false
+		log.warn(
+			"Version Check:",
+			("The plugin was unable to check for the latest version of the plugin.\n                    Current version: %s\n                    ↳  Latest version: Unknown. Please ensure HTTP permissions are enabled on the plugin"):format(
+				self.currentVersion
+			)
+		)
+		return false, true
 	end
 
 	if
