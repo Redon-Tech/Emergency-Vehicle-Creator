@@ -226,7 +226,11 @@ return function(scope: types.Scope, props: props)
 												table.remove(currentConfiguration.functions, key)
 
 												-- Insert new
-												scope.insertAtNumberOrEnd(currentFunctions, newValue, currentFunction)
+												local actualPos = scope.insertAtNumberOrEnd(
+													currentFunctions,
+													newValue,
+													currentFunction
+												)
 												scope.insertAtNumberOrEnd(
 													currentConfiguration.functions,
 													newValue,
@@ -238,6 +242,8 @@ return function(scope: types.Scope, props: props)
 													func.weight = i
 													currentConfiguration.functions[i].weight = i
 												end
+
+												weight:set(actualPos)
 
 												props.functions:set(currentFunctions)
 												props.UnsavedChanges:set(true)
