@@ -30,8 +30,8 @@ local EVHEvent = script.Parent
 local initialized = false
 local car: Model
 local driveSeat: VehicleSeat
-local sirensLocation: Instance? = nil
 local uuid: string
+local sirenSounds: { Sound } = {}
 
 local functions: { types.elsFunction } = {}
 local keybindsToFunction: {
@@ -148,15 +148,24 @@ local function load()
 			lightTemplate = nil
 		end
 	end
-	local sirensLocationValue = car:FindFirstChild("SirensLocation")
-	if sirensLocationValue ~= nil and sirensLocationValue:IsA("ObjectValue") then
-		if sirensLocationValue.Value ~= nil then
-			sirensLocation = sirensLocationValue.Value
 
-			for _, sound in sirensLocationValue.Value:GetDescendants() do
-				if sound:IsA("Sound") then
-					sound:SetAttribute("defaultVolume", sound.Volume)
-				end
+	for _, sirenData in sirens do
+		if sirenData.type == "Modifier" then
+			continue
+		end
+
+		local sound = car:FindFirstChild(sirenData.name, true)
+		if sound and sound:IsA("Sound") then
+			table.insert(sirenSounds, sound)
+			sound:SetAttribute("defaultVolume", sound.Volume)
+		end
+
+		for _, modifier in sirenData.modifiers do
+			local modifiedSound = car:FindFirstChild(modifier.modifiedSirenName, true)
+			if modifiedSound and modifiedSound:IsA("Sound") then
+				table.insert(sirenSounds, modifiedSound)
+				modifiedSound:SetAttribute("defaultVolume", modifiedSound.Volume)
+				modifiedSound:SetAttribute("parentSiren", sirenData.name)
 			end
 		end
 	end
@@ -412,7 +421,7 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 
 		if modifierData.enabled == true and siren.enabled == true then
 			if modifier.behavoir == "Play Automatically" or sirenTriggered == true then
-				for _, sound in sirensLocation:GetDescendants() do
+				for _, sound in sirenSounds do
 					if sound:IsA("Sound") and sound.Name == modifier.modifiedSirenName then
 						sound:Play()
 						sound.TimePosition += modifier.delay
@@ -420,7 +429,7 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 				end
 
 				if modifier.parentSoundBehavior ~= "Plays Simultaneously" then
-					for _, sound in sirensLocation:GetDescendants() do
+					for _, sound in sirenSounds do
 						if sound:IsA("Sound") and sound.Name == siren.name then
 							sound:Stop()
 						end
@@ -428,14 +437,14 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 				end
 			end
 		else
-			for _, sound in sirensLocation:GetDescendants() do
+			for _, sound in sirenSounds do
 				if sound:IsA("Sound") and sound.Name == modifier.modifiedSirenName then
 					sound:Stop()
 				end
 			end
 
 			if modifier.parentSoundBehavior ~= "Plays Simultaneously" then
-				for _, sound in sirensLocation:GetDescendants() do
+				for _, sound in sirenSounds do
 					if sound:IsA("Sound") and sound.Name == siren.name then
 						sound:Play()
 						sound.TimePosition -= modifier.delay
@@ -447,12 +456,8 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 end
 
 local function changeSiren(siren: types.siren, state: boolean)
-	if sirensLocation == nil then
-		return
-	end
-
 	if siren.type ~= "Modifier" then
-		for _, sound in sirensLocation:GetDescendants() do
+		for _, sound in sirenSounds do
 			if sound:IsA("Sound") then
 				local sirenId = table.find(sirenNames, sound.Name)
 				if sound.Name == siren.name then
