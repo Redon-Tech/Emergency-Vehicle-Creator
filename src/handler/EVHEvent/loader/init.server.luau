@@ -396,7 +396,7 @@ else
 end
 
 local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
-	if sirensLocation == nil or siren.type == "Modifier" then
+	if siren.type == "Modifier" then
 		return
 	end
 
@@ -413,7 +413,7 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 		if modifierData.enabled == true and siren.enabled == true then
 			if modifier.behavoir == "Play Automatically" or sirenTriggered == true then
 				for _, sound in sirensLocation:GetDescendants() do
-					if sound:IsA("Sound") and sound.Name == modifier.name then
+					if sound:IsA("Sound") and sound.Name == modifier.modifiedSirenName then
 						sound:Play()
 						sound.TimePosition += modifier.delay
 					end
@@ -429,7 +429,7 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 			end
 		else
 			for _, sound in sirensLocation:GetDescendants() do
-				if sound:IsA("Sound") and sound.Name == modifier.name then
+				if sound:IsA("Sound") and sound.Name == modifier.modifiedSirenName then
 					sound:Stop()
 				end
 			end
@@ -479,6 +479,17 @@ local function changeSiren(siren: types.siren, state: boolean)
 							if originalVolume ~= nil and typeof(originalVolume) == "number" then
 								sound.Volume = originalVolume
 							end
+						end
+					end
+				elseif
+					siren.behavoir == "Overrides Other Sounds" and sound:GetAttribute("parentSiren") ~= siren.name
+				then
+					if state == true then
+						sound.Volume = 0
+					else
+						local originalVolume = sound:GetAttribute("defaultVolume")
+						if originalVolume ~= nil and typeof(originalVolume) == "number" then
+							sound.Volume = originalVolume
 						end
 					end
 				end
