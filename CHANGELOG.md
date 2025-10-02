@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- (EVH) Added back UpdateFunction event to allow manual control over functions from client scripts
+
+### Changed
+
+- (EVH) Changed the way EVH handles lighting to improve accuracy and performance
+- (EVH) sirensLocation is no longer required, like lights, sirens will now be automatically detected
+
+### Fixed
+
+- Fixed customization buttons remaining visible when closing the plugin via the plugins menu
+- Fixed a problem where users could select the same light group on itself causing crashes
+- Fixed a problem where with HTTP disabled the plugin would refuse to load
+- Fixed a problem where changing function weights could cause the numbers to fall out of sync
+- (EVH) Fixed modifiers
+
 ## [3.0.0-beta.6] - 2025-02-24
 
 ### Fixed

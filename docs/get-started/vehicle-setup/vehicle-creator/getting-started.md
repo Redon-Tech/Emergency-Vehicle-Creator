@@ -52,8 +52,8 @@ Now that you have successfully inserted your first vehicle, you can start custom
 Here are some recommended next steps to help you get started:
 
 1. **[Configuring Equipment](./configuring-equipment.md)**: Learn how to add and configure equipment for your vehicle.
-2. [Pre-Outfitted Vehicles](..//custom-vehicles/preoutfitted.md): Lean how to use your own vehicles.
-3. [Convert from V2 to V3](..//custom-vehicles/v2-to-v3.md): Learn how to convert your V2 vehicles to V3.
+2. [Pre-Outfitted Vehicles](..//custom-vehicles/preoutfitted.md): Learn how to use your own vehicles.
+3. [Convert from V2 to V3](..//custom-vehicles/v2-v3.md): Learn how to convert your V2 vehicles to V3.
 
 ---
 
