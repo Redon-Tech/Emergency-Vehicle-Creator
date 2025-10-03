@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0-rc.2] - 2025-10-02
+
 ### Fixed
 
 - Plugin always reporting out of date
@@ -92,7 +94,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public beta release.
 
-[unreleased]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/compare/3.0.0-rc.1...main
+[unreleased]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/compare/3.0.0-rc.2...main
+[3.0.0-rc.2]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.2
 [3.0.0-rc.1]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.1
 [3.0.0-beta.6]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-beta.6
 [3.0.0-beta.5]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-beta.5

@@ -13,7 +13,7 @@ local exportHeader =
 	"-- Redon Tech Emergency Vehicle Creator, MIT License\n\n--DO NOT MODIFY BELOW\n--SUPPORT WILL BE VOIDED IF MODIFIED\n\nreturn "
 
 -- version format: minor.{if rc then 0 else 1}patch
-local latestVersion = 0.07
+local latestVersion = 0.08
 -- please ensure to update handler/EVHEvent/configuration/lightSettings.luau if you update this
 
 export type color = {
@@ -215,22 +215,24 @@ function chassisHandler.hasEVCChassisPluginInstalled(_: chassisHandler, model: M
 	return true, Plugin
 end
 
-type oldSiren = {
-	_Type: "Hold" | "Siren",
-	Name: string,
-	OverrideOtherSounds: boolean,
-	Modifiers: {
-		[string]: {
-			Name: string,
-			PlayNonModified: boolean,
-			PlayOnModifierChange: boolean,
-			Delay: number,
-		},
-	}?,
-} | {
-	_Type: "Modifier",
-	Name: string,
-}
+type oldSiren =
+	{
+		_Type: "Hold" | "Siren",
+		Name: string,
+		OverrideOtherSounds: boolean,
+		Modifiers: {
+			[string]: {
+				Name: string,
+				PlayNonModified: boolean,
+				PlayOnModifierChange: boolean,
+				Delay: number,
+			},
+		}?,
+	}
+	| {
+		_Type: "Modifier",
+		Name: string,
+	}
 
 --- Installs the Emergency Vehicle Handler plugin on the given model.
 --- This will convert any old EVC Chassis Plugin data to the new format.
