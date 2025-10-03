@@ -44,8 +44,6 @@ function version.checkVersion(self: version)
 			Method = "GET",
 		})
 	end)
-	success = false
-	latestVersion = "unknown"
 
 	if success == true and latestVersion.Success == true then
 		local latestVersionData = HttpService:JSONDecode(latestVersion.Body)
