@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed the export button not showing whent the plugin was closed without returning to menu
+
 ## [3.0.0-rc.2] - 2025-10-02
 
 ### Fixed

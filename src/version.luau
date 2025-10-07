@@ -87,10 +87,10 @@ function version.isOutdated(self: version)
 				self.latestVersion
 			)
 		)
-		return true
+		return true, false
 	end
 
-	return false
+	return false, false
 end
 
 return version

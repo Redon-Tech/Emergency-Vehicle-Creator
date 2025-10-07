@@ -53,7 +53,9 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		if currentPossibleVehicle ~= nil then
 			local currentConfiguration = chassisHandler:getConfiguration(currentPossibleVehicle)
 			if currentConfiguration ~= nil then
+				log.debug("Found vehicle configuration for possible vehicle")
 				props.CurrentVehicle:set(currentPossibleVehicle)
+				props.PossibleVehicle:set(nil)
 				currentPanel:set("Vehicle Setup")
 				currentPage:set("Functions")
 			else
