@@ -6,7 +6,6 @@
 local types = require(script.Parent.Parent.types)
 
 type rotators = {
-	runningPatterns: { types.pattern },
 	returnToZero: { { vehicle: Instance, section: types.rotatorSection } },
 	flash: (vehicle: Instance, functionId: number, lightName: string, color: types.elsColor) -> (),
 	setRotation: (vehicle: Instance, functionId: number, lightName: string, rad: number) -> (),
@@ -14,7 +13,6 @@ type rotators = {
 	processReturnToZero: () -> (),
 }
 local rotators = {
-	runningPatterns = {},
 	returnToZero = {},
 } :: rotators
 

@@ -6,13 +6,10 @@
 local types = require(script.Parent.Parent.types)
 
 type flashers = {
-	runningPatterns: { types.pattern },
 	flash: (vehicle: Instance, functionId: number, lightName: string, color: types.elsColor) -> (),
 	processPattern: (pattern: types.pattern) -> (),
 }
-local flashers = {
-	runningPatterns = {},
-} :: flashers
+local flashers = {} :: flashers
 
 function flashers.processPattern(pattern: types.pattern)
 	for _, flasherSection in pairs(pattern.flashers) do

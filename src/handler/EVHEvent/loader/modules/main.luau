@@ -30,10 +30,6 @@ local lights: {
 local version = 0
 local isPrimary = false
 
-flashers.runningPatterns = runningPatterns
-faders.runningPatterns = runningPatterns
-rotators.runningPatterns = runningPatterns
-
 local isBinded = false
 local function bindToRender()
 	if isBinded then

@@ -7,7 +7,6 @@ local types = require(script.Parent.Parent.types)
 local TweenService = game:GetService("TweenService")
 
 type faders = {
-	runningPatterns: { types.pattern },
 	returnToZero: { { vehicle: Instance, section: types.faderSection } },
 	setLightTransparency: (
 		vehicle: Instance,
@@ -21,7 +20,6 @@ type faders = {
 	processReturnToZero: (deltaTime: number) -> (),
 }
 local faders = {
-	runningPatterns = {},
 	returnToZero = {},
 } :: faders
 
@@ -85,7 +83,7 @@ function faders.processReturnToZero(deltaTime: number)
 			continue
 		end
 
-		currentPercentage += deltaTime / lastTween.time
+		currentPercentage += deltaTime / lastTween.time -- problem child
 		data.section.currentPercentage = currentPercentage
 
 		local previousGoal = data.section.previousGoal or 0
