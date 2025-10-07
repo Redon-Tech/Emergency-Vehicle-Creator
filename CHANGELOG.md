@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0-rc.3] - 2025-10-07
+
 ### Fixed
 
 - Fixed the export button not showing whent the plugin was closed without returning to menu
@@ -101,7 +103,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public beta release.
 
-[unreleased]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/compare/3.0.0-rc.2...main
+[unreleased]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/compare/3.0.0-rc.3...main
+[3.0.0-rc.2]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.3
 [3.0.0-rc.2]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.2
 [3.0.0-rc.1]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.1
 [3.0.0-beta.6]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-beta.6
