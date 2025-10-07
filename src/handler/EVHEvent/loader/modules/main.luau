@@ -505,6 +505,11 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 			vehicleData.lights[rotator.lightName].returnToZero = false
 		end
 		pattern.patternTime = 0
+
+		for _, flasherSection in pairs(pattern.flashers) do
+			flasherSection.currentRow = nil
+		end
+
 		table.insert(runningPatterns, pattern)
 		bindToRender()
 		-- flashers.addPattern(pattern)

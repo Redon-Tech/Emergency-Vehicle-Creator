@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed the export button not showing whent the plugin was closed without returning to menu
+- (EVH) Fixed an issue were one row patterns would not reactivate correctly
 
 ## [3.0.0-rc.2] - 2025-10-02
 
