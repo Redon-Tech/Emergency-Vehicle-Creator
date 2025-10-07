@@ -60,7 +60,7 @@ function rotators.processPattern(pattern: types.pattern, deltaTime: number)
 			rotators.setRotation(pattern.vehicle, pattern.functionId, data.lightName, currentRotation)
 		else
 			currentPercentage += deltaTime / (currentAngle.time or 0.1)
-			if currentPercentage >= 1 then
+			if currentPercentage >= 0.98 then
 				data.currentAngle = if angleId ~= #currentAngles then angleId + 1 else 1
 				currentPercentage = 0
 			end

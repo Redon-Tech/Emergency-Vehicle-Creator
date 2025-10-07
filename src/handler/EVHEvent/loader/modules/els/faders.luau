@@ -59,7 +59,7 @@ function faders.processPattern(pattern: types.pattern)
 			)
 		end
 
-		if currentPercentage >= 1 or currentPercentage <= 0 then
+		if currentPercentage >= 0.98 or currentPercentage <= 0 then
 			if currentTweens[tweenId] ~= nil and currentTweens[tweenId].type ~= "Wait" then
 				data.previousGoal = currentTweens[tweenId].goal
 			end
@@ -74,7 +74,7 @@ function faders.processReturnToZero(deltaTime: number)
 		local lastTween = data.section.data[data.section.currentTween or 1]
 		local currentPercentage = data.section.currentPercentage or 0
 
-		if currentPercentage >= 1 then
+		if currentPercentage >= 0.98 then
 			table.remove(faders.returnToZero, i)
 			data.section.currentPercentage = 0
 			data.section.previousGoal = 1
