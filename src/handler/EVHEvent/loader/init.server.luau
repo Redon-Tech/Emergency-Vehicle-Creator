@@ -231,6 +231,8 @@ local function load()
 							currentFunction.name,
 							if car:GetAttribute(`shouldOverride{currentFunction.name}`) == true then 1 else 0
 						)
+					else
+						car:SetAttribute(currentFunction.name, 0)
 					end
 				end)
 			elseif activation.type == "Default" and activation.pattern ~= nil then
