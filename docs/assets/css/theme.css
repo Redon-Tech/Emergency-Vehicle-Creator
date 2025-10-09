@@ -258,7 +258,7 @@
 /* Admonitions */
 .md-typeset .admonition,
 .md-typeset details {
-    box-shadow: 0 0 8rem var(--admonition-color) !important;
+    box-shadow: 0 0 8px var(--admonition-color) !important;
     border-radius: 0.25rem;
     border-width: 0.1rem !important;
     border-color: var(--admonition-color) !important;
