@@ -125,7 +125,8 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						TextLabelSize = UDim2.fromScale(1, 1),
 						TextScaled = true,
 						Text = scope:Computed(function(use)
-							return if use(props.UnsavedChanges) == true then "Export*" else "Export"
+							local baseText = if use(props.CurrentVehicle) == nil then "Custom Export" else "Export"
+							return if use(props.UnsavedChanges) == true then `{baseText}*` else baseText
 						end),
 						BackgroundTransparency = 1,
 						TextXAlignment = Enum.TextXAlignment.Right,
@@ -135,14 +136,18 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						Reactive = true,
 						AnimateSize = false,
 						LayoutOrder = 2,
-						Visible = scope:Computed(function(use)
-							return use(props.CurrentVehicle) ~= nil
-						end),
+						-- Visible = scope:Computed(function(use)
+						-- 	return use(props.CurrentVehicle) ~= nil
+						-- end),
 
 						[Fusion.OnEvent "Activated"] = function()
 							popup:addPopup(scope, {
-								title = "Export Changes",
-								description = "Would you like to export your changes?",
+								title = if scope.peek(props.CurrentVehicle) == nil
+									then "Custom Code Export (MUST SCRIPT ACTIVATION YOURSELF)"
+									else "Export Changes",
+								description = if scope.peek(props.CurrentVehicle) == nil
+									then "Would you like to do a custom code export.\nTHIS REQUIRES THAT YOU CODE ACTIVATION YOURSELF, USE EDIT/CREATE VEHICLE FROM THE MAIN MENU FOR NO CODE EXPORT"
+									else "Would you like to export your changes?",
 								actions = {
 									{
 										text = "Cancel",
@@ -158,14 +163,17 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										type = "primary",
 										key = 2,
 										callback = function(newPopup)
-											popup:removePopup(newPopup)
-											local currentVehicle = scope.peek(props.CurrentVehicle)
-											if currentVehicle == nil or typeof(currentVehicle) == "string" then
-												return
-											end
-											local saved = chassisHandler:saveConfiguration(currentVehicle)
-											if saved == true then
-												props.UnsavedChanges:set(false)
+											if scope.peek(props.CurrentVehicle) == nil then
+											else
+												popup:removePopup(newPopup)
+												local currentVehicle = scope.peek(props.CurrentVehicle)
+												if currentVehicle == nil or typeof(currentVehicle) == "string" then
+													return
+												end
+												local saved = chassisHandler:saveConfiguration(currentVehicle)
+												if saved == true then
+													props.UnsavedChanges:set(false)
+												end
 											end
 										end,
 										keybind = Enum.KeyCode.Return,
