@@ -99,11 +99,11 @@
 .hero-links a {
     display: inline-block;
     padding: 8px;
-    color: rgb(var(--ctp-crust));
-    background-color: rgb(var(--ctp-sky));
+    color: var(--ctp-crust);
+    background-color: var(--ctp-sky);
     box-shadow: 0 0rem 1rem var(--whiteshadow);
     text-decoration: none;
-    border: .1rem solid rgb(var(--ctp-text));
+    border: .1rem solid var(--ctp-text);
     border-radius: 10px;
     transition: scale 0.3s ease;
     font-weight: 700;
@@ -114,11 +114,11 @@
 }
 
 .hero-links a:hover {
-    color: rgb(var(--ctp-crust));
+    color: var(--ctp-crust);
     scale: 1.1;
 }
 
 .hero-links a:active {
-    color: rgb(var(--ctp-crust));
+    color: var(--ctp-crust);
     scale: 0.9;
 }
