@@ -267,7 +267,7 @@
 
 .md-typeset details:has(summary:hover),
 .md-typeset details:focus {
-    box-shadow: 0 0 0.4rem var(--admonition-color) !important;
+    box-shadow: 0 0 8px var(--admonition-color) !important;
 }
 
 .admonition .admonition-title,
