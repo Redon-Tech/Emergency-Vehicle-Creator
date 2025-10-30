@@ -149,27 +149,6 @@ local function load()
 		end
 	end
 
-	for _, sirenData in sirens do
-		if sirenData.type == "Modifier" then
-			continue
-		end
-
-		local sound = car:FindFirstChild(sirenData.name, true)
-		if sound and sound:IsA("Sound") then
-			table.insert(sirenSounds, sound)
-			sound:SetAttribute("defaultVolume", sound.Volume)
-		end
-
-		for _, modifier in sirenData.modifiers do
-			local modifiedSound = car:FindFirstChild(modifier.modifiedSirenName, true)
-			if modifiedSound and modifiedSound:IsA("Sound") then
-				table.insert(sirenSounds, modifiedSound)
-				modifiedSound:SetAttribute("defaultVolume", modifiedSound.Volume)
-				modifiedSound:SetAttribute("parentSiren", sirenData.name)
-			end
-		end
-	end
-
 	local possibleLights = {}
 	local possibleRotators = {}
 	for functionId, currentFunction in functions do
@@ -303,11 +282,11 @@ local function load()
 		end
 	end
 
-	for _, light in car:GetDescendants() do
-		if light:IsA("BasePart") then
+	for _, v in car:GetDescendants() do
+		if v:IsA("BasePart") then
 			local excluded = false
 			for _, exclusionParent in exclusionParents do
-				if light:IsDescendantOf(exclusionParent) then
+				if v:IsDescendantOf(exclusionParent) then
 					excluded = true
 					break
 				end
@@ -315,18 +294,40 @@ local function load()
 			if excluded then
 				continue
 			end
-			if table.find(possibleLights, light.Name) ~= nil then
-				light:AddTag(`{uuid}_LIGHT`)
+			if table.find(possibleLights, v.Name) ~= nil then
+				v:AddTag(`{uuid}_LIGHT`)
 				if lightTemplate ~= nil then
-					light.Material = (lightTemplate :: BasePart).Material
+					v.Material = (lightTemplate :: BasePart).Material
 					for _, child in lightTemplate:GetChildren() do
 						local newChild = child:Clone()
-						newChild.Parent = light
+						newChild.Parent = v
 					end
 				end
 			end
-			if table.find(possibleRotators, light.Name) ~= nil then
-				setupRotator(light)
+			if table.find(possibleRotators, v.Name) ~= nil then
+				setupRotator(v)
+			end
+		elseif v:IsA("Sound") then
+			for _, sirenData in sirens do
+				if sirenData.name ~= v.Name then
+					if sirenData.type ~= "Modifier" then
+						for _, modifierData in sirenData.modifiers do
+							if modifierData.modifiedSirenName == v.Name then
+								table.insert(sirenSounds, v)
+								v:SetAttribute("defaultVolume", v.Volume)
+								v:SetAttribute("parentSound", sirenData.name)
+								break
+							end
+						end
+					end
+
+					continue
+				end
+
+				table.insert(sirenSounds, v)
+				v:SetAttribute("defaultVolume", v.Volume)
+
+				break
 			end
 		end
 	end

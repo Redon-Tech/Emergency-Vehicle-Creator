@@ -6,13 +6,23 @@ This changelog only shows changes from Version 3.0.0-beta.1 onwards.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+---
+
+## [Unreleased] (3.0.0-rc.5)
+
+### Fixed
+
+- (EVH) Fixed sirens not being detected in the vehicle properly loading sirens to not work
+
+---
 
 ## [3.0.0-rc.4] - 2025-10-08
 
 ### Fixed
 
 - (EVH) Version being incorrect causing the plugin to not update the handler
+
+---
 
 ## [3.0.0-rc.3] - 2025-10-07
 
@@ -23,11 +33,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (EVH) Fixed an issue were faders/rotators were not advancing properly leading to incorrect behavior
 - (EVH) Fixed an issue were overrides were not turning off when the dependent function turns off
 
+---
+
 ## [3.0.0-rc.2] - 2025-10-02
 
 ### Fixed
 
 - Plugin always reporting out of date
+
+---
 
 ## [3.0.0-rc.1] - 2025-10-02
 
@@ -48,12 +62,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a problem where changing function weights could cause the numbers to fall out of sync
 - (EVH) Fixed modifiers
 
+---
+
 ## [3.0.0-beta.6] - 2025-02-24
 
 ### Fixed
 
 - Export button dissapearing when returning to menu and editing previously opened vehicle
 - (EVH) ColorableLightos not loading correctly when streamed in
+
+---
 
 ## [3.0.0-beta.5] - 2025-02-23
 
@@ -67,6 +85,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Siren modifiers not being saved to a vehicle properly causing the vehicle to be corrupted
 - Light names not visually updating when changed
 - (EVH) Vehicles now work properly in StreamingEnabled games
+
+---
 
 ## [3.0.0-beta.4] - 2025-02-09
 
@@ -93,11 +113,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (EVH) Fixed a problem where EVH would not check descendants of a light but only children ([#33](https://github.com/Redon-Tech/Emergency-Vehicle-Creator/pull/33))
 - (EVH) Added a ton of checks to prevent corrupted exports from causing the vehicle to not load
 
+---
+
 ## [3.0.0-beta.3] - 2025-02-07
 
 ### Fixed
 
 - Severely reduced the character count of exports to help solve some problems with exports failing
+
+---
 
 ## [3.0.0-beta.2] - 2025-02-07
 
