@@ -446,7 +446,7 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 				end
 			end
 
-			if modifier.parentSoundBehavior ~= "Plays Simultaneously" then
+			if modifier.parentSoundBehavior ~= "Plays Simultaneously" and siren.enabled == true then
 				for _, sound in sirenSounds do
 					if sound:IsA("Sound") and sound.Name == siren.name then
 						sound:Play()

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - (EVH) Fixed sirens not being detected in the vehicle properly loading sirens to not work
+- (EVH) Fixed a bug with modifiers causing all sirens to play at once
 
 ---
 
