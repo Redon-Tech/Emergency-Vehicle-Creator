@@ -35,18 +35,41 @@ export type popup = {
 }
 local popup = {} :: popup
 
+local function safeScope(scope: any): boolean
+	local mt = getmetatable(scope)
+	return not (typeof(mt) == "table" and mt._FUSION_POISONED)
+end
+
+local function getColors(valueType: string, theme)
+	if valueType == "primary" then
+		return theme.colors.sky, theme.colors.crust, theme.colors.sky, theme.colors.sky
+	elseif valueType == "danger" then
+		return theme.colors.red, theme.colors.crust, theme.colors.red, theme.colors.red
+	else
+		return theme.colors.crust, theme.colors.text, theme.colors.crust, theme.colors.maroon
+	end
+end
+
+local function cleanupPopups(self)
+	for _, popupInstance in ipairs({ self.currentPopup, self.currentCustomPopup }) do
+		if popupInstance and popupInstance.Destroy then
+			pcall(function()
+				popupInstance:Destroy()
+			end)
+		end
+	end
+	self.currentPopup = nil
+	self.currentCustomPopup = nil
+end
+
+
 function popup.addPopup(self, scope, props)
 	if self.currentContainer == nil then
 		return
 	end
-	if self.currentPopup ~= nil then
-		self.currentPopup:Destroy()
-		self.currentPopup = nil
-	end
-	if self.currentCustomPopup ~= nil then
-		self.currentCustomPopup.Parent = nil
-		self.currentCustomPopup = nil
-	end
+
+	cleanupPopups(self)
+
 	local currentContainer = scope.peek(self.currentContainer)
 	local currentTheme = RedonUI.theme.theme:now()
 	local newPopup
@@ -132,22 +155,8 @@ function popup.addPopup(self, scope, props)
 
 					--selene: allow(shadowing)
 					self.parentScope:ForValues(props.actions, function(_, newScope: types.Scope, value: action)
-						local BackgroundColor = if value.type == "primary"
-							then currentTheme.colors.sky
-							elseif value.type == "danger" then currentTheme.colors.red
-							else currentTheme.colors.crust
-						local TextColor = if value.type == "standard"
-							then currentTheme.colors.text
-							else currentTheme.colors.crust
-						local ShadowColor = if value.type == "primary"
-							then currentTheme.colors.sky
-							elseif value.type == "danger" then currentTheme.colors.red
-							else currentTheme.colors.crust
-						local ButtonGlowColor = if value.type == "primary"
-							then if currentTheme.colors.white == Color3.new(1, 1, 1)
-								then currentTheme.colors.text
-								else currentTheme.colors.base
-							else currentTheme.colors.maroon
+						local BackgroundColor, TextColor, ShadowColor, ButtonGlowColor =
+							getColors(value.type, currentTheme) 
 						return newScope:textButton {
 							Size = UDim2.fromOffset(175, 35),
 							Text = value.text,
@@ -179,7 +188,10 @@ function popup.addPopup(self, scope, props)
 		},
 	}
 	self.enabled:set(true)
-	newPopup.Parent = currentContainer
+	if currentContainer and currentContainer.Parent then
+		newPopup.Parent = currentContainer
+	end
+
 	self.currentPopup = newPopup
 end
 
@@ -187,23 +199,23 @@ function popup.customPopup(self, scope, child)
 	if self.currentContainer == nil then
 		return
 	end
-	if self.currentPopup ~= nil then
-		self.currentPopup:Destroy()
-		self.currentPopup = nil
-	end
-	if self.currentCustomPopup ~= nil then
-		self.currentCustomPopup.Parent = nil
-		self.currentCustomPopup = nil
-	end
+
+	cleanupPopups(self)
+
 	local currentContainer = scope.peek(self.currentContainer)
 	self.currentCustomPopup = child
 	self.enabled:set(true)
-	child.Parent = currentContainer
+
+	if currentContainer and currentContainer.Parent then
+		child.Parent = currentContainer
+	end
 end
 
 function popup.removePopup(self, _)
-	self.keybinds = {}
+	table.clear(self.keybinds)
 	self.enabled:set(false)
+	self.currentPopup = nil
+	self.currentCustomPopup = nil
 end
 
 function popup.container(self, scope)
@@ -248,12 +260,15 @@ function popup.container(self, scope)
 
 			scope:New("UIGradient") {
 				Rotation = 90,
-				Transparency = NumberSequence.new({
-					NumberSequenceKeypoint.new(0, 1),
-					NumberSequenceKeypoint.new(0.1, 0),
-					NumberSequenceKeypoint.new(0.9, 0),
-					NumberSequenceKeypoint.new(1, 1),
-				}),
+				Transparency = scope:Computed(function(use)
+					local enabled = use(self.enabled)
+					return NumberSequence.new({
+						NumberSequenceKeypoint.new(0, 1),
+						NumberSequenceKeypoint.new(0.1, enabled and 0 or 1),
+						NumberSequenceKeypoint.new(0.9, enabled and 0 or 1),
+						NumberSequenceKeypoint.new(1, 1),
+					})
+				end),
 			},
 		},
 	} :: Frame
@@ -262,4 +277,4 @@ function popup.container(self, scope)
 	return container, self.enabled
 end
 
-return popup
+return (popup :: popup)
