@@ -12,6 +12,7 @@ local assets = {
 			parker = "rbxassetid://87969994357844",
 			alex = "rbxassetid://120135029938880",
 			subaru = "rbxassetid://118384213214792",
+			sillyme = "rbxassetid://93534972064581",
 			fusion = "rbxassetid://106848335032671",
 			fusionContrast = "rbxassetid://92779493029740",
 			ionic = "rbxassetid://71776903426004",

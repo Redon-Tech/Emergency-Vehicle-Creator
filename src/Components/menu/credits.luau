@@ -38,6 +38,12 @@ local credits: { { name: string, type: "icon" | "text", description: string?, ic
 		},
 		{
 			type = "icon",
+			name = "SillyMeTimbers",
+			description = "Contributor\nHelped fix a EVH bug",
+			icon = assets.images.credits.sillyme,
+		},
+		{
+			type = "icon",
 			name = "Fusion",
 			description = "Elttob & Contributors\nUI Library used to create plugin",
 			icon = assets.images.credits.fusion,
