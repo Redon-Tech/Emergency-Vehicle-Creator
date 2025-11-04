@@ -35,33 +35,44 @@ export type popup = {
 }
 local popup = {} :: popup
 
-local function safeScope(scope: any): boolean
-	local mt = getmetatable(scope)
-	return not (typeof(mt) == "table" and mt._FUSION_POISONED)
-end
-
-local function getColors(valueType: string, theme)
+local function getColors(valueType: string, theme): {BackgroundColor: Color3, TextColor: Color3, ShadowColor: Color3, ButtonGlowColor: Color3}
 	if valueType == "primary" then
-		return theme.colors.sky, theme.colors.crust, theme.colors.sky, theme.colors.sky
+		return {
+			BackgroundColor = theme.colors.sky,
+			TextColor = theme.colors.crust,
+			ShadowColor = theme.colors.sky,
+			ButtonGlowColor = theme.colors.sky,
+		}
 	elseif valueType == "danger" then
-		return theme.colors.red, theme.colors.crust, theme.colors.red, theme.colors.red
+		return {
+			BackgroundColor = theme.colors.red,
+			TextColor = theme.colors.crust,
+			ShadowColor = theme.colors.red,
+			ButtonGlowColor = theme.colors.red,
+		}
 	else
-		return theme.colors.crust, theme.colors.text, theme.colors.crust, theme.colors.maroon
+		return {
+			BackgroundColor = theme.colors.crust,
+			TextColor = theme.colors.text,
+			ShadowColor = theme.colors.crust,
+			ButtonGlowColor = theme.colors.maroon,
+		}
 	end
 end
 
 local function cleanupPopups(self)
-	for _, popupInstance in ipairs({ self.currentPopup, self.currentCustomPopup }) do
-		if popupInstance and popupInstance.Destroy then
-			pcall(function()
+	for _, popupInstance in { self.currentPopup, self.currentCustomPopup } do
+		if popupInstance then
+			if popupInstance:IsA("Instance") then
 				popupInstance:Destroy()
-			end)
+			else
+				popupInstance.Parent = nil
+			end
 		end
 	end
 	self.currentPopup = nil
 	self.currentCustomPopup = nil
 end
-
 
 function popup.addPopup(self, scope, props)
 	if self.currentContainer == nil then
@@ -74,12 +85,14 @@ function popup.addPopup(self, scope, props)
 	local currentTheme = RedonUI.theme.theme:now()
 	local newPopup
 	local keybinds = {}
+
 	for _, action in ipairs(props.actions) do
 		if action.keybind ~= nil then
 			keybinds[action.keybind] = action.callback
 		end
 	end
 	self.keybinds = keybinds
+
 	newPopup = self.parentScope:base {
 		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundColor3 = currentTheme.colors.base,
@@ -153,32 +166,26 @@ function popup.addPopup(self, scope, props)
 						SortOrder = Enum.SortOrder.LayoutOrder,
 					},
 
-					--selene: allow(shadowing)
 					self.parentScope:ForValues(props.actions, function(_, newScope: types.Scope, value: action)
-						local BackgroundColor, TextColor, ShadowColor, ButtonGlowColor =
-							getColors(value.type, currentTheme) 
+						local colors = getColors(value.type, currentTheme)
+
 						return newScope:textButton {
 							Size = UDim2.fromOffset(175, 35),
 							Text = value.text,
 							TextScaled = true,
 							MaxTextSize = 25,
-							TextColor3 = TextColor,
-							BackgroundColor3 = BackgroundColor,
-							ButtonGlowColor3 = ButtonGlowColor,
-							ShadowColor3 = ShadowColor,
-							ButtonGlow = if value.type == "standard" then false else true,
+							TextColor3 = colors.TextColor,
+							BackgroundColor3 = colors.BackgroundColor,
+							ButtonGlowColor3 = colors.ButtonGlowColor,
+							ShadowColor3 = colors.ShadowColor,
+							ButtonGlow = value.type ~= "standard",
 							Shadow = true,
 							Border = 2,
 							CornerRadius = UDim.new(0, 10),
 							[Fusion.OnEvent "Activated"] = function()
-								local mt = getmetatable(scope :: any)
-								if typeof(mt) == "table" and mt._FUSION_POISONED then
-									return
-								end
 								value.callback(newPopup)
 							end :: unknown,
 							LayoutOrder = value.key,
-
 							Reactive = true,
 							ZIndex = 5002,
 						}
@@ -187,11 +194,9 @@ function popup.addPopup(self, scope, props)
 			},
 		},
 	}
-	self.enabled:set(true)
-	if currentContainer and currentContainer.Parent then
-		newPopup.Parent = currentContainer
-	end
 
+	self.enabled:set(true)
+	newPopup.Parent = currentContainer
 	self.currentPopup = newPopup
 end
 
@@ -205,23 +210,19 @@ function popup.customPopup(self, scope, child)
 	local currentContainer = scope.peek(self.currentContainer)
 	self.currentCustomPopup = child
 	self.enabled:set(true)
-
-	if currentContainer and currentContainer.Parent then
-		child.Parent = currentContainer
-	end
+	child.Parent = currentContainer
 end
 
 function popup.removePopup(self, _)
-	table.clear(self.keybinds)
+	self.keybinds = {}
 	self.enabled:set(false)
-	self.currentPopup = nil
-	self.currentCustomPopup = nil
 end
 
 function popup.container(self, scope)
 	self.parentScope = scope
 	local currentTheme = RedonUI.theme.theme:now()
 	self.enabled = scope:Value(false)
+
 	local container = scope:base {
 		Size = UDim2.fromScale(2, 2),
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -243,11 +244,7 @@ function popup.container(self, scope)
 		ZIndex = 5001,
 
 		[Fusion.OnEvent "InputBegan"] = function(input)
-			if self.currentPopup ~= nil and self.keybinds[input.KeyCode] ~= nil then
-				local mt = getmetatable(scope :: any)
-				if typeof(mt) == "table" and mt._FUSION_POISONED then
-					return
-				end
+			if input.UserInputType == Enum.UserInputType.Keyboard and self.currentPopup ~= nil and self.keybinds[input.KeyCode] then
 				self.keybinds[input.KeyCode](self.currentPopup)
 			end
 		end :: unknown,
@@ -260,15 +257,12 @@ function popup.container(self, scope)
 
 			scope:New("UIGradient") {
 				Rotation = 90,
-				Transparency = scope:Computed(function(use)
-					local enabled = use(self.enabled)
-					return NumberSequence.new({
-						NumberSequenceKeypoint.new(0, 1),
-						NumberSequenceKeypoint.new(0.1, enabled and 0 or 1),
-						NumberSequenceKeypoint.new(0.9, enabled and 0 or 1),
-						NumberSequenceKeypoint.new(1, 1),
-					})
-				end),
+				Transparency = NumberSequence.new({
+					NumberSequenceKeypoint.new(0, 1),
+					NumberSequenceKeypoint.new(0.1, 0),
+					NumberSequenceKeypoint.new(0.9, 0),
+					NumberSequenceKeypoint.new(1, 1),
+				}),
 			},
 		},
 	} :: Frame
@@ -277,4 +271,4 @@ function popup.container(self, scope)
 	return container, self.enabled
 end
 
-return (popup :: popup)
+return popup
