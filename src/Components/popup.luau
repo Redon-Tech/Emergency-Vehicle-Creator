@@ -35,28 +35,64 @@ export type popup = {
 }
 local popup = {} :: popup
 
+local function getColors(valueType: string, theme): {BackgroundColor: Color3, TextColor: Color3, ShadowColor: Color3, ButtonGlowColor: Color3}
+	if valueType == "primary" then
+		return {
+			BackgroundColor = theme.colors.sky,
+			TextColor = theme.colors.crust,
+			ShadowColor = theme.colors.sky,
+			ButtonGlowColor = theme.colors.sky,
+		}
+	elseif valueType == "danger" then
+		return {
+			BackgroundColor = theme.colors.red,
+			TextColor = theme.colors.crust,
+			ShadowColor = theme.colors.red,
+			ButtonGlowColor = theme.colors.red,
+		}
+	else
+		return {
+			BackgroundColor = theme.colors.crust,
+			TextColor = theme.colors.text,
+			ShadowColor = theme.colors.crust,
+			ButtonGlowColor = theme.colors.maroon,
+		}
+	end
+end
+
+local function cleanupPopups(self)
+	for _, popupInstance in { self.currentPopup, self.currentCustomPopup } do
+		if popupInstance then
+			if popupInstance:IsA("Instance") then
+				popupInstance:Destroy()
+			else
+				popupInstance.Parent = nil
+			end
+		end
+	end
+	self.currentPopup = nil
+	self.currentCustomPopup = nil
+end
+
 function popup.addPopup(self, scope, props)
 	if self.currentContainer == nil then
 		return
 	end
-	if self.currentPopup ~= nil then
-		self.currentPopup:Destroy()
-		self.currentPopup = nil
-	end
-	if self.currentCustomPopup ~= nil then
-		self.currentCustomPopup.Parent = nil
-		self.currentCustomPopup = nil
-	end
+
+	cleanupPopups(self)
+
 	local currentContainer = scope.peek(self.currentContainer)
 	local currentTheme = RedonUI.theme.theme:now()
 	local newPopup
 	local keybinds = {}
+
 	for _, action in ipairs(props.actions) do
 		if action.keybind ~= nil then
 			keybinds[action.keybind] = action.callback
 		end
 	end
 	self.keybinds = keybinds
+
 	newPopup = self.parentScope:base {
 		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundColor3 = currentTheme.colors.base,
@@ -130,46 +166,26 @@ function popup.addPopup(self, scope, props)
 						SortOrder = Enum.SortOrder.LayoutOrder,
 					},
 
-					--selene: allow(shadowing)
 					self.parentScope:ForValues(props.actions, function(_, newScope: types.Scope, value: action)
-						local BackgroundColor = if value.type == "primary"
-							then currentTheme.colors.sky
-							elseif value.type == "danger" then currentTheme.colors.red
-							else currentTheme.colors.crust
-						local TextColor = if value.type == "standard"
-							then currentTheme.colors.text
-							else currentTheme.colors.crust
-						local ShadowColor = if value.type == "primary"
-							then currentTheme.colors.sky
-							elseif value.type == "danger" then currentTheme.colors.red
-							else currentTheme.colors.crust
-						local ButtonGlowColor = if value.type == "primary"
-							then if currentTheme.colors.white == Color3.new(1, 1, 1)
-								then currentTheme.colors.text
-								else currentTheme.colors.base
-							else currentTheme.colors.maroon
+						local colors = getColors(value.type, currentTheme)
+
 						return newScope:textButton {
 							Size = UDim2.fromOffset(175, 35),
 							Text = value.text,
 							TextScaled = true,
 							MaxTextSize = 25,
-							TextColor3 = TextColor,
-							BackgroundColor3 = BackgroundColor,
-							ButtonGlowColor3 = ButtonGlowColor,
-							ShadowColor3 = ShadowColor,
-							ButtonGlow = if value.type == "standard" then false else true,
+							TextColor3 = colors.TextColor,
+							BackgroundColor3 = colors.BackgroundColor,
+							ButtonGlowColor3 = colors.ButtonGlowColor,
+							ShadowColor3 = colors.ShadowColor,
+							ButtonGlow = value.type ~= "standard",
 							Shadow = true,
 							Border = 2,
 							CornerRadius = UDim.new(0, 10),
 							[Fusion.OnEvent "Activated"] = function()
-								local mt = getmetatable(scope :: any)
-								if typeof(mt) == "table" and mt._FUSION_POISONED then
-									return
-								end
 								value.callback(newPopup)
 							end :: unknown,
 							LayoutOrder = value.key,
-
 							Reactive = true,
 							ZIndex = 5002,
 						}
@@ -178,6 +194,7 @@ function popup.addPopup(self, scope, props)
 			},
 		},
 	}
+
 	self.enabled:set(true)
 	newPopup.Parent = currentContainer
 	self.currentPopup = newPopup
@@ -187,14 +204,9 @@ function popup.customPopup(self, scope, child)
 	if self.currentContainer == nil then
 		return
 	end
-	if self.currentPopup ~= nil then
-		self.currentPopup:Destroy()
-		self.currentPopup = nil
-	end
-	if self.currentCustomPopup ~= nil then
-		self.currentCustomPopup.Parent = nil
-		self.currentCustomPopup = nil
-	end
+
+	cleanupPopups(self)
+
 	local currentContainer = scope.peek(self.currentContainer)
 	self.currentCustomPopup = child
 	self.enabled:set(true)
@@ -210,6 +222,7 @@ function popup.container(self, scope)
 	self.parentScope = scope
 	local currentTheme = RedonUI.theme.theme:now()
 	self.enabled = scope:Value(false)
+
 	local container = scope:base {
 		Size = UDim2.fromScale(2, 2),
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -231,11 +244,7 @@ function popup.container(self, scope)
 		ZIndex = 5001,
 
 		[Fusion.OnEvent "InputBegan"] = function(input)
-			if self.currentPopup ~= nil and self.keybinds[input.KeyCode] ~= nil then
-				local mt = getmetatable(scope :: any)
-				if typeof(mt) == "table" and mt._FUSION_POISONED then
-					return
-				end
+			if input.UserInputType == Enum.UserInputType.Keyboard and self.currentPopup ~= nil and self.keybinds[input.KeyCode] then
 				self.keybinds[input.KeyCode](self.currentPopup)
 			end
 		end :: unknown,
