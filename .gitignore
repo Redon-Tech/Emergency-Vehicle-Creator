@@ -12,3 +12,6 @@
 /*.rbxl.lock
 
 sourcemap.json
+
+# Dont know wtf this is
+.cache/

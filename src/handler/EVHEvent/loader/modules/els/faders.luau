@@ -71,7 +71,11 @@ end
 
 function faders.processReturnToZero(deltaTime: number)
 	for i, data in pairs(faders.returnToZero) do
-		local lastTween = data.section.data[data.section.currentTween or 1]
+		local lastTweenId = data.section.currentTween or 1
+		if lastTweenId > #data.section.data then
+			lastTweenId = #data.section.data
+		end
+		local lastTween = data.section.data[lastTweenId]
 		local currentPercentage = data.section.currentPercentage or 0
 
 		if currentPercentage >= 0.98 then
@@ -83,7 +87,7 @@ function faders.processReturnToZero(deltaTime: number)
 			continue
 		end
 
-		currentPercentage += deltaTime / lastTween.time -- problem child
+		currentPercentage += deltaTime / lastTween.time
 		data.section.currentPercentage = currentPercentage
 
 		local previousGoal = data.section.previousGoal or 0
