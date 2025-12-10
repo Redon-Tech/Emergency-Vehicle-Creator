@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - (EVH) Fixed return to zero on faders sometimes causing errors. AFAIK this didn't actually affect anything functionally.
+- (EVH) Fixed lights not respecting light settings when first being loaded.
 
 ---
 

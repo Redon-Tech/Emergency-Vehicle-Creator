@@ -108,6 +108,41 @@ local function changeColor(vehicle: Instance, functionId: number, lightName: str
 end
 
 --- Turns on or off a light.
+local function setLight(vehicleData: types.vehicle, part: BasePart, state: boolean)
+	if vehicleData.configuration.lightSettings.configuration.shouldChangeNeons == true then
+		part.Transparency = if state == true
+			then vehicleData.configuration.lightSettings.configuration.partTransparency
+			else 1
+	end
+	local lightInstances = lights[part]
+	if lightInstances == nil then
+		return
+	end
+	if vehicleData.configuration.lightSettings.configuration.shouldChangeLights == true then
+		for _, light in lightInstances.lights do
+			light.Enabled = state
+		end
+	end
+	if vehicleData.configuration.lightSettings.configuration.shouldChangeLightos == true then
+		for _, lighto in lightInstances.colorableLightos do
+			lighto.lighto.Enabled = state
+		end
+
+		if state == false then
+			for _, nonColorableLightos in lightInstances.lightos do
+				for _, lighto in nonColorableLightos do
+					lighto.lighto.Enabled = false
+				end
+			end
+		end
+	end
+	if vehicleData.configuration.lightSettings.configuration.shouldChangeParticleEmitters == true then
+		for _, particleEmitter in lightInstances.particleEmitters do
+			particleEmitter.Enabled = state
+		end
+	end
+end
+
 local function changeLight(vehicle: Instance, functionId: number, lightName: string, state: boolean)
 	local vehicleData = vehicles[vehicle]
 	if vehicleData == nil then
@@ -121,38 +156,8 @@ local function changeLight(vehicle: Instance, functionId: number, lightName: str
 				continue
 			end
 		end
-		if vehicleData.configuration.lightSettings.configuration.shouldChangeNeons == true then
-			part.Transparency = if state == true
-				then vehicleData.configuration.lightSettings.configuration.partTransparency
-				else 1
-		end
-		local lightInstances = lights[part]
-		if lightInstances == nil then
-			continue
-		end
-		if vehicleData.configuration.lightSettings.configuration.shouldChangeLights == true then
-			for _, light in lightInstances.lights do
-				light.Enabled = state
-			end
-		end
-		if vehicleData.configuration.lightSettings.configuration.shouldChangeLightos == true then
-			for _, lighto in lightInstances.colorableLightos do
-				lighto.lighto.Enabled = state
-			end
 
-			if state == false then
-				for _, nonColorableLightos in lightInstances.lightos do
-					for _, lighto in nonColorableLightos do
-						lighto.lighto.Enabled = false
-					end
-				end
-			end
-		end
-		if vehicleData.configuration.lightSettings.configuration.shouldChangeParticleEmitters == true then
-			for _, particleEmitter in lightInstances.particleEmitters do
-				particleEmitter.Enabled = state
-			end
-		end
+		setLight(vehicleData, part, state)
 	end
 end
 
@@ -513,12 +518,19 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 end
 
 --- Registers the descendants added to a light
-local function lightDescendantAdded(lighto: Instance, lightData: light, colorNames: { string })
-	if lighto:IsA("Light") then
+local function lightDescendantAdded(
+	vehicleData: types.vehicle,
+	lighto: Instance,
+	lightData: light,
+	colorNames: { string }
+)
+	if lighto:IsA("Light") and vehicleData.configuration.lightSettings.configuration.shouldChangeLights then
 		lighto.Enabled = false
 		lighto:SetAttribute("defaultBrightness", lighto.Brightness)
 		table.insert(lightData.lights, lighto)
-	elseif lighto:IsA("LayerCollector") then
+	elseif
+		lighto:IsA("LayerCollector") and vehicleData.configuration.lightSettings.configuration.shouldChangeLightos
+	then
 		lighto.Enabled = false
 
 		local images = {}
@@ -537,11 +549,17 @@ local function lightDescendantAdded(lighto: Instance, lightData: light, colorNam
 			end
 			table.insert(lightData.lightos[lighto.Name], { lighto = lighto, images = images })
 		end
-	elseif lighto:IsA("ParticleEmitter") then
+	elseif
+		lighto:IsA("ParticleEmitter")
+		and vehicleData.configuration.lightSettings.configuration.shouldChangeParticleEmitters
+	then
 		lighto.Enabled = false
 		lighto.Transparency = NumberSequence.new(0)
 		table.insert(lightData.particleEmitters, lighto)
-	elseif lighto:IsA("ImageLabel") or lighto:IsA("ImageButton") then
+	elseif
+		(lighto:IsA("ImageLabel") or lighto:IsA("ImageButton"))
+		and vehicleData.configuration.lightSettings.configuration.shouldChangeLightos
+	then
 		local lightoCollector = lighto:FindFirstAncestorWhichIsA("LayerCollector")
 		for _, colorableLighto in pairs(lightData.colorableLightos) do
 			if
@@ -563,7 +581,6 @@ local function addLight(vehicleData: types.vehicle, light: Instance)
 				table.insert(vehicleData.lights[group].parts, light)
 			end
 		end
-		light.Transparency = 1
 
 		local lightData = {
 			lights = {},
@@ -577,12 +594,12 @@ local function addLight(vehicleData: types.vehicle, light: Instance)
 			table.insert(colorNames, color.name)
 		end
 		for _, lighto in light:GetDescendants() do
-			lightDescendantAdded(lighto, lightData, colorNames)
+			lightDescendantAdded(vehicleData, lighto, lightData, colorNames)
 		end
 		table.insert(
 			lightData.connections,
 			light.DescendantAdded:Connect(function(lighto: Instance)
-				lightDescendantAdded(lighto, lightData, colorNames)
+				lightDescendantAdded(vehicleData, lighto, lightData, colorNames)
 			end)
 		)
 		table.insert(
@@ -616,6 +633,8 @@ local function addLight(vehicleData: types.vehicle, light: Instance)
 		)
 
 		lights[light] = lightData
+
+		setLight(vehicleData, light, false)
 	end
 end
 
