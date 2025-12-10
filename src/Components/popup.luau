@@ -186,6 +186,10 @@ function popup.addPopup(self, scope, props)
 							Border = 2,
 							CornerRadius = UDim.new(0, 10),
 							[Fusion.OnEvent "Activated"] = function()
+								local mt = getmetatable(scope :: any)
+								if typeof(mt) == "table" and mt._FUSION_POISONED then
+									return
+								end
 								value.callback(newPopup)
 							end :: unknown,
 							LayoutOrder = value.key,
@@ -247,7 +251,15 @@ function popup.container(self, scope)
 		ZIndex = 5001,
 
 		[Fusion.OnEvent "InputBegan"] = function(input)
-			if input.UserInputType == Enum.UserInputType.Keyboard and self.currentPopup ~= nil and self.keybinds[input.KeyCode] then
+			if
+				input.UserInputType == Enum.UserInputType.Keyboard
+				and self.currentPopup ~= nil
+				and self.keybinds[input.KeyCode] ~= nil
+			then
+				local mt = getmetatable(scope :: any)
+				if typeof(mt) == "table" and mt._FUSION_POISONED then
+					return
+				end
 				self.keybinds[input.KeyCode](self.currentPopup)
 			end
 		end :: unknown,
