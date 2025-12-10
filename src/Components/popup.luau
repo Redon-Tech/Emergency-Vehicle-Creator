@@ -35,7 +35,10 @@ export type popup = {
 }
 local popup = {} :: popup
 
-local function getColors(valueType: string, theme): {BackgroundColor: Color3, TextColor: Color3, ShadowColor: Color3, ButtonGlowColor: Color3}
+local function getColors(
+	valueType: string,
+	theme: typeof(RedonUI.theme.theme:now())
+): { BackgroundColor: Color3, TextColor: Color3, ShadowColor: Color3, ButtonGlowColor: Color3 }
 	if valueType == "primary" then
 		return {
 			BackgroundColor = theme.colors.sky,
@@ -60,7 +63,7 @@ local function getColors(valueType: string, theme): {BackgroundColor: Color3, Te
 	end
 end
 
-local function cleanupPopups(self)
+local function cleanupPopups(self: popup)
 	for _, popupInstance in { self.currentPopup, self.currentCustomPopup } do
 		if popupInstance then
 			if popupInstance:IsA("Instance") then
