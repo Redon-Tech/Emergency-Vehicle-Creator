@@ -85,6 +85,13 @@ local vehicle = {
 			order = 2,
 			assetId = 90780122255551,
 		},
+		["2025 Chevy Silverado"] = {
+			icon = assets.images.vehicles.CHEVY2025,
+			outfitter = "Risewrd",
+			credits = "Raz4r",
+			order = 3,
+			assetId = 92551394884272,
+		},
 	},
 	cache = {},
 } :: vehicle
