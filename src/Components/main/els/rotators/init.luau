@@ -1,6 +1,7 @@
 --#selene: allow(shadowing)
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local root = script.Parent.Parent.Parent.Parent.Parent
+local CollectionService = game:GetService("CollectionService")
 
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
@@ -32,6 +33,7 @@ type props = {
 	Creates the rotators screen for the main app
 ]]
 return function(baseScope: types.Scope, props: props): Fusion.Child
+	local PREVIEW_TEMPLATE_TAG = "EVCPreviewLightTemplate"
 	local currentTheme = RedonUI.theme.theme:now()
 	local scope = baseScope:innerScope(components)
 	local firstScope = scope:innerScope()
@@ -48,6 +50,57 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	end
 	local holdingShift = scope:Value(false) -- This is used to skip certain popups
 	local rotators: Fusion.Value<{ types.rotatorSectionState }> = scope:Value({})
+
+	local function clearTemplatePreviewClones()
+		local currentVehicle = scope.peek(props.CurrentVehicle)
+		if typeof(currentVehicle) ~= "Instance" then
+			return
+		end
+
+		for _, tagged in CollectionService:GetTagged(PREVIEW_TEMPLATE_TAG) do
+			if tagged:IsDescendantOf(currentVehicle) then
+				tagged:Destroy()
+			end
+		end
+	end
+
+	local function applyTemplatePreviewClones()
+		local currentVehicle = scope.peek(props.CurrentVehicle)
+		if typeof(currentVehicle) ~= "Instance" then
+			return
+		end
+
+		local lightTemplate = currentVehicle:FindFirstChild("lightTemplate", true)
+		if lightTemplate == nil then
+			return
+		end
+
+		clearTemplatePreviewClones()
+
+		local activeLightNames = {}
+		for _, rotatorData in scope.peek(rotators) do
+			activeLightNames[scope.peek(rotatorData.lightName)] = true
+		end
+
+		if next(activeLightNames) == nil then
+			return
+		end
+
+		for _, lightPart in currentVehicle:GetDescendants() do
+			if
+				lightPart:IsA("BasePart")
+				and lightPart.Parent ~= nil
+				and lightPart.Parent.Name == "_LIGHTS"
+				and activeLightNames[lightPart.Name] == true
+			then
+				for _, child in lightTemplate:GetChildren() do
+					local clone = child:Clone()
+					CollectionService:AddTag(clone, PREVIEW_TEMPLATE_TAG)
+					clone.Parent = lightPart
+				end
+			end
+		end
+	end
 
 	local function updateCurrentConfiguration()
 		local currentPattern = scope.peek(props.CurrentPattern)
@@ -170,7 +223,12 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			end
 			log.debug(newRotators)
 			rotators:set(newRotators)
+			applyTemplatePreviewClones()
 		end
+	end)
+
+	scope:Observer(props.CurrentVehicle):onChange(function()
+		applyTemplatePreviewClones()
 	end)
 
 	local function addRotator(atPoint: number?)
@@ -212,6 +270,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		local currentRotators = scope.peek(rotators)
 		if isPlaying == true then
 			log.debug("Playing")
+			applyTemplatePreviewClones()
 			for _, data in currentRotators do
 				if data.previousGoal == nil then
 					data.previousGoal = 0
@@ -271,6 +330,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				connection:Disconnect()
 				connection = nil
 			end
+			clearTemplatePreviewClones()
 
 			-- Reset the faders to ensure they stay in sync
 			for _, data in currentRotators do
@@ -293,7 +353,12 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		local currentPage = scope.peek(props.CurrentPage)
 		if currentPage ~= "Rotators" then
 			playing:set(false)
+			clearTemplatePreviewClones()
 		end
+	end)
+
+	table.insert(scope, function()
+		clearTemplatePreviewClones()
 	end)
 
 	local playHovered = scope:Value(false)

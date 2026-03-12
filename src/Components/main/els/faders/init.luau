@@ -1,6 +1,7 @@
 --#selene: allow(shadowing)
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local root = script.Parent.Parent.Parent.Parent.Parent
+local CollectionService = game:GetService("CollectionService")
 
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
@@ -33,6 +34,7 @@ type props = {
 	Creates the faders screen for the main app
 ]]
 return function(baseScope: types.Scope, props: props): Fusion.Child
+	local PREVIEW_TEMPLATE_TAG = "EVCPreviewLightTemplate"
 	local scope = baseScope:innerScope(components)
 	local currentTheme = RedonUI.theme.theme:now()
 	local firstScope = scope:innerScope()
@@ -49,6 +51,321 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	end
 	local holdingShift = scope:Value(false) -- This is used to skip certain popups
 	local faders: Fusion.Value<{ types.faderSectionState }> = scope:Value({})
+	local previewPartsByLightName = {} :: { [string]: { BasePart } }
+	local previewPartStates = {} :: { [BasePart]: any }
+	local previewCurrentColors = {} :: { [string]: number }
+
+	local function clearTemplatePreviewClones()
+		local currentVehicle = scope.peek(props.CurrentVehicle)
+		if typeof(currentVehicle) ~= "Instance" then
+			return
+		end
+
+		for _, tagged in CollectionService:GetTagged(PREVIEW_TEMPLATE_TAG) do
+			if tagged:IsDescendantOf(currentVehicle) then
+				tagged:Destroy()
+			end
+		end
+	end
+
+	local function applyTemplatePreviewClones()
+		local currentVehicle = scope.peek(props.CurrentVehicle)
+		if typeof(currentVehicle) ~= "Instance" then
+			return
+		end
+
+		local lightTemplate = currentVehicle:FindFirstChild("lightTemplate", true)
+		if lightTemplate == nil then
+			return
+		end
+
+		clearTemplatePreviewClones()
+
+		local activeLightNames = {}
+		for _, fader in scope.peek(faders) do
+			activeLightNames[scope.peek(fader.lightName)] = true
+		end
+
+		if next(activeLightNames) == nil then
+			return
+		end
+
+		for _, lightPart in currentVehicle:GetDescendants() do
+			if
+				lightPart:IsA("BasePart")
+				and lightPart.Parent ~= nil
+				and lightPart.Parent.Name == "_LIGHTS"
+				and activeLightNames[lightPart.Name] == true
+			then
+				for _, child in lightTemplate:GetChildren() do
+					local clone = child:Clone()
+					CollectionService:AddTag(clone, PREVIEW_TEMPLATE_TAG)
+					clone.Parent = lightPart
+				end
+			end
+		end
+	end
+
+	local function clearPreview()
+		for part, state in previewPartStates do
+			if part.Parent == nil then
+				continue
+			end
+
+			part.Transparency = state.transparency
+			part.Color = state.color
+
+			for _, lightData in state.lights do
+				if lightData.light.Parent ~= nil then
+					lightData.light.Enabled = lightData.enabled
+					lightData.light.Color = lightData.color
+					lightData.light.Brightness = lightData.brightness
+				end
+			end
+
+			for _, lightoData in state.colorableLightos do
+				if lightoData.lighto.Parent ~= nil then
+					lightoData.lighto.Enabled = lightoData.enabled
+				end
+
+				for _, imageData in lightoData.images do
+					if imageData.image.Parent ~= nil then
+						local image = imageData.image :: any
+						image.ImageColor3 = imageData.imageColor3
+						image.ImageTransparency = imageData.imageTransparency
+					end
+				end
+			end
+
+			for _, nonColorableLightos in state.nonColorableLightos do
+				for _, lightoData in nonColorableLightos do
+					if lightoData.lighto.Parent ~= nil then
+						lightoData.lighto.Enabled = lightoData.enabled
+					end
+
+					for _, imageData in lightoData.images do
+						if imageData.image.Parent ~= nil then
+							local image = imageData.image :: any
+							image.ImageColor3 = imageData.imageColor3
+							image.ImageTransparency = imageData.imageTransparency
+						end
+					end
+				end
+			end
+
+			for _, particleEmitterData in state.particleEmitters do
+				if particleEmitterData.particleEmitter.Parent ~= nil then
+					particleEmitterData.particleEmitter.Enabled = particleEmitterData.enabled
+					particleEmitterData.particleEmitter.Transparency = particleEmitterData.transparency
+				end
+			end
+		end
+
+		previewCurrentColors = {}
+		clearTemplatePreviewClones()
+	end
+
+	local function rePreviewParts()
+		clearPreview()
+		previewPartsByLightName = {}
+		previewPartStates = {}
+
+		local currentVehicle = scope.peek(props.CurrentVehicle)
+		if typeof(currentVehicle) ~= "Instance" then
+			return
+		end
+
+		if currentConfiguration == nil then
+			return
+		end
+
+		applyTemplatePreviewClones()
+
+		local colorNames = {}
+		for _, colorData in currentConfiguration.lightSettings.colors do
+			table.insert(colorNames, colorData.name)
+		end
+
+		for _, lightPart in currentVehicle:GetDescendants() do
+			if lightPart:IsA("BasePart") and lightPart.Parent ~= nil and lightPart.Parent.Name == "_LIGHTS" then
+				if previewPartsByLightName[lightPart.Name] == nil then
+					previewPartsByLightName[lightPart.Name] = {}
+				end
+				table.insert(previewPartsByLightName[lightPart.Name], lightPart)
+
+				if previewPartStates[lightPart] == nil then
+					local newState = {
+						transparency = lightPart.Transparency,
+						color = lightPart.Color,
+						lights = {},
+						colorableLightos = {},
+						nonColorableLightos = {},
+						particleEmitters = {},
+					}
+
+					for _, descendant in lightPart:GetDescendants() do
+						if descendant:IsA("Light") then
+							table.insert(newState.lights, {
+								light = descendant,
+								enabled = descendant.Enabled,
+								color = descendant.Color,
+								brightness = descendant.Brightness,
+							})
+						elseif descendant:IsA("ParticleEmitter") then
+							table.insert(newState.particleEmitters, {
+								particleEmitter = descendant,
+								enabled = descendant.Enabled,
+								transparency = descendant.Transparency,
+							})
+						elseif descendant:IsA("LayerCollector") then
+							local images = {}
+							for _, image in descendant:GetDescendants() do
+								if image:IsA("ImageLabel") or image:IsA("ImageButton") then
+									table.insert(images, {
+										image = image,
+										imageColor3 = image.ImageColor3,
+										imageTransparency = image.ImageTransparency,
+									})
+								end
+							end
+
+							if table.find(colorNames, descendant.Name) == nil then
+								table.insert(newState.colorableLightos, {
+									lighto = descendant,
+									enabled = descendant.Enabled,
+									images = images,
+								})
+							else
+								if newState.nonColorableLightos[descendant.Name] == nil then
+									newState.nonColorableLightos[descendant.Name] = {}
+								end
+								table.insert(newState.nonColorableLightos[descendant.Name], {
+									lighto = descendant,
+									enabled = descendant.Enabled,
+									images = images,
+								})
+							end
+						end
+					end
+
+					previewPartStates[lightPart] = newState
+				end
+			end
+		end
+	end
+
+	local function applyPreview()
+		if currentConfiguration == nil then
+			return
+		end
+
+		local activeLights = {} :: { [string]: { transparency: number, colorId: number } }
+		for _, data in scope.peek(faders) do
+			local currentTweens = scope.peek(data.data)
+			local tweenId = scope.peek(data.currentTween)
+			local currentTween = currentTweens[tweenId]
+			if currentTween == nil then
+				continue
+			end
+
+			local lightName = scope.peek(data.lightName)
+			local transparency = math.clamp(scope.peek(data.currentValue), 0, 1)
+			local colorId = previewCurrentColors[lightName] or 0
+
+			if scope.peek(currentTween.type) ~= "Wait" and currentTween.color ~= nil then
+				colorId = scope.peek(currentTween.color)
+				previewCurrentColors[lightName] = colorId
+			end
+
+			if colorId ~= 0 then
+				activeLights[lightName] = {
+					transparency = transparency,
+					colorId = colorId,
+				}
+			end
+		end
+
+		local lightSettings = currentConfiguration.lightSettings.configuration
+		local availableColors = scope.peek(colors)
+		for lightName, values in activeLights do
+			local colorData = availableColors[values.colorId]
+			if colorData == nil then
+				continue
+			end
+
+			local parts = previewPartsByLightName[lightName]
+			if parts == nil then
+				continue
+			end
+
+			for _, part in parts do
+				if part.Parent == nil then
+					continue
+				end
+
+				if lightSettings.shouldChangeNeons == true then
+					part.Transparency = values.transparency
+					part.Color = colorData.partColor
+				end
+
+				local partState = previewPartStates[part]
+				if partState == nil then
+					continue
+				end
+
+				if lightSettings.shouldChangeLights == true then
+					for _, lightData in partState.lights do
+						if lightData.light.Parent ~= nil then
+							lightData.light.Enabled = true
+							lightData.light.Color = colorData.lightColor
+							lightData.light.Brightness = lightData.brightness * (1 - values.transparency)
+						end
+					end
+				end
+
+				if lightSettings.shouldChangeLightos == true then
+					for _, lightoData in partState.colorableLightos do
+						if lightoData.lighto.Parent ~= nil then
+							lightoData.lighto.Enabled = true
+						end
+
+						for _, imageData in lightoData.images do
+							if imageData.image.Parent ~= nil then
+								imageData.image.ImageColor3 = colorData.lightoColor
+								imageData.image.ImageTransparency = values.transparency
+							end
+						end
+					end
+
+					for colorName, nonColorableLightos in partState.nonColorableLightos do
+						local shouldEnable = colorName == colorData.name
+						for _, lightoData in nonColorableLightos do
+							if lightoData.lighto.Parent ~= nil then
+								lightoData.lighto.Enabled = shouldEnable
+							end
+
+							if shouldEnable then
+								for _, imageData in lightoData.images do
+									if imageData.image.Parent ~= nil then
+										imageData.image.ImageTransparency = values.transparency
+									end
+								end
+							end
+						end
+					end
+				end
+
+				if lightSettings.shouldChangeParticleEmitters == true then
+					for _, particleEmitterData in partState.particleEmitters do
+						if particleEmitterData.particleEmitter.Parent ~= nil then
+							particleEmitterData.particleEmitter.Enabled = true
+							particleEmitterData.particleEmitter.Transparency = NumberSequence.new(values.transparency)
+						end
+					end
+				end
+			end
+		end
+	end
 
 	local function updateCurrentConfiguration()
 		local currentPattern = scope.peek(props.CurrentPattern)
@@ -164,6 +481,14 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			end
 			log.debug(faders)
 			faders:set(newFaders)
+			rePreviewParts()
+		end
+	end)
+
+	scope:Observer(props.CurrentVehicle):onChange(function()
+		rePreviewParts()
+		if scope.peek(playing) == true then
+			applyPreview()
 		end
 	end)
 
@@ -206,6 +531,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		local currentFaders = scope.peek(faders)
 		if isPlaying == true then
 			log.debug("Playing")
+			rePreviewParts()
 			for _, data in currentFaders do
 				if data.previousGoal == nil then
 					data.previousGoal = 1
@@ -253,6 +579,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						-- log.debug(tweenId, scope.peek(currentTween.time))
 					end
 				end
+				applyPreview()
 			end)
 		else
 			log.debug("Stopping")
@@ -260,6 +587,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				connection:Disconnect()
 				connection = nil
 			end
+			clearPreview()
 
 			-- Reset the faders to ensure they stay in sync
 			for _, data in currentFaders do
@@ -282,7 +610,12 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		local currentPage = scope.peek(props.CurrentPage)
 		if currentPage ~= "Faders" then
 			playing:set(false)
+			clearPreview()
 		end
+	end)
+
+	table.insert(scope, function()
+		clearPreview()
 	end)
 
 	local playHovered = scope:Value(false)
