@@ -177,6 +177,10 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			return
 		end
 
+    if scope.peek(settings.values.previewVehicle) == false then
+      return
+    end
+
 		applyTemplatePreviewClones()
 
 		local colorNames = {}
@@ -254,6 +258,10 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		if currentConfiguration == nil then
 			return
 		end
+
+    if scope.peek(settings.values.previewVehicle) == false then
+      return
+    end
 
 		local currentSections = scope.peek(sections)
 		local activeLights = {} :: { [string]: types.elsColor }

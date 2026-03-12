@@ -11,6 +11,7 @@ local chassisHandler = require(root.Plugin.chassisHandler)
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
 local utils = require(root.Plugin.utils)
+local settings = require(root.Plugin.settings)
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
@@ -179,6 +180,11 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			return
 		end
 
+    if scope.peek(settings.values.previewVehicle) == false then
+      return
+    end
+
+
 		applyTemplatePreviewClones()
 
 		local colorNames = {}
@@ -258,6 +264,10 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		if currentConfiguration == nil then
 			return
 		end
+
+    if scope.peek(settings.values.previewVehicle) == false then
+      return
+    end
 
 		local activeLights = {} :: { [string]: { transparency: number, colorId: number } }
 		for _, data in scope.peek(faders) do
