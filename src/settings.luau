@@ -39,12 +39,12 @@ local settings = {
 			type = { "Q-Y", "1-6", "NumPad 1-6" },
 			key = "colorKeybinds",
 		},
-    {
-      title = "Preview Vehicle",
-      description = "Toggle the preview vehicle that shows you what your pattern will look like on the vehicle without joining the game.",
-      type = "boolean",
-      key = "previewVehicle",
-    },
+		{
+			title = "Preview Vehicle",
+			description = "Toggle the preview vehicle that shows you what your pattern will look like on the vehicle without joining the game.",
+			type = "boolean",
+			key = "previewVehicle",
+		},
 		{
 			title = "Debug Mode",
 			description = "If you are encountering an issue with the plugin, use this to help us solve your problem!",
