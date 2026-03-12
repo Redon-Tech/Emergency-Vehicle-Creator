@@ -180,10 +180,9 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			return
 		end
 
-    if scope.peek(settings.values.previewVehicle) == false then
-      return
-    end
-
+		if scope.peek(settings.values.previewVehicle) == false then
+			return
+		end
 
 		applyTemplatePreviewClones()
 
@@ -265,9 +264,9 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			return
 		end
 
-    if scope.peek(settings.values.previewVehicle) == false then
-      return
-    end
+		if scope.peek(settings.values.previewVehicle) == false then
+			return
+		end
 
 		local activeLights = {} :: { [string]: { transparency: number, colorId: number } }
 		for _, data in scope.peek(faders) do
