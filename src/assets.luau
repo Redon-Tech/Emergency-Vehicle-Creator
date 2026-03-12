@@ -50,7 +50,6 @@ local assets = {
 		vehicles = {
 			FPIU2020 = "rbxassetid://138806014801248",
 			DODGECHARGER2018 = "rbxassetid://94271144942098",
-			CHEVY2025 = "rbxassetid://97186939825966",
 		},
 	},
 	sounds = {},
