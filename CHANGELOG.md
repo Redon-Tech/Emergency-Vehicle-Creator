@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0-rc.7] (2026-03-11)
+
+### Fixed
+
+- Bumped luaencode again to hopefully fix the plugin again. ([#553](https://github.com/Redon-Tech/Emergency-Vehicle-Creator/pull/55))
+
+---
+
 ## [3.0.0-rc.6] (2026-03-10)
 
 ### Fixed
@@ -149,8 +157,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public beta release.
 
-[unreleased]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/compare/3.0.0-rc.6...main
-[3.0.0-rc.5]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.6
+[unreleased]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/compare/3.0.0-rc.7...main
+[3.0.0-rc.7]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.7
+[3.0.0-rc.6]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.6
 [3.0.0-rc.5]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.5
 [3.0.0-rc.4]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.4
 [3.0.0-rc.3]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.3

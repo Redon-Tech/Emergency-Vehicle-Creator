@@ -146,6 +146,13 @@ pathfs = [{ name = "jiwonz/pathfs", version = "^0.6.0", index = "https://github.
 result = [{ name = "lukadev_0/result", version = "^1.2.1", index = "https://github.com/pesde-pkg/index" }, "peer"]
 unzip = [{ name = "0x5eal/unzip", version = "^0.2.0", index = "https://github.com/pesde-pkg/index", target = "luau" }, "standard"]
 
+[graph."wally#chadhyatt/luaencode@1.4.5 roblox"]
+direct = ["LuaEncode", { wally = "wally#chadhyatt/luaencode", version = "^1.4.5", index = "default" }, "standard"]
+
+[graph."wally#chadhyatt/luaencode@1.4.5 roblox".pkg_ref]
+ref_ty = "wally"
+index_url = "https://github.com/UpliftGames/wally-index"
+
 [graph."wally#pepeeltoro41/ui-labs@2.3.8 roblox".pkg_ref]
 ref_ty = "wally"
 index_url = "https://github.com/UpliftGames/wally-index"
@@ -175,10 +182,3 @@ index_url = "https://github.com/UpliftGames/wally-index"
 [graph."wally#redon-tech/redon-ui@0.1.0-alpha.12 roblox".pkg_ref.dependencies]
 Fusion = [{ wally = "wally#plainsour/lemon", version = ">=0.4.0-dev.1.3, <0.5.0", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
 ui-labs = [{ wally = "wally#pepeeltoro41/ui-labs", version = ">=2.3.0, <3.0.0", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
-
-[graph."wally#regginator/luaencode@1.4.3 roblox"]
-direct = ["LuaEncode", { wally = "wally#regginator/luaencode", version = "^1.4.3", index = "default" }, "standard"]
-
-[graph."wally#regginator/luaencode@1.4.3 roblox".pkg_ref]
-ref_ty = "wally"
-index_url = "https://github.com/UpliftGames/wally-index"
