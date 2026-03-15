@@ -27,20 +27,26 @@ local credits: { { name: string, type: "icon" | "text", description: string?, ic
 		{
 			type = "icon",
 			name = "Alex (MiataVxbe)",
-			description = "Contributor & Admin\nHelped with vehicles and equipment",
+			description = "Contributor & Admin\nVehicle Contributor",
 			icon = assets.images.credits.alex,
 		},
 		{
 			type = "icon",
 			name = "RetiredSubaru",
-			description = "Contributor\nHelped with vehicles and equipment",
+			description = "Contributor\nVehicle Contributor",
 			icon = assets.images.credits.subaru,
 		},
 		{
 			type = "icon",
 			name = "SillyMeTimbers",
-			description = "Contributor\nHelped fix a EVH bug",
+			description = "Contributor\nCode Contributor",
 			icon = assets.images.credits.sillyme,
+		},
+		{
+			type = "icon",
+			name = "TwrblxDevs",
+			description = "Contributor\nCode Contributor",
+			icon = assets.images.credits.twrblx,
 		},
 		{
 			type = "icon",

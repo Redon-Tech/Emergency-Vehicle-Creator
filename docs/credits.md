@@ -6,28 +6,74 @@
 ---
 
 ## **You**
-You are the most important credit for Emergency Vehicle Creator.  
-You guys are the ones who make this plugin possible. Without you, this plugin would not be where it is today. So thank you for using Emergency Vehicle Creator!
+**You** are the most important part of Emergency Vehicle Creator.  
+**You make this plugin possible**. Without you, this plugin would not be where it is today. 
+
+Thank You for using Emergency Vehicle Creator!
 
 As for everyone else:
 
 ## Maintainers
 
-|                                                                 | Name   | Brief                                     | Links                                    |
-| --------------------------------------------------------------- | ------ | ----------------------------------------- | ---------------------------------------- |
-| ![Parker](https://avatars.githubusercontent.com/u/35582919?v=4) | Parker | The creator of Emergency Vehicle Creator. | [GitHub](https://github.com/parker02311) |
+!!! danger ""
+    <h1 style="margin-bottom: 0.5em !important;"><img src="https://avatars.githubusercontent.com/u/35582919?v=4" style="max-height: 2em; vertical-align: middle; border-radius: 50%;" /> <b>Parker</b></h1>
+    Creator and maintainer of Emergency Vehicle Creator. Made almost all the code in this project. 
+
+    <a href="https://parker02311.redon.tech" target="_blank" rel="noreferrer">:material-web: Website</a>
+
+    <a style="text-shadow: 0 0 1rem rgba(198, 160, 246, 1);" href="https://ko-fi.com/parker02311" target="_blank" rel="noreferrer">:simple-kofi: Ko-Fi</a>
+
+    <a href="https://youtube.com/@parker02311" target="_blank" rel="noreferrer">:simple-youtube: YouTube</a>
 
 ## Contributors
 
-| Name          | Brief                              | Links |
-| ------------- | ---------------------------------- | ----- |
-| MiataVxbe     | Helped with vehicles and equipment | N/A   |
-| RetiredSubaru | Helped with vehicles and equipment | N/A   |
+<div class="grid cards cards-mauve" style="display: block !important;">
+<ul style="margin-left: 0 !important; display: grid; grid-auto-flow: row dense; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+
+<li style="max-width: 200px; text-align: center;">
+<img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/105768909?v=4" />
+<p><a href="https://miatavxbe.redon.tech/" target="_blank" rel="noreferrer"><b>MiataVxbe</b></a></p>
+<p style="font-size: 0.7rem;">Vehicle Contributor</p>
+</li>
+
+<li style="max-width: 200px; text-align: center;">
+<img style="border-radius: 50%;" src="https://api.dicebear.com/9.x/identicon/svg?seed=RetiredSubaru&backgroundColor=ffffff" />
+<p><a><b>RetiredSubaru</b></a></p>
+<p style="font-size: 0.7rem;">Vehicle Contributor</p>
+</li>
+
+<li style="max-width: 200px; text-align: center;">
+<img style="border-radius: 50%; min-width: 100%;" src="https://avatars.githubusercontent.com/u/70308288?v=4" />
+<p><a href="https://github.com/SillyMeTimbers" target="_blank" rel="noreferrer"><b>SillyMeTimbers</b></a></p>
+<p style="font-size: 0.7rem;">Code Contributor</p>
+</li>
+
+<li style="max-width: 200px; text-align: center;">
+<img style="border-radius: 50%; min-width: 100%;" src="https://avatars.githubusercontent.com/u/156226057?v=4" />
+<p><a href="https://github.com/TwrblxDevs" target="_blank" rel="noreferrer"><b>TwrblxDevs</b></a></p>
+<p style="font-size: 0.7rem;">Code Contributor</p>
+</li>
+
+</ul>
+</div>
 
 ## Frameworks and Vendors
 
-- [Fusion](https://elttob.uk/Fusion) - UI Framework Used
-- [ionicons](https://ionic.io/ionicons) - Icons Used
+<div class="grid cards cards-pink" style="display: block !important;">
+<ul style="margin-left: 0 !important; display: grid; grid-auto-flow: row dense; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+
+<li style="max-width: 200px; text-align: center;">
+<img style="min-width: 100%;" src="https://elttob.uk/Fusion/0.3/assets/logo-dark.svg" />
+<p><a href="https://elttob.uk/Fusion/0.3/" target="_blank" rel="noreferrer"><b>Fusion</b></a></p>
+</li>
+
+<li style="max-width: 200px; text-align: center;">
+<img style="border-radius: 50%; min-width: 100%;" src="https://ionic.io/ionicons/assets/img/meta/apple-icon-180x180.png" />
+<p><a href="https://ionic.io/ionicons" target="_blank" rel="noreferrer"><b>ionicons</b></a></p>
+</li>
+
+</ul>
+</div>
 
 ## Testers
 
