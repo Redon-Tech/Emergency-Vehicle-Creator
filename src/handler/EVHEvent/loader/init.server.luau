@@ -54,6 +54,7 @@ local sirensByKeycode: {
 local sirenNames: { string } = {}
 
 local function setupRotator(rotator: BasePart)
+	--TODO: Allow to override usage of driveSeat so that rotators can be used in misc
 	local motorPart = Instance.new("Part")
 	motorPart.Name = `motor{rotator.Name}`
 	motorPart.Size = Vector3.new(0.1, 0.1, 0.1)
@@ -308,6 +309,8 @@ local function load()
 				setupRotator(v)
 			end
 		elseif v:IsA("Sound") then
+			-- TODO: add some way for other scripts to find what sounds we are using
+			-- this could also be done by just searching for the defaultVolume attribute
 			for _, sirenData in sirens do
 				if sirenData.name ~= v.Name then
 					if sirenData.type ~= "Modifier" then
