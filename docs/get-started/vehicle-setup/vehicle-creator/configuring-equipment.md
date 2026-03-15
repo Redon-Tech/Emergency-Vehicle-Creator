@@ -53,7 +53,7 @@ Once you have configured all the equipment you want, click "Continue" at the top
 
 Here are some recommended next steps to help you get started:
 
-1. **[Function Setup](..//..//els-setup/functions/setup.md)**: Learn how to setup functions to create ELS.
+1. **[Function Setup](..//..//els-setup/functions/index.md)**: Learn how to setup functions to create ELS.
 2. [Flashers](..//..//patterns/flashers.md): Learn how to create basic ELS patterns.
 3. [Pre-Outfitted Vehicles](..//custom-vehicles/preoutfitted.md): Learn how to use your own vehicles.
 
