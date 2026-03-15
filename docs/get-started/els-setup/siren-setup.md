@@ -1,4 +1,5 @@
 ---
+  title: Siren Setup
   authors:
     - parker02311
 ---

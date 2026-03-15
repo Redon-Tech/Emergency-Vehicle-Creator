@@ -1,4 +1,5 @@
 ---
+  title: Pre-Outfitted Vehicles
   authors:
     - parker02311
 ---

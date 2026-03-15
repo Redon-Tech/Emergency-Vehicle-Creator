@@ -1,4 +1,5 @@
 ---
+  title: Configuring Equipment
   authors:
     - parker02311
 ---

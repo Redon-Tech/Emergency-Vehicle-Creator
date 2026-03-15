@@ -9,20 +9,36 @@ nav:
   - Home: index.md
   - Getting Started:
     - Vehicle Creator: get-started/vehicle-setup/vehicle-creator/getting-started.md
-    - Configuring Equipment: get-started/vehicle-setup/vehicle-creator/configuring-equipment.md
+    - get-started/vehicle-setup/vehicle-creator/configuring-equipment.md
     - ELS Setup:
-      - Function Setup: get-started/els-setup/functions/setup.md
-      - Siren Setup: get-started/els-setup/siren-setup.md
-      - Light Settings: get-started/els-setup/light-settings.md
+      - Function Setup:
+        - get-started/els-setup/functions/index.md
+        - get-started/els-setup/functions/activations.md
+      - get-started/els-setup/siren-setup.md
+      - get-started/els-setup/light-settings.md
     - Pattern Creator:
-      - Flashers: get-started/patterns/flashers.md
-      - Faders: get-started/patterns/faders.md
-      - Rotators: get-started/patterns/rotators.md
+      - get-started/patterns/flashers.md
+      - get-started/patterns/faders.md
+      - get-started/patterns/rotators.md
     - Custom Vehicles:
-      - Pre-Outfitted Vehicles: get-started/vehicle-setup/custom-vehicles/preoutfitted.md
-      - V2 to V3 Conversion: get-started/vehicle-setup/custom-vehicles/v2-v3.md
-  - Credits: credits.md
+      - get-started/vehicle-setup/custom-vehicles/preoutfitted.md
+      - get-started/vehicle-setup/custom-vehicles/v2-v3.md
+  - Advanced:
+    - advanced/modifiers.md
+    - Developers:
+      - developers/introduction.md
+      - Working With EVH:
+        - developers/evh/introduction.md
+        - developers/evh/patterns.md
+        - developers/evh/controlling-sirens.md
+        - Reading Configuration Files:
+          - developers/evh/config/index.md
+          - developers/evh/config/sirens.md
+  - credits.md
+  - changelog.md
 
+
+watch: [CHANGELOG.md]
 copyright: Copyright &copy; 2024-2025 Redon Tech
 
 extra:
@@ -47,6 +63,7 @@ theme:
     - navigation.footer
     - navigation.sections
     - navigation.indexes
+    - navigation.expand
     - toc.follow
     - content.code.copy
     - content.tabs.link
@@ -86,6 +103,8 @@ markdown_extensions:
   - attr_list
   - md_in_html
   - footnotes
+  - toc:
+      permalink: "#"
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tasklist:
@@ -93,3 +112,8 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format

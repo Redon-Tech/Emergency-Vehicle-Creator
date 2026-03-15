@@ -1,4 +1,5 @@
 ---
+  title: Light Settings
   authors:
     - parker02311
 ---
