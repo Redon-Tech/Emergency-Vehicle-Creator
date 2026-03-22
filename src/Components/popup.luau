@@ -64,17 +64,14 @@ local function getColors(
 end
 
 local function cleanupPopups(self: popup)
-	for _, popupInstance in { self.currentPopup, self.currentCustomPopup } do
-		if popupInstance then
-			if popupInstance:IsA("Instance") then
-				popupInstance:Destroy()
-			else
-				popupInstance.Parent = nil
-			end
-		end
+	if self.currentPopup ~= nil then
+		self.currentPopup:Destroy()
+		self.currentPopup = nil
 	end
-	self.currentPopup = nil
-	self.currentCustomPopup = nil
+	if self.currentCustomPopup ~= nil then
+		self.currentCustomPopup.Parent = nil
+		self.currentCustomPopup = nil
+	end
 end
 
 function popup.addPopup(self, scope, props)
