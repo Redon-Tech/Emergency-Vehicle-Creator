@@ -136,9 +136,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						Reactive = true,
 						AnimateSize = false,
 						LayoutOrder = 2,
-						-- Visible = scope:Computed(function(use)
-						-- 	return use(props.CurrentVehicle) ~= nil
-						-- end),
+						Visible = scope:Computed(function(use)
+							return use(props.CurrentVehicle) ~= nil
+						end),
 
 						[Fusion.OnEvent "Activated"] = function()
 							popup:addPopup(scope, {
@@ -163,17 +163,14 @@ return function(scope: types.Scope, props: props): Fusion.Child
 										type = "primary",
 										key = 2,
 										callback = function(newPopup)
-											if scope.peek(props.CurrentVehicle) == nil then
-											else
-												popup:removePopup(newPopup)
-												local currentVehicle = scope.peek(props.CurrentVehicle)
-												if currentVehicle == nil or typeof(currentVehicle) == "string" then
-													return
-												end
-												local saved = chassisHandler:saveConfiguration(currentVehicle)
-												if saved == true then
-													props.UnsavedChanges:set(false)
-												end
+											popup:removePopup(newPopup)
+											local currentVehicle = scope.peek(props.CurrentVehicle)
+											if currentVehicle == nil or typeof(currentVehicle) == "string" then
+												return
+											end
+											local saved = chassisHandler:saveConfiguration(currentVehicle)
+											if saved == true then
+												props.UnsavedChanges:set(false)
 											end
 										end,
 										keybind = Enum.KeyCode.Return,
