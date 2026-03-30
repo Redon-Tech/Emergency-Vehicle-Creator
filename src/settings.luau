@@ -12,6 +12,7 @@ type settings = {
 		theme: Fusion.Value<types.theme>,
 		fakeBloom: Fusion.Value<boolean>,
 		colorKeybinds: Fusion.Value<types.keybinds>,
+		previewVehicle: Fusion.Value<boolean>,
 		debugMode: Fusion.Value<boolean>,
 		saveBackupMode: Fusion.Value<types.saveBackupMode>,
 	},
@@ -37,6 +38,12 @@ local settings = {
 			description = "Choose which keybinds you would like to use to change colors",
 			type = { "Q-Y", "1-6", "NumPad 1-6" },
 			key = "colorKeybinds",
+		},
+		{
+			title = "Preview Vehicle",
+			description = "Toggle the preview vehicle that shows you what your pattern will look like on the vehicle without joining the game.",
+			type = "boolean",
+			key = "previewVehicle",
 		},
 		{
 			title = "Debug Mode",
@@ -70,7 +77,7 @@ end
 function settings:setup(scope: types.Scope)
 	self.scope = scope
 
-	local valuesToLoad = { "theme", "fakeBloom", "colorKeybinds", "debugMode", "saveBackupMode" }
+	local valuesToLoad = { "theme", "fakeBloom", "colorKeybinds", "previewVehicle", "debugMode", "saveBackupMode" }
 
 	self.values = {} :: any
 	for _, key in pairs(valuesToLoad) do
