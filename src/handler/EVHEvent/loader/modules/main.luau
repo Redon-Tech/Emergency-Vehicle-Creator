@@ -263,7 +263,7 @@ local function setLightTransparency(
 		end
 		if vehicleData.configuration.lightSettings.configuration.shouldChangeParticleEmitters == true then
 			for _, particleEmitter in lightInstances.particleEmitters do
-				-- BUG: Faders never enable particle emitters after initialization disables them.
+				particleEmitter.Enabled = transparency < 1
 				particleEmitter.Transparency = NumberSequence.new(transparency)
 			end
 		end
