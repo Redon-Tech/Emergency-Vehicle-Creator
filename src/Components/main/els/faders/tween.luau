@@ -99,8 +99,7 @@ return function(
 	}
 
 	local controls = scope:Computed(function(use, scope: typeof(scope))
-		-- BUG: Recomputation appends to the shared base list, retaining controls destroyed after a type change.
-		local controls: { Fusion.Child } = baseControls
+		local controls: { Fusion.Child } = table.clone(baseControls)
 		local currentType = use(props.tween.type)
 
 		if currentType == "Simple" or currentType == "Advanced" then
