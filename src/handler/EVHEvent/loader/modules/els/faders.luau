@@ -29,16 +29,28 @@ function faders.processPattern(pattern: types.pattern)
 		if #currentTweens == 0 then
 			continue
 		end
-		local tweenId = data.currentTween or 1
-		if tweenId > #currentTweens then
-			if currentTweens[tweenId] ~= nil and currentTweens[tweenId].type ~= "Wait" then
-				data.previousGoal = currentTweens[tweenId].goal
-			end
-			tweenId = 1
-		end
-
-		local currentTween = currentTweens[tweenId]
 		local cycleTime = if data.totalTime > 0 then pattern.patternTime % data.totalTime else 0
+		local tweenId = #currentTweens
+		local previousGoal = 1
+		if data.totalTime > 0 and pattern.patternTime >= data.totalTime then
+			for i = #currentTweens, 1, -1 do
+				if currentTweens[i].type ~= "Wait" then
+					previousGoal = currentTweens[i].goal or 0
+					break
+				end
+			end
+		end
+		for i, tween in currentTweens do
+			if cycleTime < tween.timeEnd then
+				tweenId = i
+				break
+			end
+			if tween.type ~= "Wait" then
+				previousGoal = tween.goal or 0
+			end
+		end
+		data.previousGoal = previousGoal
+		local currentTween = currentTweens[tweenId]
 		local currentPercentage = if currentTween.time <= 0
 			then if cycleTime >= currentTween.timeStart then 1 else -1
 			else (math.min(cycleTime, currentTween.timeEnd) - currentTween.timeStart) / currentTween.time
@@ -64,8 +76,7 @@ function faders.processPattern(pattern: types.pattern)
 			)
 		end
 
-		-- BUG: A future tween with negative progress is skipped instead of waiting for its scheduled start.
-		if currentPercentage >= 0.98 or currentPercentage <= 0 then
+		if currentPercentage >= 1 then
 			if currentTweens[tweenId] ~= nil and currentTweens[tweenId].type ~= "Wait" then
 				data.previousGoal = currentTweens[tweenId].goal
 			end
