@@ -208,8 +208,7 @@ local function setLightTransparency(
 	if colorData == nil then
 		return
 	end
-	-- BUG: returnToZero bypasses ownership checks, allowing inactive or lower-priority faders to overwrite the active function.
-	if lightData.runningFunction ~= functionId and lightData.returnToZero ~= true then
+	if lightData.runningFunction ~= functionId then
 		return
 	end
 
@@ -219,7 +218,7 @@ local function setLightTransparency(
 
 	for _, part in lightData.parts do
 		if part.Name ~= lightName then
-			if vehicleData.lights[part.Name].runningFunction ~= functionId and lightData.returnToZero ~= true then
+			if vehicleData.lights[part.Name].runningFunction ~= functionId then
 				continue
 			end
 			if vehicleData.lights[part.Name].currentState ~= color then
@@ -280,13 +279,13 @@ local function resetLightTransparency(vehicle: Instance, lightName: string)
 		return
 	end
 	local lightData = vehicleData.lights[lightName]
-	if lightData.returnToZero ~= true then
+	if lightData.returnToZero ~= true or lightData.runningFunction ~= nil then
 		return
 	end
 
 	for _, part in lightData.parts do
 		if part.Name ~= lightName then
-			if lightData.returnToZero ~= true then
+			if vehicleData.lights[part.Name].runningFunction ~= nil then
 				continue
 			end
 			local otherLightData = vehicleData.lights[part.Name]
@@ -339,14 +338,13 @@ local function setRotation(vehicle: Instance, functionId: number, lightName: str
 		return
 	end
 	local lightData = vehicleData.lights[lightName]
-	-- BUG: returnToZero bypasses ownership checks, allowing inactive or lower-priority rotators to overwrite the active function.
-	if lightData.runningFunction ~= functionId and lightData.returnToZero ~= true then
+	if lightData.runningFunction ~= functionId then
 		return
 	end
 
 	for _, part in lightData.parts do
 		if part.Name ~= lightName then
-			if vehicleData.lights[part.Name].runningFunction ~= functionId and lightData.returnToZero ~= true then
+			if vehicleData.lights[part.Name].runningFunction ~= functionId then
 				continue
 			end
 		end
