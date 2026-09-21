@@ -227,6 +227,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					}),
 
 					lightSettings(scope, {
+						CurrentPattern = currentPattern,
 						UnsavedChanges = unsavedChanges,
 						CurrentPanel = currentPanel :: any,
 						CurrentPage = currentPage,

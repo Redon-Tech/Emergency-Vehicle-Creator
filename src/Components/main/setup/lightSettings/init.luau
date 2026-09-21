@@ -23,6 +23,7 @@ type props = {
 	CurrentPanel: Fusion.Value<types.mainPanels>,
 	CurrentPage: Fusion.Value<types.pages?>,
 	CurrentVehicle: Fusion.Value<Model | string?>,
+	CurrentPattern: Fusion.Value<types.selectedPattern?>,
 }
 
 local SPRING_SPEED = 20
@@ -93,6 +94,43 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			end
 		end
 	end)
+
+	local function removeColorReferences(removedId: number)
+		if currentConfiguration == nil then
+			return
+		end
+		local function remap(color: number): number
+			return if color == removedId then 0 elseif color > removedId then color - 1 else color
+		end
+		for _, func in currentConfiguration.functions do
+			for _, pattern in func.patterns do
+				for _, section in pattern.flashers do
+					for _, column in section.columns do
+						for row, color in column.rows do
+							column.rows[row] = remap(color)
+						end
+					end
+				end
+				for _, sections in { pattern.faders, pattern.rotators } do
+					for _, section in sections do
+						for _, step in section.data do
+							if step.color ~= nil then
+								step.color = remap(step.color)
+							end
+						end
+					end
+				end
+			end
+		end
+		local selected = scope.peek(props.CurrentPattern)
+		if selected and currentConfiguration.functions[selected.functionId] then
+			props.CurrentPattern:set({
+				functionId = selected.functionId,
+				patternId = selected.patternId,
+				pattern = currentConfiguration.functions[selected.functionId].patterns[selected.patternId],
+			})
+		end
+	end
 
 	local function updateCurrentConfiguration()
 		local currentLightSettings = scope.peek(lightSettings)
@@ -352,6 +390,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					},
 
 					scope:colors {
+						removeColorReferences = removeColorReferences,
 						actualTableSize = actualTableSize,
 						currentContent = currentContent,
 						lightSettings = lightSettings,
