@@ -1,0 +1,14 @@
+{
+	"name": "MainModule",
+	"tree": {
+		"$path": "LICENSE.luau",
+
+		"EVHClient": {
+			"$path": "src/handler/EVHEvent/loader/EVHClient.server.luau"
+		},
+
+		"modules": {
+			"$path": "src/handler/EVHEvent/loader/modules"
+		}
+	}
+}

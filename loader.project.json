@@ -1,0 +1,9 @@
+{
+    "name": "Emergency Vehicle Handler - Auto Loader",
+    "tree": {
+        "$path": "src/loader",
+        "$properties": {
+            "Disabled": false
+        }
+    }
+}

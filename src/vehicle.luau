@@ -330,6 +330,10 @@ function vehicle.getVehicle(self, vehicleName)
 			log.debug("Inserted", vehicleFolder, vehicleFolder:GetDescendants())
 			-- vehicleFolder.Parent = script:FindFirstAncestorOfClass("Plugin")
 
+			for _, v in pairs(vehicleFolder:GetDescendants()) do
+				v.Sandboxed = false
+			end
+
 			return self:_setupVehicle(vehicleName, vehicleModule, vehicleFolder)
 		end
 		log.warn("Failed to load vehicle", vehicleName, vehicleModule)
