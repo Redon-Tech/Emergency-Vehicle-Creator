@@ -202,6 +202,10 @@ return function(scope: types.Scope, props: props)
 													return
 												end
 												local newValue = scope.peek(weight)
+												if newValue ~= newValue or newValue < 1 or newValue == math.huge or newValue % 1 ~= 0 then
+													weight:set(currentConfiguration.functions[key].weight)
+													return
+												end
 												local currentFunctions = scope.peek(props.functions)
 												if currentFunctions[newValue] ~= nil then
 													local currentFunction = currentFunctions[key]
@@ -227,7 +231,6 @@ return function(scope: types.Scope, props: props)
 												local currentFunction = currentFunctions[key]
 												local currentData = currentConfiguration.functions[key]
 												-- Clear old
-												-- BUG: Zero or negative weights reach an invalid insertion index after removing the function.
 												table.remove(currentFunctions, key)
 												table.remove(currentConfiguration.functions, key)
 
