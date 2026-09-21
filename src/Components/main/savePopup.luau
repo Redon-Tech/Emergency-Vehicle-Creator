@@ -451,7 +451,7 @@ return function(scope: types.Scope, props: props): Instance
 																popup:removePopup(newPopup)
 																local value = utils.deepCopy(value)
 																log.debug("Loading", value)
-																-- BUG: Loading a saved pattern changes vehicle data without marking UnsavedChanges.
+																props.UnsavedChanges:set(true)
 																props.CurrentPattern:set({
 																	functionId = currentPattern.functionId,
 																	patternId = currentPattern.patternId,
