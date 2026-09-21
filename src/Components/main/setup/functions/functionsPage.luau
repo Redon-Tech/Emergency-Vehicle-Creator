@@ -11,11 +11,15 @@ local popup = require(root.Plugin.Components.popup)
 local createChildren = require(script.Parent.Parent.createChildren)
 
 local function testFunctionName(name: string, functions: { string }, currentDepth: number): string
-	-- BUG: Uniqueness is checked before runtime sanitization, so names such as A B and AB collide.
 	local actualName = if currentDepth == 0 then name else `{name} ({currentDepth})`
-	local index = table.find(functions, actualName)
-	if index ~= nil then
-		return testFunctionName(name, functions, currentDepth + 1)
+	local sanitizedName = actualName:gsub("[^%a%d]", "")
+	if sanitizedName == "" then
+		return testFunctionName("New Function", functions, 0)
+	end
+	for _, existingName in functions do
+		if existingName:gsub("[^%a%d]", "") == sanitizedName then
+			return testFunctionName(name, functions, currentDepth + 1)
+		end
 	end
 	return actualName
 end
@@ -261,6 +265,14 @@ return function(scope: types.Scope, props: props)
 												end
 												local newValue = scope.peek(name)
 												local currentFunctions = scope.peek(props.functions)
+												local otherNames = {}
+												for i, func in currentFunctions do
+													if i ~= key then
+														table.insert(otherNames, func.name)
+													end
+												end
+												newValue = testFunctionName(newValue, otherNames, 0)
+												name:set(newValue)
 												currentFunctions[key].name = newValue
 												-- BUG: Renaming leaves override dependentFunction references pointing to the old name.
 												currentConfiguration.functions[key].name = newValue
