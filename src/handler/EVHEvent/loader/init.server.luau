@@ -496,8 +496,7 @@ local function changeSiren(siren: types.siren, state: boolean)
 						end
 					end
 				elseif
-					-- BUG: Registration writes parentSound, so this lookup mutes even this siren's own modified sounds.
-					siren.behavoir == "Overrides Other Sounds" and sound:GetAttribute("parentSiren") ~= siren.name
+					siren.behavoir == "Overrides Other Sounds" and sound:GetAttribute("parentSound") ~= siren.name
 				then
 					if state == true then
 						sound.Volume = 0
