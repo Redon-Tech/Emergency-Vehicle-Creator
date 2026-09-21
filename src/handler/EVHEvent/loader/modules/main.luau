@@ -768,7 +768,32 @@ local function vehicleRemoved(vehicle: Instance)
 		connection:Disconnect()
 	end
 
-	-- BUG: Removal leaves running patterns, return queues and per-light connections retained and still processed.
+	for i = #runningPatterns, 1, -1 do
+		if runningPatterns[i].vehicle == vehicle then
+			table.remove(runningPatterns, i)
+		end
+	end
+	for i = #faders.returnToZero, 1, -1 do
+		if faders.returnToZero[i].vehicle == vehicle then
+			table.remove(faders.returnToZero, i)
+		end
+	end
+	for i = #rotators.returnToZero, 1, -1 do
+		if rotators.returnToZero[i].vehicle == vehicle then
+			table.remove(rotators.returnToZero, i)
+		end
+	end
+	for _, lightData in vehicleData.lights do
+		if not lightData.isLightGroup then
+			for i = #lightData.parts, 1, -1 do
+				removeLight(vehicleData, lightData.parts[i])
+			end
+		end
+	end
+	if isBinded and #runningPatterns == 0 and #faders.returnToZero == 0 and #rotators.returnToZero == 0 then
+		RunService:UnbindFromRenderStep(`EVHClient_{version}`)
+		isBinded = false
+	end
 	vehicles[vehicle] = nil
 end
 
