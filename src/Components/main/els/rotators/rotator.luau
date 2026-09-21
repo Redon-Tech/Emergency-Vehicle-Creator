@@ -227,8 +227,7 @@ return function(
 								unpause()
 							end
 
-							-- BUG: The Fusion Value object is always truthy, so deletion always skips confirmation.
-							if props.holdingShift then
+							if scope.peek(props.holdingShift) then
 								remove()
 								return
 							end
@@ -364,8 +363,7 @@ return function(
 										props.rotator.data:set(currentData)
 									end
 
-									-- BUG: The Fusion Value object is always truthy, so deletion always skips confirmation.
-									if props.holdingShift then
+									if scope.peek(props.holdingShift) then
 										remove()
 										return
 									end
