@@ -613,7 +613,7 @@ local function lightDescendantAdded(
 end
 
 --- Adds a light to the vehicle data and sets up its connections.
-local function addLight(vehicleData: types.vehicle, light: Instance)
+local function addLight(vehicleData: types.vehicle, light: Instance, vehicle: Instance)
 	if light:IsA("BasePart") then
 		table.insert(vehicleData.lights[light.Name].parts, light)
 		if vehicleData.lightConnectedGroups[light.Name] ~= nil then
@@ -674,8 +674,11 @@ local function addLight(vehicleData: types.vehicle, light: Instance)
 
 		lights[light] = lightData
 
-		-- BUG: Streamed-in lights are forced off without restoring currentState; unchanged flasher colors never turn them back on.
-		setLight(vehicleData, light, false)
+		local state = vehicleData.lights[light.Name]
+		setLight(vehicleData, light, state.currentState ~= 0)
+		if state.currentState ~= 0 then
+			changeColor(vehicle, state.runningFunction :: any, light.Name, state.currentState)
+		end
 	end
 end
 
@@ -717,11 +720,11 @@ local function vehicleAdded(vehicle: Instance)
 			table.insert(
 				vehicleData.connections,
 				CollectionService:GetInstanceAddedSignal(`{uuid}_LIGHT`):Connect(function(light: Instance)
-					addLight(vehicleData, light)
+					addLight(vehicleData, light, vehicle)
 				end)
 			)
 			for _, light in CollectionService:GetTagged(`{uuid}_LIGHT`) do
-				addLight(vehicleData, light)
+				addLight(vehicleData, light, vehicle)
 			end
 
 			table.insert(
