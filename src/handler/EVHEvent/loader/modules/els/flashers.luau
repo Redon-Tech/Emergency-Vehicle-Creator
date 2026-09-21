@@ -13,8 +13,12 @@ local flashers = {} :: flashers
 
 function flashers.processPattern(pattern: types.pattern)
 	for _, flasherSection in pairs(pattern.flashers) do
-		-- BUG: Zero wait time, allowed by the editor, produces an invalid row index instead of a playable pattern.
-		local nextRow = math.floor(((pattern.patternTime / flasherSection.waitTime) % flasherSection.rowCount) + 1)
+		if flasherSection.rowCount <= 0 then
+			continue
+		end
+		local nextRow = if flasherSection.waitTime <= 0
+			then ((flasherSection.currentRow or 0) % flasherSection.rowCount) + 1
+			else math.floor(((pattern.patternTime / flasherSection.waitTime) % flasherSection.rowCount) + 1)
 		if nextRow ~= flasherSection.currentRow then
 			for _, column in pairs(flasherSection.columns) do
 				flashers.flash(pattern.vehicle, pattern.functionId, column.lightName, column.rows[nextRow])
