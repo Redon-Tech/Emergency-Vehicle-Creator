@@ -5,15 +5,14 @@ local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local Fusion = require(script.Parent.Parent.Packages.fusion)
 
 -- TEMPLATES
--- BUG: Escaped long-comment delimiters are emitted literally, leaving the header text as invalid Luau.
-local scriptTemplate = [[
---\[\[
+local scriptTemplate = [=[
+--[[
 	Emergency Vehicle Creator
     Support not provided for these files.
 
 	Redon Tech 2023-2025
 	EVC V3
---\]\]
+--]]
 
 local Car = script.Parent.Parent.Parent
 local Lightbar = script.Parent
@@ -76,7 +75,7 @@ REPLACE_WITH_ROTATOR_REGISTER
 -- The above will turn on said light and change its color to said color defined in the color table
 --------------
 while RunService.Heartbeat:Wait() do
-]]
+]=]
 
 -- TODO: get around to implementing rotators/faders
 -- BUG: gsub results are discarded, leaving both placeholder identifiers in exported scripts.
