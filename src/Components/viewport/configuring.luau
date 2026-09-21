@@ -162,8 +162,17 @@ return function(
 						currentVehicleFolder.data.customization[currentLocation][currentlyConfiguring].hasLights
 						== true
 					then
-						-- BUG: Reopening does not load the saved prefix; focusing and leaving this empty field clears it.
-						local lightPrefix = scope:Value("")
+						local savedPrefix = ""
+						local outfitting = scope.peek(props.outfitting)
+						if outfitting then
+							for _, equipment in outfitting:GetChildren() do
+								if equipment.Name == currentlyConfiguring and equipment:GetAttribute("EVCEquipmentName") == currentLocation then
+									savedPrefix = equipment:GetAttribute("lightPrefix") or ""
+									break
+								end
+							end
+						end
+						local lightPrefix = scope:Value(savedPrefix)
 						local function newLightPrefix()
 							local currentLocation = scope.peek(props.currentLocation)
 							local currentEquipment = scope.peek(props.currentEquipment)
