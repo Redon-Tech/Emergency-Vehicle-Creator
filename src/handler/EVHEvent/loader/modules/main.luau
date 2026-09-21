@@ -467,16 +467,15 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 	end
 	local currentFunction = vehicleData.configuration.functions[functionId]
 
-	-- BUG: All inactive patterns are reset, including ones that never ran; their fades and rotations can overwrite active effects.
 	for i, pattern: types.pattern in currentFunction.patterns do
 		if i == patternId then
 			continue
 		end
 		local runningId = table.find(runningPatterns, pattern)
-		if runningId then
-			-- flashers.removePattern(pattern)
-			table.remove(runningPatterns, runningId)
+		if runningId == nil then
+			continue
 		end
+		table.remove(runningPatterns, runningId)
 
 		for _, flasher in pattern.flashers do
 			for _, columns in flasher.columns do
