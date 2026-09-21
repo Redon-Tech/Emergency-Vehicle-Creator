@@ -103,6 +103,7 @@ function faders.processReturnToZero(deltaTime: number)
 		if currentPercentage >= 0.98 then
 			table.remove(faders.returnToZero, i)
 			data.section.currentPercentage = 0
+			data.section.returnStartValue = nil
 			data.section.previousGoal = 1
 			data.section.currentValue = 1
 			faders.resetLightTransparency(data.vehicle, data.section.lightName)
@@ -112,9 +113,9 @@ function faders.processReturnToZero(deltaTime: number)
 		currentPercentage = if lastTween.time <= 0 then 1 else math.min(1, currentPercentage + deltaTime / lastTween.time)
 		data.section.currentPercentage = currentPercentage
 
-		local previousGoal = data.section.previousGoal or 0
-		-- BUG: The return fade adds previousGoal to the easing value instead of interpolating from currentValue to 1.
-		data.section.currentValue = 1
+		local previousGoal = data.section.returnStartValue or data.section.currentValue or 1
+		data.section.returnStartValue = previousGoal
+		data.section.currentValue = (1 - previousGoal)
 				* TweenService:GetValue(
 					currentPercentage,
 					lastTween.easingStyle or Enum.EasingStyle.Linear,
