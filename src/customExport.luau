@@ -78,9 +78,8 @@ while RunService.Heartbeat:Wait() do
 ]=]
 
 -- TODO: get around to implementing rotators/faders
--- BUG: gsub results are discarded, leaving both placeholder identifiers in exported scripts.
-scriptTemplate:gsub("REPLACE_WITH_ROTATOR_REGISTER", "")
-scriptTemplate:gsub("REPLACE_WITH_TWEENSERVICE", "")
+scriptTemplate = scriptTemplate:gsub("REPLACE_WITH_ROTATOR_REGISTER", "")
+scriptTemplate = scriptTemplate:gsub("REPLACE_WITH_TWEENSERVICE", "")
 
 export type customExport = {
 	export: (flashers: { types.flasherSection }) -> (),
