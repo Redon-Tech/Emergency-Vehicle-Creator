@@ -419,9 +419,18 @@ return function(scope: types.Scope, props: props)
 							local currentLightSettings = scope.peek(props.lightSettings)
 							if currentLightSettings then
 								local currentLightGroups = scope.peek(currentLightSettings.lightGroups)
+								local usedNames = {}
+								for _, group in currentLightGroups do
+									usedNames[scope.peek(group.name)] = true
+								end
+								local groupName = "Group"
+								local suffix = 1
+								while usedNames[groupName] do
+									groupName = `Group ({suffix})`
+									suffix += 1
+								end
 								table.insert(currentLightGroups, {
-									-- BUG: Repeated additions create duplicate group names, which the handler merges into the same light entry.
-									name = props.firstScope:Value("Group"),
+									name = props.firstScope:Value(groupName),
 									lights = props.firstScope:Value({}),
 								})
 								currentLightSettings.lightGroups:set(currentLightGroups)
