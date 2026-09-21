@@ -107,8 +107,7 @@ function customExport.export(flashers)
 			code ..= `\t\ntask.wait({sectionData.waitTime})`
 		end
 
-		-- BUG: The generated while loop never receives a closing end, so every exported script fails to compile.
-		container.Source = code
+		container.Source = code .. "\nend\n"
 		container.Parent = model
 
 		for _, columnData in sectionData.columns do
