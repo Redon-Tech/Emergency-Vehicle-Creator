@@ -507,6 +507,11 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 		end
 
 		for _, rotator in pattern.rotators do
+			for i, pendingReturn in rotators.returnToZero do
+				if pendingReturn.vehicle == vehicle and pendingReturn.section == rotator then
+					table.remove(rotators.returnToZero, i)
+				end
+			end
 			updateLightRunningFunction(vehicle, rotator.lightName, functionId, true)
 			updateRotatorRad(vehicleData, rotator)
 			vehicleData.lights[rotator.lightName].returnToZero = false
