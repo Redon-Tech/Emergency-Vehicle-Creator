@@ -68,13 +68,15 @@ end
 
 --- Compares two tables for equality, including nested tables.
 function utils.compareTables(table1: { [any]: any }, table2: { [any]: any }): boolean
+	if typeof(table1) ~= "table" or typeof(table2) ~= "table" then
+		return false
+	end
 	for index, value in table1 do
 		if table2[index] == nil then
 			return false
 		end
 
 		if typeof(value) == "table" then
-			-- BUG: A table compared with a scalar recurses into the scalar and errors instead of returning false.
 			if utils.compareTables(value, table2[index]) == false then
 				return false
 			end
