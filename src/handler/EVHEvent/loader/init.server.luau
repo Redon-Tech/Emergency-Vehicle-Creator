@@ -202,7 +202,7 @@ local function load()
 					activation.dependentFunction = nil :: any
 					continue
 				end
-				-- BUG: Dependent names are not sanitized like function attributes, so names with spaces never match.
+				activation.dependentFunction = activation.dependentFunction:gsub("[^%a%d]", "")
 				car:GetAttributeChangedSignal(activation.dependentFunction):Connect(function()
 					local dependentValue = car:GetAttribute(activation.dependentFunction)
 					if dependentValue == nil or typeof(dependentValue) ~= "number" then
