@@ -82,7 +82,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	local sirens: Fusion.Value<{ sirenState }> = scope:Value({})
 	local modifiers: Fusion.Value<{ string }> = scope:Value({})
 
-	scope:Observer(props.CurrentVehicle):onChange(function()
+	scope:Observer(props.CurrentVehicle):onBind(function()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if typeof(currentVehicle) == "Instance" then
 			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
@@ -111,7 +111,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		end
 		modifiers:set(currentModifiers)
 	end
-	scope:Observer(sirens):onChange(updateModifiers)
+	scope:Observer(sirens):onBind(updateModifiers)
 
 	local function updateCurrentConfiguration()
 		if currentConfiguration ~= nil then

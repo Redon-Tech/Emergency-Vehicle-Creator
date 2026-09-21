@@ -40,7 +40,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	local activations: Fusion.Value<{ types.activationState }> = scope:Value({})
 	local selectedFunction: Fusion.Value<number?> = scope:Value(nil)
 
-	scope:Observer(props.CurrentVehicle):onChange(function()
+	scope:Observer(props.CurrentVehicle):onBind(function()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if typeof(currentVehicle) == "Instance" then
 			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)

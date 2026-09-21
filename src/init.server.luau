@@ -212,7 +212,6 @@ settings().Studio.ThemeChanged:Connect(function()
 	end
 end)
 
--- BUG: Rebuilding the UI retains CurrentVehicle, but onChange-only loaders never populate the new editor with that vehicle.
 scope:Observer(pluginSettings.values.theme):onChange(function()
 	if activeScope then
 		theme = scope.peek(pluginSettings.values.theme)

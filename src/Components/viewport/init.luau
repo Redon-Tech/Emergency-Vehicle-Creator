@@ -252,7 +252,7 @@ return function(baseScope: types.Scope, props: props)
 		end
 	end
 	scope:Observer(props.Mode):onChange(modeChange)
-	scope:Observer(props.CurrentVehicle):onChange(modeChange)
+	scope:Observer(props.CurrentVehicle):onBind(modeChange)
 
 	local viewportSize = scope:Value(Vector2.one)
 	return scope:New("ScreenGui") {

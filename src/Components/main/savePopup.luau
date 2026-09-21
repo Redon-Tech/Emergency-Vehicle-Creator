@@ -176,7 +176,7 @@ return function(scope: types.Scope, props: props): Instance
 	end
 
 	local currentConfiguration = nil
-	scope:Observer(props.CurrentVehicle):onChange(function()
+	scope:Observer(props.CurrentVehicle):onBind(function()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if typeof(currentVehicle) == "Instance" then
 			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
