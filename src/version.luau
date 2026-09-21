@@ -74,13 +74,46 @@ function version.isOutdated(self: version)
 		return false, true
 	end
 
-	if
-		self.currentVer.major < self.latestVer.major
-		or (self.currentVer.major == self.latestVer.major and self.currentVer.minor < self.latestVer.minor)
-		or (self.currentVer.major == self.latestVer.major and self.currentVer.minor == self.latestVer.minor and self.currentVer.patch < self.latestVer.patch)
-		-- BUG: Any prerelease mismatch reports outdated, even when the installed version is newer.
-		or (self.currentVer.preRelease ~= self.latestVer.preRelease)
-	then
+	local outdated = false
+	for _, field in { "major", "minor", "patch" } do
+		if self.currentVer[field] ~= self.latestVer[field] then
+			outdated = self.currentVer[field] < self.latestVer[field]
+			break
+		end
+	end
+	if self.currentVer.major == self.latestVer.major
+		and self.currentVer.minor == self.latestVer.minor
+		and self.currentVer.patch == self.latestVer.patch then
+		local current = self.currentVer.preRelease
+		local latest = self.latestVer.preRelease
+		if current ~= nil and latest == nil then
+			outdated = true
+		elseif current ~= nil and latest ~= nil then
+			local currentParts = string.split(current, ".")
+			local latestParts = string.split(latest, ".")
+			for i = 1, math.max(#currentParts, #latestParts) do
+				local a, b = currentParts[i], latestParts[i]
+				if a == b then
+					continue
+				end
+				if a == nil or b == nil then
+					outdated = a == nil
+				else
+					local an, bn = tonumber(a), tonumber(b)
+					if an ~= nil and bn ~= nil then
+						outdated = an < bn
+					elseif an ~= nil or bn ~= nil then
+						outdated = an ~= nil
+					else
+						outdated = a < b
+					end
+				end
+				break
+			end
+		end
+	end
+	if outdated then
+
 		log.warn(
 			"Version Check:",
 			("You are using an outdated version of the plugin\n                    Current version: %s\n                    ↳  Latest version: %s"):format(
