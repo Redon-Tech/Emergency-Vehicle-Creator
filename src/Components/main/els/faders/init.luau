@@ -201,6 +201,14 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 	-- player
 	local connection: RBXScriptConnection? = nil
+	local function stopPlayback()
+		if connection ~= nil then
+			connection:Disconnect()
+			connection = nil
+		end
+	end
+	table.insert(scope, stopPlayback)
+
 	scope:Observer(playing):onChange(function()
 		local isPlaying = scope.peek(playing)
 		local currentFaders = scope.peek(faders)
@@ -212,7 +220,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					data.currentValue:set(1)
 				end
 			end
-			-- BUG: The playback connection is not registered for scope cleanup; changing themes while playing leaves it running.
 			connection = RunService.Heartbeat:Connect(function(deltaTime: number)
 				for _, data in currentFaders do
 					local currentTweens = scope.peek(data.data)
@@ -257,10 +264,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			end)
 		else
 			log.debug("Stopping")
-			if connection ~= nil then
-				connection:Disconnect()
-				connection = nil
-			end
+			stopPlayback()
 
 			-- Reset the faders to ensure they stay in sync
 			for _, data in currentFaders do
