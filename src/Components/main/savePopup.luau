@@ -46,6 +46,7 @@ type v2Save = {
 }
 
 type props = {
+	UnsavedChanges: Fusion.Value<boolean>,
 	CurrentPattern: Fusion.Value<types.selectedPattern?>,
 	CurrentVehicle: Fusion.Value<Model | string?>,
 }
