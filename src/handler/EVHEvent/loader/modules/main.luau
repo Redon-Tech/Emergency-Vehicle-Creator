@@ -517,8 +517,25 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 			updateRotatorRad(vehicleData, rotator)
 			vehicleData.lights[rotator.lightName].returnToZero = false
 		end
-		-- BUG: Restarting resets the pattern clock but retains fader and rotator cursors from the previous run.
 		pattern.patternTime = 0
+		for _, fader in pattern.faders do
+			for i = #faders.returnToZero, 1, -1 do
+				local pending = faders.returnToZero[i]
+				if pending.vehicle == vehicle and pending.section == fader then
+					table.remove(faders.returnToZero, i)
+				end
+			end
+			fader.currentTween = 1
+			fader.currentPercentage = 0
+			fader.previousGoal = 1
+			fader.currentValue = 1
+			fader.returnStartValue = nil
+		end
+		for _, rotator in pattern.rotators do
+			rotator.currentAngle = 1
+			rotator.currentPercentage = 0
+			rotator.previousGoal = rotator.currentValue or 0
+		end
 
 		for _, flasherSection in pairs(pattern.flashers) do
 			flasherSection.currentRow = nil
