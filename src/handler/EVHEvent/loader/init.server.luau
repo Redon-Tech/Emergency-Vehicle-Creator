@@ -422,6 +422,8 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 		return
 	end
 
+	local suppressParent = false
+	local resumeDelay: number? = nil
 	for _, modifier in siren.modifiers do
 		local modifierId = table.find(sirenNames, modifier.name)
 		if modifierId == nil then
@@ -433,6 +435,9 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 		end
 
 		if modifierData.enabled == true and siren.enabled == true then
+			if modifier.parentSoundBehavior ~= "Plays Simultaneously" then
+				suppressParent = true
+			end
 			if modifier.behavoir == "Play Automatically" or sirenTriggered == true then
 				for _, sound in sirenSounds do
 					if sound:IsA("Sound") and sound.Name == modifier.modifiedSirenName then
@@ -456,14 +461,16 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 				end
 			end
 
-			-- BUG: An inactive modifier restarts the parent even when another active modifier has stopped it.
-			if modifier.parentSoundBehavior ~= "Plays Simultaneously" and siren.enabled == true then
-				for _, sound in sirenSounds do
-					if sound:IsA("Sound") and sound.Name == siren.name then
-						sound:Play()
-						sound.TimePosition -= modifier.delay
-					end
-				end
+			if modifier.parentSoundBehavior ~= "Plays Simultaneously" then
+				resumeDelay = modifier.delay
+			end
+		end
+	end
+	if not suppressParent and resumeDelay ~= nil and siren.enabled == true then
+		for _, sound in sirenSounds do
+			if sound.Name == siren.name and not sound.IsPlaying then
+				sound:Play()
+				sound.TimePosition = math.max(0, sound.TimePosition - resumeDelay)
 			end
 		end
 	end
