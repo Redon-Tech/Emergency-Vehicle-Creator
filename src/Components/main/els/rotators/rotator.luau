@@ -359,8 +359,8 @@ return function(
 									local function remove()
 										local currentData = scope.peek(props.rotator.data)
 										table.remove(currentData, deleting)
-										-- BUG: Adding or removing steps does not update the exported configuration.
 										props.rotator.data:set(currentData)
+										props.updateCurrentConfiguration()
 									end
 
 									if scope.peek(props.holdingShift) then
@@ -414,8 +414,8 @@ return function(
 										type = props.firstScope:Value("Wait" :: any), -- the day I dont need this I will be so glad
 										time = props.firstScope:Value(0.5),
 									})
-									-- BUG: Adding or removing steps does not update the exported configuration.
 									props.rotator.data:set(currentData)
+									props.updateCurrentConfiguration()
 								end,
 							},
 						},
