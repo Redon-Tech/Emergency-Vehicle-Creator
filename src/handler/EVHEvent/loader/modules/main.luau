@@ -760,12 +760,11 @@ return function(actualVersion: number)
 		isPrimary = true
 	else
 		if _G.EVHHANDSHAKE.version < version then
-			if table.find(_G.RUNNINGEVH, version) then
+			if _G.RUNNINGEVH[version] == true then
 				script.Parent.Parent:Destroy()
 				return
 			end
 
-			-- BUG: The duplicate check searches array values, but newer versions are stored as dictionary keys.
 			_G.RUNNINGEVH[version] = true
 			isPrimary = false
 		else
