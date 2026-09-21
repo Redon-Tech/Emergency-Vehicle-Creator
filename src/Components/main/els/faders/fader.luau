@@ -347,8 +347,8 @@ return function(
 									local function remove()
 										local currentData = scope.peek(props.fader.data)
 										table.remove(currentData, deleting)
-										-- BUG: Adding or removing steps does not update the exported configuration.
 										props.fader.data:set(currentData)
+										props.updateCurrentConfiguration()
 									end
 
 									if scope.peek(props.holdingShift) then
@@ -405,8 +405,8 @@ return function(
 											time = props.firstScope:Value(0.5),
 										} :: any
 									)
-									-- BUG: Adding or removing steps does not update the exported configuration.
 									props.fader.data:set(currentData)
+									props.updateCurrentConfiguration()
 								end,
 							},
 						},
