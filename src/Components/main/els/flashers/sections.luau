@@ -368,13 +368,10 @@ return function(
 										local deleting = scope.peek(currentlyHovering)
 
 										local function remove()
-											-- BUG: Deleting column 1 of 2 calls math.clamp with minimum 2 and maximum 1, so deletion errors.
 											currentlyHovering:set(
-												math.clamp(
-													deleting,
-													if deleting == 1 then 2 else 1,
-													#scope.peek(value.columns) - 1
-												)
+												if deleting == 1
+													then 1
+													else math.clamp(deleting, 1, #scope.peek(value.columns) - 1)
 											)
 											local currentColumns = scope.peek(value.columns)
 											table.remove(currentColumns, deleting)
