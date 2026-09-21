@@ -52,6 +52,7 @@ local sirensByKeycode: {
 	}
 } = {}
 local sirenNames: { string } = {}
+local changeSiren: (types.siren, boolean) -> ()
 
 local function setupRotator(rotator: BasePart)
 	--TODO: Allow to override usage of driveSeat so that rotators can be used in misc
@@ -113,6 +114,13 @@ local function load()
 		return
 	end
 	driveSeat = possibleDriveSeat :: VehicleSeat
+	driveSeat:GetPropertyChangedSignal("Occupant"):Connect(function()
+		for _, siren in sirens do
+			if siren.type == "Hold" and siren.enabled == true then
+				changeSiren(siren, false)
+			end
+		end
+	end)
 	uuid = HTTPService:GenerateGUID(false)
 	car:SetAttribute("uuid", uuid)
 	car:SetAttribute("version", version)
@@ -461,7 +469,7 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 	end
 end
 
-local function changeSiren(siren: types.siren, state: boolean)
+changeSiren = function(siren: types.siren, state: boolean)
 	if siren.type ~= "Modifier" then
 		for _, sound in sirenSounds do
 			if sound:IsA("Sound") then
@@ -540,7 +548,6 @@ script.Parent.OnServerEvent:Connect(function(player: Player, type: string, ...)
 	if initialized == false then
 		return
 	end
-	-- BUG: Exiting the seat while holding a siren rejects its release event and leaves the sound playing.
 	if driveSeat.Occupant == nil or player ~= Players:GetPlayerFromCharacter(driveSeat.Occupant.Parent) then
 		return
 	end
