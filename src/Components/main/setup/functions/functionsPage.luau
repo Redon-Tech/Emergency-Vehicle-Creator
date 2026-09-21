@@ -277,7 +277,14 @@ return function(scope: types.Scope, props: props)
 												newValue = testFunctionName(newValue, otherNames, 0)
 												name:set(newValue)
 												currentFunctions[key].name = newValue
-												-- BUG: Renaming leaves override dependentFunction references pointing to the old name.
+												local oldName = currentConfiguration.functions[key].name
+												for _, func in currentConfiguration.functions do
+													for _, activation in func.activations do
+														if activation.type == "Override" and activation.dependentFunction == oldName then
+															activation.dependentFunction = newValue
+														end
+													end
+												end
 												currentConfiguration.functions[key].name = newValue
 												props.functions:set(currentFunctions)
 												props.UnsavedChanges:set(true)
