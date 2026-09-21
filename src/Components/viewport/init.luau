@@ -153,7 +153,7 @@ return function(baseScope: types.Scope, props: props)
 
 	scope:Observer(props.Enabled):onChange(function()
 		if not scope.peek(props.Enabled) then
-			-- BUG: Disabling during placement never clears placingVehicle, leaving the placement overlay active on the next vehicle.
+			placingVehicle:set(false)
 			cleanupCustomization()
 			props.Mode:set("menu")
 			props.CurrentVehicle:set(nil)
