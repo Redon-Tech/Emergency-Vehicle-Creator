@@ -405,8 +405,6 @@ if EVHEvent.Parent == nil or EVHEvent.Parent:IsA("Model") == false then
 	connection = EVHEvent.AncestryChanged:Connect(function(child: Instance, parent: Instance?)
 		if child == EVHEvent and parent ~= nil and parent:IsA("Model") then
 			connection:Disconnect()
-			-- BUG: Destroying the event clears its parent before load() reads the vehicle and configuration.
-			EVHEvent:Destroy()
 			load()
 		end
 	end)
