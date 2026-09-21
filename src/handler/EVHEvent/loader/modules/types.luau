@@ -84,6 +84,7 @@ export type faderSection = {
 	currentPercentage: number?,
 	currentValue: number?,
 	previousGoal: number?,
+	returnStartValue: number?,
 	totalTime: number,
 }
 
