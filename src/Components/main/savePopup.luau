@@ -178,9 +178,10 @@ return function(scope: types.Scope, props: props): Instance
 	local currentConfiguration = nil
 	scope:Observer(props.CurrentVehicle):onChange(function()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
-		-- BUG: Leaving a vehicle retains its configuration; loading a standalone pattern later indexes function 0 in that vehicle.
 		if typeof(currentVehicle) == "Instance" then
 			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
+		else
+			currentConfiguration = nil
 		end
 	end)
 
