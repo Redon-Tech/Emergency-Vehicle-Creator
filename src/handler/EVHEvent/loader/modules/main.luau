@@ -412,6 +412,10 @@ local function updateLightRunningFunction(vehicle: Instance, lightName: string, 
 					highestWeight = possibleFunctionData.weight
 				end
 			end
+			if highestFunction ~= nil then
+				lightData.returnToZero = true
+				resetLightTransparency(vehicle, lightName)
+			end
 			lightData.runningFunction = highestFunction
 			if highestFunction ~= nil then
 				table.remove(lightData.possibleFunctions, table.find(lightData.possibleFunctions, highestFunction))
