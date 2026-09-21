@@ -590,14 +590,23 @@ local function lightDescendantAdded(
 		(lighto:IsA("ImageLabel") or lighto:IsA("ImageButton"))
 		and vehicleData.configuration.lightSettings.configuration.shouldChangeLightos
 	then
+		if lighto:GetAttribute("defaultImageTransparency") == nil then
+			lighto:SetAttribute("defaultImageTransparency", lighto.ImageTransparency)
+		end
 		local lightoCollector = lighto:FindFirstAncestorWhichIsA("LayerCollector")
 		for _, colorableLighto in pairs(lightData.colorableLightos) do
 			if
 				colorableLighto.lighto == lightoCollector
 				and table.find(colorableLighto.images, lighto :: ImageLabel) == nil
 			then
-				-- BUG: Images added later have no defaultImageTransparency attribute, so resetting a fade assigns nil.
 				table.insert(colorableLighto.images, lighto :: ImageLabel)
+			end
+		end
+		for _, collectors in lightData.lightos do
+			for _, collector in collectors do
+				if collector.lighto == lightoCollector and table.find(collector.images, lighto :: ImageLabel) == nil then
+					table.insert(collector.images, lighto :: ImageLabel)
+				end
 			end
 		end
 	end
