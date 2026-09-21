@@ -40,12 +40,13 @@ return function(vehicle: Instance): types.vehicle?
 	end
 
 	-- get lights
-	for functionIndex, currentFunction in currentConfiguration.functions do
+	for functionIndex = #currentConfiguration.functions, 1, -1 do
+		local currentFunction = currentConfiguration.functions[functionIndex]
 		if currentFunction.patterns == nil or currentFunction.name == nil or currentFunction.weight == nil then
-			-- BUG: Removing during forward iteration skips the next function and leaves it uninitialized.
 			table.remove(currentConfiguration.functions, functionIndex)
-			continue
 		end
+	end
+	for _, currentFunction in currentConfiguration.functions do
 		-- also since we are here, format the name properly
 		currentFunction.name = currentFunction.name:gsub("[^%a%d]", "")
 
