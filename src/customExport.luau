@@ -101,8 +101,7 @@ function customExport.export(flashers)
 			code ..= `\n\n\t-- Row {rowId}`
 
 			for _, columnData in sectionData.columns do
-				-- BUG: Light names are inserted without string escaping; quotes or backslashes can break generated code.
-				code ..= `\t\nlight("{columnData.lightName}", {columnData.rows[rowId]})`
+				code ..= string.format("\n\tlight(%q, %s)", columnData.lightName, tostring(columnData.rows[rowId]))
 			end
 
 			code ..= `\t\ntask.wait({sectionData.waitTime})`
