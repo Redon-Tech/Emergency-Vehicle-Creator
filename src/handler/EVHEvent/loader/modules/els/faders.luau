@@ -26,6 +26,9 @@ local faders = {
 function faders.processPattern(pattern: types.pattern)
 	for _, data in pairs(pattern.faders) do
 		local currentTweens = data.data
+		if #currentTweens == 0 then
+			continue
+		end
 		local tweenId = data.currentTween or 1
 		if tweenId > #currentTweens then
 			if currentTweens[tweenId] ~= nil and currentTweens[tweenId].type ~= "Wait" then
@@ -33,7 +36,7 @@ function faders.processPattern(pattern: types.pattern)
 			end
 			tweenId = 1
 		end
-		-- BUG: An empty fader data list indexes nil and aborts the shared render callback.
+
 		local currentTween = currentTweens[tweenId]
 		-- BUG: Zero total duration or tween duration produces NaN or division by zero; the editor permits zero durations.
 		local currentPercentage = (
@@ -73,7 +76,12 @@ function faders.processPattern(pattern: types.pattern)
 end
 
 function faders.processReturnToZero(deltaTime: number)
-	for i, data in pairs(faders.returnToZero) do
+	for i = #faders.returnToZero, 1, -1 do
+		local data = faders.returnToZero[i]
+		if #data.section.data == 0 then
+			table.remove(faders.returnToZero, i)
+			continue
+		end
 		local lastTweenId = data.section.currentTween or 1
 		if lastTweenId > #data.section.data then
 			lastTweenId = #data.section.data

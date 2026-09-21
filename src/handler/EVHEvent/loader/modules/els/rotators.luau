@@ -19,6 +19,9 @@ local rotators = {
 function rotators.processPattern(pattern: types.pattern, deltaTime: number)
 	for _, data in pairs(pattern.rotators) do
 		local currentAngles = data.data
+		if #currentAngles == 0 then
+			continue
+		end
 		local angleId = data.currentAngle or 1
 		local currentPercentage = data.currentPercentage or 0
 		if angleId > #currentAngles then
@@ -27,7 +30,7 @@ function rotators.processPattern(pattern: types.pattern, deltaTime: number)
 		end
 
 		data.currentAngle = angleId
-		-- BUG: An empty rotator data list indexes nil and aborts the shared render callback.
+
 		local currentAngle = currentAngles[angleId]
 		if currentAngle.type == "Angle" then
 			if currentAngle.color ~= 0 then
@@ -73,7 +76,12 @@ function rotators.processPattern(pattern: types.pattern, deltaTime: number)
 end
 
 function rotators.processReturnToZero(deltaTime: number)
-	for i, data in rotators.returnToZero do
+	for i = #rotators.returnToZero, 1, -1 do
+		local data = rotators.returnToZero[i]
+		if #data.section.data == 0 then
+			table.remove(rotators.returnToZero, i)
+			continue
+		end
 		print(data.section.lightName)
 		local lastAngle = data.section.data[data.section.currentAngle or 1]
 		local startRotation = (data.section.currentValue or 0) % (math.pi * 2)
