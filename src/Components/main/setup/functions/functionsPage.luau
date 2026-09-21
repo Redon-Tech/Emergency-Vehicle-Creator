@@ -11,6 +11,7 @@ local popup = require(root.Plugin.Components.popup)
 local createChildren = require(script.Parent.Parent.createChildren)
 
 local function testFunctionName(name: string, functions: { string }, currentDepth: number): string
+	-- BUG: Uniqueness is checked before runtime sanitization, so names such as A B and AB collide.
 	local actualName = if currentDepth == 0 then name else `{name} ({currentDepth})`
 	local index = table.find(functions, actualName)
 	if index ~= nil then
@@ -222,6 +223,7 @@ return function(scope: types.Scope, props: props)
 												local currentFunction = currentFunctions[key]
 												local currentData = currentConfiguration.functions[key]
 												-- Clear old
+												-- BUG: Zero or negative weights reach an invalid insertion index after removing the function.
 												table.remove(currentFunctions, key)
 												table.remove(currentConfiguration.functions, key)
 
@@ -260,6 +262,7 @@ return function(scope: types.Scope, props: props)
 												local newValue = scope.peek(name)
 												local currentFunctions = scope.peek(props.functions)
 												currentFunctions[key].name = newValue
+												-- BUG: Renaming leaves override dependentFunction references pointing to the old name.
 												currentConfiguration.functions[key].name = newValue
 												props.functions:set(currentFunctions)
 												props.UnsavedChanges:set(true)

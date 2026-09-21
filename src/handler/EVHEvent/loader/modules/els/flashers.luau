@@ -13,6 +13,7 @@ local flashers = {} :: flashers
 
 function flashers.processPattern(pattern: types.pattern)
 	for _, flasherSection in pairs(pattern.flashers) do
+		-- BUG: Zero wait time, allowed by the editor, produces an invalid row index instead of a playable pattern.
 		local nextRow = math.floor(((pattern.patternTime / flasherSection.waitTime) % flasherSection.rowCount) + 1)
 		if nextRow ~= flasherSection.currentRow then
 			for _, column in pairs(flasherSection.columns) do

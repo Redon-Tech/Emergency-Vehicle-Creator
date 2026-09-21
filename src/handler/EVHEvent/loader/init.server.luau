@@ -170,6 +170,7 @@ local function load()
 				return
 			end
 
+			-- BUG: Negative, fractional and NaN pattern IDs pass validation and cause nil pattern indexing on clients.
 			if currentPatternId > #currentFunction.patterns then
 				car:SetAttribute(currentFunction.name, 0)
 				return
@@ -201,6 +202,7 @@ local function load()
 					activation.dependentFunction = nil :: any
 					continue
 				end
+				-- BUG: Dependent names are not sanitized like function attributes, so names with spaces never match.
 				car:GetAttributeChangedSignal(activation.dependentFunction):Connect(function()
 					local dependentValue = car:GetAttribute(activation.dependentFunction)
 					if dependentValue == nil or typeof(dependentValue) ~= "number" then
@@ -221,6 +223,7 @@ local function load()
 		end
 
 		for _, pattern in currentFunction.patterns do
+			-- BUG: One missing effect list erases all three lists, including valid pattern data.
 			if pattern.flashers == nil or pattern.faders == nil or pattern.rotators == nil then
 				pattern.flashers = {}
 				pattern.faders = {}
@@ -287,6 +290,7 @@ local function load()
 		if v:IsA("BasePart") then
 			local excluded = false
 			for _, exclusionParent in exclusionParents do
+				-- BUG: EVH_Ignore on a light part does not exclude the part itself.
 				if v:IsDescendantOf(exclusionParent) then
 					excluded = true
 					break
@@ -402,6 +406,7 @@ if EVHEvent.Parent == nil or EVHEvent.Parent:IsA("Model") == false then
 	connection = EVHEvent.AncestryChanged:Connect(function(child: Instance, parent: Instance?)
 		if child == EVHEvent and parent ~= nil and parent:IsA("Model") then
 			connection:Disconnect()
+			-- BUG: Destroying the event clears its parent before load() reads the vehicle and configuration.
 			EVHEvent:Destroy()
 			load()
 		end
@@ -449,6 +454,7 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 				end
 			end
 
+			-- BUG: An inactive modifier restarts the parent even when another active modifier has stopped it.
 			if modifier.parentSoundBehavior ~= "Plays Simultaneously" and siren.enabled == true then
 				for _, sound in sirenSounds do
 					if sound:IsA("Sound") and sound.Name == siren.name then
@@ -493,6 +499,7 @@ local function changeSiren(siren: types.siren, state: boolean)
 						end
 					end
 				elseif
+					-- BUG: Registration writes parentSound, so this lookup mutes even this siren's own modified sounds.
 					siren.behavoir == "Overrides Other Sounds" and sound:GetAttribute("parentSiren") ~= siren.name
 				then
 					if state == true then
@@ -540,6 +547,7 @@ script.Parent.OnServerEvent:Connect(function(player: Player, type: string, ...)
 	if initialized == false then
 		return
 	end
+	-- BUG: Exiting the seat while holding a siren rejects its release event and leaves the sound playing.
 	if driveSeat.Occupant == nil or player ~= Players:GetPlayerFromCharacter(driveSeat.Occupant.Parent) then
 		return
 	end

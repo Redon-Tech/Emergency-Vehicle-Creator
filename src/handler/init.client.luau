@@ -92,6 +92,7 @@ end
 
 local function input(InputObject: InputObject, gameProcessedEvent: boolean)
 	if
+		-- BUG: Processed release events are dropped even after an accepted press, leaving hold sirens on.
 		gameProcessedEvent == false
 		and (
 			InputObject.UserInputType == Enum.UserInputType.Keyboard

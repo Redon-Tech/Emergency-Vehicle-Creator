@@ -112,6 +112,7 @@ return function(scope: types.Scope, props: props)
 											or (lightKey > lastLight and i < lightKey and i >= lastLight)
 										then
 											if adding == true then
+												-- BUG: Shift selection adds existing members again, so one deselection cannot remove the light.
 												table.insert(currentLights, v)
 											else
 												local index = table.find(currentLights, v)
@@ -418,6 +419,7 @@ return function(scope: types.Scope, props: props)
 							if currentLightSettings then
 								local currentLightGroups = scope.peek(currentLightSettings.lightGroups)
 								table.insert(currentLightGroups, {
+									-- BUG: Repeated additions create duplicate group names, which the handler merges into the same light entry.
 									name = props.firstScope:Value("Group"),
 									lights = props.firstScope:Value({}),
 								})

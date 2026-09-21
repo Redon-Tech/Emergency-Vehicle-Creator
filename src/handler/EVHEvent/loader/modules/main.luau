@@ -208,6 +208,7 @@ local function setLightTransparency(
 	if colorData == nil then
 		return
 	end
+	-- BUG: returnToZero bypasses ownership checks, allowing inactive or lower-priority faders to overwrite the active function.
 	if lightData.runningFunction ~= functionId and lightData.returnToZero ~= true then
 		return
 	end
@@ -263,6 +264,7 @@ local function setLightTransparency(
 		end
 		if vehicleData.configuration.lightSettings.configuration.shouldChangeParticleEmitters == true then
 			for _, particleEmitter in lightInstances.particleEmitters do
+				-- BUG: Faders never enable particle emitters after initialization disables them.
 				particleEmitter.Transparency = NumberSequence.new(transparency)
 			end
 		end
@@ -337,6 +339,7 @@ local function setRotation(vehicle: Instance, functionId: number, lightName: str
 		return
 	end
 	local lightData = vehicleData.lights[lightName]
+	-- BUG: returnToZero bypasses ownership checks, allowing inactive or lower-priority rotators to overwrite the active function.
 	if lightData.runningFunction ~= functionId and lightData.returnToZero ~= true then
 		return
 	end
@@ -403,6 +406,7 @@ local function updateLightRunningFunction(vehicle: Instance, lightName: string, 
 			lightData.runningFunction = nil
 
 			local highestFunction = nil
+			-- BUG: A waiting function with weight zero or below is never restored after a higher-priority function stops.
 			local highestWeight = 0
 			for _, possibleFunction in lightData.possibleFunctions do
 				local possibleFunctionData = vehicleData.configuration.functions[possibleFunction]
@@ -441,6 +445,7 @@ local function updateLightRunningFunction(vehicle: Instance, lightName: string, 
 				table.insert(lightData.possibleFunctions, lightData.runningFunction)
 				lightData.runningFunction = functionId
 			else
+				-- BUG: Repeated references to one light enqueue duplicate function IDs that can survive deactivation.
 				table.insert(lightData.possibleFunctions, functionId)
 			end
 		end
@@ -460,6 +465,7 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 	end
 	local currentFunction = vehicleData.configuration.functions[functionId]
 
+	-- BUG: All inactive patterns are reset, including ones that never ran; their fades and rotations can overwrite active effects.
 	for i, pattern: types.pattern in currentFunction.patterns do
 		if i == patternId then
 			continue
@@ -505,6 +511,7 @@ local function vehicleFunctionUpdate(vehicle: Instance, functionName: string, fu
 			updateRotatorRad(vehicleData, rotator)
 			vehicleData.lights[rotator.lightName].returnToZero = false
 		end
+		-- BUG: Restarting resets the pattern clock but retains fader and rotator cursors from the previous run.
 		pattern.patternTime = 0
 
 		for _, flasherSection in pairs(pattern.flashers) do
@@ -566,6 +573,7 @@ local function lightDescendantAdded(
 				colorableLighto.lighto == lightoCollector
 				and table.find(colorableLighto.images, lighto :: ImageLabel) == nil
 			then
+				-- BUG: Images added later have no defaultImageTransparency attribute, so resetting a fade assigns nil.
 				table.insert(colorableLighto.images, lighto :: ImageLabel)
 			end
 		end
@@ -634,6 +642,7 @@ local function addLight(vehicleData: types.vehicle, light: Instance)
 
 		lights[light] = lightData
 
+		-- BUG: Streamed-in lights are forced off without restoring currentState; unchanged flasher colors never turn them back on.
 		setLight(vehicleData, light, false)
 	end
 end
@@ -724,6 +733,7 @@ local function vehicleRemoved(vehicle: Instance)
 		connection:Disconnect()
 	end
 
+	-- BUG: Removal leaves running patterns, return queues and per-light connections retained and still processed.
 	vehicles[vehicle] = nil
 end
 
@@ -749,6 +759,7 @@ return function(actualVersion: number)
 				return
 			end
 
+			-- BUG: The duplicate check searches array values, but newer versions are stored as dictionary keys.
 			_G.RUNNINGEVH[version] = true
 			isPrimary = false
 		else

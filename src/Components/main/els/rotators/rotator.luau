@@ -227,6 +227,7 @@ return function(
 								unpause()
 							end
 
+							-- BUG: The Fusion Value object is always truthy, so deletion always skips confirmation.
 							if props.holdingShift then
 								remove()
 								return
@@ -359,9 +360,11 @@ return function(
 									local function remove()
 										local currentData = scope.peek(props.rotator.data)
 										table.remove(currentData, deleting)
+										-- BUG: Adding or removing steps does not update the exported configuration.
 										props.rotator.data:set(currentData)
 									end
 
+									-- BUG: The Fusion Value object is always truthy, so deletion always skips confirmation.
 									if props.holdingShift then
 										remove()
 										return
@@ -413,6 +416,7 @@ return function(
 										type = props.firstScope:Value("Wait" :: any), -- the day I dont need this I will be so glad
 										time = props.firstScope:Value(0.5),
 									})
+									-- BUG: Adding or removing steps does not update the exported configuration.
 									props.rotator.data:set(currentData)
 								end,
 							},

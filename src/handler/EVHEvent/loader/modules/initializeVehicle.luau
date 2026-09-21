@@ -42,6 +42,7 @@ return function(vehicle: Instance): types.vehicle?
 	-- get lights
 	for functionIndex, currentFunction in currentConfiguration.functions do
 		if currentFunction.patterns == nil or currentFunction.name == nil or currentFunction.weight == nil then
+			-- BUG: Removing during forward iteration skips the next function and leaves it uninitialized.
 			table.remove(currentConfiguration.functions, functionIndex)
 			continue
 		end
@@ -52,6 +53,7 @@ return function(vehicle: Instance): types.vehicle?
 			-- also since we are here, insert the time var
 			pattern.patternTime = 0
 
+			-- BUG: A partially missing effect list is not initialized and the following loop iterates nil.
 			if pattern.flashers == nil and pattern.faders == nil and pattern.rotators == nil then
 				pattern.flashers = {}
 				pattern.faders = {}

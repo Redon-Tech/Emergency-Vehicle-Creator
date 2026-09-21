@@ -93,6 +93,7 @@ return function(
 								unpause()
 							end
 
+							-- BUG: The Fusion Value object is always truthy, so deletion always skips confirmation.
 							if props.holdingShift then
 								remove()
 								return
@@ -347,9 +348,11 @@ return function(
 									local function remove()
 										local currentData = scope.peek(props.fader.data)
 										table.remove(currentData, deleting)
+										-- BUG: Adding or removing steps does not update the exported configuration.
 										props.fader.data:set(currentData)
 									end
 
+									-- BUG: The Fusion Value object is always truthy, so deletion always skips confirmation.
 									if props.holdingShift then
 										remove()
 										return
@@ -404,6 +407,7 @@ return function(
 											time = props.firstScope:Value(0.5),
 										} :: any
 									)
+									-- BUG: Adding or removing steps does not update the exported configuration.
 									props.fader.data:set(currentData)
 								end,
 							},

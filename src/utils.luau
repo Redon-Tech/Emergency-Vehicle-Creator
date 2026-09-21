@@ -74,6 +74,7 @@ function utils.compareTables(table1: { [any]: any }, table2: { [any]: any }): bo
 		end
 
 		if typeof(value) == "table" then
+			-- BUG: A table compared with a scalar recurses into the scalar and errors instead of returning false.
 			if utils.compareTables(value, table2[index]) == false then
 				return false
 			end

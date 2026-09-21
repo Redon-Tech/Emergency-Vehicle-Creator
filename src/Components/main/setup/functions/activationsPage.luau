@@ -685,6 +685,7 @@ return function(scope: types.Scope, props: props)
 							props.firstScope:Value(Enum.KeyCode.DPadLeft),
 						}),
 					}
+					-- BUG: Adding an activation never assembles it into currentConfiguration, so export omits it until another edit.
 					table.insert(currentActivations, newActivation)
 					props.activations:set(currentActivations)
 					props.UnsavedChanges:set(true)

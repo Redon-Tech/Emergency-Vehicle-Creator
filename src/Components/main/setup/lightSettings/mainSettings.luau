@@ -210,6 +210,7 @@ return function(scope: types.Scope, props: props)
 											}
 									else
 										local currentLightSettings = scope.peek(props.lightSettings)
+										-- BUG: This field initializes before vehicle loading and never observes the loaded transparency.
 										local text = scope:Value(
 											currentLightSettings
 													and tostring(currentLightSettings.configuration[value.index])

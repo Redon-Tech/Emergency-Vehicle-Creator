@@ -189,6 +189,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	end
 
 	-- player
+	-- BUG: Playback tasks have no scope cleanup, so changing themes while playing leaves them updating disposed state.
 	local threads: { { activeThread: thread, sections: { number } } } = {}
 	scope:Observer(playing):onChange(function()
 		local isPlaying = scope.peek(playing)

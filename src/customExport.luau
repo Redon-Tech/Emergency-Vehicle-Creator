@@ -5,6 +5,7 @@ local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local Fusion = require(script.Parent.Parent.Packages.fusion)
 
 -- TEMPLATES
+-- BUG: Escaped long-comment delimiters are emitted literally, leaving the header text as invalid Luau.
 local scriptTemplate = [[
 --\[\[
 	Emergency Vehicle Creator
@@ -78,6 +79,7 @@ while RunService.Heartbeat:Wait() do
 ]]
 
 -- TODO: get around to implementing rotators/faders
+-- BUG: gsub results are discarded, leaving both placeholder identifiers in exported scripts.
 scriptTemplate:gsub("REPLACE_WITH_ROTATOR_REGISTER", "")
 scriptTemplate:gsub("REPLACE_WITH_TWEENSERVICE", "")
 
@@ -101,12 +103,14 @@ function customExport.export(flashers)
 			code ..= `\n\n\t-- Row {rowId}`
 
 			for _, columnData in sectionData.columns do
+				-- BUG: Light names are inserted without string escaping; quotes or backslashes can break generated code.
 				code ..= `\t\nlight("{columnData.lightName}", {columnData.rows[rowId]})`
 			end
 
 			code ..= `\t\ntask.wait({sectionData.waitTime})`
 		end
 
+		-- BUG: The generated while loop never receives a closing end, so every exported script fails to compile.
 		container.Source = code
 		container.Parent = model
 

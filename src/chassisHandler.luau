@@ -165,6 +165,7 @@ function chassisHandler.hasPluginInstalled(self: chassisHandler, model: Model): 
 	elseif vehicleType == "m" then
 		tune = model:FindFirstChild("Tuner")
 	elseif vehicleType == "mg" then
+		-- BUG: Vehicle detection uses MG-Chassis Tune; this case mismatch prevents MG chassis lookup.
 		tune = model:FindFirstChild("MG-Chassis tune")
 	end
 
@@ -197,6 +198,7 @@ function chassisHandler.hasEVCChassisPluginInstalled(_: chassisHandler, model: M
 	elseif vehicleType == "m" then
 		tune = model:FindFirstChild("Tuner")
 	elseif vehicleType == "mg" then
+		-- BUG: Vehicle detection uses MG-Chassis Tune; this case mismatch prevents MG chassis lookup.
 		tune = model:FindFirstChild("MG-Chassis tune")
 	end
 
@@ -248,6 +250,7 @@ function chassisHandler.installPlugin(self: chassisHandler, model: Model): boole
 	elseif vehicleType == "m" then
 		tune = model:FindFirstChild("Tuner")
 	elseif vehicleType == "mg" then
+		-- BUG: Vehicle detection uses MG-Chassis Tune; this case mismatch prevents MG chassis lookup.
 		tune = model:FindFirstChild("MG-Chassis tune")
 	end
 

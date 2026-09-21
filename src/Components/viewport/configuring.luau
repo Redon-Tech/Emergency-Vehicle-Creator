@@ -162,6 +162,7 @@ return function(
 						currentVehicleFolder.data.customization[currentLocation][currentlyConfiguring].hasLights
 						== true
 					then
+						-- BUG: Reopening does not load the saved prefix; focusing and leaving this empty field clears it.
 						local lightPrefix = scope:Value("")
 						local function newLightPrefix()
 							local currentLocation = scope.peek(props.currentLocation)

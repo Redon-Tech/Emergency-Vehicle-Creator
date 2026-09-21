@@ -163,6 +163,7 @@ local function createChildren(
 			if currentRowSize < size then
 				currentRow = currentRow + 1
 				currentRowSize = maxOptionsSize
+				-- BUG: Each recomputation adds overflow height again without resetting it, so rows keep growing.
 				props.rowSize:set(scope.peek(props.rowSize) + 75)
 				rows[currentRow] = {}
 				newRowMeta[currentRow] = { total = 0 }

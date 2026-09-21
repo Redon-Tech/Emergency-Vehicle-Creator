@@ -218,6 +218,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				end
 			end
 
+			-- BUG: The playback connection is not registered for scope cleanup; changing themes while playing leaves it running.
 			connection = RunService.Heartbeat:Connect(function(deltaTime: number)
 				for _, data in currentRotators do
 					local currentAngles = scope.peek(data.data)
@@ -242,6 +243,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 							data.previousGoal = goal
 							currentPercentage = 0
 						else
+							-- BUG: Angle preview speed depends on frame rate because the step ignores deltaTime.
 							currentRotation += math.clamp(difference, -velocity, velocity)
 							currentPercentage = 1 - ((goal - currentRotation) / (goal - data.previousGoal :: number))
 

@@ -491,6 +491,7 @@ function vehicle.changeEquipment(self, vehicleFolder, outfitting, location, equi
 
 	-- Clear the current customization
 	if currentEquipment ~= nil and typeof(currentEquipment) == "string" and currentEquipment ~= "BasePoint" then
+		-- BUG: Equipment with the same name in different locations can cause removal of the wrong location's model.
 		local currentModel = outfitting:FindFirstChild(currentEquipment) :: Model?
 		if currentModel == nil then
 			log.warn("Failed to find current equipment", currentEquipment)

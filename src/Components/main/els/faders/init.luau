@@ -212,6 +212,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					data.currentValue:set(1)
 				end
 			end
+			-- BUG: The playback connection is not registered for scope cleanup; changing themes while playing leaves it running.
 			connection = RunService.Heartbeat:Connect(function(deltaTime: number)
 				for _, data in currentFaders do
 					local currentTweens = scope.peek(data.data)

@@ -27,6 +27,7 @@ function rotators.processPattern(pattern: types.pattern, deltaTime: number)
 		end
 
 		data.currentAngle = angleId
+		-- BUG: An empty rotator data list indexes nil and aborts the shared render callback.
 		local currentAngle = currentAngles[angleId]
 		if currentAngle.type == "Angle" then
 			if currentAngle.color ~= 0 then
@@ -42,6 +43,7 @@ function rotators.processPattern(pattern: types.pattern, deltaTime: number)
 				data.previousGoal = goal
 				currentPercentage = 0
 			else
+				-- BUG: Angle speed depends on frame rate because the step ignores deltaTime.
 				currentRotation += math.clamp(difference, -velocity, velocity)
 				currentPercentage = 1 - ((goal - currentRotation) / (goal - (data.previousGoal or 0) :: number))
 
@@ -83,6 +85,7 @@ function rotators.processReturnToZero()
 			data.section.currentPercentage = 0
 			table.remove(rotators.returnToZero, i)
 		else
+			-- BUG: Return-to-zero speed depends on frame rate because the step has no elapsed-time scaling.
 			currentRotation += math.clamp(difference, -velocity, velocity)
 			data.section.currentPercentage = 1 - (-currentRotation / (-(data.section.previousGoal or 0) :: number))
 

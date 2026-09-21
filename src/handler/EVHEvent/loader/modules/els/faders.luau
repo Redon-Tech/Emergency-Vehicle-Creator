@@ -33,7 +33,9 @@ function faders.processPattern(pattern: types.pattern)
 			end
 			tweenId = 1
 		end
+		-- BUG: An empty fader data list indexes nil and aborts the shared render callback.
 		local currentTween = currentTweens[tweenId]
+		-- BUG: Zero total duration or tween duration produces NaN or division by zero; the editor permits zero durations.
 		local currentPercentage = (
 			math.min(pattern.patternTime % data.totalTime, currentTween.timeEnd) - currentTween.timeStart
 		) / currentTween.time
@@ -59,6 +61,7 @@ function faders.processPattern(pattern: types.pattern)
 			)
 		end
 
+		-- BUG: A future tween with negative progress is skipped instead of waiting for its scheduled start.
 		if currentPercentage >= 0.98 or currentPercentage <= 0 then
 			if currentTweens[tweenId] ~= nil and currentTweens[tweenId].type ~= "Wait" then
 				data.previousGoal = currentTweens[tweenId].goal
@@ -91,6 +94,7 @@ function faders.processReturnToZero(deltaTime: number)
 		data.section.currentPercentage = currentPercentage
 
 		local previousGoal = data.section.previousGoal or 0
+		-- BUG: The return fade adds previousGoal to the easing value instead of interpolating from currentValue to 1.
 		data.section.currentValue = 1
 				* TweenService:GetValue(
 					currentPercentage,

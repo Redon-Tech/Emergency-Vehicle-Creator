@@ -78,6 +78,7 @@ function version.isOutdated(self: version)
 		self.currentVer.major < self.latestVer.major
 		or (self.currentVer.major == self.latestVer.major and self.currentVer.minor < self.latestVer.minor)
 		or (self.currentVer.major == self.latestVer.major and self.currentVer.minor == self.latestVer.minor and self.currentVer.patch < self.latestVer.patch)
+		-- BUG: Any prerelease mismatch reports outdated, even when the installed version is newer.
 		or (self.currentVer.preRelease ~= self.latestVer.preRelease)
 	then
 		log.warn(

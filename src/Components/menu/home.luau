@@ -41,6 +41,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		end
 
 		currentSelection:set(Selection:Get()[1])
+		-- BUG: This connection is not cleaned with the UI scope, so theme changes leave callbacks using disposed state.
 		selectionConnection = Selection.SelectionChanged:Connect(function()
 			currentSelection:set(Selection:Get()[1])
 		end)

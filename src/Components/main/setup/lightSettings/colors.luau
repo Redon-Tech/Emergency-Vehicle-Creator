@@ -185,6 +185,7 @@ return function(scope: types.Scope, props: props)
 												callback = function(newPopup)
 													popup:removePopup(newPopup)
 													local currentColors = scope.peek(currentLightSettings.colors)
+													-- BUG: Removing a color shifts numeric IDs without updating flasher, fader or rotator references.
 													table.remove(currentColors, key)
 													currentLightSettings.colors:set(currentColors)
 													props.updateCurrentConfiguration()
