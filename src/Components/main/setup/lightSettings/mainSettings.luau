@@ -209,13 +209,14 @@ return function(scope: types.Scope, props: props)
 												},
 											}
 									else
-										local currentLightSettings = scope.peek(props.lightSettings)
-										-- BUG: This field initializes before vehicle loading and never observes the loaded transparency.
-										local text = scope:Value(
-											currentLightSettings
-													and tostring(currentLightSettings.configuration[value.index])
-												or "0.011"
-										)
+										local text = scope:Value("0.011")
+										local loadedTransparency = scope:Computed(function(use)
+											local settings = use(props.lightSettings)
+											return if settings then use(settings.configuration[value.index]) else 0.011
+										end)
+										scope:Observer(loadedTransparency):onBind(function()
+											text:set(tostring(scope.peek(loadedTransparency)))
+										end)
 
 										return key,
 											scope:base {
