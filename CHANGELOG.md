@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] (3.0.0-rc.10)
 
+---
+
+## [3.0.0-rc.10] (2026-09-21)
+
 ### Added
 
 - Added an optional Emergency Vehicle Handler (EVH) Auto Loader, with an installation prompt in the plugin. It loads the latest published handler when the game starts and helps vehicles inserted from the Toolbox run with the permissions they need.
@@ -242,7 +246,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public beta release.
 
-[unreleased]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/compare/3.0.0-rc.9...main
+[unreleased]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/compare/3.0.0-rc.10...main
+[3.0.0-rc.9]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.10
 [3.0.0-rc.9]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.9
 [3.0.0-rc.8]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.8
 [3.0.0-rc.7]: https://github.com/Redon-Tech/Emergency-Vehicle-Creator/releases/tag/3.0.0-rc.7

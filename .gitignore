@@ -1,6 +1,8 @@
 # Builds
 /EVC V3 Test.rbxm
 /build.rbxm
+/handler.rbxm
+/loader.rbxm
 
 # Packages
 /lune_packages
