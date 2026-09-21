@@ -153,7 +153,7 @@ return function(baseScope: types.Scope, props: props)
 
 	scope:Observer(props.Enabled):onChange(function()
 		if not scope.peek(props.Enabled) then
-			placingVehicle:set(false)
+			placingVehicle:set(nil)
 			cleanupCustomization()
 			props.Mode:set("menu")
 			props.CurrentVehicle:set(nil)
