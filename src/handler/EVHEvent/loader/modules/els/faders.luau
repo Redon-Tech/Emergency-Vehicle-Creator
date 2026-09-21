@@ -106,9 +106,18 @@ function faders.processReturnToZero(deltaTime: number)
 			lastTweenId = #data.section.data
 		end
 		local lastTween = data.section.data[lastTweenId]
+		if lastTween.type == "Wait" then
+			for offset = 1, #data.section.data do
+				local candidate = data.section.data[((lastTweenId - offset - 1) % #data.section.data) + 1]
+				if candidate.type ~= "Wait" then
+					lastTween = candidate
+					break
+				end
+			end
+		end
 		local currentPercentage = data.section.currentPercentage or 0
 
-		if currentPercentage >= 0.98 then
+		if currentPercentage >= 1 then
 			table.remove(faders.returnToZero, i)
 			data.section.currentPercentage = 0
 			data.section.returnStartValue = nil
