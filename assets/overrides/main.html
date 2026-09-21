@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block announce %}
+Consider supporting our work on
+<a href="https://ko-fi.com/parker02311">
+	<span class="twemoji patreon">
+		{% include ".icons/simple/kofi.svg" %}
+	</span>
+	<strong>Ko-Fi</strong>
+</a>
+{% endblock %}
+
+{% block footer %}
+<p class="love">
+	Made With <span>❤️</span> <a target="_blank" href="https://parker02311.redon.tech">
+		Parker
+	</a>
+</p>
+{{ super() }}
+{% endblock %}

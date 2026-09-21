@@ -1,0 +1,124 @@
+.md-tabs,
+.md-header,
+.md-banner {
+    backdrop-filter: none;
+}
+
+.md-banner {
+    position: relative;
+    z-index: 2;
+}
+
+.md-header--shadow {
+    backdrop-filter: blur(1rem);
+}
+
+.md-tabs {
+    border: none;
+}
+
+.md-content {
+    max-width: none;
+    --distance-to-top-of-page: 4.8rem;
+}
+
+@media screen and (max-width: 76.25rem) {
+    .md-content {
+        --distance-to-top-of-page: 2.4rem;
+    }
+}
+
+.md-content__inner {
+    padding-top: calc(100vh - var(--distance-to-top-of-page));
+}
+
+.md-main__inner {
+    margin-top: 0;
+}
+
+.hero {
+    position: absolute;
+    top: 0;
+    left: 0;
+    min-width: 100vw;
+    min-height: 100vh;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+[data-md-color-scheme="catppuccin-latte"] {
+    .hero {
+        background-color: rgba(255, 255, 255, 0.5) !important;
+    }
+}
+
+@media screen and (max-aspect-ratio: 16/9) {
+    .hero-content {
+        max-width: 60vw !important;
+        translate: 0 !important;
+    }
+
+    .hero-video {
+        min-height: 100vh;
+    }
+
+    .hero {
+        overflow: visible;
+    }
+}
+
+.hero-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    min-width: 100vw;
+    max-height: 100vh;
+    object-fit: cover;
+    object-position: center top;
+    z-index: -1;
+}
+
+.hero-image {
+    z-index: -2;
+}
+
+.hero-content {
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    transform: translate(0, -50%);
+    max-width: 40%;
+    z-index: 1;
+}
+
+.hero-links a {
+    display: inline-block;
+    padding: 8px;
+    color: var(--ctp-crust);
+    background-color: var(--ctp-sky);
+    box-shadow: 0 0rem 1rem var(--whiteshadow);
+    text-decoration: none;
+    border: .1rem solid var(--ctp-text);
+    border-radius: 10px;
+    transition: scale 0.3s ease;
+    font-weight: 700;
+}
+
+.hero-links .padd {
+    margin-left: 7px;
+}
+
+.hero-links a:hover {
+    color: var(--ctp-crust);
+    scale: 1.1;
+}
+
+.hero-links a:active {
+    color: var(--ctp-crust);
+    scale: 0.9;
+}
