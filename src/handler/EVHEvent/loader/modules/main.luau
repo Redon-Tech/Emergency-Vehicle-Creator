@@ -433,6 +433,9 @@ local function updateLightRunningFunction(vehicle: Instance, lightName: string, 
 			vehicleData.lights[lightName].returnToZero = true
 		end
 	elseif adding == true then
+		if lightData.runningFunction == functionId or table.find(lightData.possibleFunctions, functionId) then
+			return
+		end
 		if lightData.runningFunction == nil then
 			lightData.runningFunction = functionId
 		else
@@ -445,7 +448,6 @@ local function updateLightRunningFunction(vehicle: Instance, lightName: string, 
 				table.insert(lightData.possibleFunctions, lightData.runningFunction)
 				lightData.runningFunction = functionId
 			else
-				-- BUG: Repeated references to one light enqueue duplicate function IDs that can survive deactivation.
 				table.insert(lightData.possibleFunctions, functionId)
 			end
 		end
