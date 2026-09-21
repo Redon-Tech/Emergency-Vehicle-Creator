@@ -32,10 +32,12 @@ function faders.processPattern(pattern: types.pattern)
 		local cycleTime = if data.totalTime > 0 then pattern.patternTime % data.totalTime else 0
 		local tweenId = #currentTweens
 		local previousGoal = 1
+		local previousColor = 0
 		if data.totalTime > 0 and pattern.patternTime >= data.totalTime then
 			for i = #currentTweens, 1, -1 do
 				if currentTweens[i].type ~= "Wait" then
 					previousGoal = currentTweens[i].goal or 0
+					previousColor = currentTweens[i].color or 0
 					break
 				end
 			end
@@ -47,6 +49,7 @@ function faders.processPattern(pattern: types.pattern)
 			end
 			if tween.type ~= "Wait" then
 				previousGoal = tween.goal or 0
+				previousColor = tween.color or 0
 			end
 		end
 		data.previousGoal = previousGoal
@@ -74,6 +77,11 @@ function faders.processPattern(pattern: types.pattern)
 				currentTween.color or 0,
 				data.currentValue or 0
 			)
+		end
+
+		if currentTween.type == "Wait" then
+			data.currentValue = previousGoal
+			faders.setLightTransparency(pattern.vehicle, pattern.functionId, data.lightName, previousColor, previousGoal)
 		end
 
 		if currentPercentage >= 1 then
