@@ -170,8 +170,8 @@ local function load()
 				return
 			end
 
-			-- BUG: Negative, fractional and NaN pattern IDs pass validation and cause nil pattern indexing on clients.
-			if currentPatternId > #currentFunction.patterns then
+			if currentPatternId ~= currentPatternId or currentPatternId < 0
+				or currentPatternId % 1 ~= 0 or currentPatternId > #currentFunction.patterns then
 				car:SetAttribute(currentFunction.name, 0)
 				return
 			end
