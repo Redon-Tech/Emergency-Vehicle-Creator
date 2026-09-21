@@ -404,8 +404,7 @@ local function updateLightRunningFunction(vehicle: Instance, lightName: string, 
 			lightData.runningFunction = nil
 
 			local highestFunction = nil
-			-- BUG: A waiting function with weight zero or below is never restored after a higher-priority function stops.
-			local highestWeight = 0
+			local highestWeight = -math.huge
 			for _, possibleFunction in lightData.possibleFunctions do
 				local possibleFunctionData = vehicleData.configuration.functions[possibleFunction]
 				if possibleFunctionData.weight > highestWeight then
@@ -418,6 +417,9 @@ local function updateLightRunningFunction(vehicle: Instance, lightName: string, 
 				table.remove(lightData.possibleFunctions, table.find(lightData.possibleFunctions, highestFunction))
 				vehicleData.lights[lightName].returnToZero = true
 				for _, pattern in vehicleData.configuration.functions[highestFunction].patterns do
+					for _, flasher in pattern.flashers do
+						flasher.currentRow = nil
+					end
 					for _, rotator in pattern.rotators do
 						updateRotatorRad(vehicleData, rotator)
 						vehicleData.lights[rotator.lightName].returnToZero = false
