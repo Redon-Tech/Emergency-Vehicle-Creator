@@ -44,7 +44,7 @@ local function bindToRender()
 			flashers.processPattern(pattern)
 		end
 		faders.processReturnToZero(deltaTime)
-		rotators.processReturnToZero()
+		rotators.processReturnToZero(deltaTime)
 
 		if #runningPatterns == 0 and #faders.returnToZero == 0 and #rotators.returnToZero == 0 then
 			RunService:UnbindFromRenderStep(`EVHClient_{version}`)

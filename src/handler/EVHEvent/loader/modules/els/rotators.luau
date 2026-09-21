@@ -10,7 +10,7 @@ type rotators = {
 	flash: (vehicle: Instance, functionId: number, lightName: string, color: types.elsColor) -> (),
 	setRotation: (vehicle: Instance, functionId: number, lightName: string, rad: number) -> (),
 	processPattern: (pattern: types.pattern, deltaTime: number) -> (),
-	processReturnToZero: () -> (),
+	processReturnToZero: (deltaTime: number) -> (),
 }
 local rotators = {
 	returnToZero = {},
@@ -35,21 +35,22 @@ function rotators.processPattern(pattern: types.pattern, deltaTime: number)
 			end
 			local currentRotation = data.currentValue or 0
 			local goal = math.rad(currentAngle.angle or 90)
-			local velocity: number = math.abs(currentAngle.velocity or 0.1)
-
+			local velocity = math.abs(currentAngle.velocity or 0.1)
+			local step = velocity * 60 * deltaTime
 			local difference = goal - currentRotation
-			if math.abs(difference) == 0 then
+
+			if math.abs(difference) <= step then
+				currentRotation = goal
 				data.currentAngle = if angleId ~= #currentAngles then angleId + 1 else 1
 				data.previousGoal = goal
 				currentPercentage = 0
 			else
-				-- BUG: Angle speed depends on frame rate because the step ignores deltaTime.
-				currentRotation += math.clamp(difference, -velocity, velocity)
-				currentPercentage = 1 - ((goal - currentRotation) / (goal - (data.previousGoal or 0) :: number))
-
-				data.currentValue = currentRotation
-				rotators.setRotation(pattern.vehicle, pattern.functionId, data.lightName, currentRotation)
+				currentRotation += math.clamp(difference, -step, step)
+				local totalDistance = goal - (data.previousGoal or 0)
+				currentPercentage = if totalDistance == 0 then 0 else 1 - ((goal - currentRotation) / totalDistance)
 			end
+			data.currentValue = currentRotation
+			rotators.setRotation(pattern.vehicle, pattern.functionId, data.lightName, currentRotation)
 		elseif currentAngle.type == "Infinite" then
 			if currentAngle.color ~= 0 then
 				rotators.flash(pattern.vehicle, pattern.functionId, data.lightName, currentAngle.color or 0)
@@ -71,27 +72,30 @@ function rotators.processPattern(pattern: types.pattern, deltaTime: number)
 	end
 end
 
-function rotators.processReturnToZero()
+function rotators.processReturnToZero(deltaTime: number)
 	for i, data in rotators.returnToZero do
-		-- data.section.currentLightState = 0
+		print(data.section.lightName)
 		local lastAngle = data.section.data[data.section.currentAngle or 1]
+		local startRotation = (data.section.currentValue or 0) % (math.pi * 2)
 		local currentRotation = (data.section.currentValue or 0) % (math.pi * 2)
 		local velocity: number = math.abs(lastAngle.velocity or 0.1)
-
+		local step = velocity * 60 * deltaTime
 		local difference = -currentRotation
-		if math.abs(difference) == 0 then
+
+		if math.abs(difference) <= step then
+			currentRotation = 0
 			data.section.currentAngle = 1
 			data.section.previousGoal = 0
 			data.section.currentPercentage = 0
 			table.remove(rotators.returnToZero, i)
 		else
-			-- BUG: Return-to-zero speed depends on frame rate because the step has no elapsed-time scaling.
-			currentRotation += math.clamp(difference, -velocity, velocity)
-			data.section.currentPercentage = 1 - (-currentRotation / (-(data.section.previousGoal or 0) :: number))
-
-			data.section.currentValue = currentRotation
-			rotators.setRotation(data.vehicle, nil :: any, data.section.lightName, currentRotation)
+			currentRotation += math.clamp(difference, -step, step)
+			data.section.currentPercentage = if startRotation == 0
+				then 1
+				else math.clamp(1 - currentRotation / startRotation, 0, 1)
 		end
+		data.section.currentValue = currentRotation
+		rotators.setRotation(data.vehicle, nil :: any, data.section.lightName, currentRotation)
 	end
 end
 

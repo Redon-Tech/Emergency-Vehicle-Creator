@@ -241,21 +241,24 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					if scope.peek(currentAngle.type) == "Angle" then
 						local currentRotation = math.rad(scope.peek(data.currentValue))
 						local goal = math.rad(scope.peek(currentAngle.angle))
-						local velocity: number = math.abs(scope.peek(currentAngle.velocity))
-
+						local velocity = math.abs(scope.peek(currentAngle.velocity))
+						local step = velocity * 60 * deltaTime
 						local difference = goal - currentRotation
-						-- log.debug(angleId, currentRotation, math.clamp(difference, -velocity, velocity))
-						if math.abs(difference) == 0 then
+
+						if math.abs(difference) <= step then
+							currentRotation = goal
 							data.currentAngle:set(if angleId ~= #currentAngles then angleId + 1 else 1)
 							data.previousGoal = goal
 							currentPercentage = 0
 						else
-							-- BUG: Angle preview speed depends on frame rate because the step ignores deltaTime.
-							currentRotation += math.clamp(difference, -velocity, velocity)
-							currentPercentage = 1 - ((goal - currentRotation) / (goal - data.previousGoal :: number))
-
-							data.currentValue:set(math.deg(currentRotation))
+							currentRotation += math.clamp(difference, -step, step)
+							local totalDistance = goal - (data.previousGoal :: number)
+							currentPercentage = if totalDistance == 0
+								then 0
+								else 1 - ((goal - currentRotation) / totalDistance)
 						end
+
+						data.currentValue:set(math.deg(currentRotation))
 					elseif scope.peek(currentAngle.type) == "Infinite" then
 						local currentRotation = math.rad(scope.peek(data.currentValue))
 						local velocity: number = scope.peek(currentAngle.velocity)
