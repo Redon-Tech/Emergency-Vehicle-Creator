@@ -290,8 +290,7 @@ local function load()
 		if v:IsA("BasePart") then
 			local excluded = false
 			for _, exclusionParent in exclusionParents do
-				-- BUG: EVH_Ignore on a light part does not exclude the part itself.
-				if v:IsDescendantOf(exclusionParent) then
+				if v == exclusionParent or v:IsDescendantOf(exclusionParent) then
 					excluded = true
 					break
 				end
