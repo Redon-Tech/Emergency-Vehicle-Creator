@@ -90,15 +90,20 @@ end
 
 -- Input Handling
 
+local acceptedKeys: { [Enum.KeyCode]: boolean } = {}
 local function input(InputObject: InputObject, gameProcessedEvent: boolean)
 	if
-		-- BUG: Processed release events are dropped even after an accepted press, leaving hold sirens on.
-		gameProcessedEvent == false
+		(gameProcessedEvent == false or (InputObject.UserInputState == Enum.UserInputState.End and acceptedKeys[InputObject.KeyCode] == true))
 		and (
 			InputObject.UserInputType == Enum.UserInputType.Keyboard
 			or InputObject.UserInputType == Enum.UserInputType.Gamepad1
 		)
 	then
+		if InputObject.UserInputState == Enum.UserInputState.Begin then
+			acceptedKeys[InputObject.KeyCode] = true
+		elseif InputObject.UserInputState == Enum.UserInputState.End then
+			acceptedKeys[InputObject.KeyCode] = nil
+		end
 		EVHEvent:FireServer("Input", InputObject.UserInputState, InputObject.UserInputType, InputObject.KeyCode)
 	end
 end
