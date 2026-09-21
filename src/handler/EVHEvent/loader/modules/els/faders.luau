@@ -38,10 +38,10 @@ function faders.processPattern(pattern: types.pattern)
 		end
 
 		local currentTween = currentTweens[tweenId]
-		-- BUG: Zero total duration or tween duration produces NaN or division by zero; the editor permits zero durations.
-		local currentPercentage = (
-			math.min(pattern.patternTime % data.totalTime, currentTween.timeEnd) - currentTween.timeStart
-		) / currentTween.time
+		local cycleTime = if data.totalTime > 0 then pattern.patternTime % data.totalTime else 0
+		local currentPercentage = if currentTween.time <= 0
+			then if cycleTime >= currentTween.timeStart then 1 else -1
+			else (math.min(cycleTime, currentTween.timeEnd) - currentTween.timeStart) / currentTween.time
 
 		if currentTween.type ~= "Wait" and currentPercentage >= 0 then
 			local previousGoal = data.previousGoal or 1
@@ -98,7 +98,7 @@ function faders.processReturnToZero(deltaTime: number)
 			continue
 		end
 
-		currentPercentage += deltaTime / lastTween.time
+		currentPercentage = if lastTween.time <= 0 then 1 else math.min(1, currentPercentage + deltaTime / lastTween.time)
 		data.section.currentPercentage = currentPercentage
 
 		local previousGoal = data.section.previousGoal or 0
