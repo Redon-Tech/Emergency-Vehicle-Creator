@@ -53,12 +53,9 @@ return function(vehicle: Instance): types.vehicle?
 			-- also since we are here, insert the time var
 			pattern.patternTime = 0
 
-			-- BUG: A partially missing effect list is not initialized and the following loop iterates nil.
-			if pattern.flashers == nil and pattern.faders == nil and pattern.rotators == nil then
-				pattern.flashers = {}
-				pattern.faders = {}
-				pattern.rotators = {}
-			end
+			pattern.flashers = pattern.flashers or {}
+			pattern.faders = pattern.faders or {}
+			pattern.rotators = pattern.rotators or {}
 			for _, flasher in pattern.flashers do
 				if flasher.columns == nil then
 					flasher.columns = {}

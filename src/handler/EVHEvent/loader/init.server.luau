@@ -223,12 +223,9 @@ local function load()
 		end
 
 		for _, pattern in currentFunction.patterns do
-			-- BUG: One missing effect list erases all three lists, including valid pattern data.
-			if pattern.flashers == nil or pattern.faders == nil or pattern.rotators == nil then
-				pattern.flashers = {}
-				pattern.faders = {}
-				pattern.rotators = {}
-			end
+			pattern.flashers = pattern.flashers or {}
+			pattern.faders = pattern.faders or {}
+			pattern.rotators = pattern.rotators or {}
 			for _, flasher in pattern.flashers do
 				if flasher.columns == nil then
 					flasher.columns = {}
