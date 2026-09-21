@@ -112,8 +112,9 @@ return function(scope: types.Scope, props: props)
 											or (lightKey > lastLight and i < lightKey and i >= lastLight)
 										then
 											if adding == true then
-												-- BUG: Shift selection adds existing members again, so one deselection cannot remove the light.
-												table.insert(currentLights, v)
+												if table.find(currentLights, v) == nil then
+													table.insert(currentLights, v)
+												end
 											else
 												local index = table.find(currentLights, v)
 												if index ~= nil then
