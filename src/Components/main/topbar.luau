@@ -2,6 +2,7 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local root = script.Parent.Parent.Parent.Parent
 
+local HttpService = game:GetService("HttpService")
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
@@ -37,6 +38,65 @@ local pageButtons: {
 		["Faders"] = { panel = "ELS Setup", order = 2 },
 		["Rotators"] = { panel = "ELS Setup", order = 3 },
 	}
+
+local helpPages: { [types.pages]: string } = {
+	["Functions"] = "https://raw.githubusercontent.com/Redon-Tech/Emergency-Vehicle-Creator/main/docs/get-started/els-setup/functions/index.md",
+	["Sirens"] = "https://raw.githubusercontent.com/Redon-Tech/Emergency-Vehicle-Creator/main/docs/get-started/els-setup/siren-setup.md",
+	["Light Settings"] = "https://raw.githubusercontent.com/Redon-Tech/Emergency-Vehicle-Creator/main/docs/get-started/els-setup/light-settings.md",
+	["Flashers"] = "https://raw.githubusercontent.com/Redon-Tech/Emergency-Vehicle-Creator/main/docs/get-started/patterns/flashers.md",
+	["Faders"] = "https://raw.githubusercontent.com/Redon-Tech/Emergency-Vehicle-Creator/main/docs/get-started/patterns/faders.md",
+	["Rotators"] = "https://raw.githubusercontent.com/Redon-Tech/Emergency-Vehicle-Creator/main/docs/get-started/patterns/rotators.md",
+}
+
+local function escapeRichText(value: string): string
+	return value
+		:gsub("&", "&amp;")
+		:gsub("<", "&lt;")
+		:gsub(">", "&gt;")
+end
+
+local function renderInlineMarkdown(value: string): string
+	local rendered = escapeRichText(value)
+	local tick = string.char(96)
+	rendered = rendered:gsub("%*%*(.-)%*%*", "<b>%1</b>")
+	rendered = rendered:gsub(tick .. "([^" .. tick .. "]+)" .. tick, "%1")
+	rendered = rendered:gsub("%[([^%]]+)%]%([^%)]+%)", "%1")
+	rendered = rendered:gsub("%*([^%*]+)%*", "<i>%1</i>")
+	return rendered
+end
+
+local function markdownToRichText(markdown: string): string
+	local lines = {}
+	local inCodeBlock = false
+	local tick = string.char(96)
+
+	for line in markdown:gmatch("[^\r\n]*") do
+		if line:sub(1, 3) == tick .. tick .. tick then
+			inCodeBlock = not inCodeBlock
+		elseif inCodeBlock then
+			table.insert(lines, escapeRichText(line))
+		elseif line:match("^%s*!%+?%+?%s*[%w_-]+") then
+			local name = line:match("^%s*!%+?%+?%s*([%w_-]+)")
+			table.insert(lines, "<b>" .. (name or "Note") .. "</b>")
+		elseif line:match("^%s*###%s+") then
+			table.insert(lines, "<b><font size=\"20\">" .. renderInlineMarkdown(line:gsub("^%s*###%s+", "")) .. "</font></b>")
+		elseif line:match("^%s*##%s+") then
+			table.insert(lines, "<b><font size=\"22\">" .. renderInlineMarkdown(line:gsub("^%s*##%s+", "")) .. "</font></b>")
+		elseif line:match("^%s*#%s+") then
+			table.insert(lines, "<b><font size=\"24\">" .. renderInlineMarkdown(line:gsub("^%s*#%s+", "")) .. "</font></b>")
+		elseif line:match("^%s*!%[") then
+			table.insert(lines, "")
+		elseif line:match("^%s*|[%s|:-]+|%s*$") then
+			table.insert(lines, "")
+		elseif line:match("^%s*[-*]%s+") then
+			table.insert(lines, "• " .. renderInlineMarkdown(line:gsub("^%s*[-*]%s+", "")))
+		else
+			table.insert(lines, renderInlineMarkdown(line))
+		end
+	end
+
+	return table.concat(lines, "\n")
+end
 
 local SPRING_SPEED = 20
 local SPRING_DAMPING = 0.75
@@ -112,13 +172,74 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 				[Fusion.Children] = {
 					scope:New("UIListLayout") {
-						FillDirection = Enum.FillDirection.Horizontal,
-						HorizontalAlignment = Enum.HorizontalAlignment.Right,
-						VerticalAlignment = Enum.VerticalAlignment.Center,
-						SortOrder = Enum.SortOrder.LayoutOrder,
-						Padding = UDim.new(0, 10),
-					},
+					FillDirection = Enum.FillDirection.Horizontal,
+					HorizontalAlignment = Enum.HorizontalAlignment.Right,
+					VerticalAlignment = Enum.VerticalAlignment.Center,
+					SortOrder = Enum.SortOrder.LayoutOrder,
+					Padding = UDim.new(0, 10),
+				},
 
+					scope:textButton {
+						Size = UDim2.fromOffset(50, 30),
+						TextLabelSize = UDim2.fromScale(1, 1),
+						TextScaled = true,
+						Text = "Help",
+						BackgroundTransparency = 1,
+						TextXAlignment = Enum.TextXAlignment.Right,
+						TextColor3 = currentTheme.colors.text,
+						FontWeight = Enum.FontWeight.Medium,
+						MaxTextSize = 20,
+						Reactive = true,
+						AnimateSize = false,
+						LayoutOrder = 0,
+						Visible = scope:Computed(function(use)
+							return use(props.CurrentPage) ~= nil and helpPages[use(props.CurrentPage) :: types.pages] ~= nil
+						end),
+
+						[Fusion.OnEvent "Activated"] = function()
+						local currentPage = scope.peek(props.CurrentPage)
+						if currentPage == nil then
+							return
+						end
+						local documentationUrl = helpPages[currentPage]
+						if documentationUrl == nil then
+							return
+						end
+
+						local description = scope:Value("Loading documentation...")
+						popup:addPopup(scope, {
+							title = currentPage .. " Help",
+							description = description,
+							forceDescriptionSize = UDim2.fromOffset(700, 500),
+							actions = {
+								{
+									text = "Close",
+									type = "primary",
+									key = 1,
+									callback = function(newPopup)
+										popup:removePopup(newPopup)
+									end,
+									keybind = Enum.KeyCode.Escape,
+								},
+							},
+						})
+
+						task.spawn(function()
+							local success, response = pcall(function()
+								return HttpService:RequestAsync({
+									Url = documentationUrl,
+									Method = "GET",
+								})
+							end)
+
+							if success == true and response.Success == true then
+								description:set(markdownToRichText(response.Body))
+							else
+								description:set("Could not load the documentation. Make sure HTTP requests are allowed in Roblox Studio and try again.")
+							end
+						end)
+					end,
+					},
 					scope:textButton {
 						Size = UDim2.fromOffset(0, 30),
 						AutomaticSize = Enum.AutomaticSize.X,
