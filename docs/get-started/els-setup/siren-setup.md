@@ -4,60 +4,62 @@ authors:
   - Metolix
 ---
 
-The Sirens page controls the sirens used by the vehicle.
+# Siren Setup
 
-## Adding a siren
+The **Sirens** page lets you set up the sounds used by your vehicle.
 
-Enter a name in **New Siren Name** and click **Add**.
+## Add a siren
 
-If the name is empty, EVC uses **Wail**. If the name is already used, EVC gives the new siren a unique name.
+1. Enter a name in **New Siren Name**.
+2. Click **Add**.
+
+If you leave the name empty, EVC uses **Wail**. If the name is already being used, EVC gives the new siren a unique name.
 
 Each siren has a type:
-- **Siren** — a normal siren that is switched on and off.
-- **Hold** — a siren that stays on while its keybind is held.
-- **Modifier** — changes the behavior of another siren.
+
+- **Siren** — a normal siren that can be turned on and off.
+- **Hold** — plays while its keybind is held.
+- **Modifier** — changes how another siren behaves.
 
 ## Siren behavior
 
-Normal and Hold sirens have two behavior options:
+Normal and Hold sirens have two options:
+
 - **Overrides Other Sounds** — the siren takes control over other sounds.
-- **Plays Simultaneously** — the siren can play with other sounds.
+- **Plays Simultaneously** — the siren can play at the same time as other sounds.
 
-You can assign one or more keybinds to a siren.
+You can give a siren one or more keybinds.
 
-The default sirens are:
+### Default sirens
 
-| Name | Type | Key |
+| Siren | Type | Key |
 | --- | --- | --- |
 | Wail | Siren | R |
 | Yelp | Siren | T |
 | Priority | Siren | Y |
 | Horn | Hold | H |
 
-The default configuration also includes controller keybind slots. An `Unknown` key means no controller key is assigned.
+The default setup also has controller keybind slots. An **Unknown** key means no controller key is assigned.
 
 ## Siren modifiers
 
-A modifier belongs to a normal or Hold siren.
+You can add a modifier to a Siren or Hold siren with **Add Modifier**.
 
-Click **Add Modifier** on a siren to add one.
+A modifier lets you use another sound and choose what happens to the original siren.
 
-A modifier has:
-- **Siren** — the modifier that will be used.
-- **Modified Siren Name** — the sound name that will be played.
-- **Play Parent Sound** or **Plays Simultaneously** — controls whether the original siren also plays.
-- **Play Automatically** or **Require Parent Replay** — controls when the modified sound starts.
-- **Delay** — the delay before the modified sound is played.
+Its settings include:
 
-Modifiers are useful when one siren needs to use another sound without replacing the main siren setup.
+- **Siren** — which modifier sound to use.
+- **Modified Siren Name** — the sound that will play.
+- **Play Parent Sound / Plays Simultaneously** — whether the original siren keeps playing.
+- **Play Automatically / Require Parent Replay** — when the modified sound starts.
+- **Delay** — how long to wait before it starts.
 
-## Removing sirens and modifiers
+## Delete a siren or modifier
 
-Deleting a siren removes its configuration.
+Use the delete control next to the item you want to remove.
 
-Deleting a modifier removes only that modifier.
-
-Both actions ask for confirmation before deleting the data.
+EVC asks you to confirm before deleting it.
 
 !!! note
-    Siren names are used by other parts of the configuration. If you rename a siren, check any rules that refer to it.
+    If you rename a siren, check any settings that use that siren's name.
