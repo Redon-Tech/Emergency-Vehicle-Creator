@@ -128,26 +128,55 @@ function popup.addPopup(self, scope, props)
 				ZIndex = 5001,
 			},
 
-			self.parentScope:textLabel {
-				Size = if props.forceDescriptionSize ~= nil
-					then props.forceDescriptionSize
-					else UDim2.fromOffset(400, 50),
-				AnchorPoint = Vector2.new(0, 0),
-				Position = UDim2.fromOffset(0, 65),
-				Text = props.description,
-				RichText = true,
-				TextScaled = props.forceDescriptionSize ~= nil,
-				TextSize = 20,
-				FontWeight = Enum.FontWeight.Regular,
-				MaxTextSize = 20,
-				TextWrapped = true,
-				TextYAlignment = Enum.TextYAlignment.Top,
-				AutomaticSize = if props.forceDescriptionSize == nil
-					then Enum.AutomaticSize.Y
-					else Enum.AutomaticSize.None,
-				LayoutOrder = 2,
-				ZIndex = 5001,
-			},
+			if props.forceDescriptionSize ~= nil then
+				self.parentScope:base {
+					Size = props.forceDescriptionSize,
+					BackgroundTransparency = 1,
+					LayoutOrder = 2,
+					ZIndex = 5001,
+
+					[Fusion.Children] = {
+						self.parentScope:base {
+							ClassName = "ScrollingFrame",
+							Size = UDim2.fromScale(1, 1),
+							BackgroundTransparency = 1,
+							BorderSizePixel = 0,
+							CanvasSize = UDim2.new(),
+							AutomaticCanvasSize = Enum.AutomaticSize.Y,
+							ScrollBarThickness = 6,
+							ScrollBarImageTransparency = 0.25,
+							[Fusion.Children] = {
+								self.parentScope:textLabel {
+									Size = UDim2.new(1, -10, 0, 0),
+									AutomaticSize = Enum.AutomaticSize.Y,
+									Text = props.description,
+									RichText = true,
+									TextSize = 18,
+									FontWeight = Enum.FontWeight.Regular,
+									TextWrapped = true,
+									TextYAlignment = Enum.TextYAlignment.Top,
+									ZIndex = 5001,
+								},
+							},
+						},
+					},
+				}
+			else
+				self.parentScope:textLabel {
+					Size = UDim2.fromOffset(400, 50),
+					AnchorPoint = Vector2.new(0, 0),
+					Position = UDim2.fromOffset(0, 65),
+					Text = props.description,
+					RichText = true,
+					TextSize = 20,
+					FontWeight = Enum.FontWeight.Regular,
+					MaxTextSize = 20,
+					TextWrapped = true,
+					TextYAlignment = Enum.TextYAlignment.Top,
+					AutomaticSize = Enum.AutomaticSize.Y,
+					LayoutOrder = 2,
+					ZIndex = 5001,
+				},
 
 			self.parentScope:base {
 				Size = UDim2.fromOffset(300, 50),
