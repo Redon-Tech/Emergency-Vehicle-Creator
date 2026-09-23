@@ -3,47 +3,56 @@
     - parker02311
 ---
 
-# Getting Started
+# Getting Started with the Vehicle Creator
 
-This guide walks you through installing EVC and creating your first vehicle.
+!!! tip ""
+    Prefer videos? Check out our [YouTube playlist](https://youtube.com/playlist?list=PL7OqW0xeBKZTbk4QMl-6v3V_x11pZBV0W&si=e_bKE-MbL-B76wQk) for video guides on how to use the plugin.
 
-## 1. Install EVC
 
-1. Get [Emergency Vehicle Creator](https://create.roblox.com/marketplace/asset/9953321418) from the Roblox Marketplace.
+??? warning "Documentation is a Work in Progress"
+    This documentation is a work in progress and may be missing information or contain errors.
+    If you need help please contact us on our [Discord server](https://redon.tech/discord)!
+
+    If you know about this topic and want to help us, please consider contributing to this page on [GitHub](https://github.com/Redon-Tech/Emergency-Vehicle-Creator).
+
+Welcome to the Emergency Vehicle Creator! 
+
+This guide will mark the beginning of your journey with Emergency Vehicle Creator. We are excited to show you how to create your first vehicle. 
+
+Let's go over how to get your first vehicle inserted!
+
+## Step 1: Accessing the plugin
+
+1. Get the Emergency Vehicle Creator plugin from the [Roblox Marketplace](https://create.roblox.com/marketplace/asset/9953321418) if you haven't already.
 2. Open Roblox Studio.
 3. Go to **Toolbox → My Plugins** and select Emergency Vehicle Creator.
 4. Open the plugin from the **Plugins** tab.
 5. If you do not see the plugin, refresh the Toolbox or restart Roblox Studio.
 6. Make sure you are using the current version.
 
-!!! note "Plugin permissions"
-    Roblox Studio may ask you for permissions when you first open the plugin. Allow the permissions requested by EVC or some features may not work.
+!!! note "Plugin Permissions"
+    When you open the plugin for the first time, it may ask for permissions. Allow the permissions requested by EVC or some features may not work.
 
 ![Image showing instructions 3 and 4](..//..//..//assets/img/install-and-launch.png)
 
-## 2. Create a vehicle
+## Step 2: Setting Up Your First Vehicle
 
-1. Open EVC and click **Create Vehicle**.
-2. Find the vehicle you want to use.
-3. Click the **Edit** button next to the vehicle.
-4. Move the vehicle to the position you want.
-5. Click to place it.
+1. In the main menu click on "Create Vehicle" button.
+2. Once you find the vehicle you want to use, click the edit button on the right of the vehicle name.
+3. Once the vehicle is loaded, you will see a ghost model in the workspace. Click once you find the location you want to place the vehicle.
 
 ![Image demonstrating inserting a vehicle](..//..//..//assets/img/insert-vehicle.png)
 
-## 3. Start customizing
+## :material-check-circle: All Done!
 
-Once the vehicle is placed, you can start adding equipment and setting up its lights and sirens.
+Now that you have successfully inserted your first vehicle, you can start customizing it to your liking!
 
-### What to do next
+Here are some recommended next steps to help you get started:
 
-- **[Configuring Equipment](./configuring-equipment.md)** — add lights and other equipment.
-- **[Function Setup](../../els-setup/functions/index.md)** — set up stages and other functions.
-- **[Siren Setup](../../els-setup/siren-setup.md)** — set up sirens.
-- **[Flashers](../../patterns/flashers.md)** — make your first flashing pattern.
-- **[Pre-Outfitted Vehicles](../custom-vehicles/preoutfitted.md)** — edit a vehicle that is already set up for EVC.
-- **[V2 to V3 Conversion](../custom-vehicles/v2-v3.md)** — convert an older EVC vehicle.
+1. **[Configuring Equipment](./configuring-equipment.md)**: Learn how to add and configure equipment for your vehicle.
+2. [Pre-Outfitted Vehicles](..//custom-vehicles/preoutfitted.md): Learn how to use your own vehicles.
+3. [Convert from V2 to V3](..//custom-vehicles/v2-v3.md): Learn how to convert your V2 vehicles to V3.
 
-When you are finished, use **Export** to save your configuration to the vehicle.
+---
 
-If you need help, [contact us on Discord](https://redon.tech/discord).
+If you encounter any issues or have questions, feel free to [contact us on Discord](https://redon.tech/discord).
