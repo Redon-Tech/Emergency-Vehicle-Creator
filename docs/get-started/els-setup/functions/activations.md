@@ -4,37 +4,37 @@ authors:
   - Metolix
 ---
 
-Activations decide how a function is turned on and which pattern it uses.
+# Activations
+
+Activations decide when a function is used and which pattern it selects.
 
 A function can have more than one activation.
 
 ## Standard
 
-A Standard activation is controlled by one or more keybinds.
+A **Standard** activation uses one or more keybinds.
 
 It has two modes:
-- **Cycle**: moves through the patterns in the function.
-- **Set Pattern**: selects one pattern number.
 
-For **Set Pattern**, enter the pattern number you want the keybind to select.
+- **Cycle** — moves through the patterns in the function.
+- **Set Pattern** — selects a specific pattern.
 
-For **Cycle**, the pattern number field is not used.
-
-You can add more than one keybind to an activation.
+For **Set Pattern**, enter the pattern number you want to use.
 
 The default Standard activation uses **J** and **DPadLeft**.
 
 ## Default
 
-A Default activation selects the pattern that should be used by default.
+A **Default** activation chooses the pattern that is used by default.
 
-Choose the pattern number you want the function to use.
+Select the pattern number you want to use.
 
 ## Override
 
-An Override activation makes a function react to another vehicle state.
+An **Override** activation changes a function based on another vehicle state.
 
-The available modes are:
+The available options are:
+
 - **Siren Override**
 - **Park**
 - **Brake**
@@ -42,13 +42,14 @@ The available modes are:
 
 For **Siren Override**, choose the siren that should trigger the override.
 
-You can also set a dependent function and dependent pattern. These let the override use another function pattern as part of the rule.
+You can also choose another function and pattern for the override to use.
 
 ## AG-Event
 
 AG-Event activations are available for AG-Chassis and MG-Chassis vehicles.
 
-The available events are:
+Available events:
+
 - **Stages**
 - **Traffic Advisor**
 - **Scene**
@@ -56,17 +57,17 @@ The available events are:
 - **Ally Right**
 - **Rear Scene**
 
-These activations do not use a keybind or pattern number.
+These do not use a keybind or pattern number.
 
-## Editing activations
+## Editing an activation
 
-Open a function and switch from **Patterns** to **Activation**.
+1. Open a function.
+2. Open the **Activation** tab.
+3. Choose the activation you want to edit.
+4. Change its type or settings.
+5. Use the delete control to remove an activation.
 
-Change the activation type first. The controls shown below it change based on the selected type.
-
-Delete an activation with the delete control on its row.
-
-Changing an activation marks the vehicle as having unsaved changes.
+Changes are saved as part of the vehicle configuration.
 
 !!! note
-    Pattern numbers are zero-based in the configuration. The first pattern is pattern `0` in the exported configuration.
+    Pattern numbers start at 0 in the configuration. The first pattern is 0.
