@@ -4,11 +4,13 @@ authors:
   - Metolix
 ---
 
-The EVH siren configuration is a Luau table.
+The EVH siren configuration is a Luau table. This page explains the fields used by EVH and how siren modifiers are stored.
 
-A normal siren looks like this:
+## Normal sirens
 
-```lua
+A normal siren has a name, type, keybinds, behavior, and a list of modifiers.
+
+\`\`\`lua
 {
     type = "Siren",
     name = "Wail",
@@ -19,13 +21,24 @@ A normal siren looks like this:
     behavoir = "Overrides Other Sounds",
     modifiers = {},
 }
-```
+\`\`\`
 
-A Hold siren uses the same fields but has `type = "Hold"`.
+The \`type\` is \`Siren\` for a normal siren.
 
-A modifier entry is different. It uses:
+A \`Hold\` siren uses the same fields but has \`type = "Hold"\`. The sound is active while its input is held.
 
-```lua
+The \`behavoir\` field can be:
+
+- \`Overrides Other Sounds\` — other sirens are stopped or muted while this siren is active.
+- \`Plays Simultaneously\` — the siren can play at the same time as other sounds.
+
+The first keybind is the keyboard or controller input used by the configuration. An \`Unknown\` key means that slot has no usable key assigned.
+
+## Modifier sirens
+
+A modifier siren is a separate siren entry with \`type = "Modifier"\`.
+
+\`\`\`lua
 {
     type = "Modifier",
     name = "default",
@@ -34,34 +47,42 @@ A modifier entry is different. It uses:
         Enum.KeyCode.Unknown,
     },
 }
-```
+\`\`\`
 
-## Siren behavior
+A modifier siren is **not** the same thing as a modifier inside a normal siren.
 
-Normal and Hold sirens use:
-- `Overrides Other Sounds`
-- `Plays Simultaneously`
+- The **Modifier siren type** is a named siren entry that can be enabled or disabled.
+- A **modifier table** inside a normal or Hold siren tells EVH which modifier siren to use and what it should do to the parent siren.
 
-The first keybind is the keyboard or controller input used by the configuration.
+## Modifier tables
 
-An `Unknown` key means that slot has no usable key assigned.
+Normal and Hold sirens can contain a \`modifiers\` table.
 
-## Modifiers
+Each entry contains:
 
-Normal and Hold sirens can contain a `modifiers` table.
+\`\`\`lua
+{
+    name = "default",
+    modifiedSirenName = "Airhorn",
+    parentSoundBehavior = "Play Parent Sound",
+    behavoir = "Play Automatically",
+    delay = 0,
+}
+\`\`\`
 
-Each modifier contains:
-- `name`
-- `modifiedSirenName`
-- `parentSoundBehavior`
-- `behavoir`
-- `delay`
+### Fields
 
-The available values are:
-- `Play Parent Sound`
-- `Plays Simultaneously`
-- `Play Automatically`
-- `Require Parent Replay`
+- \`name\` — the name of the modifier siren entry.
+- \`modifiedSirenName\` — the sound that is played by the modifier.
+- \`parentSoundBehavior\` — controls what happens to the original siren.
+  - \`Play Parent Sound\` stops the original siren while the modified sound is active.
+  - \`Plays Simultaneously\` lets both sounds play.
+- \`behavoir\` — controls when the modified sound starts.
+  - \`Play Automatically\` starts it as soon as the modifier is enabled.
+  - \`Require Parent Replay\` waits until the parent siren is triggered again.
+- \`delay\` — controls the delay applied to the modified sound.
+
+When a modifier is disabled, EVH stops the modified sound. If the modifier was suppressing the parent siren, EVH can resume the parent sound using the configured delay.
 
 !!! warning
     EVC-generated configuration files say not to modify them directly. Use the plugin unless you are working on EVH or understand the configuration format.
