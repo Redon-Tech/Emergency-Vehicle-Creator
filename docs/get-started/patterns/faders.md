@@ -4,67 +4,65 @@ authors:
   - Metolix
 ---
 
-Faders change a light transparency over time.
+# Faders
 
-A fader section is tied to one light and contains a list of steps.
+Faders smoothly change a light over time.
 
-## Creating a fader section
+A fader section controls one light and contains a list of steps.
 
-Open a pattern and choose **Faders**.
+## Create a fader
 
-Click **Add Section**.
+1. Open a pattern.
+2. Open **Faders**.
+3. Click **Add Section**.
+4. Enter the light name you want to control.
 
-Enter the light name that should be controlled.
-
-Each section can contain multiple steps.
+You can add multiple steps to a section.
 
 ## Step types
 
-Each step has one of three types:
-- **Simple**
-- **Advanced**
-- **Wait**
-
 ### Simple
 
-A Simple step changes the light to a target transparency over a set time.
+A Simple step changes the light to a target transparency over a set amount of time.
 
 It uses:
+
 - **Time**
 - **Goal**
 - **Color**
 
 ### Advanced
 
-Advanced steps use the same basic values as Simple steps, but also let you choose:
+Advanced steps have the same settings as Simple steps, plus:
+
 - **Easing Style**
 - **Easing Direction**
 
-These values control how the transparency changes during the step.
+These control how the change happens.
 
 ### Wait
 
 A Wait step does not change the light.
 
-It waits for the amount of time entered in **Time** before moving to the next step.
+It waits for the amount of time entered in **Time**, then moves to the next step.
 
 ## Preview
 
-Use the play button to start the preview.
+Use **Play** to start the preview.
 
-Use the pause button to stop it.
+Use **Pause** to stop it.
 
-The refresh button resets the preview.
+Use **Refresh** to reset it.
 
 The preview loops through the steps.
 
-## Editing steps
+## Edit steps
 
-Add a step with the add control at the bottom of a fader section.
+Use the add control to add a step.
 
-Delete a step with its delete control.
+Use the delete control to remove one.
 
-Changing a step type removes controls that do not apply to the new type.
+When you change a step type, settings that do not apply to the new type are removed.
 
 !!! note
-    Fader colors use the colors from **Light Settings**.
+    Fader colors come from **Light Settings**.

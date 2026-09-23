@@ -4,32 +4,30 @@ authors:
   - Metolix
 ---
 
-Modifiers are part of the siren system.
+# Modifiers
 
-A modifier lets a siren use another sound while keeping control over how the original siren behaves.
+Modifiers let one siren use another sound while giving you control over what happens to the original siren.
 
-Modifiers are added from the **Sirens** page.
+You add modifiers from the **Sirens** page.
 
 ## Modifier settings
 
-| Setting | What it controls |
+| Setting | What it does |
 | --- | --- |
-| Siren | The modifier sound to use |
-| Modified Siren Name | The sound object that will be played |
-| Play Parent Sound | Keep the original siren playing |
-| Plays Simultaneously | Allow the original and modified sound to play together |
-| Play Automatically | Start the modified sound when the modifier is triggered |
-| Require Parent Replay | Wait for the parent siren to be triggered again |
-| Delay | Time before the modified sound starts |
+| **Siren** | Chooses the modifier sound. |
+| **Modified Siren Name** | Chooses the sound that will play. |
+| **Play Parent Sound** | Keeps the original siren playing. |
+| **Plays Simultaneously** | Lets the original and modified sounds play together. |
+| **Play Automatically** | Starts the modified sound when the modifier is triggered. |
+| **Require Parent Replay** | Waits for the original siren to be triggered again. |
+| **Delay** | Waits before starting the modified sound. |
 
-A modifier must refer to a modifier-type siren that exists in the vehicle configuration.
+A modifier needs to use a modifier-type siren that exists in the vehicle setup.
 
-## Example
+### Example
 
-A normal siren can have a modifier that plays a different sound after a delay.
+You can make a normal siren trigger a different sound after a delay.
 
-The parent behavior decides whether the normal siren continues.
+The modifier settings decide whether the original siren keeps playing and when the other sound starts.
 
-The play behavior decides whether the modified sound starts automatically or waits for the parent to be played again.
-
-Modifiers can be removed from the Sirens page with the delete control.
+Use the delete control on the Sirens page to remove a modifier.

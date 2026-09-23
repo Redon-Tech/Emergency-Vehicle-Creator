@@ -4,60 +4,58 @@ authors:
   - Metolix
 ---
 
-Rotators move a light through a sequence of angles.
+# Rotators
 
-A rotator section controls one light and contains a list of rotation steps.
+Rotators move a light through different angles.
 
-## Creating a rotator section
+A rotator section controls one light and contains a list of steps.
 
-Open a pattern and choose **Rotators**.
+## Create a rotator
 
-Click **Add Section**.
-
-Enter the light name that should be controlled.
+1. Open a pattern.
+2. Open **Rotators**.
+3. Click **Add Section**.
+4. Enter the light name you want to control.
 
 ## Step types
 
-Each step can be:
-- **Angle**
-- **Infinite**
-- **Wait**
-
 ### Angle
 
-An Angle step moves the light by the amount entered in **Angle**.
+An **Angle** step moves the light by the amount entered in **Angle**.
 
 It also uses:
+
 - **Color**
 - **Velocity**
 
 ### Infinite
 
-An Infinite step keeps the light rotating until the next step.
+An **Infinite** step keeps the light rotating until the next step.
 
 It uses:
+
 - **Color**
 - **Velocity**
 
 ### Wait
 
-A Wait step pauses the sequence for the entered **Wait Time**.
+A **Wait** step pauses the sequence for the entered **Wait Time**.
 
 ## Preview
 
-Use the play button to preview the sequence.
+Use **Play** to preview the rotation.
 
-Use the pause button to stop it.
+Use **Pause** to stop it.
 
-Use the refresh button to reset it.
+Use **Refresh** to reset it.
 
 The sequence loops while the preview is running.
 
-## Editing steps
+## Edit steps
 
-Add a step with the add control.
+Use the add control to add a step.
 
-Delete a step with its delete control.
+Use the delete control to remove one.
 
 EVC asks for confirmation before deleting a step.
 

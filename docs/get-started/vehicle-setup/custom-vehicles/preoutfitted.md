@@ -4,27 +4,25 @@ authors:
   - Metolix
 ---
 
-EVC can edit a vehicle that is already set up for EVC.
+# Pre-Outfitted Vehicles
 
-The plugin checks whether a selected vehicle is already customizable before opening the vehicle editor.
+Already have a vehicle set up for EVC? You can edit it without creating a new vehicle.
 
-A vehicle is considered customizable when:
-- it has the **EVCHandled** attribute set to true
-- it has a **Body** model
-- the Body contains an **Outfitting** model
-- Outfitting contains a **BasePoint**
-
-EVC adds the `EVCHandled` attribute to vehicles it creates.
-
-## Editing an existing vehicle
+## Edit an existing vehicle
 
 1. Select the vehicle in Roblox Studio.
 2. Open EVC.
-3. Click **Edit Vehicle** when the selected vehicle is recognized as an EVC vehicle.
+3. Click **Edit Vehicle**.
 4. Make your changes.
-5. Use **Export** to save the configuration.
+5. Use **Export** when you are finished.
 
-If the selected vehicle is not already handled by EVC, the plugin opens the normal vehicle setup flow instead.
+If EVC does not recognize the vehicle, it will use the normal vehicle setup process instead.
+
+## If Edit Vehicle is not available
+
+The vehicle needs to have been set up for EVC before it can be edited this way.
+
+If your vehicle was made with EVC but is not recognized, check that the EVC setup on the vehicle has not been removed or changed.
 
 !!! note
-    These are the current checks in EVC's vehicle code. A vehicle can have the right chassis type and still not be recognized as an EVC-customizable vehicle if its EVC setup is missing.
+    This page is for vehicles that are already set up for EVC. For a new vehicle, start with **[Getting Started](../vehicle-creator/getting-started.md)**.
