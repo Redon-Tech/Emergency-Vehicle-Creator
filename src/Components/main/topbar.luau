@@ -139,6 +139,12 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 				[Fusion.Children] = {
 					scope:New("UIListLayout") {
+					FillDirection = Enum.FillDirection.Horizontal,
+					HorizontalAlignment = Enum.HorizontalAlignment.Right,
+					VerticalAlignment = Enum.VerticalAlignment.Center,
+					SortOrder = Enum.SortOrder.LayoutOrder,
+					Padding = UDim.new(0, 10),
+				},
 
 					scope:textButton {
 						Size = UDim2.fromOffset(50, 30),
@@ -183,13 +189,6 @@ return function(scope: types.Scope, props: props): Fusion.Child
 							})
 						end,
 					},
-						FillDirection = Enum.FillDirection.Horizontal,
-						HorizontalAlignment = Enum.HorizontalAlignment.Right,
-						VerticalAlignment = Enum.VerticalAlignment.Center,
-						SortOrder = Enum.SortOrder.LayoutOrder,
-						Padding = UDim.new(0, 10),
-					},
-
 					scope:textButton {
 						Size = UDim2.fromOffset(0, 30),
 						AutomaticSize = Enum.AutomaticSize.X,
