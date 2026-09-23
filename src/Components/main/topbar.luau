@@ -302,7 +302,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					},
 
 					scope:textButton {
-						Size = UDim2.fromOffset(150, 30),
+						Size = UDim2.fromOffset(175, 30),
 						TextLabelSize = UDim2.fromScale(1, 1),
 						TextScaled = true,
 						Text = "Save/Load",
