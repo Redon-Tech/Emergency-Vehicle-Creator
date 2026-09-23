@@ -37,8 +37,8 @@ No coding required, just your creativity. Start creating your vehicles today.
 
 </div>
 
-!!! warning
-	This documentation is still a work in progress. If you have any questions, feel free to [contact us](https://redon.tech/discord).
+!!! note
+	This guide covers the current EVC V3 plugin and EVH configuration. If something in the plugin does not match this guide, check the current release or report the difference.
 
 # Advantages of Emergency Vehicle Creator
 
