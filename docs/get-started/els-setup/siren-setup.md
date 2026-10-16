@@ -6,6 +6,15 @@ authors:
 
 # Siren Setup
 
+!!! tip ""
+    Prefer videos? Check out our [YouTube playlist](https://youtube.com/playlist?list=PL7OqW0xeBKZTbk4QMl-6v3V_x11pZBV0W&si=e_bKE-MbL-B76wQk) for video guides on how to use the plugin.
+
+??? warning "Documentation is a Work in Progress"
+    This documentation is a work in progress and may be missing information or contain errors.
+    If you need help please contact us on our [Discord server](https://redon.tech/discord)!
+
+    If you know about this topic and want to help us, please consider contributing to this page on [GitHub](https://github.com/Redon-Tech/Emergency-Vehicle-Creator).
+
 The **Sirens** page lets you set up the sounds used by your vehicle.
 
 ## Add a siren
@@ -67,3 +76,17 @@ EVC asks you to confirm before deleting it.
 
 !!! note
     If you rename a siren, check any settings that use that siren's name.
+
+## :material-check-circle: All Done!
+
+Your vehicle now has its sirens, keybinds, and modifiers configured.
+
+Here are some recommended next steps to help you get started:
+
+1. **[Function Setup](functions/index.md)**: Learn how to set up functions to create ELS.
+2. [Light Settings](light-settings.md): Learn how to configure the lights used by your vehicle.
+3. [Flashers](../../patterns/flashers.md): Learn how to create a basic light pattern.
+
+---
+
+If you encounter any issues or have questions, feel free to [contact us on Discord](https://redon.tech/discord).

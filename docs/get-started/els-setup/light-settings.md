@@ -6,6 +6,15 @@ authors:
 
 # Light Settings
 
+!!! tip ""
+    Prefer videos? Check out our [YouTube playlist](https://youtube.com/playlist?list=PL7OqW0xeBKZTbk4QMl-6v3V_x11pZBV0W&si=e_bKE-MbL-B76wQk) for video guides on how to use the plugin.
+
+??? warning "Documentation is a Work in Progress"
+    This documentation is a work in progress and may be missing information or contain errors.
+    If you need help please contact us on our [Discord server](https://redon.tech/discord)!
+
+    If you know about this topic and want to help us, please consider contributing to this page on [GitHub](https://github.com/Redon-Tech/Emergency-Vehicle-Creator).
+
 Use **Light Settings** to control how the lights on your vehicle behave.
 
 The page has three sections:
@@ -80,3 +89,17 @@ A light can only be added once to the same group.
 
 !!! note
     The lights shown here come from the equipment on your vehicle. If a light is missing, check the equipment setup and its Light Prefix.
+
+## :material-check-circle: All Done!
+
+Your colors, effects, and light groups are ready to use in ELS patterns.
+
+Here are some recommended next steps to help you get started:
+
+1. **[Flashers](../../patterns/flashers.md)**: Learn how to create a flashing pattern.
+2. [Faders](../../patterns/faders.md): Learn how to create a fading pattern.
+3. [Rotators](../../patterns/rotators.md): Learn how to create a rotating pattern.
+
+---
+
+If you encounter any issues or have questions, feel free to [contact us on Discord](https://redon.tech/discord).
