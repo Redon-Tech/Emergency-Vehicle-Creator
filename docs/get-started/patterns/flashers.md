@@ -24,6 +24,8 @@ Enter the exact light name used by the vehicle.
 
 ## Set the lights
 
+![Flasher pattern grid](../../assets/img/flashers.png)
+
 Choose a color for a cell to turn the light on with that color.
 
 Set a cell to **None** to turn the light off.

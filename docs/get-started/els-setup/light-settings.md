@@ -16,6 +16,8 @@ The page has three sections:
 
 ## Settings
 
+![Light Settings](../../assets/img/light-settings.png)
+
 ### Enabled Effects
 
 These options control which light types EVC changes:
@@ -34,6 +36,8 @@ Particle emitters are disabled by default.
 Enter a value and leave the field to save it.
 
 ## Colors
+
+![Light colors](../../assets/img/light-colors.png)
 
 Each color has:
 

@@ -21,6 +21,8 @@ You can add multiple steps to a section.
 
 ## Step types
 
+![Fader steps](../../assets/img/faders.png)
+
 ### Simple
 
 A Simple step changes the light to a target transparency over a set amount of time.
@@ -32,6 +34,8 @@ It uses:
 - **Color**
 
 ### Advanced
+
+![Advanced fader settings](../../assets/img/faders-advanced.png)
 
 Advanced steps have the same settings as Simple steps, plus:
 

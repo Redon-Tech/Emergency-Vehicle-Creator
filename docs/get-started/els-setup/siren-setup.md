@@ -10,6 +10,8 @@ The **Sirens** page lets you set up the sounds used by your vehicle.
 
 ## Add a siren
 
+![Siren setup](../../assets/img/sirens.png)
+
 1. Enter a name in **New Siren Name**.
 2. Click **Add**.
 
@@ -42,6 +44,8 @@ You can give a siren one or more keybinds.
 The default setup also has controller keybind slots. An **Unknown** key means no controller key is assigned.
 
 ## Siren modifiers
+
+![Siren modifier settings](../../assets/img/siren-modifiers.png)
 
 You can add a modifier to a Siren or Hold siren with **Add Modifier**.
 

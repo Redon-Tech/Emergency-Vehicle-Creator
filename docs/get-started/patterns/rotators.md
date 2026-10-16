@@ -19,6 +19,8 @@ A rotator section controls one light and contains a list of steps.
 
 ## Step types
 
+![Rotator steps](../../assets/img/rotators.png)
+
 ### Angle
 
 An **Angle** step moves the light by the amount entered in **Angle**.
@@ -29,6 +31,8 @@ It also uses:
 - **Velocity**
 
 ### Infinite
+
+![Rotator steps](../../assets/img/rotators-infinite.png)
 
 An **Infinite** step keeps the light rotating until the next step.
 

@@ -31,6 +31,8 @@ Select the pattern number you want to use.
 
 ## Override
 
+![Activation settings](../../../assets/img/overrides.png)
+
 An **Override** activation changes a function based on another vehicle state.
 
 The available options are:
@@ -60,6 +62,8 @@ Available events:
 These do not use a keybind or pattern number.
 
 ## Editing an activation
+
+![Activation settings](../../../assets/img/activations.png)
 
 1. Open a function.
 2. Open the **Activation** tab.
