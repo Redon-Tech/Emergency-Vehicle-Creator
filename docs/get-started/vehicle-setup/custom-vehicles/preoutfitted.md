@@ -2,27 +2,33 @@
 title: Pre-Outfitted Vehicles
 authors:
   - Metolix
+  - parker02311
 ---
 
 # Pre-Outfitted Vehicles
 
-Already have a vehicle set up for EVC? You can edit it without creating a new vehicle.
+Already have a vehicle outfitted and ready for ELS? You can edit it without creating a new vehicle.
 
 ## Edit an existing vehicle
 
 1. Select the vehicle in Roblox Studio.
 2. Open EVC.
 3. Click **Edit Vehicle**.
-4. Make your changes.
-5. Use **Export** when you are finished.
+4. And you're off! 
 
-If EVC does not recognize the vehicle, it will use the normal vehicle setup process instead.
+!!! warning "EVC Cannot Outfit Custom Vehicles"
+    EVC can only customize the outfitting on vehicles that were outfitted with EVC. You will be able to use all other features normally!
 
 ## If Edit Vehicle is not available
 
-The vehicle needs to have been set up for EVC before it can be edited this way.
+The vehicle needs to have been set up with a support chassis before it can be edited this way.
 
-If your vehicle was made with EVC but is not recognized, check that the EVC setup on the vehicle has not been removed or changed.
+Supported chassis are:
 
-!!! note
-    This page is for vehicles that are already set up for EVC. For a new vehicle, start with **[Getting Started](../vehicle-creator/getting-started.md)**.
+- Any **A-Chassis** version
+- Any **A-Chassis Motorcycle** version
+- Any **AC-Chassis** version (a.k.a. NCT:M or motorcycle chassis)
+- Any **AG-Chassis** version
+- Any **MG-Chassis** version
+
+Or any chassis which has a standard A-Chassis Tune and A-Chassis compatible plugin setup.
