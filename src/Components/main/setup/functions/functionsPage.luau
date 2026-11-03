@@ -5,7 +5,7 @@ local root = script.Parent.Parent.Parent.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../../lib/ChassisHandler")
 local log = require(root.Plugin.log)
 local popup = require(root.Plugin.Components.popup)
 local createChildren = require(script.Parent.Parent.createChildren)
@@ -47,7 +47,7 @@ return function(scope: types.Scope, props: props)
 	scope:Observer(props.CurrentVehicle):onBind(function()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if typeof(currentVehicle) == "Instance" then
-			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
+			currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
 		end
 	end)
 
@@ -132,7 +132,7 @@ return function(scope: types.Scope, props: props)
 							end
 							newFunctionName = testFunctionName(newFunctionName, functionsByName, 0)
 
-							local newFunctionData = scope.deepCopy(chassisHandler.defaults.functions)
+							local newFunctionData = scope.deepCopy(ChassisHandler.defaults.functions)
 							newFunctionData.name = newFunctionName
 							newFunctionData.weight = #currentConfiguration.functions + 1
 							table.insert(currentConfiguration.functions, newFunctionData)

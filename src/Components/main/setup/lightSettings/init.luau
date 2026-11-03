@@ -5,7 +5,7 @@ local root = script.Parent.Parent.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../lib/ChassisHandler")
 local log = require(root.Plugin.log)
 
 local mainSettings = require(script.mainSettings)
@@ -39,13 +39,13 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 	local currentContent: Fusion.Value<"settings" | "colors" | "light groups"> = scope:Value("settings" :: any)
 	local currentConfiguration = nil
-	local lightSettings: Fusion.Value<chassisHandler.lightSettingsState?> = scope:Value(nil)
+	local lightSettings: Fusion.Value<ChassisHandler.lightSettingsState?> = scope:Value(nil)
 	local lightParts: Fusion.Value<{ string }> = scope:Value({})
 
 	scope:Observer(props.CurrentVehicle):onBind(function()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if typeof(currentVehicle) == "Instance" then
-			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
+			currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
 			if currentConfiguration ~= nil then
 				local newLightSettings = {}
 
@@ -89,7 +89,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				end
 				newLightSettings.lightGroups = firstScope:Value(newLightGroups)
 
-				lightParts:set(chassisHandler.getLights(currentConfiguration, currentVehicle))
+				lightParts:set(ChassisHandler.getLights(currentConfiguration, currentVehicle))
 				lightSettings:set(newLightSettings)
 			end
 		end
@@ -178,9 +178,9 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		log.debug("Recomputing light parts")
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if currentVehicle ~= nil and typeof(currentVehicle) == "Instance" then
-			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
+			currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
 			if currentConfiguration ~= nil then
-				lightParts:set(chassisHandler.getLights(currentConfiguration, currentVehicle))
+				lightParts:set(ChassisHandler.getLights(currentConfiguration, currentVehicle))
 			end
 		end
 	end)

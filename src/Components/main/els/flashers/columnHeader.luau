@@ -5,7 +5,7 @@ local root = script.Parent.Parent.Parent.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local settings = require(root.Plugin.settings)
 local utils = require(root.Plugin.utils)
@@ -21,7 +21,7 @@ return function(
 		columnKey: number,
 		columnData: types.flasherColumnDataState,
 		columnPositions: Fusion.Value<{ [number]: { scope: any, value: Fusion.Value<Vector2> } }>,
-		colors: Fusion.Value<{ chassisHandler.color }>,
+		colors: Fusion.Value<{ ChassisHandler.color }>,
 		playing: Fusion.Value<boolean>,
 		size: Fusion.Value<Vector2>,
 		position: Fusion.Value<Vector2>,

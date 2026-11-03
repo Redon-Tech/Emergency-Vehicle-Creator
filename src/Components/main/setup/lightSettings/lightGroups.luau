@@ -6,14 +6,14 @@ local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local assets = require(root.Plugin.assets)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../../lib/ChassisHandler")
 local popup = require(root.Plugin.Components.popup)
 
 type props = {
 	firstScope: types.Scope,
 	actualTableSize: Fusion.Value<Vector2>,
 	currentContent: Fusion.Value<"settings" | "colors" | "light groups">,
-	lightSettings: Fusion.Value<chassisHandler.lightSettingsState?>,
+	lightSettings: Fusion.Value<ChassisHandler.lightSettingsState?>,
 	lightParts: Fusion.Value<{ string }>,
 	updateCurrentConfiguration: () -> (),
 }

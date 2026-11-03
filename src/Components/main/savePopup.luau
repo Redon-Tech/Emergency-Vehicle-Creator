@@ -12,7 +12,7 @@ local Selection = game:GetService("Selection")
 local popup = require(root.Plugin.Components.popup)
 local utils = require(root.Plugin.utils)
 local assets = require(root.Plugin.assets)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../lib/ChassisHandler")
 
 local function testSaveName(name: string, saves: { string }, currentDepth: number): string
 	local actualName = if currentDepth == 0 then name else `{name} ({currentDepth})`
@@ -180,7 +180,7 @@ return function(scope: types.Scope, props: props): Instance
 	scope:Observer(props.CurrentVehicle):onBind(function()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if typeof(currentVehicle) == "Instance" then
-			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
+			currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
 		else
 			currentConfiguration = nil
 		end

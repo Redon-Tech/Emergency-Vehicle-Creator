@@ -6,7 +6,7 @@ local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local assets = require(root.Plugin.assets)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../../lib/ChassisHandler")
 local utils = require(root.Plugin.utils)
 
 --[[
@@ -21,7 +21,7 @@ return function(
 		dataSize: Fusion.Value<Vector2>,
 		firstScope: types.Scope,
 		updateCurrentConfiguration: () -> (),
-		colors: Fusion.Value<{ chassisHandler.color }>,
+		colors: Fusion.Value<{ ChassisHandler.color }>,
 		fader: types.faderSectionState,
 		playing: Fusion.Value<boolean>,
 	}

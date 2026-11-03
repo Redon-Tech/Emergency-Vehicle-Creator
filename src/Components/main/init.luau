@@ -4,7 +4,7 @@ local root = script.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../lib/ChassisHandler")
 local log = require(root.Plugin.log)
 local popup = require(root.Plugin.Components.popup)
 
@@ -56,7 +56,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 		local currentPossibleVehicle = scope.peek(props.PossibleVehicle)
 		if currentPossibleVehicle ~= nil then
-			local currentConfiguration = chassisHandler:getConfiguration(currentPossibleVehicle)
+			local currentConfiguration = ChassisHandler:getConfiguration(currentPossibleVehicle)
 			if currentConfiguration ~= nil then
 				log.debug("Found vehicle configuration for possible vehicle")
 				props.CurrentVehicle:set(currentPossibleVehicle)
@@ -64,7 +64,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				currentPanel:set("Vehicle Setup")
 				currentPage:set("Functions")
 			else
-				local hasOldPlugin = chassisHandler:hasEVCChassisPluginInstalled(currentPossibleVehicle)
+				local hasOldPlugin = ChassisHandler:hasEVCChassisPluginInstalled(currentPossibleVehicle)
 				popup:addPopup(scope, {
 					title = "Install Emergency Vehicle Handler",
 					description = if hasOldPlugin
@@ -88,7 +88,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 							callback = function(newPopup)
 								local vehicle = scope.peek(props.PossibleVehicle)
 								if vehicle ~= nil then
-									local installed = chassisHandler:installPlugin(vehicle)
+									local installed = ChassisHandler:installPlugin(vehicle)
 									if installed then
 										props.CurrentVehicle:set(vehicle)
 										props.PossibleVehicle:set(nil)

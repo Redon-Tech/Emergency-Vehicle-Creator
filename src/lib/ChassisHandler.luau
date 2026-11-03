@@ -1,10 +1,10 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local log = require(script.Parent.log)
-local types = require(script.Parent.types)
-local VehicleHandler = require("lib/VehicleHandler")
+local log = require("../log")
+local types = require("../types")
+local VehicleHandler = require("VehicleHandler")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
-local LuaEncode = require(script.Parent.Parent.Packages.LuaEncode)
-local Fusion = require(script.Parent.Parent.Packages.fusion)
+local LuaEncode = require("../../Packages/LuaEncode")
+local Fusion = require("../../Packages/fusion")
 local LuaEncodeSettings = {
 	Prettify = false,
 	OutputWarnings = false,
@@ -59,7 +59,7 @@ export type chassisConfiguration = {
 	sirens: { types.siren },
 }
 
-type chassisHandler = {
+type ChassisHandler = {
 	cache: {
 		[Model]: {
 			data: chassisConfiguration,
@@ -68,11 +68,11 @@ type chassisHandler = {
 			lightSettings: ModuleScript,
 		},
 	},
-	hasPluginInstalled: (self: chassisHandler, model: Model) -> (boolean, LocalScript?),
-	hasEVCChassisPluginInstalled: (self: chassisHandler, model: Model) -> (boolean, LocalScript?),
-	installPlugin: (self: chassisHandler, model: Model) -> boolean,
-	getConfiguration: (self: chassisHandler, model: Model) -> chassisConfiguration?,
-	saveConfiguration: (self: chassisHandler, model: Model) -> boolean,
+	hasPluginInstalled: (self: ChassisHandler, model: Model) -> (boolean, LocalScript?),
+	hasEVCChassisPluginInstalled: (self: ChassisHandler, model: Model) -> (boolean, LocalScript?),
+	installPlugin: (self: ChassisHandler, model: Model) -> boolean,
+	getConfiguration: (self: ChassisHandler, model: Model) -> chassisConfiguration?,
+	saveConfiguration: (self: ChassisHandler, model: Model) -> boolean,
 	getLights: (currentConfiguration: chassisConfiguration, model: Instance) -> { string },
 	defaults: {
 		functions: types.elsFunction,
@@ -81,7 +81,7 @@ type chassisHandler = {
 	},
 }
 
-local chassisHandler = {
+local ChassisHandler = {
 	cache = {},
 	defaults = {
 		functions = {
@@ -145,11 +145,11 @@ local chassisHandler = {
 			},
 		},
 	},
-} :: chassisHandler
-table.freeze(chassisHandler.defaults)
+} :: ChassisHandler
+table.freeze(ChassisHandler.defaults)
 
 --- Checks if the Emergency Vehicle Handler plugin is installed on the given model.
-function chassisHandler.hasPluginInstalled(self: chassisHandler, model: Model): (boolean, LocalScript?)
+function ChassisHandler.hasPluginInstalled(self: ChassisHandler, model: Model): (boolean, LocalScript?)
 	if self.cache[model] then
 		return true
 	end
@@ -185,7 +185,7 @@ end
 
 --- Checks if the EVC Chassis Plugin is installed on the given model.
 --- This is a legacy plugin that was used before the Emergency Vehicle Handler plugin.
-function chassisHandler.hasEVCChassisPluginInstalled(_: chassisHandler, model: Model): (boolean, LocalScript?)
+function ChassisHandler.hasEVCChassisPluginInstalled(_: ChassisHandler, model: Model): (boolean, LocalScript?)
 	local vehicleType = VehicleHandler:isValidVehicle(model)
 	if vehicleType == false then
 		return false
@@ -236,7 +236,7 @@ type oldSiren =
 
 --- Installs the Emergency Vehicle Handler plugin on the given model.
 --- This will convert any old EVC Chassis Plugin data to the new format.
-function chassisHandler.installPlugin(self: chassisHandler, model: Model): boolean
+function ChassisHandler.installPlugin(self: ChassisHandler, model: Model): boolean
 	local vehicleType = VehicleHandler:isValidVehicle(model)
 	if vehicleType == false then
 		return false
@@ -513,7 +513,7 @@ end
 
 --- Retrieves the configuration for the given model.
 --- If the configuration is already cached, it will return the cached data.
-function chassisHandler.getConfiguration(self: chassisHandler, model: Model): chassisConfiguration?
+function ChassisHandler.getConfiguration(self: ChassisHandler, model: Model): chassisConfiguration?
 	if self.cache[model] then
 		return self.cache[model].data
 	end
@@ -667,7 +667,7 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 end
 
 --- Saves the current configuration for the given model.
-function chassisHandler.saveConfiguration(self: chassisHandler, model: Model): boolean
+function ChassisHandler.saveConfiguration(self: ChassisHandler, model: Model): boolean
 	local configuration = self.cache[model]
 	if configuration == nil then
 		return false
@@ -696,7 +696,7 @@ end
 --TODO: Create some algorithm to detect possible lights that already havent been used.
 --- Retrieves the list of possible lights from the current configuration.
 --- This includes lights from the configuration, light groups, and any other light names referenced.
-function chassisHandler.getLights(currentConfiguration: chassisConfiguration, model: Instance): { string }
+function ChassisHandler.getLights(currentConfiguration: chassisConfiguration, model: Instance): { string }
 	local possibleLights = {}
 	for _, functions in currentConfiguration.functions do
 		for _, pattern in functions.patterns do
@@ -748,4 +748,4 @@ function chassisHandler.getLights(currentConfiguration: chassisConfiguration, mo
 	return possibleLights
 end
 
-return chassisHandler
+return ChassisHandler

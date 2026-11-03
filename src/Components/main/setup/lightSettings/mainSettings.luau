@@ -5,7 +5,7 @@ local root = script.Parent.Parent.Parent.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../../lib/ChassisHandler")
 
 local mainSettings = {
 	{
@@ -28,7 +28,7 @@ local mainSettings = {
 type props = {
 	actualTableSize: Fusion.Value<Vector2>,
 	currentContent: Fusion.Value<"settings" | "colors" | "light groups">,
-	lightSettings: Fusion.Value<chassisHandler.lightSettingsState?>,
+	lightSettings: Fusion.Value<ChassisHandler.lightSettingsState?>,
 	updateCurrentConfiguration: () -> (),
 }
 

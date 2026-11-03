@@ -6,7 +6,7 @@ local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local popup = require(root.Plugin.Components.popup)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../lib/ChassisHandler")
 local VehicleHandler = require("../../lib/VehicleHandler")
 local savePopup = require(script.Parent.savePopup)
 
@@ -168,7 +168,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 											if currentVehicle == nil or typeof(currentVehicle) == "string" then
 												return
 											end
-											local saved = chassisHandler:saveConfiguration(currentVehicle)
+											local saved = ChassisHandler:saveConfiguration(currentVehicle)
 											if saved == true then
 												props.UnsavedChanges:set(false)
 											end

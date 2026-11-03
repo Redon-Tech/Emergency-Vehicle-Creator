@@ -5,7 +5,7 @@ local root = script.Parent.Parent.Parent.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../../lib/ChassisHandler")
 local popup = require(root.Plugin.Components.popup)
 local createChildren = require(script.Parent.Parent.createChildren)
 
@@ -19,7 +19,7 @@ local colorKeyToIndex = {
 type props = {
 	actualTableSize: Fusion.Value<Vector2>,
 	currentContent: Fusion.Value<"settings" | "colors" | "light groups">,
-	lightSettings: Fusion.Value<chassisHandler.lightSettingsState?>,
+	lightSettings: Fusion.Value<ChassisHandler.lightSettingsState?>,
 	updateCurrentConfiguration: () -> (),
 	removeColorReferences: (number) -> (),
 }

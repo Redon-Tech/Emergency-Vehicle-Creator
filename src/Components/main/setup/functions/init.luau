@@ -5,7 +5,7 @@ local root = script.Parent.Parent.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../lib/ChassisHandler")
 
 local functionsPage = require(script.functionsPage)
 local activationsPage = require(script.activationsPage)
@@ -43,7 +43,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	scope:Observer(props.CurrentVehicle):onBind(function()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if typeof(currentVehicle) == "Instance" then
-			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
+			currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
 			if currentConfiguration ~= nil then
 				local newFunctions = {}
 				for i, func in currentConfiguration.functions do

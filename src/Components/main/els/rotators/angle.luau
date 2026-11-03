@@ -5,7 +5,7 @@ local root = script.Parent.Parent.Parent.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local utils = require(root.Plugin.utils)
 
@@ -20,7 +20,7 @@ return function(
 		angle: types.rotatorDataState,
 		rotator: types.rotatorSectionState,
 		playing: Fusion.Value<boolean>,
-		colors: Fusion.Value<{ chassisHandler.color }>,
+		colors: Fusion.Value<{ ChassisHandler.color }>,
 		updateCurrentConfiguration: () -> (),
 		firstScope: types.Scope,
 		dataSize: Fusion.Value<Vector2>,

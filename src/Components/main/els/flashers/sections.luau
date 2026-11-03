@@ -6,7 +6,7 @@ local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local popup = require(root.Plugin.Components.popup)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
 
@@ -26,7 +26,7 @@ local SPRING_DAMPING = 1
 return function(
 	baseScope: types.Scope,
 	props: {
-		colors: Fusion.Value<{ chassisHandler.color }>,
+		colors: Fusion.Value<{ ChassisHandler.color }>,
 		currentColor: Fusion.Value<number>,
 		playing: Fusion.Value<boolean>,
 		drawing: Fusion.Value<number>,

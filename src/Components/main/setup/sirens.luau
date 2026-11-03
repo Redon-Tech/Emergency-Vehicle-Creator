@@ -5,7 +5,7 @@ local root = script.Parent.Parent.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../lib/ChassisHandler")
 local log = require(root.Plugin.log)
 local popup = require(root.Plugin.Components.popup)
 local createChildren = require(script.Parent.createChildren)
@@ -35,17 +35,19 @@ export type modifierState = {
 	delay: Fusion.Value<number>,
 }
 
-export type sirenState = {
-	name: Fusion.Value<string>,
-	type: Fusion.Value<"Siren" | "Hold">,
-	behavoir: Fusion.Value<"Overrides Other Sounds" | "Plays Simultaneously">,
-	keybinds: Fusion.Value<{ Fusion.Value<Enum.KeyCode> }>,
-	modifiers: Fusion.Value<{ Fusion.Value<modifierState> }>,
-} | {
-	name: Fusion.Value<string>,
-	type: Fusion.Value<"Modifier">,
-	keybinds: Fusion.Value<{ Fusion.Value<Enum.KeyCode> }>,
-}
+export type sirenState =
+	{
+		name: Fusion.Value<string>,
+		type: Fusion.Value<"Siren" | "Hold">,
+		behavoir: Fusion.Value<"Overrides Other Sounds" | "Plays Simultaneously">,
+		keybinds: Fusion.Value<{ Fusion.Value<Enum.KeyCode> }>,
+		modifiers: Fusion.Value<{ Fusion.Value<modifierState> }>,
+	}
+	| {
+		name: Fusion.Value<string>,
+		type: Fusion.Value<"Modifier">,
+		keybinds: Fusion.Value<{ Fusion.Value<Enum.KeyCode> }>,
+	}
 
 local function decodeState(scope: types.Scope, state: Fusion.Value<any>): any
 	local value = scope.peek(state)
@@ -85,7 +87,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	scope:Observer(props.CurrentVehicle):onBind(function()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if typeof(currentVehicle) == "Instance" then
-			currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
+			currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
 			if currentConfiguration ~= nil then
 				-- sirens:set(currentConfiguration.sirens)
 				local newSirens = {}

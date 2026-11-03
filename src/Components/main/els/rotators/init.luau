@@ -6,7 +6,7 @@ local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local popup = require(root.Plugin.Components.popup)
-local chassisHandler = require(root.Plugin.chassisHandler)
+local ChassisHandler = require("../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
 local utils = require(root.Plugin.utils)
@@ -36,8 +36,8 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	local scope = baseScope:innerScope(components)
 	local firstScope = scope:innerScope()
 
-	local currentConfiguration: chassisHandler.chassisConfiguration? = nil
-	local colors: Fusion.Value<{ chassisHandler.color }> = scope:Value(chassisHandler.defaults.colors)
+	local currentConfiguration: ChassisHandler.chassisConfiguration? = nil
+	local colors: Fusion.Value<{ ChassisHandler.color }> = scope:Value(ChassisHandler.defaults.colors)
 	local playing = scope:Value(false)
 	local function temporarlyPause()
 		local wasPlaying = scope.peek(playing)
@@ -126,11 +126,11 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		if currentPattern ~= nil then
 			playing:set(false)
 			if typeof(currentVehicle) == "Instance" then
-				currentConfiguration = chassisHandler:getConfiguration(currentVehicle)
+				currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
 				if currentConfiguration ~= nil then
 					colors:set(currentConfiguration.lightSettings.colors)
 				else
-					colors:set(chassisHandler.defaults.colors)
+					colors:set(ChassisHandler.defaults.colors)
 				end
 			end
 
