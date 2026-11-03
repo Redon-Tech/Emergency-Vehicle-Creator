@@ -2,6 +2,7 @@
 title: Flashers
 authors:
   - Metolix
+  - parker02311
 ---
 
 # Flashers
@@ -9,18 +10,20 @@ authors:
 !!! tip ""
     Prefer videos? Check out our [YouTube playlist](https://youtube.com/playlist?list=PL7OqW0xeBKZTbk4QMl-6v3V_x11pZBV0W&si=e_bKE-MbL-B76wQk) for video guides on how to use the plugin.
 
-??? warning "Documentation is a Work in Progress"
-    This documentation is a work in progress and may be missing information or contain errors.
-    If you need help please contact us on our [Discord server](https://redon.tech/discord)!
+Great! Now that you have a pattern, let's add some flashing lights to it.
 
-    If you know about this topic and want to help us, please consider contributing to this page on [GitHub](https://github.com/Redon-Tech/Emergency-Vehicle-Creator).
+## What is a flasher?
 
-Flashers turn lights on and off in steps.
+Flashers are lights that simply turn on and off in a pattern. They are the most common type of light used on emergency vehicles today!
 
-A flasher section is a grid:
+In our plugin flashers are represented as a grid of cells. 
 
-- each **column** is a light
-- each **row** is a step
+- Each **column** is a light
+- Each **row** is a step
+
+The wait time determines how long each row is active before moving to the next row.
+
+---
 
 ## Create a flasher
 
@@ -35,7 +38,10 @@ Enter the exact light name used by the vehicle.
 
 ![Flasher pattern grid](../../assets/img/flashers.png)
 
-Choose a color for a cell to turn the light on with that color.
+Choose a color for a cell to turn the light on with that color. 
+
+??? tip "The fast way to switch colors"
+    You can switch colors quickly by using the `Q-Y` on your keyboard. 
 
 Set a cell to **None** to turn the light off.
 
@@ -47,28 +53,29 @@ You can also draw across the grid:
 
 ## Wait time
 
-Each row has a **Wait Time**.
+Each section has a **Wait Time**.
 
 It controls how long that row stays active before moving to the next row.
 
 A lower value makes the pattern move faster.
 
-A value of 0 is also supported. The pattern then advances one step per frame.
+![Wait time](../../assets/img/flashers-wait-time.png)
 
 ## Preview
 
-Use **Play** to preview the pattern.
+Use **Play** button or `P` on your keyboard to preview the pattern.
 
-Use **Refresh** to reset the preview.
+Use **Refresh** button to reset the preview.
+
+---
 
 ## Multiple sections
 
-Click **Add Section** to add another flasher section.
+Click **+** button on your existing flasher section (its to the right of the wait time!) to add another flasher section.
 
-Use the delete control to remove a section. EVC asks for confirmation first.
+Use the **-** button on the other side to remove a section. If you want to delete without a confirmation dialog, hold **Shift** while clicking the **-** button.
 
-!!! note
-    The colors available here come from **Light Settings**.
+![Flashers Add/Remove](../../assets/img/flashers-add-remove-section.png)
 
 ## :material-check-circle: All Done!
 
