@@ -18,7 +18,7 @@ A normal siren has a name, type, keybinds, behavior, and a list of modifiers.
 
 A normal siren has a name, type, keybinds, behavior, and a list of modifiers.
 
-\`\`\`lua
+```lua
 {
     type = "Siren",
     name = "Wail",
@@ -29,7 +29,7 @@ A normal siren has a name, type, keybinds, behavior, and a list of modifiers.
     behavoir = "Overrides Other Sounds",
     modifiers = {},
 }
-\`\`\`
+```
 
 The `type` is `Siren` for a normal siren.
 
@@ -46,18 +46,18 @@ The first keybind is the keyboard or controller input used by the configuration.
 
 A modifier siren is a separate siren entry with `type = "Modifier"`.
 
-The \`behavoir\` field can be:
+The `behavoir` field can be:
 
-- \`Overrides Other Sounds\` — other sirens are stopped or muted while this siren is active.
-- \`Plays Simultaneously\` — the siren can play at the same time as other sounds.
+- `Overrides Other Sounds` — other sirens are stopped or muted while this siren is active.
+- `Plays Simultaneously` — the siren can play at the same time as other sounds.
 
-The first keybind is the keyboard or controller input used by the configuration. An \`Unknown\` key means that slot has no usable key assigned.
+The first keybind is the keyboard or controller input used by the configuration. An `Unknown` key means that slot has no usable key assigned.
 
 ## Modifier sirens
 
-A modifier siren is a separate siren entry with \`type = "Modifier"\`.
+A modifier siren is a separate siren entry with `type = "Modifier"`.
 
-\`\`\`lua
+```lua
 {
     type = "Modifier",
     name = "default",
@@ -66,7 +66,7 @@ A modifier siren is a separate siren entry with \`type = "Modifier"\`.
         Enum.KeyCode.Unknown,
     },
 }
-\`\`\`
+```
 
 A modifier siren is **not** the same thing as a modifier inside a normal siren.
 
@@ -75,7 +75,7 @@ A modifier siren is **not** the same thing as a modifier inside a normal siren.
 
 ## Modifier tables
 
-\`\`\`lua
+```lua
 {
     name = "default",
     modifiedSirenName = "Airhorn",
@@ -83,7 +83,7 @@ A modifier siren is **not** the same thing as a modifier inside a normal siren.
     behavoir = "Play Automatically",
     delay = 0,
 }
-\`\`\`
+```
 
 Each entry contains:
 
