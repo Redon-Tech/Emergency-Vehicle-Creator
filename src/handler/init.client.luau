@@ -57,10 +57,16 @@ if Values:IsA("Folder") then
 
 	-- Parking Brake Override
 	if PBrake:IsA("BoolValue") then
-		PBrake:GetPropertyChangedSignal("Value"):Connect(function()
+		-- This is a very hacky fix. On some version of A-Chassis the PBrake value will be set to false and then immediately set to true.
+		-- For some reason that causes EVH to freak out, and since I can't reproduce this is the only way I can think of to fix it. If you have a better solution, please let me know.
+		-- My best guess is that vehicleFunctionUpdate() is being called twice in quick succession, but I can't figure out why that would cause the issues we are seeing.
+		-- Possibly having a queue for same function pattern changes? No idea
+		task.delay(0.1, function()
+			PBrake:GetPropertyChangedSignal("Value"):Connect(function()
+				EVHEvent:FireServer("Values", "PBrake", PBrake.Value)
+			end)
 			EVHEvent:FireServer("Values", "PBrake", PBrake.Value)
 		end)
-		EVHEvent:FireServer("Values", "PBrake", PBrake.Value)
 	else
 		warn("[EVH WARNING]: PBrake BoolValue not valid, some overrides may not work")
 	end
