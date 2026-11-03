@@ -4,10 +4,6 @@
     - parker02311
 ---
 
-
-
-    If you know about this topic and want to help us, please consider contributing to this page on [GitHub](https://github.com/Redon-Tech/Emergency-Vehicle-Creator).
-
 In order to make working with and controlling patterns easier, EVH makes use of the [Roblox attributes system](https://create.roblox.com/docs/scripting/attributes#set-attributes), allowing for easy access to pattern data on vehicles.
 
 You can see this in studio by entering play mode, selecting an emergency vehicle and observing the attributes tab in the properties window. See the image below for an example:

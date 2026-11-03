@@ -4,9 +4,16 @@ authors:
   - Metolix
 ---
 
+??? warning "Documentation is a Work in Progress"
+    This documentation is a work in progress and may be missing information or contain errors.
+    If you need help please contact us on our [Discord server](https://redon.tech/discord)!
+
+    If you know about this topic and want to help us, please consider contributing to this page on [GitHub](https://github.com/Redon-Tech/Emergency-Vehicle-Creator).
+
 EVC stores the vehicle configuration in ModuleScripts used by EVH.
 
 The main configuration files are:
+
 - `functions.luau`
 - `sirens.luau`
 - `lightSettings.luau`
@@ -18,12 +25,14 @@ The files return Luau tables. EVH reads these tables when the vehicle loads.
 ## Functions
 
 The functions configuration contains:
+
 - function name
 - function weight
 - patterns
 - activations
 
 Each pattern contains:
+
 - flashers
 - faders
 - rotators
@@ -33,6 +42,7 @@ A Standard activation contains a mode, pattern number, and keybinds.
 ## Sirens
 
 The siren configuration contains:
+
 - type
 - name
 - keybinds
@@ -44,6 +54,7 @@ See [Siren Configuration](sirens.md) for the exact structure.
 ## Light settings
 
 The light settings configuration contains:
+
 - version
 - colors
 - enabled light effects

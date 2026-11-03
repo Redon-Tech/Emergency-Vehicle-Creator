@@ -4,10 +4,6 @@
     - parker02311
 ---
 
-
-
-    If you know about this topic and want to help us, please consider contributing to this page on [GitHub](https://github.com/Redon-Tech/Emergency-Vehicle-Creator).
-
 Working with sirens is a more complicated topic with EVH. You can read the status of sirens on the client and server, but **changing sirens is a client-side only** operation.
 
 ## Reading the current siren state
