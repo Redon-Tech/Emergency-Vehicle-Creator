@@ -14,6 +14,7 @@ local assets = {
 			subaru = "rbxassetid://118384213214792",
 			sillyme = "rbxassetid://93534972064581",
 			twrblx = "rbxthumb://type=AvatarHeadShot&id=629627855&w=150&h=150",
+			metolix = "rbxthumb://type=AvatarHeadShot&id=2509835413&w=150&h=150",
 			fusion = "rbxassetid://106848335032671",
 			fusionContrast = "rbxassetid://92779493029740",
 			ionic = "rbxassetid://71776903426004",

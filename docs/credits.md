@@ -54,6 +54,12 @@ As for everyone else:
 <p style="font-size: 0.7rem;">Code Contributor</p>
 </li>
 
+<li style="max-width: 200px; text-align: center;">
+<img style="border-radius: 50%; min-width: 100%;" src="https://avatars.githubusercontent.com/u/169835372?v=4" />
+<p><a href="https://github.com/Metolix" target="_blank" rel="noreferrer"><b>Metolix</b></a></p>
+<p style="font-size: 0.7rem;">Documentation Contributor</p>
+</li>
+
 </ul>
 </div>
 
