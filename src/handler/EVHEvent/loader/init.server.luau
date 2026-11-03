@@ -140,7 +140,7 @@ local function load()
 		end
 		table.insert(sirenNames, i, siren.name)
 		for _, keybind in siren.keybinds :: { Enum.KeyCode } do
-			if keybind == Enum.KeyCode.Unknown then
+			if keybind == Enum.KeyCode.None then
 				continue
 			end
 			table.insert(sirensByKeycode, {
@@ -193,7 +193,7 @@ local function load()
 			if activation.type == "Standard" then
 				if activation.keybinds then
 					for _, keybind in activation.keybinds do
-						if keybind == Enum.KeyCode.Unknown then
+						if keybind == Enum.KeyCode.None then
 							continue
 						end
 						table.insert(keybindsToFunction, {
