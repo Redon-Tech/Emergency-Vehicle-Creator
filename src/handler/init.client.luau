@@ -93,7 +93,10 @@ end
 local acceptedKeys: { [Enum.KeyCode]: boolean } = {}
 local function input(InputObject: InputObject, gameProcessedEvent: boolean)
 	if
-		(gameProcessedEvent == false or (InputObject.UserInputState == Enum.UserInputState.End and acceptedKeys[InputObject.KeyCode] == true))
+		(
+			gameProcessedEvent == false
+			or (InputObject.UserInputState == Enum.UserInputState.End and acceptedKeys[InputObject.KeyCode] == true)
+		)
 		and (
 			InputObject.UserInputType == Enum.UserInputType.Keyboard
 			or InputObject.UserInputType == Enum.UserInputType.Gamepad1

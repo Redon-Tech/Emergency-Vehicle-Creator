@@ -81,9 +81,11 @@ function version.isOutdated(self: version)
 			break
 		end
 	end
-	if self.currentVer.major == self.latestVer.major
+	if
+		self.currentVer.major == self.latestVer.major
 		and self.currentVer.minor == self.latestVer.minor
-		and self.currentVer.patch == self.latestVer.patch then
+		and self.currentVer.patch == self.latestVer.patch
+	then
 		local current = self.currentVer.preRelease
 		local latest = self.latestVer.preRelease
 		if current ~= nil and latest == nil then
@@ -113,7 +115,6 @@ function version.isOutdated(self: version)
 		end
 	end
 	if outdated then
-
 		log.warn(
 			"Version Check:",
 			("You are using an outdated version of the plugin\n                    Current version: %s\n                    ↳  Latest version: %s"):format(

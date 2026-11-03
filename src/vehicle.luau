@@ -493,8 +493,11 @@ function vehicle.changeEquipment(self, vehicleFolder, outfitting, location, equi
 	if currentEquipment ~= nil and typeof(currentEquipment) == "string" and currentEquipment ~= "BasePoint" then
 		local currentModel: Model? = nil
 		for _, candidate in outfitting:GetChildren() do
-			if candidate:IsA("Model") and candidate.Name == currentEquipment
-				and candidate:GetAttribute("EVCEquipmentName") == location then
+			if
+				candidate:IsA("Model")
+				and candidate.Name == currentEquipment
+				and candidate:GetAttribute("EVCEquipmentName") == location
+			then
 				currentModel = candidate
 				break
 			end

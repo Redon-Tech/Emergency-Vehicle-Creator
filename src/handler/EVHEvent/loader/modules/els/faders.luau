@@ -81,7 +81,13 @@ function faders.processPattern(pattern: types.pattern)
 
 		if currentTween.type == "Wait" then
 			data.currentValue = previousGoal
-			faders.setLightTransparency(pattern.vehicle, pattern.functionId, data.lightName, previousColor, previousGoal)
+			faders.setLightTransparency(
+				pattern.vehicle,
+				pattern.functionId,
+				data.lightName,
+				previousColor,
+				previousGoal
+			)
 		end
 
 		if currentPercentage >= 1 then
@@ -127,7 +133,9 @@ function faders.processReturnToZero(deltaTime: number)
 			continue
 		end
 
-		currentPercentage = if lastTween.time <= 0 then 1 else math.min(1, currentPercentage + deltaTime / lastTween.time)
+		currentPercentage = if lastTween.time <= 0
+			then 1
+			else math.min(1, currentPercentage + deltaTime / lastTween.time)
 		data.section.currentPercentage = currentPercentage
 
 		local previousGoal = data.section.returnStartValue or data.section.currentValue or 1

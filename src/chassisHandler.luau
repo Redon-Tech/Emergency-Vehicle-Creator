@@ -215,24 +215,22 @@ function chassisHandler.hasEVCChassisPluginInstalled(_: chassisHandler, model: M
 	return true, Plugin
 end
 
-type oldSiren =
-	{
-		_Type: "Hold" | "Siren",
-		Name: string,
-		OverrideOtherSounds: boolean,
-		Modifiers: {
-			[string]: {
-				Name: string,
-				PlayNonModified: boolean,
-				PlayOnModifierChange: boolean,
-				Delay: number,
-			},
-		}?,
-	}
-	| {
-		_Type: "Modifier",
-		Name: string,
-	}
+type oldSiren = {
+	_Type: "Hold" | "Siren",
+	Name: string,
+	OverrideOtherSounds: boolean,
+	Modifiers: {
+		[string]: {
+			Name: string,
+			PlayNonModified: boolean,
+			PlayOnModifierChange: boolean,
+			Delay: number,
+		},
+	}?,
+} | {
+	_Type: "Modifier",
+	Name: string,
+}
 
 --- Installs the Emergency Vehicle Handler plugin on the given model.
 --- This will convert any old EVC Chassis Plugin data to the new format.
@@ -592,7 +590,7 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 			shouldChangeLightos = oldLightConfiguration.shouldChangeLightos,
 			shouldChangeParticleEmitters = false,
 			partTransparency = 0.011,
-		}
+		};
 		(data.lightSettings :: any).optimizations = nil
 		log.info("Updated lightSettings from optimizations to configuration", oldLightConfiguration, data.lightSettings)
 	end

@@ -202,7 +202,12 @@ return function(scope: types.Scope, props: props)
 													return
 												end
 												local newValue = scope.peek(weight)
-												if newValue ~= newValue or newValue < 1 or newValue == math.huge or newValue % 1 ~= 0 then
+												if
+													newValue ~= newValue
+													or newValue < 1
+													or newValue == math.huge
+													or newValue % 1 ~= 0
+												then
 													weight:set(currentConfiguration.functions[key].weight)
 													return
 												end
@@ -280,7 +285,10 @@ return function(scope: types.Scope, props: props)
 												local oldName = currentConfiguration.functions[key].name
 												for _, func in currentConfiguration.functions do
 													for _, activation in func.activations do
-														if activation.type == "Override" and activation.dependentFunction == oldName then
+														if
+															activation.type == "Override"
+															and activation.dependentFunction == oldName
+														then
 															activation.dependentFunction = newValue
 														end
 													end

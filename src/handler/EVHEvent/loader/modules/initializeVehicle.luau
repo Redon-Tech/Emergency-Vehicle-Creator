@@ -35,7 +35,7 @@ return function(vehicle: Instance): types.vehicle?
 			shouldChangeLights = oldLightConfiguration.shouldChangeLights,
 			shouldChangeLightos = oldLightConfiguration.shouldChangeLightos,
 			partTransparency = 0.011,
-		}
+		};
 		(currentConfiguration.lightSettings :: any).optimizations = nil
 	end
 

@@ -608,7 +608,10 @@ local function lightDescendantAdded(
 		end
 		for _, collectors in lightData.lightos do
 			for _, collector in collectors do
-				if collector.lighto == lightoCollector and table.find(collector.images, lighto :: ImageLabel) == nil then
+				if
+					collector.lighto == lightoCollector
+					and table.find(collector.images, lighto :: ImageLabel) == nil
+				then
 					table.insert(collector.images, lighto :: ImageLabel)
 				end
 			end

@@ -166,7 +166,10 @@ return function(
 						local outfitting = scope.peek(props.outfitting)
 						if outfitting then
 							for _, equipment in outfitting:GetChildren() do
-								if equipment.Name == currentlyConfiguring and equipment:GetAttribute("EVCEquipmentName") == currentLocation then
+								if
+									equipment.Name == currentlyConfiguring
+									and equipment:GetAttribute("EVCEquipmentName") == currentLocation
+								then
 									savedPrefix = equipment:GetAttribute("lightPrefix") or ""
 									break
 								end
