@@ -22,6 +22,17 @@ For example, you could have a normal **Wail** siren and an **Wail Rumbler** modi
 
 The modifier can either replace the parent siren or let both sounds play at the same time.
 
+## How modifiers work
+
+A modifier uses two siren entries:
+
+1. A **Modifier** siren, which is the modifier that can be enabled.
+2. A normal or Hold siren with a modifier entry that points to the sound you want to play.
+
+For example, you could have a normal **Wail** siren and an **Airhorn** modifier siren. The Wail siren can have a modifier that plays Airhorn when the modifier is enabled.
+
+The modifier can either replace the parent siren or let both sounds play at the same time.
+
 ## Modifier settings
 
 | Setting                   | What it does                                                                        |

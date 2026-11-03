@@ -16,7 +16,9 @@ The EVH siren configuration is a Luau table. This page explains the fields used 
 
 A normal siren has a name, type, keybinds, behavior, and a list of modifiers.
 
-```lua
+A normal siren has a name, type, keybinds, behavior, and a list of modifiers.
+
+\`\`\`lua
 {
     type = "Siren",
     name = "Wail",
@@ -27,7 +29,7 @@ A normal siren has a name, type, keybinds, behavior, and a list of modifiers.
     behavoir = "Overrides Other Sounds",
     modifiers = {},
 }
-```
+\`\`\`
 
 The `type` is `Siren` for a normal siren.
 
@@ -44,7 +46,18 @@ The first keybind is the keyboard or controller input used by the configuration.
 
 A modifier siren is a separate siren entry with `type = "Modifier"`.
 
-```lua
+The \`behavoir\` field can be:
+
+- \`Overrides Other Sounds\` — other sirens are stopped or muted while this siren is active.
+- \`Plays Simultaneously\` — the siren can play at the same time as other sounds.
+
+The first keybind is the keyboard or controller input used by the configuration. An \`Unknown\` key means that slot has no usable key assigned.
+
+## Modifier sirens
+
+A modifier siren is a separate siren entry with \`type = "Modifier"\`.
+
+\`\`\`lua
 {
     type = "Modifier",
     name = "default",
@@ -53,7 +66,7 @@ A modifier siren is a separate siren entry with `type = "Modifier"`.
         Enum.KeyCode.Unknown,
     },
 }
-```
+\`\`\`
 
 A modifier siren is **not** the same thing as a modifier inside a normal siren.
 
@@ -62,7 +75,15 @@ A modifier siren is **not** the same thing as a modifier inside a normal siren.
 
 ## Modifier tables
 
-Normal and Hold sirens can contain a `modifiers` table.
+\`\`\`lua
+{
+    name = "default",
+    modifiedSirenName = "Airhorn",
+    parentSoundBehavior = "Play Parent Sound",
+    behavoir = "Play Automatically",
+    delay = 0,
+}
+\`\`\`
 
 Each entry contains:
 
