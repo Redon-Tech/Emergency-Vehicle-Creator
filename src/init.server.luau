@@ -109,7 +109,7 @@ local scope = Fusion.scoped(Fusion, RedonUI.Util, RedonUI.Components, utils, {
 
 table.insert(scope, function()
 	log.debug("Cleaning vehicle cache")
-	local cache = require(script.vehicle).cache
+	local cache = require("@self/lib/VehicleHandler").cache
 	for i, v in pairs(cache) do
 		v.vehicle:Destroy()
 		v.customization:Destroy()

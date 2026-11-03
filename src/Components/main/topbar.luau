@@ -7,7 +7,7 @@ local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local popup = require(root.Plugin.Components.popup)
 local chassisHandler = require(root.Plugin.chassisHandler)
-local vehicle = require(root.Plugin.vehicle)
+local VehicleHandler = require("../../lib/VehicleHandler")
 local savePopup = require(script.Parent.savePopup)
 
 type props = {
@@ -243,7 +243,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					elseif returnTo == "customizer" then
 						local currentVehicle = scope.peek(props.CurrentVehicle)
 						if currentVehicle ~= nil and typeof(currentVehicle) == "Instance" then
-							if vehicle:isVehicleCustomizable(currentVehicle) == true then
+							if VehicleHandler:isVehicleCustomizable(currentVehicle) == true then
 								props.Mode:set("viewport")
 								return
 							end
@@ -256,7 +256,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						props.CurrentPage:set("Functions")
 						local currentVehicle = scope.peek(props.CurrentVehicle)
 						if currentVehicle ~= nil and typeof(currentVehicle) == "Instance" then
-							if vehicle:isVehicleCustomizable(currentVehicle) == true then
+							if VehicleHandler:isVehicleCustomizable(currentVehicle) == true then
 								props.ReturnTo:set("customizer")
 								return
 							end

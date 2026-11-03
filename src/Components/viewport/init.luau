@@ -8,7 +8,7 @@ local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local vehicle = require(root.Plugin.vehicle)
+local VehicleHandler = require("../lib/VehicleHandler")
 local chassisHandler = require(root.Plugin.chassisHandler)
 local log = require(root.Plugin.log)
 
@@ -38,7 +38,7 @@ return function(baseScope: types.Scope, props: props)
 	local currentTheme = RedonUI.theme.theme:now()
 
 	-- Placing Vehicle Handling
-	local placingVehicle: Fusion.Value<vehicle.vehicleFolder?> = scope:Value(nil)
+	local placingVehicle: Fusion.Value<VehicleHandler.vehicleFolder?> = scope:Value(nil)
 	local heightOffset = 0
 
 	local worldModel = scope:New("WorldModel") {
@@ -56,7 +56,7 @@ return function(baseScope: types.Scope, props: props)
 	} :: WorldModel
 
 	-- Customizing Vehicle Handling
-	local currentVehicleFolder: Fusion.Value<vehicle.vehicleFolder?> = scope:Value(nil)
+	local currentVehicleFolder: Fusion.Value<VehicleHandler.vehicleFolder?> = scope:Value(nil)
 	local basePoint: Instance? = nil
 	local outfitting: Fusion.Value<Model?> = scope:Value(nil)
 	local attachments: Fusion.Value<{ Attachment }> = scope:Value({})
@@ -168,7 +168,7 @@ return function(baseScope: types.Scope, props: props)
 			return
 		end
 
-		local carOutfitting = vehicle:getOutfitting(currentVehicle)
+		local carOutfitting = VehicleHandler:getOutfitting(currentVehicle)
 		if carOutfitting == nil then
 			lightParts:set({})
 			return
@@ -187,7 +187,7 @@ return function(baseScope: types.Scope, props: props)
 	local function modeChange()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if scope.peek(props.Mode) == "viewport" and typeof(currentVehicle) == "string" then
-			local vehicleFolder = vehicle:getVehicle(currentVehicle)
+			local vehicleFolder = VehicleHandler:getVehicle(currentVehicle)
 			if vehicleFolder ~= nil then
 				placingVehicle:set(vehicleFolder)
 				local vehicleCFrame, vehicleSize = vehicleFolder.vehicle:GetBoundingBox()
@@ -196,18 +196,22 @@ return function(baseScope: types.Scope, props: props)
 			end
 		elseif scope.peek(props.Mode) == "viewport" and currentVehicle ~= nil then
 			local vehicleName = currentVehicle:GetAttribute("EVCVehicleName")
-			if vehicleName ~= nil and typeof(vehicleName) == "string" and vehicle.vehicles[vehicleName] ~= nil then
-				local vehicleFolder = vehicle:getVehicle(vehicleName)
+			if
+				vehicleName ~= nil
+				and typeof(vehicleName) == "string"
+				and VehicleHandler.vehicles[vehicleName] ~= nil
+			then
+				local vehicleFolder = VehicleHandler:getVehicle(vehicleName)
 				if vehicleFolder == nil then
 					log.warn("Failed to open vehicle customization, no vehicle found", vehicleName)
 					return
 				end
-				local newBasePoint = vehicle:cloneCustomizationBasePoint(vehicleFolder)
+				local newBasePoint = VehicleHandler:cloneCustomizationBasePoint(vehicleFolder)
 				if newBasePoint == nil then
 					log.warn("Failed to open vehicle customization, no basepoint found", vehicleName)
 					return
 				end
-				local carOutfitting = vehicle:getOutfitting(currentVehicle)
+				local carOutfitting = VehicleHandler:getOutfitting(currentVehicle)
 				if carOutfitting == nil then
 					return
 				end
@@ -331,7 +335,7 @@ return function(baseScope: types.Scope, props: props)
 					newVehicle.Name = scope.peek(currentVehicle)
 					newVehicle.Parent = workspace
 					newVehicle:PivotTo(worldModel:GetPivot())
-					vehicle:initVehicle(newVehicle)
+					VehicleHandler:initVehicle(newVehicle)
 					chassisHandler:installPlugin(newVehicle)
 					props.CurrentVehicle:set(newVehicle)
 					currentVehicleFolder:set(currentlyPlacing)

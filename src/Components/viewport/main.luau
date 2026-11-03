@@ -5,20 +5,20 @@ local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local assets = require(root.Plugin.assets)
 local types = require(root.Plugin.types)
-local vehicle = require(root.Plugin.vehicle)
+local VehicleHandler = require("../../lib/VehicleHandler")
 local log = require(root.Plugin.log)
 local configuring = require(script.Parent.configuring)
 
 local function construct(
 	scope: types.Scope,
-	currentVehicle: vehicle.vehicleFolder,
+	currentVehicle: VehicleHandler.vehicleFolder,
 	outfitting: Model,
 	props: { [string]: any }
 )
 	local currentTheme = RedonUI.theme.theme:now()
 	return scope:ForPairs(
 		currentVehicle.data.customization,
-		function(_, scope: typeof(scope), key: string, value: { [string]: vehicle.equipmentData })
+		function(_, scope: typeof(scope), key: string, value: { [string]: VehicleHandler.equipmentData })
 			return key,
 				scope:base {
 					Name = key,
@@ -37,7 +37,7 @@ local function construct(
 
 						scope:ForPairs(
 							value,
-							function(_, scope: typeof(scope), name: string, data: vehicle.equipmentData)
+							function(_, scope: typeof(scope), name: string, data: VehicleHandler.equipmentData)
 								local isHovered = scope:Value(false)
 								return data.layoutOrder,
 									scope:base {
@@ -113,7 +113,7 @@ local function construct(
 													end
 													if scope.peek(props.currentEquipment) ~= name then
 														if
-															vehicle:changeEquipment(
+															VehicleHandler:changeEquipment(
 																currentVehicle,
 																outfitting,
 																currentLocation,
@@ -150,7 +150,7 @@ return function(
 		CurrentVehicle: Fusion.Value<Model | string?>,
 
 		outfitting: Fusion.Value<Model?>,
-		currentVehicleFolder: Fusion.Value<vehicle.vehicleFolder?>,
+		currentVehicleFolder: Fusion.Value<VehicleHandler.vehicleFolder?>,
 		currentEquipment: Fusion.Value<string>,
 		currentlyConfiguring: Fusion.Value<string?>,
 		currentOptionData: Fusion.Value<{ [string]: boolean | { [string]: boolean } }>,
@@ -359,7 +359,7 @@ return function(
 										return
 									end
 									if
-										vehicle:changeEquipment(currentVehicle, outfitting, currentLocation)
+										VehicleHandler:changeEquipment(currentVehicle, outfitting, currentLocation)
 										== false
 									then
 										log.warn("failed to change equipment")

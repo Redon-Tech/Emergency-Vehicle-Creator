@@ -3,7 +3,7 @@ local root = script.Parent.Parent.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
 local types = require(root.Plugin.types)
-local vehicle = require(root.Plugin.vehicle)
+local VehicleHandler = require("../../lib/VehicleHandler")
 local assets = require(root.Plugin.assets)
 
 local pageBase = require(script.Parent.pageBase)
@@ -28,7 +28,7 @@ return function(baseScope: types.Scope, props: props)
 	-- Components to put inside the list
 	local extraComponents = {}
 
-	for key, value in pairs(vehicle.vehicles) do
+	for key, value in pairs(VehicleHandler.vehicles) do
 		local isHovered = scope:Value(false)
 		extraComponents[value.order] = scope:base {
 			ClassName = "TextButton",

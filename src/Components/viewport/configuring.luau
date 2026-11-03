@@ -4,7 +4,7 @@ local root = script.Parent.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local vehicle = require(root.Plugin.vehicle)
+local VehicleHandler = require("../../lib/VehicleHandler")
 local log = require(root.Plugin.log)
 
 return function(
@@ -18,7 +18,7 @@ return function(
 		CurrentVehicle: Fusion.Value<Model | string?>,
 
 		outfitting: Fusion.Value<Model?>,
-		currentVehicleFolder: Fusion.Value<vehicle.vehicleFolder?>,
+		currentVehicleFolder: Fusion.Value<VehicleHandler.vehicleFolder?>,
 		currentEquipment: Fusion.Value<string>,
 		currentlyConfiguring: Fusion.Value<string?>,
 		currentOptionData: Fusion.Value<{ [string]: boolean | { [string]: boolean } }>,
@@ -114,7 +114,7 @@ return function(
 						log.warn("currentEquipmentModel is nil or not a model", currentEquipment, outfitting)
 						return
 					end
-					vehicle:changeConfiguration(currentVehicleFolder, currentEquipmentModel, {
+					VehicleHandler:changeConfiguration(currentVehicleFolder, currentEquipmentModel, {
 						[name] = if typeof(current) == "table" then current else newValue,
 					})
 					props.recomputeLightParts()
@@ -147,7 +147,7 @@ return function(
 				local currentLocation = scope.peek(props.currentLocation)
 
 				if currentlyConfiguring ~= nil and currentVehicleFolder ~= nil and currentLocation ~= nil then
-					local rows: { [string]: vehicle.option | Instance } = scope.deepCopy(
+					local rows: { [string]: VehicleHandler.option | Instance } = scope.deepCopy(
 						currentVehicleFolder.data.customization[currentLocation][currentlyConfiguring].configuration
 					)
 					local layoutLength = 0
@@ -192,7 +192,7 @@ return function(
 							local newPrefix = scope.peek(lightPrefix)
 
 							currentEquipmentModel:SetAttribute("lightPrefix", newPrefix)
-							vehicle:updateEquipmentLights(currentEquipmentModel)
+							VehicleHandler:updateEquipmentLights(currentEquipmentModel)
 							props.recomputeLightParts()
 						end
 						rows["Light Prefix"] = scope:base {
@@ -230,7 +230,7 @@ return function(
 
 					return scope:ForPairs(
 						rows,
-						function(_, scope: typeof(scope), name: string, data: vehicle.option | Instance)
+						function(_, scope: typeof(scope), name: string, data: VehicleHandler.option | Instance)
 							local children = {}
 							if typeof(data) == "table" and data.type == "select" and data.choices ~= nil then
 								table.insert(

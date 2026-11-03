@@ -8,7 +8,7 @@ local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local assets = require(root.Plugin.assets)
-local vehicle = require(root.Plugin.vehicle)
+local VehicleHandler = require("../../lib/VehicleHandler")
 local version = require(root.Plugin.version)
 
 type props = {
@@ -107,7 +107,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				end),
 				TextColor3 = scope:Computed(function(use)
 					local selection = use(currentSelection)
-					if selection ~= nil and vehicle:isValidVehicle(selection) == false then
+					if selection ~= nil and VehicleHandler:isValidVehicle(selection) == false then
 						return currentTheme.colors.peach
 					end
 					return currentTheme.colors.text
@@ -130,7 +130,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 				Text = scope:Computed(function(use)
 					local selection = use(currentSelection)
-					if selection ~= nil and vehicle:isValidVehicle(selection) ~= false then
+					if selection ~= nil and VehicleHandler:isValidVehicle(selection) ~= false then
 						return "Edit Vehicle"
 					end
 					return "Create Vehicle"
@@ -149,9 +149,9 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 				[Fusion.OnEvent "Activated"] = function()
 					local selection = scope.peek(currentSelection)
-					if selection == nil or vehicle:isValidVehicle(selection) == false then
+					if selection == nil or VehicleHandler:isValidVehicle(selection) == false then
 						props.CurrentPanel:set("Vehicle")
-					elseif vehicle:isVehicleCustomizable(selection) == true then
+					elseif VehicleHandler:isVehicleCustomizable(selection) == true then
 						props.CurrentVehicle:set(selection)
 						props.Mode:set("viewport")
 						Selection:Set({}) -- Deselect the vehicle, so it doesn't get in the way
@@ -210,7 +210,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					Visible = if value == 231
 						then scope:Computed(function(use)
 							local selection = use(currentSelection)
-							return selection == nil or vehicle:isValidVehicle(selection) == false
+							return selection == nil or VehicleHandler:isValidVehicle(selection) == false
 						end)
 						else true,
 				}

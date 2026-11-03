@@ -1,7 +1,7 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local log = require(script.Parent.log)
 local types = require(script.Parent.types)
-local vehicle = require(script.Parent.vehicle)
+local VehicleHandler = require("lib/VehicleHandler")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local LuaEncode = require(script.Parent.Parent.Packages.LuaEncode)
 local Fusion = require(script.Parent.Parent.Packages.fusion)
@@ -154,7 +154,7 @@ function chassisHandler.hasPluginInstalled(self: chassisHandler, model: Model): 
 		return true
 	end
 
-	local vehicleType = vehicle:isValidVehicle(model)
+	local vehicleType = VehicleHandler:isValidVehicle(model)
 	if vehicleType == false then
 		return false
 	end
@@ -186,7 +186,7 @@ end
 --- Checks if the EVC Chassis Plugin is installed on the given model.
 --- This is a legacy plugin that was used before the Emergency Vehicle Handler plugin.
 function chassisHandler.hasEVCChassisPluginInstalled(_: chassisHandler, model: Model): (boolean, LocalScript?)
-	local vehicleType = vehicle:isValidVehicle(model)
+	local vehicleType = VehicleHandler:isValidVehicle(model)
 	if vehicleType == false then
 		return false
 	end
@@ -215,27 +215,29 @@ function chassisHandler.hasEVCChassisPluginInstalled(_: chassisHandler, model: M
 	return true, Plugin
 end
 
-type oldSiren = {
-	_Type: "Hold" | "Siren",
-	Name: string,
-	OverrideOtherSounds: boolean,
-	Modifiers: {
-		[string]: {
-			Name: string,
-			PlayNonModified: boolean,
-			PlayOnModifierChange: boolean,
-			Delay: number,
-		},
-	}?,
-} | {
-	_Type: "Modifier",
-	Name: string,
-}
+type oldSiren =
+	{
+		_Type: "Hold" | "Siren",
+		Name: string,
+		OverrideOtherSounds: boolean,
+		Modifiers: {
+			[string]: {
+				Name: string,
+				PlayNonModified: boolean,
+				PlayOnModifierChange: boolean,
+				Delay: number,
+			},
+		}?,
+	}
+	| {
+		_Type: "Modifier",
+		Name: string,
+	}
 
 --- Installs the Emergency Vehicle Handler plugin on the given model.
 --- This will convert any old EVC Chassis Plugin data to the new format.
 function chassisHandler.installPlugin(self: chassisHandler, model: Model): boolean
-	local vehicleType = vehicle:isValidVehicle(model)
+	local vehicleType = VehicleHandler:isValidVehicle(model)
 	if vehicleType == false then
 		return false
 	end
@@ -590,7 +592,7 @@ function chassisHandler.getConfiguration(self: chassisHandler, model: Model): ch
 			shouldChangeLightos = oldLightConfiguration.shouldChangeLightos,
 			shouldChangeParticleEmitters = false,
 			partTransparency = 0.011,
-		};
+		}
 		(data.lightSettings :: any).optimizations = nil
 		log.info("Updated lightSettings from optimizations to configuration", oldLightConfiguration, data.lightSettings)
 	end
@@ -720,9 +722,9 @@ function chassisHandler.getLights(currentConfiguration: chassisConfiguration, mo
 		end
 	end
 
-	if vehicle:isValidVehicle(model) then
-		if vehicle:isVehicleCustomizable(model) then
-			local outfittingFolder = vehicle:getOutfitting(model)
+	if VehicleHandler:isValidVehicle(model) then
+		if VehicleHandler:isVehicleCustomizable(model) then
+			local outfittingFolder = VehicleHandler:getOutfitting(model)
 			if outfittingFolder ~= nil then
 				for _, lightPart in outfittingFolder.model:GetDescendants() do
 					if lightPart:IsA("BasePart") and lightPart.Parent ~= nil and lightPart.Parent.Name == "_LIGHTS" then

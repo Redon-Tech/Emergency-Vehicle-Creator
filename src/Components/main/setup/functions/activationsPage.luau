@@ -9,7 +9,7 @@ local chassisHandler = require(root.Plugin.chassisHandler)
 local log = require(root.Plugin.log)
 local popup = require(root.Plugin.Components.popup)
 local createChildren = require(script.Parent.Parent.createChildren)
-local vehicle = require(root.Plugin.vehicle)
+local VehicleHandler = require("../../../../lib/VehicleHandler")
 
 local function addButton(
 	scope: types.Scope,
@@ -421,7 +421,8 @@ return function(scope: types.Scope, props: props)
 														currentVehicle ~= nil
 														and typeof(currentVehicle) == "Instance"
 													then
-														local vehicleType = vehicle:isValidVehicle(currentVehicle)
+														local vehicleType =
+															VehicleHandler:isValidVehicle(currentVehicle)
 														if vehicleType == "ag" or vehicleType == "mg" then
 															table.insert(defaultOptions, "AG-Event")
 														end

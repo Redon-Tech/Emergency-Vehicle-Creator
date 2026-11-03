@@ -1,8 +1,8 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
-local assets = require(script.Parent.assets)
-local log = require(script.Parent.log)
+local assets = require("../assets")
+local log = require("../log")
 
 export type option = {
 	type: "select" | "single",
@@ -36,7 +36,7 @@ export type vehicleFolder = {
 	customization: Model,
 	data: vehicleData,
 }
-type vehicle = {
+type VehicleHandler = {
 	vehicles: {
 		[string]: {
 			icon: string,
@@ -47,29 +47,34 @@ type vehicle = {
 		},
 	},
 	cache: { [string]: vehicleFolder },
-	isValidVehicle: (self: vehicle, vehicle: Instance) -> false | "a" | "ag" | "mg" | "m",
-	isVehicleCustomizable: (self: vehicle, vehicle: Instance) -> boolean,
-	getOutfitting: (self: vehicle, vehicle: Instance) -> { model: Model, basePoint: BasePart }?,
-	_setupVehicle: (self: vehicle, vehicleName: string, vehicleModule: any, vehicleFolder: Folder) -> vehicleFolder?,
-	getVehicle: (self: vehicle, vehicleName: string) -> vehicleFolder?,
-	initVehicle: (self: vehicle, vehicleModel: Model) -> (),
+	isValidVehicle: (self: VehicleHandler, vehicle: Instance) -> false | "a" | "ag" | "mg" | "m",
+	isVehicleCustomizable: (self: VehicleHandler, vehicle: Instance) -> boolean,
+	getOutfitting: (self: VehicleHandler, vehicle: Instance) -> { model: Model, basePoint: BasePart }?,
+	_setupVehicle: (
+		self: VehicleHandler,
+		vehicleName: string,
+		vehicleModule: any,
+		vehicleFolder: Folder
+	) -> vehicleFolder?,
+	getVehicle: (self: VehicleHandler, vehicleName: string) -> vehicleFolder?,
+	initVehicle: (self: VehicleHandler, vehicleModel: Model) -> (),
 	changeConfiguration: (
-		self: vehicle,
+		self: VehicleHandler,
 		vehicleFolder: vehicleFolder,
 		equipmentModel: Model,
 		configuration: { [string]: boolean | { [string]: boolean } }
 	) -> (),
-	updateEquipmentLights: (self: vehicle, equipmentModel: Model) -> (),
+	updateEquipmentLights: (self: VehicleHandler, equipmentModel: Model) -> (),
 	changeEquipment: (
-		self: vehicle,
+		self: VehicleHandler,
 		vehicleFolder: vehicleFolder,
 		outfitting: Model,
 		location: string,
 		equipmentName: string?
 	) -> boolean,
-	cloneCustomizationBasePoint: (self: vehicle, vehicleFolder: vehicleFolder) -> BasePart?,
+	cloneCustomizationBasePoint: (self: VehicleHandler, vehicleFolder: vehicleFolder) -> BasePart?,
 }
-local vehicle = {
+local VehicleHandler = {
 	vehicles = {
 		["2020 FPIU"] = {
 			icon = assets.images.vehicles.FPIU2020,
@@ -87,10 +92,10 @@ local vehicle = {
 		},
 	},
 	cache = {},
-} :: vehicle
+} :: VehicleHandler
 
 --- Checks if the given instance is a valid vehicle model.
-function vehicle.isValidVehicle(_, vehicleToCheck)
+function VehicleHandler.isValidVehicle(_, vehicleToCheck)
 	if vehicleToCheck:IsA("Model") then
 		local tune = vehicleToCheck:FindFirstChild("A-Chassis Tune")
 		if tune then
@@ -126,7 +131,7 @@ function vehicle.isValidVehicle(_, vehicleToCheck)
 end
 
 --- Determines if a vehicle is customizable by the plugin.
-function vehicle.isVehicleCustomizable(self, vehicleToCheck)
+function VehicleHandler.isVehicleCustomizable(self, vehicleToCheck)
 	if vehicleToCheck:GetAttribute("EVCHandled") == true and self:getOutfitting(vehicleToCheck) ~= nil then
 		return true
 	end
@@ -134,7 +139,7 @@ function vehicle.isVehicleCustomizable(self, vehicleToCheck)
 end
 
 --- Retrieves the outfitting model and base point for a vehicle.
-function vehicle.getOutfitting(_, vehicleToCheck)
+function VehicleHandler.getOutfitting(_, vehicleToCheck)
 	local carBody = vehicleToCheck:FindFirstChild("Body")
 	if carBody == nil then
 		return
@@ -155,7 +160,7 @@ function vehicle.getOutfitting(_, vehicleToCheck)
 end
 
 --- Sets up the vehicle by loading its model, customization, and configuration data.
-function vehicle._setupVehicle(self, vehicleName, vehicleModule, vehicleFolder)
+function VehicleHandler._setupVehicle(self, vehicleName, vehicleModule, vehicleFolder)
 	if self.cache[vehicleName] ~= nil then
 		return
 	end
@@ -286,7 +291,7 @@ function vehicle._setupVehicle(self, vehicleName, vehicleModule, vehicleFolder)
 end
 
 --- Loads a vehicle by its name, checking the cache first.
-function vehicle.getVehicle(self, vehicleName)
+function VehicleHandler.getVehicle(self, vehicleName)
 	log.debug("Loading vehicle", vehicleName)
 	if self.cache[vehicleName] ~= nil then
 		local vehicleData = self.cache[vehicleName]
@@ -416,7 +421,7 @@ local function getOriginalConfiguration(
 end
 
 --- Changes the configuration of a vehicle's equipment.
-function vehicle.changeConfiguration(_, vehicleFolder, equipmentModel, configuration)
+function VehicleHandler.changeConfiguration(_, vehicleFolder, equipmentModel, configuration)
 	local options = equipmentModel:FindFirstChild("Options") :: Model?
 	if options == nil or options:IsA("Model") == false then
 		log.warn("Failed to find options", equipmentModel)
@@ -470,13 +475,13 @@ function vehicle.changeConfiguration(_, vehicleFolder, equipmentModel, configura
 			originalConfiguration:Destroy()
 			equipmentModel:SetAttribute(configurationName, configurationData)
 		end
-		vehicle:updateEquipmentLights(equipmentModel)
+		VehicleHandler:updateEquipmentLights(equipmentModel)
 	end
 	ChangeHistoryService:SetWaypoint("Changed equipment configuration")
 end
 
 --- Changes the equipment for a vehicle at a specific location.
-function vehicle.changeEquipment(self, vehicleFolder, outfitting, location, equipmentName)
+function VehicleHandler.changeEquipment(self, vehicleFolder, outfitting, location, equipmentName)
 	local basePoint = outfitting:FindFirstChild("BasePoint") :: BasePart?
 	if basePoint == nil or basePoint:IsA("BasePart") == false then
 		log.warn("Failed to find base point", outfitting)
@@ -562,7 +567,7 @@ function vehicle.changeEquipment(self, vehicleFolder, outfitting, location, equi
 end
 
 --- Initializes a vehicle by applying its default outfitting and equipment.
-function vehicle.initVehicle(self, vehicleModel)
+function VehicleHandler.initVehicle(self, vehicleModel)
 	if self.vehicles[vehicleModel.Name] then
 		local vehicleFolder = self:getVehicle(vehicleModel.Name)
 		if vehicleFolder == nil then
@@ -587,7 +592,7 @@ function vehicle.initVehicle(self, vehicleModel)
 end
 
 --- Clones the customization base point from the vehicle folder to the current camera.
-function vehicle.cloneCustomizationBasePoint(_, vehicleFolder)
+function VehicleHandler.cloneCustomizationBasePoint(_, vehicleFolder)
 	local basePoint = vehicleFolder.customization:FindFirstChild("BasePoint") :: BasePart?
 	if basePoint == nil or basePoint:IsA("BasePart") == false then
 		return
@@ -599,7 +604,7 @@ function vehicle.cloneCustomizationBasePoint(_, vehicleFolder)
 end
 
 --- Updates the names of the equipment lights based on the light prefix attribute.
-function vehicle.updateEquipmentLights(_, equipmentModel)
+function VehicleHandler.updateEquipmentLights(_, equipmentModel)
 	local lightPrefix = equipmentModel:GetAttribute("lightPrefix") :: string?
 	if lightPrefix == nil or typeof(lightPrefix) ~= "string" then
 		return
@@ -618,4 +623,4 @@ function vehicle.updateEquipmentLights(_, equipmentModel)
 	ChangeHistoryService:SetWaypoint("Updated equipment lights")
 end
 
-return vehicle
+return VehicleHandler
