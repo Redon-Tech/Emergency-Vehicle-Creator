@@ -178,8 +178,12 @@ local function load()
 				return
 			end
 
-			if currentPatternId ~= currentPatternId or currentPatternId < 0
-				or currentPatternId % 1 ~= 0 or currentPatternId > #currentFunction.patterns then
+			if
+				currentPatternId ~= currentPatternId
+				or currentPatternId < 0
+				or currentPatternId % 1 ~= 0
+				or currentPatternId > #currentFunction.patterns
+			then
 				car:SetAttribute(currentFunction.name, 0)
 				return
 			end
@@ -443,6 +447,10 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 					if sound:IsA("Sound") and sound.Name == modifier.modifiedSirenName then
 						sound:Play()
 						sound.TimePosition += modifier.delay
+						local originalVolume = sound:GetAttribute("defaultVolume")
+						if originalVolume ~= nil and typeof(originalVolume) == "number" then
+							sound.Volume = originalVolume
+						end
 					end
 				end
 
@@ -471,6 +479,10 @@ local function updateModifiers(siren: types.siren, sirenTriggered: boolean)
 			if sound.Name == siren.name and not sound.IsPlaying then
 				sound:Play()
 				sound.TimePosition = math.max(0, sound.TimePosition - resumeDelay)
+				local originalVolume = sound:GetAttribute("defaultVolume")
+				if originalVolume ~= nil and typeof(originalVolume) == "number" then
+					sound.Volume = originalVolume
+				end
 			end
 		end
 	end
