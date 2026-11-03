@@ -3,12 +3,6 @@
     - parker02311
 ---
 
-??? warning "Documentation is a Work in Progress"
-    This documentation is a work in progress and may be missing information or contain errors.
-    If you need help please contact us on our [Discord server](https://redon.tech/discord)!
-
-    If you know about this topic and want to help us, please consider contributing to this page on [GitHub](https://github.com/Redon-Tech/Emergency-Vehicle-Creator).
-
 Emergency Vehicle Handler (EVH from here on out) is designed to be extremely modular and expandable.
 
 The backbone of how this works is through how EVH loads when the game starts. EVH will conduct the following steps when the game starts:

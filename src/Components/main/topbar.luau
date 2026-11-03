@@ -38,6 +38,33 @@ local pageButtons: {
 		["Rotators"] = { panel = "ELS Setup", order = 3 },
 	}
 
+local helpPages: { [types.pages]: { description: string, url: string } } = {
+	["Functions"] = {
+		description = "Functions contain patterns and activations. Use them to decide which lighting patterns are available and how they are triggered.",
+		url = "https://evc.redon.tech/get-started/els-setup/functions/",
+	},
+	["Sirens"] = {
+		description = "Set up normal sirens, hold-to-play sirens, keybinds, and siren modifiers.",
+		url = "https://evc.redon.tech/get-started/els-setup/siren-setup/",
+	},
+	["Light Settings"] = {
+		description = "Control the light effects, colors, transparency, and light groups used by EVH.",
+		url = "https://evc.redon.tech/get-started/els-setup/light-settings/",
+	},
+	["Flashers"] = {
+		description = "Build flashing patterns with light columns, rows, colors, and wait times.",
+		url = "https://evc.redon.tech/get-started/patterns/flashers/",
+	},
+	["Faders"] = {
+		description = "Build fade patterns with simple, advanced, and wait steps.",
+		url = "https://evc.redon.tech/get-started/patterns/faders/",
+	},
+	["Rotators"] = {
+		description = "Build rotating light patterns with angle, infinite, and wait steps.",
+		url = "https://evc.redon.tech/get-started/patterns/rotators/",
+	},
+}
+
 local SPRING_SPEED = 20
 local SPRING_DAMPING = 0.75
 --[[
@@ -112,13 +139,56 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 				[Fusion.Children] = {
 					scope:New("UIListLayout") {
-						FillDirection = Enum.FillDirection.Horizontal,
-						HorizontalAlignment = Enum.HorizontalAlignment.Right,
-						VerticalAlignment = Enum.VerticalAlignment.Center,
-						SortOrder = Enum.SortOrder.LayoutOrder,
-						Padding = UDim.new(0, 10),
-					},
+					FillDirection = Enum.FillDirection.Horizontal,
+					HorizontalAlignment = Enum.HorizontalAlignment.Right,
+					VerticalAlignment = Enum.VerticalAlignment.Center,
+					SortOrder = Enum.SortOrder.LayoutOrder,
+					Padding = UDim.new(0, 10),
+				},
 
+					scope:textButton {
+						Size = UDim2.fromOffset(50, 30),
+						TextLabelSize = UDim2.fromScale(1, 1),
+						TextScaled = true,
+						Text = "Help",
+						BackgroundTransparency = 1,
+						TextXAlignment = Enum.TextXAlignment.Right,
+						TextColor3 = currentTheme.colors.text,
+						FontWeight = Enum.FontWeight.Medium,
+						MaxTextSize = 20,
+						Reactive = true,
+						AnimateSize = false,
+						LayoutOrder = 0,
+						Visible = scope:Computed(function(use)
+							return use(props.CurrentPage) ~= nil and helpPages[use(props.CurrentPage) :: types.pages] ~= nil
+						end),
+
+						[Fusion.OnEvent "Activated"] = function()
+							local currentPage = scope.peek(props.CurrentPage)
+							if currentPage == nil then
+								return
+							end
+							local help = helpPages[currentPage]
+							if help == nil then
+								return
+							end
+							popup:addPopup(scope, {
+								title = currentPage .. " Help",
+								description = help.description .. "\n\n<b>Full documentation:</b>\n" .. help.url .. "\n\nCopy the address into your browser.",
+								actions = {
+									{
+										text = "Close",
+										type = "primary",
+										key = 1,
+										callback = function(newPopup)
+											popup:removePopup(newPopup)
+										end,
+										keybind = Enum.KeyCode.Escape,
+									},
+								},
+							})
+						end,
+					},
 					scope:textButton {
 						Size = UDim2.fromOffset(0, 30),
 						AutomaticSize = Enum.AutomaticSize.X,
@@ -181,7 +251,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					},
 
 					scope:textButton {
-						Size = UDim2.fromOffset(175, 30),
+						Size = UDim2.fromOffset(150, 30),
 						TextLabelSize = UDim2.fromScale(1, 1),
 						TextScaled = true,
 						Text = "Save/Load",

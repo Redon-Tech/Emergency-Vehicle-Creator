@@ -1,42 +1,44 @@
 site_name: Emergency Vehicle Creator Guide
-site_description: 'Guide for https://github.com/Redon-Tech/Emergency-Vehicle-Creator/'
-site_author: 'Redon Tech'
+site_description: "Guide for https://github.com/Redon-Tech/Emergency-Vehicle-Creator/"
+site_author: "Redon Tech"
 site_url: https://evc.redon.tech/
 docs_dir: docs/
-repo_name: 'Redon-Tech/Emergency-Vehicle-Creator'
-repo_url: 'https://github.com/Redon-Tech/Emergency-Vehicle-Creator/'
+repo_name: "Redon-Tech/Emergency-Vehicle-Creator"
+repo_url: "https://github.com/Redon-Tech/Emergency-Vehicle-Creator/"
 nav:
   - Home: index.md
   - Getting Started:
-    - Vehicle Creator: get-started/vehicle-setup/vehicle-creator/getting-started.md
-    - get-started/vehicle-setup/vehicle-creator/configuring-equipment.md
-    - ELS Setup:
-      - Function Setup:
-        - get-started/els-setup/functions/index.md
-        - get-started/els-setup/functions/activations.md
-      - get-started/els-setup/siren-setup.md
-      - get-started/els-setup/light-settings.md
-    - Pattern Creator:
-      - get-started/patterns/flashers.md
-      - get-started/patterns/faders.md
-      - get-started/patterns/rotators.md
-    - Custom Vehicles:
-      - get-started/vehicle-setup/custom-vehicles/preoutfitted.md
-      - get-started/vehicle-setup/custom-vehicles/v2-v3.md
+      - Vehicle Creator: get-started/vehicle-setup/vehicle-creator/getting-started.md
+      - get-started/vehicle-setup/vehicle-creator/configuring-equipment.md
+      - ELS Setup:
+          - Function Setup:
+              - get-started/els-setup/functions/index.md
+              - get-started/els-setup/functions/activations.md
+          - get-started/els-setup/siren-setup.md
+          - Light Settings:
+              - get-started/els-setup/light-settings/index.md
+              - get-started/els-setup/light-settings/colors.md
+              - get-started/els-setup/light-settings/groups.md
+      - Pattern Creator:
+          - get-started/patterns/flashers.md
+          - get-started/patterns/faders.md
+          - get-started/patterns/rotators.md
+      - Custom Vehicles:
+          - get-started/vehicle-setup/custom-vehicles/preoutfitted.md
+          - get-started/vehicle-setup/custom-vehicles/v2-v3.md
   - Advanced:
-    - advanced/modifiers.md
-    - Developers:
-      - developers/introduction.md
-      - Working With EVH:
-        - developers/evh/introduction.md
-        - developers/evh/patterns.md
-        - developers/evh/controlling-sirens.md
-        - Reading Configuration Files:
-          - developers/evh/config/index.md
-          - developers/evh/config/sirens.md
+      - advanced/modifiers.md
+      - Developers:
+          - developers/introduction.md
+          - Working With EVH:
+              - developers/evh/introduction.md
+              - developers/evh/patterns.md
+              - developers/evh/controlling-sirens.md
+              - Reading Configuration Files:
+                  - developers/evh/config/index.md
+                  - developers/evh/config/sirens.md
   - credits.md
   - changelog.md
-
 
 watch: [CHANGELOG.md]
 copyright: Copyright &copy; 2024-2025 Redon Tech
@@ -68,17 +70,17 @@ theme:
     - content.code.copy
     - content.tabs.link
     - search.suggest
-  name: 'material'
+  name: "material"
   logo: assets/EVC.png
   favicon: assets/favicon.png
   custom_dir: docs/assets/overrides
   palette:
-    - media: '(prefers-color-scheme: light)'
+    - media: "(prefers-color-scheme: light)"
       scheme: catppuccin-latte
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    - media: '(prefers-color-scheme: dark)'
+    - media: "(prefers-color-scheme: dark)"
       scheme: catppuccin-mocha
       toggle:
         icon: material/brightness-3

@@ -3,11 +3,6 @@
     - parker02311
 ---
 
-??? warning "Documentation is a Work in Progress"
-    This documentation is a work in progress and may be missing information or contain errors.
-    If you need help please contact us on our [Discord server](https://redon.tech/discord)!
-
-    If you know about this topic and want to help us, please consider contributing to this page on [GitHub](https://github.com/Redon-Tech/Emergency-Vehicle-Creator).
 
 EVC and EVH are designed to be fully modular and expandable. This allows simple and easy iteration on top of the existing systems to add new features or change existing ones. Taking advantage of this system is simple once you understand how the two systems interact.
 

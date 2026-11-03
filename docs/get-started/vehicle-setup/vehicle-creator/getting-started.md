@@ -25,15 +25,13 @@ Let's go over how to get your first vehicle inserted!
 
 1. Get the Emergency Vehicle Creator plugin from the [Roblox Marketplace](https://create.roblox.com/marketplace/asset/9953321418) if you haven't already.
 2. Open Roblox Studio.
-3. Install the plugin by going to "Toolbox" > "My Plugins" and selecting the Emergency Vehicle Creator plugin from your list of installed plugins.
-      1. If you don't see it, you may need to refresh the Toolbox or restart Roblox Studio.
-4. Launch the plugin by clicking on its icon in the Plugins tab.
-      1. If the button doesn't appear, you may need to restart Roblox Studio or check if the plugin is enabled in the "Manage Plugins" section.
-      2. If the old version is launched, please ensure you are updated!
+3. Go to **Toolbox → My Plugins** and select Emergency Vehicle Creator.
+4. Open the plugin from the **Plugins** tab.
+5. If you do not see the plugin, refresh the Toolbox or restart Roblox Studio.
+6. Make sure you are using the current version.
 
 !!! note "Plugin Permissions"
-    When you open the plugin for the first time, it may ask for permissions.
-    Please ensure you **allow all permissions requested**, otherwise the plugin may not work as intended or may not work at all.
+    When you open the plugin for the first time, it may ask for permissions. Allow the permissions requested by EVC or some features may not work.
 
 ![Image showing instructions 3 and 4](..//..//..//assets/img/install-and-launch.png)
 
