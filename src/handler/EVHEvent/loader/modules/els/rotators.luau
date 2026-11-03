@@ -82,7 +82,6 @@ function rotators.processReturnToZero(deltaTime: number)
 			table.remove(rotators.returnToZero, i)
 			continue
 		end
-		print(data.section.lightName)
 		local lastAngle = data.section.data[data.section.currentAngle or 1]
 		local startRotation = (data.section.currentValue or 0) % (math.pi * 2)
 		local currentRotation = (data.section.currentValue or 0) % (math.pi * 2)
