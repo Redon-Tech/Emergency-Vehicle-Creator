@@ -1,8 +1,6 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local log = require(script.Parent.log)
-local types = require(script.Parent.types)
+local types = require("../types")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
-local Fusion = require(script.Parent.Parent.Packages.fusion)
 
 -- TEMPLATES
 local scriptTemplate = [=[
@@ -81,13 +79,13 @@ while RunService.Heartbeat:Wait() do
 scriptTemplate = scriptTemplate:gsub("REPLACE_WITH_ROTATOR_REGISTER", "")
 scriptTemplate = scriptTemplate:gsub("REPLACE_WITH_TWEENSERVICE", "")
 
-export type customExport = {
+export type CustomExport = {
 	export: (flashers: { types.flasherSection }) -> (),
 }
 
-local customExport = {} :: customExport
+local CustomExport = {} :: CustomExport
 
-function customExport.export(flashers)
+function CustomExport.export(flashers)
 	local model = Instance.new("Model")
 	model.Name = "EVC_Export"
 
@@ -137,4 +135,4 @@ function customExport.export(flashers)
 	ChangeHistoryService:SetWaypoint("EVC Custom Export")
 end
 
-return customExport
+return CustomExport
