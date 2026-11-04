@@ -88,7 +88,7 @@ if isRBXM then
 end
 
 -- Main Requirements
-local pluginSettings = require(script.settings)
+local SettingsHandler = require("@self/lib/SettingsHandler")
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(script.types)
@@ -117,8 +117,8 @@ table.insert(scope, function()
 	end
 end)
 
-pluginSettings:setup(scope)
-if scope.peek(pluginSettings.values.debugMode) == true then
+SettingsHandler:setup(scope)
+if scope.peek(SettingsHandler.values.debugMode) == true then
 	log.verbosity = log.level.debug
 end
 
@@ -128,7 +128,7 @@ local mode = scope:Value("menu" :: types.mode)
 local currentVehicle: Fusion.Value<Model | string?> = scope:Value(nil)
 local possibleVehicle: Fusion.Value<Model?> = scope:Value(nil)
 local returnTo = scope:Value("menu" :: types.returnTo)
-local theme = scope.peek(pluginSettings.values.theme)
+local theme = scope.peek(SettingsHandler.values.theme)
 
 -- UI Initialization
 colorPicker(scope, { id = "evcColorPicker", initialColor = Color3.fromRGB(255, 255, 255) })
@@ -212,9 +212,9 @@ settings().Studio.ThemeChanged:Connect(function()
 	end
 end)
 
-scope:Observer(pluginSettings.values.theme):onChange(function()
+scope:Observer(SettingsHandler.values.theme):onChange(function()
 	if activeScope then
-		theme = scope.peek(pluginSettings.values.theme)
+		theme = scope.peek(SettingsHandler.values.theme)
 		activeScope:doCleanup()
 		activeScope = nil
 		initUI()

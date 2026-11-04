@@ -7,7 +7,7 @@ local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local ChassisHandler = require("../../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
-local settings = require(root.Plugin.settings)
+local SettingsHandler = require("../../../../lib/SettingsHandler")
 
 --[=[
 	flashers.columnHeader
@@ -66,7 +66,7 @@ return function(
 		ZIndex = 2,
 	}
 	local descendants, children = {}, {}
-	if props.use(settings.values.fakeBloom) then
+	if props.use(SettingsHandler.values.fakeBloom) then
 		local visible = scope:Computed(function(use)
 			return use(color) ~= currentTheme.colors.base
 		end)

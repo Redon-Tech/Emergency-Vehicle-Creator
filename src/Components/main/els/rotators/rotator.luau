@@ -9,7 +9,7 @@ local popup = require(root.Plugin.Components.popup)
 local ChassisHandler = require("../../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
-local settings = require(root.Plugin.settings)
+local SettingsHandler = require("../../../../lib/SettingsHandler")
 
 local angle = require(script.Parent.angle)
 local components = {
@@ -111,7 +111,7 @@ return function(
 								BackgroundTransparency = 1,
 								Image = assets.images.elsCreator.beam,
 								ImageColor3 = scope:Computed(function(use)
-									return if use(settings.values.fakeBloom) == false
+									return if use(SettingsHandler.values.fakeBloom) == false
 										then use(color)
 										else Color3.new(1, 1, 1)
 								end),
@@ -139,7 +139,7 @@ return function(
 								BackgroundTransparency = 1,
 								Image = assets.images.elsCreator.lightColor,
 								ImageColor3 = scope:Computed(function(use)
-									return if use(settings.values.fakeBloom) == false
+									return if use(SettingsHandler.values.fakeBloom) == false
 										then use(color)
 										else Color3.new(1, 1, 1)
 								end),
@@ -148,7 +148,7 @@ return function(
 							},
 
 							scope:Computed(function(use, scope: typeof(scope))
-								return if use(settings.values.fakeBloom) == true
+								return if use(SettingsHandler.values.fakeBloom) == true
 									then {
 										scope:New("ImageLabel") {
 											Name = "Bloom1",

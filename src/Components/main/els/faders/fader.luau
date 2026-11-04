@@ -9,7 +9,7 @@ local popup = require(root.Plugin.Components.popup)
 local ChassisHandler = require("../../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
-local settings = require(root.Plugin.settings)
+local SettingsHandler = require("../../../../lib/SettingsHandler")
 
 local tween = require(script.Parent.tween)
 local components = {
@@ -184,7 +184,7 @@ return function(
 									return use(props.playing) == true
 								end)
 
-								if use(settings.values.fakeBloom) then
+								if use(SettingsHandler.values.fakeBloom) then
 									return {
 										scope:base {
 											Size = UDim2.fromScale(1, 1),

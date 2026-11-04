@@ -9,7 +9,7 @@ local popup = require(root.Plugin.Components.popup)
 local ChassisHandler = require("../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
-local settings = require(root.Plugin.settings)
+local SettingsHandler = require("../../../lib/SettingsHandler")
 
 local sectionsComponent = require(script.sections)
 local components = {
@@ -245,7 +245,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	end)
 
 	local colorKeybinds = scope:Computed(function(use)
-		local setting = use(settings.values.colorKeybinds)
+		local setting = use(SettingsHandler.values.colorKeybinds)
 		if setting == "1-6" then
 			return {
 				Enum.KeyCode.One,

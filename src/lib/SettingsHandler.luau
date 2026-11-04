@@ -2,11 +2,11 @@
 local root = script.Parent.Parent
 local plugin = root:FindFirstAncestorWhichIsA("Plugin") :: Plugin
 
-local types = require(script.Parent.types)
-local log = require(script.Parent.log)
-local Fusion = require(root.Packages.fusion)
+local types = require("../types")
+local log = require("../log")
+local Fusion = require("../../Packages/fusion")
 
-type settings = {
+type SettingsHandler = {
 	scope: types.Scope,
 	values: {
 		theme: Fusion.Value<types.theme>,
@@ -16,9 +16,9 @@ type settings = {
 		saveBackupMode: Fusion.Value<types.saveBackupMode>,
 	},
 	valueData: { { type: { string } | "boolean", title: string, description: string, key: string } },
-	setup: (self: settings, scope: types.Scope) -> (),
+	setup: (self: SettingsHandler, scope: types.Scope) -> (),
 }
-local settings = {
+local SettingsHandler = {
 	valueData = {
 		{
 			title = "Theme",
@@ -44,14 +44,8 @@ local settings = {
 			type = "boolean",
 			key = "debugMode",
 		},
-		-- {
-		-- 	title = "Save Backup Mode",
-		-- 	description = "Enable or disable saving backups of your patterns in any open place.",
-		-- 	type = { "Encrypted", "Unencrypted", "None" },
-		-- 	key = "saveBackupMode",
-		-- },
 	},
-} :: settings
+} :: SettingsHandler
 
 local defaultValues = {
 	theme = "Auto",
@@ -67,7 +61,7 @@ local function getSaveKey(key: string): string
 end
 
 --- Sets up the settings module, loading saved values and setting up observers for changes.
-function settings:setup(scope: types.Scope)
+function SettingsHandler:setup(scope: types.Scope)
 	self.scope = scope
 
 	local valuesToLoad = { "theme", "fakeBloom", "colorKeybinds", "debugMode", "saveBackupMode" }
@@ -96,4 +90,4 @@ function settings:setup(scope: types.Scope)
 	log.debug("Observers set up")
 end
 
-return settings
+return SettingsHandler

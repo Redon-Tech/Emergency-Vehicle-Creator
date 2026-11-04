@@ -4,7 +4,7 @@ local root = script.Parent.Parent.Parent.Parent
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
-local settings = require(root.Plugin.settings)
+local SettingsHandler = require("../../lib/SettingsHandler")
 
 local pageBase = require(script.Parent.pageBase)
 local components = {
@@ -18,7 +18,7 @@ type props = {
 
 --[[
 	Settings
-	Creates a settings page for the main menu
+	Creates a SettingsHandler page for the main menu
 ]]
 return function(baseScope: types.Scope, props: props)
 	local scope = Fusion.innerScope(baseScope, components)
@@ -27,8 +27,8 @@ return function(baseScope: types.Scope, props: props)
 	-- Components to put inside the list
 	local extraComponents = {}
 
-	for key, valueData in pairs(settings.valueData) do
-		local setting = settings.values[valueData.key] :: Fusion.Value<any>
+	for key, valueData in pairs(SettingsHandler.valueData) do
+		local setting = SettingsHandler.values[valueData.key] :: Fusion.Value<any>
 		extraComponents[key + 1] = scope:base {
 			Name = tostring(key),
 			Size = UDim2.fromOffset(400, 100),
