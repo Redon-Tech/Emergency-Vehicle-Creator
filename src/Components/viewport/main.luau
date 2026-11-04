@@ -197,7 +197,7 @@ return function(
 
 					scope:textButton {
 						Name = "Cancel",
-						Size = UDim2.new(0.078125, 0, 1, 0),
+						Size = UDim2.fromScale(0.078125, 1),
 						BackgroundColor3 = currentTheme.colors.crust,
 						Border = 2,
 						BorderColor3 = currentTheme.colors.text,
@@ -222,7 +222,7 @@ return function(
 
 					scope:textButton {
 						Name = "Continue",
-						Size = UDim2.new(0.078125, 0, 1, 0),
+						Size = UDim2.fromScale(0.078125, 1),
 						BackgroundColor3 = currentTheme.colors.crust,
 						Border = 2,
 						BorderColor3 = currentTheme.colors.text,

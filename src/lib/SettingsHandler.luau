@@ -1,6 +1,5 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local root = script.Parent.Parent
-local plugin = root:FindFirstAncestorWhichIsA("Plugin") :: Plugin
+local plugin = script:FindFirstAncestorWhichIsA("Plugin") :: Plugin
 
 local types = require("../types")
 local log = require("../log")

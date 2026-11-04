@@ -9,7 +9,7 @@ return {
 		name = "Wail",
 		keybinds = {
 			Enum.KeyCode.R,
-			Enum.KeyCode.Unknown,
+			Enum.KeyCode.None,
 		},
 		behavoir = "Overrides Other Sounds",
 		modifiers = {},
@@ -19,7 +19,7 @@ return {
 		name = "Yelp",
 		keybinds = {
 			Enum.KeyCode.T,
-			Enum.KeyCode.Unknown,
+			Enum.KeyCode.None,
 		},
 		behavoir = "Overrides Other Sounds",
 		modifiers = {},
@@ -29,7 +29,7 @@ return {
 		name = "Priority",
 		keybinds = {
 			Enum.KeyCode.Y,
-			Enum.KeyCode.Unknown,
+			Enum.KeyCode.None,
 		},
 		behavoir = "Overrides Other Sounds",
 		modifiers = {},
@@ -39,7 +39,7 @@ return {
 		name = "Horn",
 		keybinds = {
 			Enum.KeyCode.H,
-			Enum.KeyCode.Unknown,
+			Enum.KeyCode.None,
 		},
 		behavoir = "Overrides Other Sounds",
 		modifiers = {},

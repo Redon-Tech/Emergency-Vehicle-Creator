@@ -59,7 +59,6 @@ function faders.processPattern(pattern: types.pattern)
 			else (math.min(cycleTime, currentTween.timeEnd) - currentTween.timeStart) / currentTween.time
 
 		if currentTween.type ~= "Wait" and currentPercentage >= 0 then
-			local previousGoal = data.previousGoal or 1
 			local goal: number = currentTweens[tweenId].goal or 0
 
 			data.currentValue = (goal - previousGoal)

@@ -170,7 +170,10 @@ return function(
 									equipment.Name == currentlyConfiguring
 									and equipment:GetAttribute("EVCEquipmentName") == currentLocation
 								then
-									savedPrefix = equipment:GetAttribute("lightPrefix") or ""
+									local prefix = equipment:GetAttribute("lightPrefix")
+									if typeof(prefix) == "string" then
+										savedPrefix = prefix
+									end
 									break
 								end
 							end

@@ -527,7 +527,7 @@ return function(
 								scope:base {
 									BackgroundTransparency = 1,
 									Size = scope:Computed(function(use)
-										return UDim2.new(0, 10, 0, use(canvasSize).Y)
+										return UDim2.fromOffset(10, use(canvasSize).Y)
 									end),
 								},
 
@@ -577,7 +577,7 @@ return function(
 								scope:base {
 									BackgroundTransparency = 1,
 									Size = scope:Computed(function(use)
-										return UDim2.new(0, 10, 0, use(canvasSize).Y)
+										return UDim2.fromOffset(10, use(canvasSize).Y)
 									end),
 								},
 
@@ -588,7 +588,7 @@ return function(
 									end),
 									Position = scope:Spring(
 										scope:Computed(function(use)
-											return UDim2.new(0, use(hoverPosition), 0, 0)
+											return UDim2.fromOffset(use(hoverPosition), 0)
 										end),
 										SPRING_SPEED,
 										SPRING_DAMPING

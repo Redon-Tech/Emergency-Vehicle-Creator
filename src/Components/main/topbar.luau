@@ -76,19 +76,19 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		scope:Computed(function(use)
 			local currentPage = use(props.CurrentPage)
 			if currentPage == nil then
-				return UDim2.new(-1, 0, 0, 0)
+				return UDim2.fromScale(-1, 0)
 			end
 
 			local currentPosition: Vector2? = use(pageButtons[currentPage :: types.pages].position)
 			if currentPosition == nil or currentPosition.X == 0 then
-				return UDim2.new(-1, 0, 0, 0)
+				return UDim2.fromScale(-1, 0)
 			end
 
 			local baseSize = use(topbarSize)
 			if baseSize.X == 0 then
-				return UDim2.new(-1, 0, 0, 0)
+				return UDim2.fromScale(-1, 0)
 			end
-			return UDim2.new((currentPosition.X / baseSize.X) - (5 / baseSize.X), 0, 0.9, 0)
+			return UDim2.fromScale((currentPosition.X / baseSize.X) - (5 / baseSize.X), 0.9)
 		end),
 		SPRING_SPEED,
 		SPRING_DAMPING
