@@ -9,7 +9,6 @@ local popup = require(root.Plugin.Components.popup)
 local ChassisHandler = require("../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
-local utils = require(root.Plugin.utils)
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
@@ -72,7 +71,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				})
 			end
 
-			if utils.compareTables(currentPattern.pattern.faders, assembledFaders) == true then
+			if scope.compareTables(currentPattern.pattern.faders, assembledFaders) == true then
 				return
 			end
 

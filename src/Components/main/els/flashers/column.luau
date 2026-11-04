@@ -7,7 +7,6 @@ local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local ChassisHandler = require("../../../../lib/ChassisHandler")
 local log = require(root.Plugin.log)
-local utils = require(root.Plugin.utils)
 
 --[=[
 	flashers.sections
@@ -97,7 +96,7 @@ return function(
 						Size = UDim2.fromScale(1, 0.0447761194),
 						BackgroundColor3 = if rowColor == 0
 							then currentTheme.colors.base
-							else utils.getColorByName(color.name, color.lightoColor),
+							else scope.getColorByName(color.name, color.lightoColor),
 						CornerRadius = UDim.new(0.1666666667, 0),
 						LayoutOrder = rowKey,
 

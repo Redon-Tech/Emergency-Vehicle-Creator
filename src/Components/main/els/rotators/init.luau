@@ -9,7 +9,6 @@ local popup = require(root.Plugin.Components.popup)
 local ChassisHandler = require("../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
-local utils = require(root.Plugin.utils)
 local RunService = game:GetService("RunService")
 
 local rotator = require(script.rotator)
@@ -82,7 +81,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				})
 			end
 
-			if utils.compareTables(currentPattern.pattern.rotators, assembledRotators) == true then
+			if scope.compareTables(currentPattern.pattern.rotators, assembledRotators) == true then
 				return
 			end
 

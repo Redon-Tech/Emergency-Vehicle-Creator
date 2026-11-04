@@ -8,7 +8,6 @@ local types = require(root.Plugin.types)
 local ChassisHandler = require("../../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local settings = require(root.Plugin.settings)
-local utils = require(root.Plugin.utils)
 
 --[=[
 	flashers.columnHeader
@@ -44,8 +43,8 @@ return function(
 		local colorData = scope.peek(props.colors)[scope.peek(props.columnData.rows)[currentRow]]
 		return if colorData == nil
 			then currentTheme.colors.base
-			else if utils.bloomColors[colorData.name] ~= nil
-				then utils.bloomColors[colorData.name]
+			else if scope.bloomColors[colorData.name] ~= nil
+				then scope.bloomColors[colorData.name]
 				else colorData.lightoColor
 	end)
 	local baseProps = {

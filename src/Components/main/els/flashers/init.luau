@@ -10,7 +10,6 @@ local ChassisHandler = require("../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
 local settings = require(root.Plugin.settings)
-local utils = require(root.Plugin.utils)
 
 local sectionsComponent = require(script.sections)
 local components = {
@@ -75,7 +74,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				table.insert(assembledSections, i, assembledSection)
 			end
 
-			if utils.compareTables(currentPattern.pattern.flashers, assembledSections) == true then
+			if scope.compareTables(currentPattern.pattern.flashers, assembledSections) == true then
 				return
 			end
 
@@ -373,7 +372,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 							scope:ForPairs(
 								colors,
 								function(_, scope: typeof(scope), key: number, value: ChassisHandler.color)
-									local color = utils.getColorByName(value.name, value.lightoColor)
+									local color = scope.getColorByName(value.name, value.lightoColor)
 									return key,
 										scope:textButton {
 											Size = UDim2.fromScale(0.078125, 0.8333333333),

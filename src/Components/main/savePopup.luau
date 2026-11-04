@@ -10,7 +10,6 @@ local log = require(root.Plugin.log)
 local LuaEncode = require(root.Packages.LuaEncode)
 local Selection = game:GetService("Selection")
 local popup = require(root.Plugin.Components.popup)
-local utils = require(root.Plugin.utils)
 local assets = require(root.Plugin.assets)
 local ChassisHandler = require("../../lib/ChassisHandler")
 
@@ -208,7 +207,7 @@ return function(scope: types.Scope, props: props): Instance
 			return plugin:GetSetting("RT_EVC_Saves")
 		end)
 
-		if success == false or utils.compareTables(data, currentSaves) == false then
+		if success == false or scope.compareTables(data, currentSaves) == false then
 			log.warn("Failed to save saves", success, data, currentSaves)
 			local secondSuccess, _ = pcall(function()
 				local saveScript = Instance.new("Script")
@@ -305,7 +304,7 @@ return function(scope: types.Scope, props: props): Instance
 							local name = scope.peek(newSaveName)
 							name = name:gsub('[\\"%.\n]', "")
 							name = testSaveName(name, saveNames, 0)
-							currentSaves[name] = utils.deepCopy(currentPattern.pattern)
+							currentSaves[name] = scope.deepCopy(currentPattern.pattern)
 
 							-- local currentPopup = scope.peek(savePopup)
 							-- if currentPopup then
@@ -450,7 +449,7 @@ return function(scope: types.Scope, props: props): Instance
 															key = 2,
 															callback = function(newPopup)
 																popup:removePopup(newPopup)
-																local value = utils.deepCopy(value)
+																local value = scope.deepCopy(value)
 																log.debug("Loading", value)
 																props.UnsavedChanges:set(true)
 																props.CurrentPattern:set({
@@ -515,7 +514,7 @@ return function(scope: types.Scope, props: props): Instance
 																popup:removePopup(newPopup)
 																popup:customPopup(scope, currentPopup)
 																currentSaves[name] =
-																	utils.deepCopy(currentPattern.pattern)
+																	scope.deepCopy(currentPattern.pattern)
 																saves:set(currentSaves)
 															end,
 														},

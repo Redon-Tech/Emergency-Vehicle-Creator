@@ -10,7 +10,6 @@ local ChassisHandler = require("../../../../lib/ChassisHandler")
 local assets = require(root.Plugin.assets)
 local log = require(root.Plugin.log)
 local settings = require(root.Plugin.settings)
-local utils = require(root.Plugin.utils)
 
 local tween = require(script.Parent.tween)
 local components = {
@@ -175,8 +174,8 @@ return function(
 									local colorData = scope.peek(props.colors)[colorId]
 									local finalColor = if colorData == nil
 										then Color3.new(1, 1, 1)
-										else if utils.bloomColors[colorData.name] ~= nil
-											then utils.bloomColors[colorData.name]
+										else if scope.bloomColors[colorData.name] ~= nil
+											then scope.bloomColors[colorData.name]
 											else colorData.lightoColor
 									knownColor:set(finalColor)
 									return finalColor

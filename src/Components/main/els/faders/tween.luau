@@ -7,7 +7,6 @@ local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local assets = require(root.Plugin.assets)
 local ChassisHandler = require("../../../../lib/ChassisHandler")
-local utils = require(root.Plugin.utils)
 
 --[[
 	faders.tween
@@ -128,7 +127,7 @@ return function(
 						local textColors = {}
 						for colorId, color in pairs(use(props.colors)) do
 							textColors[colorId] = {
-								TextColor3 = utils.getColorByName(color.name, currentTheme.colors.text),
+								TextColor3 = scope.getColorByName(color.name, currentTheme.colors.text),
 							}
 						end
 						table.insert(textColors, 1, {
@@ -140,7 +139,7 @@ return function(
 						local colorId = use(props.tween.color)
 						return if colorId == 0
 							then currentTheme.colors.text
-							else utils.getColorByName(use(props.colors)[colorId].name, currentTheme.colors.text)
+							else scope.getColorByName(use(props.colors)[colorId].name, currentTheme.colors.text)
 					end),
 					OnOptionSelected = function(colorId: number)
 						props.tween.color:set(colorId - 1)
