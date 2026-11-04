@@ -111,12 +111,17 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						end
 					end
 				end
-				for _, sections in { pattern.faders, pattern.rotators } do
-					for _, section in sections do
-						for _, step in section.data do
-							if step.color ~= nil then
-								step.color = remap(step.color)
-							end
+				for _, sections in pattern.faders do
+					for _, step in sections.data do
+						if step.type ~= "Wait" and step.color ~= nil then
+							(step :: { color: number }).color = remap(step.color)
+						end
+					end
+				end
+				for _, sections in pattern.rotators do
+					for _, step in sections.data do
+						if step.type ~= "Wait" and step.color ~= nil then
+							(step :: { color: number }).color = remap(step.color)
 						end
 					end
 				end
