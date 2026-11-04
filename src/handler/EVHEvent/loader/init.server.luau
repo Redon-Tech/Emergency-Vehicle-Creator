@@ -1,7 +1,7 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 
 -- version format: minor.{if rc then 1 else 0}patch
-local types = require(script.modules.types)
+local types = require("@self/modules/types")
 local configuration = script.Parent.configuration
 local lightSettingsModule = configuration:WaitForChild("lightSettings")
 local lightSettings = (require :: any)(lightSettingsModule) :: types.lightSettings

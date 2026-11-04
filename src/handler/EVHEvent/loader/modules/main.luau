@@ -7,13 +7,12 @@
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
 
-local handshake = require(script.Parent:WaitForChild("handshake"))
-local initializeVehicle = require(script.Parent:WaitForChild("initializeVehicle"))
-local types = require(script.Parent:WaitForChild("types"))
-local els = script.Parent:WaitForChild("els")
-local flashers = require(els:WaitForChild("flashers"))
-local faders = require(els:WaitForChild("faders"))
-local rotators = require(els:WaitForChild("rotators"))
+local handshake = require("./handshake")
+local initializeVehicle = require("./initializeVehicle")
+local types = require("./types")
+local flashers = require("./els/flashers")
+local faders = require("./els/faders")
+local rotators = require("./els/rotators")
 
 local vehicles: { [Instance]: types.vehicle } = {}
 local runningPatterns: { types.pattern } = {}

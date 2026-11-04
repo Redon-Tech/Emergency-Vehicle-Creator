@@ -1,5 +1,5 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local log = require(script.Parent.log)
+local log = require("./log")
 
 local assets = {
 	images = {

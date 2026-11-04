@@ -1,10 +1,9 @@
 --# selene: allow(unused_variable)
 -- Redon Tech Emergency Vehicle Creator, MIT License
 
-local root = script.Parent.Parent
 
-local Fusion = require(root.Packages.fusion)
-local RedonUI = require(root.Packages["redon-ui"])
+local Fusion = require("../Packages/fusion")
+local RedonUI = require("../Packages/redon-ui")
 local utils = require("./lib/utils")
 
 -- Code Types

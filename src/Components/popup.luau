@@ -1,9 +1,8 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local root = script.Parent.Parent.Parent
 
-local Fusion = require(root.Packages.fusion)
-local RedonUI = require(root.Packages["redon-ui"])
-local types = require(root.Plugin.types)
+local Fusion = require("../../Packages/fusion")
+local RedonUI = require("../../Packages/redon-ui")
+local types = require("../types")
 
 type action = {
 	text: Fusion.UsedAs<string>,

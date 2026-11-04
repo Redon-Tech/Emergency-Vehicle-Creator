@@ -1,11 +1,10 @@
 --#selene: allow(shadowing)
-local root = script.Parent.Parent.Parent.Parent
 
-local Fusion = require(root.Packages.fusion)
-local RedonUI = require(root.Packages["redon-ui"])
-local types = require(root.Plugin.types)
+local Fusion = require("../../../Packages/fusion")
+local RedonUI = require("../../../Packages/redon-ui")
+local types = require("../../types")
 local VehicleHandler = require("../../lib/VehicleHandler")
-local log = require(root.Plugin.log)
+local log = require("../../log")
 
 return function(
 	scope: types.Scope,

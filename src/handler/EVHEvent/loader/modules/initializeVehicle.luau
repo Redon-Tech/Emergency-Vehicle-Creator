@@ -2,7 +2,7 @@
 --!optimize 2
 -- Redon Tech Emergency Vehicle Creator, MIT License
 
-local types = require(script.Parent:WaitForChild("types"))
+local types = require("./types")
 
 --- Initializes a vehicle by loading its configuration and lights.
 return function(vehicle: Instance): types.vehicle?

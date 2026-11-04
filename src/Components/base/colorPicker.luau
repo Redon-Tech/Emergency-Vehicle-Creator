@@ -1,9 +1,8 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local root = script.Parent.Parent.Parent.Parent
-local plugin = root:FindFirstAncestorWhichIsA("Plugin") :: Plugin
+local plugin = script:FindFirstAncestorOfClass("Plugin") :: Plugin
 
-local types = require(root.Plugin.types)
-local color_picker = require(root.Plugin.vendor.color_picker)
+local types = require("../../types")
+local color_picker = require("../../vendor/color_picker")
 local picker
 
 type props = {

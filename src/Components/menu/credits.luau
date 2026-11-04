@@ -1,12 +1,11 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local root = script.Parent.Parent.Parent.Parent
 
-local Fusion = require(root.Packages.fusion)
-local types = require(root.Plugin.types)
-local assets = require(root.Plugin.assets)
-local RedonUI = require(root.Packages["redon-ui"])
+local Fusion = require("../../../Packages/fusion")
+local types = require("../../types")
+local assets = require("../../assets")
+local RedonUI = require("../../../Packages/redon-ui")
 
-local pageBase = require(script.Parent.pageBase)
+local pageBase = require("./pageBase")
 local components = {
 	pageBase = pageBase,
 }

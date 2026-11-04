@@ -1,16 +1,15 @@
 --#selene: allow(shadowing)
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local root = script.Parent.Parent.Parent.Parent
-local plugin = root:FindFirstAncestorWhichIsA("Plugin")
+local plugin = script:FindFirstAncestorOfClass("Plugin")
 
-local Fusion = require(root.Packages.fusion)
-local RedonUI = require(root.Packages["redon-ui"])
-local types = require(root.Plugin.types)
-local log = require(root.Plugin.log)
-local LuaEncode = require(root.Packages.LuaEncode)
+local Fusion = require("../../../Packages/fusion")
+local RedonUI = require("../../../Packages/redon-ui")
+local types = require("../../types")
+local log = require("../../log")
+local LuaEncode = require("../../../Packages/LuaEncode")
 local Selection = game:GetService("Selection")
-local popup = require(root.Plugin.Components.popup)
-local assets = require(root.Plugin.assets)
+local popup = require("../popup")
+local assets = require("../../assets")
 local ChassisHandler = require("../../lib/ChassisHandler")
 
 local function testSaveName(name: string, saves: { string }, currentDepth: number): string

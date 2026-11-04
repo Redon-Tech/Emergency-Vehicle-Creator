@@ -1,13 +1,12 @@
 --#selene: allow(shadowing)
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local root = script.Parent.Parent.Parent.Parent.Parent.Parent
 
-local Fusion = require(root.Packages.fusion)
-local RedonUI = require(root.Packages["redon-ui"])
-local types = require(root.Plugin.types)
-local assets = require(root.Plugin.assets)
+local Fusion = require("../../../../../Packages/fusion")
+local RedonUI = require("../../../../../Packages/redon-ui")
+local types = require("../../../../types")
+local assets = require("../../../../assets")
 local ChassisHandler = require("../../../../lib/ChassisHandler")
-local popup = require(root.Plugin.Components.popup)
+local popup = require("../../../popup")
 
 type props = {
 	firstScope: types.Scope,

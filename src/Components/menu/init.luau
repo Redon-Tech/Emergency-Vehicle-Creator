@@ -1,21 +1,20 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local root = script.Parent.Parent.Parent
 
-local Fusion = require(root.Packages.fusion)
-local RedonUI = require(root.Packages["redon-ui"])
-local types = require(root.Plugin.types)
+local Fusion = require("../../Packages/fusion")
+local RedonUI = require("../../Packages/redon-ui")
+local types = require("../types")
 
-local widget = require(script.Parent.base.widget)
+local widget = require("./base/widget")
 local components = {
 	widget = widget,
 }
 
-local home = require(script.home)
-local help = require(script.help)
-local credits = require(script.credits)
-local settings = require(script.settings)
-local vehicle = require(script.vehicle)
-local scriptInjectionRequired = require(script.scriptInjectionRequired)
+local home = require("@self/home")
+local help = require("@self/help")
+local credits = require("@self/credits")
+local settings = require("@self/settings")
+local vehicle = require("@self/vehicle")
+local scriptInjectionRequired = require("@self/scriptInjectionRequired")
 local panels: { [number]: (scope: types.Scope, props: any) -> Fusion.Child } = {
 	[1] = home,
 	[2] = help,

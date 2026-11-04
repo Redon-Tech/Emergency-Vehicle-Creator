@@ -68,9 +68,8 @@ button.ClickableWhenViewportHidden = true
 
 ]]
 
-local root = script.Parent
 -- Setup Logging
-local log = require(script.log)
+local log = require("@self/log")
 log.verbosity = if IS_DEV then log.level.debug else log.level.error
 
 -- Setup Version
@@ -85,17 +84,17 @@ end
 
 -- Main Requirements
 local SettingsHandler = require("@self/lib/SettingsHandler")
-local Fusion = require(root.Packages.fusion)
-local RedonUI = require(root.Packages["redon-ui"])
-local types = require(script.types)
+local Fusion = require("./Packages/fusion")
+local RedonUI = require("./Packages/redon-ui")
+local types = require("@self/types")
 
 -- Setup Scope
 local utils = require("@self/lib/utils")
-local menu = require(script.Components.menu)
-local viewport = require(script.Components.viewport)
-local main = require(script.Components.main)
-local popup = require(script.Components.popup)
-local colorPicker = require(script.Components.base.colorPicker)
+local menu = require("@self/Components/menu")
+local viewport = require("@self/Components/viewport")
+local main = require("@self/Components/main")
+local popup = require("@self/Components/popup")
+local colorPicker = require("@self/Components/base/colorPicker")
 local scope = Fusion.scoped(Fusion, RedonUI.Util, RedonUI.Components, utils, {
 	menu = menu,
 	viewport = viewport,

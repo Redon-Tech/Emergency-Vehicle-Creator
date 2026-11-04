@@ -3,7 +3,7 @@
 --!native
 -- Redon Tech Emergency Vehicle Creator, MIT License
 
-local types = require(script.Parent.Parent.types)
+local types = require("../types")
 
 type flashers = {
 	flash: (vehicle: Instance, functionId: number, lightName: string, color: types.elsColor) -> (),

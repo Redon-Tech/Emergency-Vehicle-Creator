@@ -1,9 +1,8 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local root = script.Parent.Parent.Parent.Parent
-local plugin = root:FindFirstAncestorWhichIsA("Plugin") :: Plugin
+local plugin = script:FindFirstAncestorOfClass("Plugin") :: Plugin
 
-local Fusion = require(root.Packages.fusion)
-local types = require(root.Plugin.types)
+local Fusion = require("../../../Packages/fusion")
+local types = require("../../types")
 
 type props = {
 	pluginGuiId: string,

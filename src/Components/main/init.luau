@@ -1,26 +1,25 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local root = script.Parent.Parent.Parent
 
-local Fusion = require(root.Packages.fusion)
-local RedonUI = require(root.Packages["redon-ui"])
-local types = require(root.Plugin.types)
+local Fusion = require("../../Packages/fusion")
+local RedonUI = require("../../Packages/redon-ui")
+local types = require("../types")
 local ChassisHandler = require("../lib/ChassisHandler")
-local log = require(root.Plugin.log)
-local popup = require(root.Plugin.Components.popup)
+local log = require("../log")
+local popup = require("./popup")
 
-local widget = require(script.Parent.base.widget)
-local topbar = require(script.topbar)
+local widget = require("./base/widget")
+local topbar = require("@self/topbar")
 local components = {
 	widget = widget,
 	topbar = topbar,
 }
 
-local functions = require(script.setup.functions)
-local sirens = require(script.setup.sirens)
-local lightSettings = require(script.setup.lightSettings)
-local flashers = require(script.els.flashers)
-local faders = require(script.els.faders)
-local rotators = require(script.els.rotators)
+local functions = require("@self/setup/functions")
+local sirens = require("@self/setup/sirens")
+local lightSettings = require("@self/setup/lightSettings")
+local flashers = require("@self/els/flashers")
+local faders = require("@self/els/faders")
+local rotators = require("@self/els/rotators")
 
 type props = {
 	Name: string,

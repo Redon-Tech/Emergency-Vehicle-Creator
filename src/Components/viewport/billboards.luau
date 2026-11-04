@@ -1,9 +1,8 @@
-local root = script.Parent.Parent.Parent.Parent
 
-local Fusion = require(root.Packages.fusion)
-local RedonUI = require(root.Packages["redon-ui"])
-local assets = require(root.Plugin.assets)
-local types = require(root.Plugin.types)
+local Fusion = require("../../../Packages/fusion")
+local RedonUI = require("../../../Packages/redon-ui")
+local assets = require("../../assets")
+local types = require("../../types")
 
 return function(
 	scope: types.Scope,
