@@ -5,7 +5,7 @@ local root = script.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
-local utils = require("lib/utils")
+local utils = require("./lib/utils")
 
 -- Code Types
 

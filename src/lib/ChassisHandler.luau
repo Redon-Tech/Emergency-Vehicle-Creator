@@ -1,7 +1,7 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local log = require("../log")
 local types = require("../types")
-local VehicleHandler = require("VehicleHandler")
+local VehicleHandler = require("./VehicleHandler")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local LuaEncode = require("../../Packages/LuaEncode")
 local Fusion = require("../../Packages/fusion")
