@@ -74,17 +74,13 @@ local log = require(script.log)
 log.verbosity = if IS_DEV then log.level.debug else log.level.error
 
 -- Setup Version
-local version = require(script.version)
-version.currentVersion = VERSION
-version.currentVer = version:parseVersion(VERSION)
-version:checkVersion()
+local VersionHelper = require("@self/lib/VersionHelper")
+VersionHelper.currentVersion = VERSION
+VersionHelper.currentVer = VersionHelper.parseVersion(VERSION)
+VersionHelper:checkVersion()
 local versionDisplay = VERSION
 if isRBXM then
-	if version.currentVer.build == nil then
-		versionDisplay ..= "+local"
-	else
-		versionDisplay ..= ".local"
-	end
+	versionDisplay ..= "+local"
 end
 
 -- Main Requirements

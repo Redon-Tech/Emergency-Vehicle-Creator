@@ -1,6 +1,6 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local HttpService = game:GetService("HttpService")
-local log = require(script.Parent.log)
+local log = require("../log")
 
 type versionParsed = {
 	major: number,
@@ -14,7 +14,7 @@ type version = {
 	currentVer: versionParsed,
 	latestVersion: string?,
 	latestVer: versionParsed?,
-	parseVersion: (self: version, versionString: string) -> versionParsed,
+	parseVersion: (versionString: string) -> versionParsed,
 	checkVersion: (self: version) -> (),
 	isOutdated: (self: version) -> (boolean, boolean?),
 }
@@ -24,7 +24,7 @@ local version = {
 } :: version
 
 --- Parses a version string into a table with major, minor, patch, pre-release, and build components.
-function version.parseVersion(_: version, versionString: string): versionParsed
+function version.parseVersion(versionString: string): versionParsed
 	local parsedData = { string.match(versionString, "(%d+)%.(%d+)%.(%d+)%-?([%w%.]*)%+?(.*)$") }
 	log.debug("Parsed Version", versionString, parsedData)
 	return {
@@ -50,7 +50,7 @@ function version.checkVersion(self: version)
 		local ver = latestVersionData.tag_name
 		if ver ~= nil and typeof(ver) == "string" then
 			self.latestVersion = ver
-			self.latestVer = self:parseVersion(ver)
+			self.latestVer = self.parseVersion(ver)
 		end
 	else
 		log.warn(

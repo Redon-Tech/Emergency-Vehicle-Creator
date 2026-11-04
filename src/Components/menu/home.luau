@@ -9,7 +9,7 @@ local RedonUI = require(root.Packages["redon-ui"])
 local types = require(root.Plugin.types)
 local assets = require(root.Plugin.assets)
 local VehicleHandler = require("../../lib/VehicleHandler")
-local version = require(root.Plugin.version)
+local VersionHelper = require("../../lib/VersionHelper")
 
 type props = {
 	CurrentPanel: Fusion.Value<types.menuPanels>,
@@ -61,7 +61,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	scope:Observer(props.CurrentPanel):onChange(checkIfEnabled)
 	checkIfEnabled()
 
-	local isOutdated, failedCheck = version:isOutdated()
+	local isOutdated, failedCheck = VersionHelper:isOutdated()
 	return scope:base {
 		Name = "Home",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -285,7 +285,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 						Text = if failedCheck
 							then "The plugin was unable to check for the latest version of the plugin. Please enable HTTP requests using manage plugins."
-							else `You are running an outdated version of the plugin, please update to the latest version ({version.latestVersion or "Unknown Error Occurred"}) to ensure a great experience!`,
+							else `You are running an outdated version of the plugin, please update to the latest version ({VersionHelper.latestVersion or "Unknown Error Occurred"}) to ensure a great experience!`,
 						FontWeight = Enum.FontWeight.Regular,
 						TextSize = 20,
 						TextWrapped = true,
