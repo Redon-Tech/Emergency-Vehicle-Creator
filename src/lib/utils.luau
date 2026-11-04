@@ -1,7 +1,5 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
-local root = script.Parent.Parent
-
-local RedonUI = require(root.Packages["redon-ui"])
+local RedonUI = require("../../Packages/redon-ui")
 
 local utils = {}
 

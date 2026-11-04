@@ -94,7 +94,7 @@ local RedonUI = require(root.Packages["redon-ui"])
 local types = require(script.types)
 
 -- Setup Scope
-local utils = require(script.utils)
+local utils = require("@self/lib/utils")
 local menu = require(script.Components.menu)
 local viewport = require(script.Components.viewport)
 local main = require(script.Components.main)

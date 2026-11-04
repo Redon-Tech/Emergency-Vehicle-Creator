@@ -5,7 +5,7 @@ local root = script.Parent.Parent
 
 local Fusion = require(root.Packages.fusion)
 local RedonUI = require(root.Packages["redon-ui"])
-local utils = require(script.Parent.utils)
+local utils = require("lib/utils")
 
 -- Code Types
 
@@ -57,22 +57,25 @@ export type flasherSectionState = {
 	currentRow: Fusion.Value<number>,
 }
 
-export type faderData = {
-	type: "Simple",
-	time: number,
-	goal: number,
-	color: elsColor,
-} | {
-	type: "Advanced",
-	time: number,
-	goal: number,
-	color: elsColor,
-	easingStyle: Enum.EasingStyle,
-	easingDirection: Enum.EasingDirection,
-} | {
-	type: "Wait",
-	time: number,
-}
+export type faderData =
+	{
+		type: "Simple",
+		time: number,
+		goal: number,
+		color: elsColor,
+	}
+	| {
+		type: "Advanced",
+		time: number,
+		goal: number,
+		color: elsColor,
+		easingStyle: Enum.EasingStyle,
+		easingDirection: Enum.EasingDirection,
+	}
+	| {
+		type: "Wait",
+		time: number,
+	}
 
 export type faderSection = {
 	lightName: string,
@@ -101,19 +104,22 @@ export type faderSectionState = {
 	data: Fusion.Value<{ faderTweenDataState }>,
 }
 
-export type rotatorData = {
-	type: "Angle",
-	color: elsColor,
-	velocity: number,
-	angle: number,
-} | {
-	type: "Infinite",
-	color: elsColor,
-	velocity: number,
-} | {
-	type: "Wait",
-	time: number,
-}
+export type rotatorData =
+	{
+		type: "Angle",
+		color: elsColor,
+		velocity: number,
+		angle: number,
+	}
+	| {
+		type: "Infinite",
+		color: elsColor,
+		velocity: number,
+	}
+	| {
+		type: "Wait",
+		time: number,
+	}
 
 export type rotatorSection = {
 	lightName: string,
@@ -154,35 +160,40 @@ export type selectedPattern = {
 	pattern: pattern,
 }
 
-export type activation = {
-	type: "Standard",
-	mode: "Cycle" | "Set Pattern",
-	pattern: number,
-	keybinds: { Enum.KeyCode },
-} | {
-	type: "Default",
-	pattern: number,
-} | {
-	type: "Override",
-	mode: "Siren Override" | "Park" | "Brake" | "Reverse",
-	siren: string?,
-	dependentFunction: string,
-	dependentPattern: number,
-} | {
-	type: "Conditional",
-	mode: "Always Active" | "Keybind" | "Function" | "Siren",
-	conditions: {
-		{
-			type: "Function",
-			mode: "Is" | "Is Not",
-			dependentFunction: string,
-			dependentPattern: number,
-		}
-	},
-} | {
-	type: "AG-Event",
-	mode: "Stages" | "Traffic Advisor" | "Scene" | "Ally Left" | "Ally Right" | "Rear Scene",
-}
+export type activation =
+	{
+		type: "Standard",
+		mode: "Cycle" | "Set Pattern",
+		pattern: number,
+		keybinds: { Enum.KeyCode },
+	}
+	| {
+		type: "Default",
+		pattern: number,
+	}
+	| {
+		type: "Override",
+		mode: "Siren Override" | "Park" | "Brake" | "Reverse",
+		siren: string?,
+		dependentFunction: string,
+		dependentPattern: number,
+	}
+	| {
+		type: "Conditional",
+		mode: "Always Active" | "Keybind" | "Function" | "Siren",
+		conditions: {
+			{
+				type: "Function",
+				mode: "Is" | "Is Not",
+				dependentFunction: string,
+				dependentPattern: number,
+			}
+		},
+	}
+	| {
+		type: "AG-Event",
+		mode: "Stages" | "Traffic Advisor" | "Scene" | "Ally Left" | "Ally Right" | "Rear Scene",
+	}
 
 export type activationState = {
 	type: Fusion.Value<"Standard" | "Default" | "Override" | "AG-Event">,
@@ -236,16 +247,18 @@ export type modifier = {
 	delay: number,
 }
 
-export type siren = {
-	name: string,
-	type: "Siren" | "Hold",
-	behavoir: "Overrides Other Sounds" | "Plays Simultaneously",
-	keybinds: { Enum.KeyCode },
-	modifiers: { modifier },
-} | {
-	name: string,
-	type: "Modifier",
-	keybinds: { Enum.KeyCode },
-}
+export type siren =
+	{
+		name: string,
+		type: "Siren" | "Hold",
+		behavoir: "Overrides Other Sounds" | "Plays Simultaneously",
+		keybinds: { Enum.KeyCode },
+		modifiers: { modifier },
+	}
+	| {
+		name: string,
+		type: "Modifier",
+		keybinds: { Enum.KeyCode },
+	}
 
 return nil
