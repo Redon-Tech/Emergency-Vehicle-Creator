@@ -33,7 +33,7 @@ return function(scope: types.Scope, props: props)
 	local FloatingYSize = scope.EatValue(props, "FloatingYSize") :: number?
 	local MinWidth = scope.EatValue(props, "MinWidth") :: number?
 	local MinHeight = scope.EatValue(props, "MinHeight") :: number?
-	local widget = plugin:CreateDockWidgetPluginGui(
+	local widget = plugin:CreateDockWidgetPluginGuiAsync(
 		pluginGuiId,
 		DockWidgetPluginGuiInfo.new(
 			InitialDockState or Enum.InitialDockState.Right,
