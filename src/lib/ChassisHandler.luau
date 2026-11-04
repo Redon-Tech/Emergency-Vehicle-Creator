@@ -5,6 +5,7 @@ local VehicleHandler = require("./VehicleHandler")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local LuaEncode = require("../../Packages/LuaEncode")
 local Fusion = require("../../Packages/fusion")
+local handler = script.Parent.Parent.handler
 local LuaEncodeSettings = {
 	Prettify = false,
 	OutputWarnings = false,
@@ -104,7 +105,7 @@ local ChassisHandler = {
 		modifier = {
 			name = "default",
 			type = "Modifier",
-			keybinds = { Enum.KeyCode.T, Enum.KeyCode.Unknown },
+			keybinds = { Enum.KeyCode.T, Enum.KeyCode.None },
 		},
 		colors = {
 			{
@@ -259,7 +260,7 @@ function ChassisHandler.installPlugin(self: ChassisHandler, model: Model): boole
 		return false
 	end
 
-	local newHandler = script.Parent.handler:Clone()
+	local newHandler = handler:Clone()
 	newHandler.Name = "Emergency Vehicle Handler"
 
 	local isOldPluginInstalled, oldPlugin = self:hasEVCChassisPluginInstalled(model)
@@ -604,10 +605,10 @@ function ChassisHandler.getConfiguration(self: ChassisHandler, model: Model): ch
 		if oldLoader ~= nil then
 			oldLoader:Destroy()
 		end
-		local newLoader = script.Parent.handler.EVHEvent.loader:Clone()
+		local newLoader = handler.EVHEvent.loader:Clone()
 		newLoader.Parent = event
 
-		Plugin.Source = script.Parent.handler.Source
+		Plugin.Source = handler.Source
 		ChangeHistoryService:SetWaypoint("Updated EVH")
 	end
 	data.lightSettings.version = latestVersion
