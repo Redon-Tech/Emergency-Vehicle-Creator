@@ -4,22 +4,13 @@
 local Fusion = require("../../../../../Packages/fusion")
 local RedonUI = require("../../../../../Packages/redon-ui")
 local types = require("../../../../types")
-local ChassisHandler = require("../../../../lib/ChassisHandler")
+local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
 local popup = require("../../../popup")
 local createChildren = require("../createChildren")
-
-local colorKeyToIndex = {
-	"name",
-	"partColor",
-	"lightColor",
-	"lightoColor",
-}
 
 type props = {
 	actualTableSize: Fusion.Value<Vector2>,
 	currentContent: Fusion.Value<"settings" | "colors" | "light groups">,
-	lightSettings: Fusion.Value<ChassisHandler.lightSettingsState?>,
-	updateCurrentConfiguration: () -> (),
 	removeColorReferences: (number) -> (),
 }
 
@@ -99,119 +90,105 @@ return function(scope: types.Scope, props: props)
 			},
 
 			scope:Computed(function(use, scope: typeof(scope))
-				local currentLightSettings = use(props.lightSettings)
+				local currentConfiguration = use(ConfigurationEditor.current)
+				if currentConfiguration == nil then
+					return {}
+				end
+				local currentLightSettings = use(currentConfiguration.lightSettings)
+
 				if currentLightSettings ~= nil then
-					return scope:ForPairs(
-						currentLightSettings.colors,
-						function(_, scope: typeof(scope), key: number, colorData)
-							local rowSize = scope:Value(75)
-							local function onOptionChange(option, value)
-								local changedIndex = colorKeyToIndex[option]
-								local currentColors = scope.peek(currentLightSettings.colors)
-								currentColors[key][changedIndex] = value
-								currentLightSettings.colors:set(currentColors)
-								props.updateCurrentConfiguration()
-							end
-							local name = scope:Value(colorData.name)
-							local partColor = scope:Value(colorData.partColor)
-							local lightColor = scope:Value(colorData.lightColor)
-							local lightoColor = scope:Value(colorData.lightoColor)
+					return scope:ForPairs(currentLightSettings.colors, function(_, scope: typeof(scope), key, colorData)
+						local rowSize = scope:Value(75)
 
-							local childrenProps = {
-								rowSize = rowSize,
-								actualTableSize = props.actualTableSize,
+						local childrenProps = {
+							rowSize = rowSize,
+							actualTableSize = props.actualTableSize,
 
-								options = {
-									{
-										type = "string",
-										layoutOrder = 1,
-										value = name,
-										disabled = key < 7,
-										focusLost = function()
-											onOptionChange(1, scope.peek(name))
-										end,
-									},
-									{
-										type = "color",
-										layoutOrder = 2,
-										value = partColor,
-										label = "Part Color",
-										colorChanged = function()
-											onOptionChange(2, scope.peek(partColor))
-										end,
-									},
-									{
-										type = "color",
-										layoutOrder = 3,
-										value = lightColor,
-										label = "Light Color",
-										colorChanged = function()
-											onOptionChange(3, scope.peek(lightColor))
-										end,
-									},
-									{
-										type = "color",
-										layoutOrder = 4,
-										value = lightoColor,
-										label = "Lighto Color",
-										colorChanged = function()
-											onOptionChange(4, scope.peek(lightoColor))
-										end,
-									},
-								} :: { createChildren.option },
-							}
+							options = {
+								{
+									type = "string",
+									layoutOrder = 1,
+									value = colorData.name,
+									disabled = key < 7,
+									focusLost = function(newValue)
+										ConfigurationEditor.updateColorName(key, newValue)
+									end,
+								},
+								{
+									type = "color",
+									layoutOrder = 2,
+									value = colorData.partColor,
+									label = "Part Color",
+									colorChanged = function(newValue)
+										ConfigurationEditor.updateColor(key, "partColor", newValue)
+									end,
+								},
+								{
+									type = "color",
+									layoutOrder = 3,
+									value = colorData.lightColor,
+									label = "Light Color",
+									colorChanged = function(newValue)
+										ConfigurationEditor.updateColor(key, "lightColor", newValue)
+									end,
+								},
+								{
+									type = "color",
+									layoutOrder = 4,
+									value = colorData.lightoColor,
+									label = "Lighto Color",
+									colorChanged = function(newValue)
+										ConfigurationEditor.updateColor(key, "lightoColor", newValue)
+									end,
+								},
+							} :: { createChildren.option },
+						}
 
-							if key > 6 then
-								childrenProps.onDelete = function()
-									popup:addPopup(scope, {
-										title = "Remove Color",
-										description = `Are you sure you want to delete color <b>{scope.peek(
-											colorData.name
-										)}</b>?\n<b>All data will be lost.</b>`,
-										actions = {
-											{
-												text = "Cancel",
-												type = "primary",
-												key = 1,
-												callback = function(newPopup)
-													popup:removePopup(newPopup)
-												end,
-												keybind = Enum.KeyCode.Escape,
-											},
-											{
-												text = "Delete",
-												type = "danger",
-												key = 2,
-												callback = function(newPopup)
-													popup:removePopup(newPopup)
-													local currentColors = scope.peek(currentLightSettings.colors)
-													props.removeColorReferences(key)
-													table.remove(currentColors, key)
-													currentLightSettings.colors:set(currentColors)
-													props.updateCurrentConfiguration()
-												end,
-												keybind = Enum.KeyCode.Return,
-											},
+						if key > 6 then
+							childrenProps.onDelete = function()
+								popup:addPopup(scope, {
+									title = "Remove Color",
+									description = `Are you sure you want to delete color <b>{scope.peek(colorData.name)}</b>?\n<b>All data will be lost.</b>`,
+									actions = {
+										{
+											text = "Cancel",
+											type = "primary",
+											key = 1,
+											callback = function(newPopup)
+												popup:removePopup(newPopup)
+											end,
+											keybind = Enum.KeyCode.Escape,
 										},
-									})
-								end
-							end
-
-							return key,
-								scope:base {
-									Size = scope:Computed(function(use)
-										return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(props.actualTableSize).Y)
-									end),
-									BackgroundColor3 = currentTheme.colors.crust,
-									BackgroundTransparency = if key % 2 == 0 then 1 else 0,
-									LayoutOrder = key,
-
-									[Fusion.Children] = {
-										createChildren(scope, childrenProps),
+										{
+											text = "Delete",
+											type = "danger",
+											key = 2,
+											callback = function(newPopup)
+												popup:removePopup(newPopup)
+												props.removeColorReferences(key)
+												ConfigurationEditor.removeColor(key)
+											end,
+											keybind = Enum.KeyCode.Return,
+										},
 									},
-								}
+								})
+							end
 						end
-					)
+
+						return key,
+							scope:base {
+								Size = scope:Computed(function(use)
+									return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(props.actualTableSize).Y)
+								end),
+								BackgroundColor3 = currentTheme.colors.crust,
+								BackgroundTransparency = if key % 2 == 0 then 1 else 0,
+								LayoutOrder = key,
+
+								[Fusion.Children] = {
+									createChildren(scope, childrenProps),
+								},
+							}
+					end)
 				end
 
 				return {} :: any
@@ -239,18 +216,12 @@ return function(scope: types.Scope, props: props)
 						Reactive = true,
 
 						[Fusion.OnEvent "Activated"] = function()
-							local currentLightSettings = scope.peek(props.lightSettings)
-							if currentLightSettings then
-								local currentColors = scope.peek(currentLightSettings.colors)
-								table.insert(currentColors, {
-									name = "New Color",
-									partColor = Color3.new(1, 1, 1),
-									lightColor = Color3.new(1, 1, 1),
-									lightoColor = Color3.new(1, 1, 1),
-								})
-								currentLightSettings.colors:set(currentColors)
-								props.updateCurrentConfiguration()
-							end
+							ConfigurationEditor.addColor({
+								name = "New Color",
+								partColor = Color3.new(1, 1, 1),
+								lightColor = Color3.new(1, 1, 1),
+								lightoColor = Color3.new(1, 1, 1),
+							})
 						end,
 					},
 				},

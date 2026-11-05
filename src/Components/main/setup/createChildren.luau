@@ -42,56 +42,62 @@ local specialKeycodeLookup = {
 	["?"] = Enum.KeyCode.Question,
 }
 
-export type option = {
-	type: "select",
-	layoutOrder: number,
-	options: Fusion.UsedAs<{ [any]: unknown }>,
-	value: Fusion.Value<any>,
-	selectionChanged: (() -> ())?,
-	OverrideXSize: number?,
-	disabled: Fusion.UsedAs<boolean?>,
-	visible: Fusion.UsedAs<boolean?>,
-} | {
-	type: "string",
-	layoutOrder: number,
-	value: Fusion.Value<string>,
-	focusLost: (() -> ())?,
-	OverrideXSize: number?,
-	disabled: Fusion.UsedAs<boolean?>,
-	visible: Fusion.UsedAs<boolean?>,
-} | {
-	type: "keycode",
-	layoutOrder: number,
-	value: Fusion.Value<Enum.KeyCode>,
-	focusLost: (() -> ())?,
-	OverrideXSize: number?,
-	disabled: Fusion.UsedAs<boolean?>,
-	visible: Fusion.UsedAs<boolean?>,
-} | {
-	type: "number",
-	layoutOrder: number,
-	value: Fusion.Value<number>,
-	focusLost: (() -> ())?,
-	OverrideXSize: number?,
-	disabled: Fusion.UsedAs<boolean?>,
-	visible: Fusion.UsedAs<boolean?>,
-} | {
-	type: "button",
-	layoutOrder: number,
-	text: Fusion.UsedAs<string>,
-	OverrideXSize: number?,
-	callback: () -> (),
-	disabled: Fusion.UsedAs<boolean?>,
-	visible: Fusion.UsedAs<boolean?>,
-} | {
-	type: "color",
-	layoutOrder: number,
-	value: Fusion.Value<Color3>,
-	colorChanged: (() -> ())?,
-	label: string,
-	disabled: Fusion.UsedAs<boolean?>,
-	visible: Fusion.UsedAs<boolean?>,
-}
+export type option =
+	{
+		type: "select",
+		layoutOrder: number,
+		options: Fusion.UsedAs<{ [any]: unknown }>,
+		value: Fusion.Value<any>,
+		selectionChanged: ((newValue: any) -> ())?,
+		OverrideXSize: number?,
+		disabled: Fusion.UsedAs<boolean?>,
+		visible: Fusion.UsedAs<boolean?>,
+	}
+	| {
+		type: "string",
+		layoutOrder: number,
+		value: Fusion.Value<string>,
+		focusLost: ((newValue: string) -> ())?,
+		OverrideXSize: number?,
+		disabled: Fusion.UsedAs<boolean?>,
+		visible: Fusion.UsedAs<boolean?>,
+	}
+	| {
+		type: "keycode",
+		layoutOrder: number,
+		value: Fusion.Value<Enum.KeyCode>,
+		focusLost: ((newValue: Enum.KeyCode) -> ())?,
+		OverrideXSize: number?,
+		disabled: Fusion.UsedAs<boolean?>,
+		visible: Fusion.UsedAs<boolean?>,
+	}
+	| {
+		type: "number",
+		layoutOrder: number,
+		value: Fusion.Value<number>,
+		focusLost: ((newValue: number) -> ())?,
+		OverrideXSize: number?,
+		disabled: Fusion.UsedAs<boolean?>,
+		visible: Fusion.UsedAs<boolean?>,
+	}
+	| {
+		type: "button",
+		layoutOrder: number,
+		text: Fusion.UsedAs<string>,
+		OverrideXSize: number?,
+		callback: () -> (),
+		disabled: Fusion.UsedAs<boolean?>,
+		visible: Fusion.UsedAs<boolean?>,
+	}
+	| {
+		type: "color",
+		layoutOrder: number,
+		value: Fusion.Value<Color3>,
+		colorChanged: ((newValue: Color3) -> ())?,
+		label: string,
+		disabled: Fusion.UsedAs<boolean?>,
+		visible: Fusion.UsedAs<boolean?>,
+	}
 
 export type childOption = {
 	options: { option },
@@ -267,14 +273,15 @@ local function createChildren(
 										PaddingRight = UDim.new(10 / size, 0),
 									}
 									if data.type == "string" then
+										local updatedValue = scope:Value("")
 										return key,
 											scope:textBox(scope.CombineProperties(baseProps, textBaseProps, {
 												Text = data.value,
-												[Fusion.Out "Text"] = data.value,
+												[Fusion.Out "Text"] = updatedValue :: unknown,
 												TextXAlignment = Enum.TextXAlignment.Left,
 												[Fusion.OnEvent "FocusLost"] = function()
 													if data.focusLost then
-														data.focusLost()
+														data.focusLost(scope.peek(updatedValue))
 													end
 												end,
 											}))
@@ -299,10 +306,9 @@ local function createChildren(
 														log.warn("Unable to serialize keycode", actualValue)
 														return
 													end
-													data.value:set(actualValue)
 
 													if data.focusLost then
-														data.focusLost()
+														data.focusLost(actualValue)
 													end
 												end,
 											}))
@@ -321,10 +327,9 @@ local function createChildren(
 														log.warn("Unable to serialize number", actualValue)
 														return
 													end
-													data.value:set(actualValue)
 
 													if data.focusLost then
-														data.focusLost()
+														data.focusLost(actualValue)
 													end
 												end,
 											}))
@@ -350,9 +355,8 @@ local function createChildren(
 														initialColor = scope.peek(data.value),
 													})
 													if newColor then
-														data.value:set(newColor)
 														if data.colorChanged then
-															data.colorChanged()
+															data.colorChanged(newColor)
 														end
 													end
 												end,

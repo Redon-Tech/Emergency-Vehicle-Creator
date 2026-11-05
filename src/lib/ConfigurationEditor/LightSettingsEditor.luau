@@ -112,6 +112,37 @@ function LightSettingsEditor.toConfiguration(
 	}
 end
 
+function LightSettingsEditor.removeColorReferences(functions: { types.elsFunction }, removedId: number)
+	local function remap(color: number): number
+		return if color == removedId then 0 elseif color > removedId then color - 1 else color
+	end
+	for _, func in functions do
+		for _, pattern in func.patterns do
+			for _, section in pattern.flashers do
+				for _, column in section.columns do
+					for row, color in column.rows do
+						column.rows[row] = remap(color)
+					end
+				end
+			end
+			for _, sections in pattern.faders do
+				for _, step in sections.data do
+					if step.type ~= "Wait" and step.color ~= nil then
+						(step :: { color: number }).color = remap(step.color)
+					end
+				end
+			end
+			for _, sections in pattern.rotators do
+				for _, step in sections.data do
+					if step.type ~= "Wait" and step.color ~= nil then
+						(step :: { color: number }).color = remap(step.color)
+					end
+				end
+			end
+		end
+	end
+end
+
 function LightSettingsEditor.createActions(getContext: () -> (types.Scope, LightSettingsState))
 	local actions = {}
 

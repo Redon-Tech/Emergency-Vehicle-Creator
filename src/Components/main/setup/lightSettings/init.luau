@@ -4,6 +4,7 @@
 local Fusion = require("../../../../Packages/fusion")
 local RedonUI = require("../../../../Packages/redon-ui")
 local types = require("../../../types")
+local LightSettingsEditor = require("../../../lib/ConfigurationEditor/LightSettingsEditor")
 local ChassisHandler = require("../../../lib/ChassisHandler")
 local log = require("../../../log")
 
@@ -53,42 +54,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		if currentConfiguration == nil then
 			return
 		end
-		local function remap(color: number): number
-			return if color == removedId then 0 elseif color > removedId then color - 1 else color
-		end
-		for _, func in currentConfiguration.functions do
-			for _, pattern in func.patterns do
-				for _, section in pattern.flashers do
-					for _, column in section.columns do
-						for row, color in column.rows do
-							column.rows[row] = remap(color)
-						end
-					end
-				end
-				for _, sections in pattern.faders do
-					for _, step in sections.data do
-						if step.type ~= "Wait" and step.color ~= nil then
-							(step :: { color: number }).color = remap(step.color)
-						end
-					end
-				end
-				for _, sections in pattern.rotators do
-					for _, step in sections.data do
-						if step.type ~= "Wait" and step.color ~= nil then
-							(step :: { color: number }).color = remap(step.color)
-						end
-					end
-				end
-			end
-		end
-		local selected = scope.peek(props.CurrentPattern)
-		if selected and currentConfiguration.functions[selected.functionId] then
-			props.CurrentPattern:set({
-				functionId = selected.functionId,
-				patternId = selected.patternId,
-				pattern = currentConfiguration.functions[selected.functionId].patterns[selected.patternId],
-			})
-		end
+		LightSettingsEditor.removeColorReferences(currentConfiguration.functions, removedId)
 	end
 
 	scope:Observer(props.CurrentPage):onChange(function()

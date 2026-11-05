@@ -16,7 +16,7 @@ if not game:GetService("RunService"):IsEdit() then
 end
 
 local VERSION = "3.0.0-rc.10"
-local IS_DEV = false
+local IS_DEV = true
 if IS_DEV then
 	game:GetService("LogService"):ClearOutput()
 end
