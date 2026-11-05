@@ -84,6 +84,7 @@ end
 
 -- Main Requirements
 local SettingsHandler = require("@self/lib/SettingsHandler")
+local ConfigurationEditor = require("@self/lib/ConfigurationEditor")
 local Fusion = require("./Packages/fusion")
 local RedonUI = require("./Packages/redon-ui")
 local types = require("@self/types")
@@ -116,6 +117,8 @@ SettingsHandler:setup(scope)
 if scope.peek(SettingsHandler.values.debugMode) == true then
 	log.verbosity = log.level.debug
 end
+
+ConfigurationEditor.init(scope)
 
 -- Values
 local enabled = scope:Value(isRBXM and IS_DEV)

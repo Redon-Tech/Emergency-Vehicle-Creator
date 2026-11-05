@@ -4,6 +4,7 @@ local Fusion = require("../../Packages/fusion")
 local RedonUI = require("../../Packages/redon-ui")
 local types = require("../types")
 local ChassisHandler = require("../lib/ChassisHandler")
+local ConfigurationEditor = require("../lib/ConfigurationEditor")
 local log = require("../log")
 local popup = require("./popup")
 
@@ -110,6 +111,22 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	end
 
 	scope:Observer(props.PossibleVehicle):onBind(configurePossibleVehicle)
+
+	scope:Observer(props.CurrentVehicle):onChange(function()
+		local currentVehicle = scope.peek(props.CurrentVehicle)
+		if currentVehicle ~= nil and typeof(currentVehicle) ~= "string" then
+			local currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
+			if currentConfiguration ~= nil then
+				log.debug("Found vehicle configuration for current vehicle")
+				ConfigurationEditor.load(currentConfiguration)
+			else
+				log.warn("No vehicle configuration found for current vehicle")
+			end
+		else
+			log.debug("Current vehicle is nil or not a model, unloading configuration editor")
+			ConfigurationEditor.unload()
+		end
+	end)
 
 	if installAutoLoader then
 		popup:addPopup(scope, {

@@ -17,7 +17,6 @@ local components = {
 }
 
 type props = {
-	UnsavedChanges: Fusion.Value<boolean>,
 	Mode: Fusion.Value<types.mode>,
 	CurrentPanel: Fusion.Value<types.mainPanels>,
 	CurrentPage: Fusion.Value<types.pages?>,
@@ -38,7 +37,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 	local currentContent: Fusion.Value<"settings" | "colors" | "light groups"> = scope:Value("settings" :: any)
 	local currentConfiguration = nil
-	local lightSettings: Fusion.Value<ChassisHandler.lightSettingsState?> = scope:Value(nil)
 	local lightParts: Fusion.Value<{ string }> = scope:Value({})
 
 	scope:Observer(props.CurrentVehicle):onBind(function()
@@ -46,50 +44,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		if typeof(currentVehicle) == "Instance" then
 			currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
 			if currentConfiguration ~= nil then
-				local newLightSettings = {}
-
-				local newColors = {}
-				for colorId, color in currentConfiguration.lightSettings.colors do
-					local colorState = {
-						name = color.name,
-						partColor = color.partColor,
-						lightColor = color.lightColor,
-						lightoColor = color.lightoColor,
-					}
-					table.insert(newColors, colorId, colorState)
-				end
-				newLightSettings.colors = firstScope:Value(newColors)
-
-				newLightSettings.configuration = {
-					shouldChangeNeons = firstScope:Value(
-						currentConfiguration.lightSettings.configuration.shouldChangeNeons
-					),
-					shouldChangeLights = firstScope:Value(
-						currentConfiguration.lightSettings.configuration.shouldChangeLights
-					),
-					shouldChangeLightos = firstScope:Value(
-						currentConfiguration.lightSettings.configuration.shouldChangeLightos
-					),
-					shouldChangeParticleEmitters = firstScope:Value(
-						currentConfiguration.lightSettings.configuration.shouldChangeParticleEmitters
-					),
-					partTransparency = firstScope:Value(
-						currentConfiguration.lightSettings.configuration.partTransparency
-					),
-				}
-
-				local newLightGroups = {}
-				for groupName, group in currentConfiguration.lightSettings.lightGroups do
-					local newLightGroup = {
-						name = firstScope:Value(group.name),
-						lights = firstScope:Value(group.lights),
-					}
-					newLightGroups[groupName] = newLightGroup
-				end
-				newLightSettings.lightGroups = firstScope:Value(newLightGroups)
-
 				lightParts:set(ChassisHandler.getLights(currentConfiguration, currentVehicle))
-				lightSettings:set(newLightSettings)
 			end
 		end
 	end)
@@ -133,45 +88,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				patternId = selected.patternId,
 				pattern = currentConfiguration.functions[selected.functionId].patterns[selected.patternId],
 			})
-		end
-	end
-
-	local function updateCurrentConfiguration()
-		local currentLightSettings = scope.peek(lightSettings)
-		if currentConfiguration ~= nil and currentLightSettings ~= nil then
-			local assembledLightSettings = {
-				version = currentConfiguration.lightSettings.version,
-				colors = {},
-				configuration = {
-					shouldChangeNeons = scope.peek(currentLightSettings.configuration.shouldChangeNeons),
-					shouldChangeLights = scope.peek(currentLightSettings.configuration.shouldChangeLights),
-					shouldChangeLightos = scope.peek(currentLightSettings.configuration.shouldChangeLightos),
-					shouldChangeParticleEmitters = scope.peek(
-						currentLightSettings.configuration.shouldChangeParticleEmitters
-					),
-					partTransparency = scope.peek(currentLightSettings.configuration.partTransparency),
-				},
-				lightGroups = {},
-			}
-
-			for colorId, color in scope.peek(currentLightSettings.colors) do
-				table.insert(assembledLightSettings.colors, colorId, {
-					name = scope.peek(color.name),
-					partColor = scope.peek(color.partColor),
-					lightColor = scope.peek(color.lightColor),
-					lightoColor = scope.peek(color.lightoColor),
-				})
-			end
-
-			for groupName, group in scope.peek(currentLightSettings.lightGroups) do
-				assembledLightSettings.lightGroups[groupName] = {
-					name = scope.peek(group.name),
-					lights = scope.peek(group.lights),
-				}
-			end
-
-			currentConfiguration.lightSettings = assembledLightSettings
-			props.UnsavedChanges:set(true)
 		end
 	end
 
@@ -389,25 +305,19 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					scope:mainSettings {
 						actualTableSize = actualTableSize,
 						currentContent = currentContent,
-						lightSettings = lightSettings,
-						updateCurrentConfiguration = updateCurrentConfiguration,
 					},
 
 					scope:colors {
 						removeColorReferences = removeColorReferences,
 						actualTableSize = actualTableSize,
 						currentContent = currentContent,
-						lightSettings = lightSettings,
-						updateCurrentConfiguration = updateCurrentConfiguration,
 					},
 
 					scope:lightGroups {
 						firstScope = firstScope,
 						actualTableSize = actualTableSize,
 						currentContent = currentContent,
-						lightSettings = lightSettings,
 						lightParts = lightParts,
-						updateCurrentConfiguration = updateCurrentConfiguration,
 					},
 				},
 			},
