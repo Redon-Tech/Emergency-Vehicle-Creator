@@ -5,6 +5,7 @@ local ChassisHandler = require("./ChassisHandler")
 local Fusion = require("../../Packages/fusion")
 
 local LightSettingsEditor = require("@self/LightSettingsEditor")
+local SirensEditor = require("@self/SirensEditor")
 
 type PatternState = {
 	flashers: Fusion.Value<{ types.flasherSectionState }>,
@@ -19,32 +20,10 @@ type FunctionState = {
 	patterns: Fusion.Value<{ PatternState }>,
 }
 
-type ModifierState = {
-	name: Fusion.Value<string>,
-	modifiedSirenName: Fusion.Value<string>,
-	parentSoundBehavior: Fusion.Value<"Play Parent Sound" | "Plays Simultaneously">,
-	behavoir: Fusion.Value<"Play Automatically" | "Require Parent Replay">,
-	delay: Fusion.Value<number>,
-}
-
-type SirenState =
-	{
-		name: Fusion.Value<string>,
-		type: Fusion.Value<"Siren" | "Hold">,
-		behavoir: Fusion.Value<"Overrides Other Sounds" | "Plays Simultaneously">,
-		keybinds: Fusion.Value<{ Enum.KeyCode }>,
-		modifiers: Fusion.Value<{ ModifierState }>,
-	}
-	| {
-		name: Fusion.Value<string>,
-		type: Fusion.Value<"Modifier">,
-		keybinds: Fusion.Value<{ Enum.KeyCode }>,
-	}
-
 type ConfigurationState = {
 	lightSettings: LightSettingsEditor.LightSettingsState,
 	functions: Fusion.Value<{ FunctionState }>,
-	sirens: Fusion.Value<{ SirenState }>,
+	sirens: SirensEditor.SirensState,
 }
 
 local ConfigurationEditor = {}
@@ -53,7 +32,8 @@ ConfigurationEditor.scope = nil :: types.Scope?
 function ConfigurationEditor.init(baseScope: types.Scope)
 	local scope = baseScope:innerScope()
 	ConfigurationEditor.scope = scope
-	ConfigurationEditor.current = scope:Value(nil) :: Fusion.Value<ConfigurationState?>
+	ConfigurationEditor.baseScope = baseScope
+	ConfigurationEditor.current = baseScope:Value(nil) :: Fusion.Value<ConfigurationState?>
 end
 
 function ConfigurationEditor.load(configuration: ChassisHandler.chassisConfiguration)
@@ -70,7 +50,7 @@ function ConfigurationEditor.load(configuration: ChassisHandler.chassisConfigura
 	ConfigurationEditor.current:set({
 		lightSettings = LightSettingsEditor.toState(ConfigurationEditor.scope, configuration.lightSettings),
 		functions = ConfigurationEditor.scope:Value({}),
-		sirens = ConfigurationEditor.scope:Value({}),
+		sirens = SirensEditor.toState(ConfigurationEditor.scope, configuration.sirens),
 	})
 end
 
@@ -79,9 +59,15 @@ function ConfigurationEditor.unload()
 		log.warn("ConfigurationEditor.unload() called while not loaded")
 		return
 	end
+	if ConfigurationEditor.scope == nil then
+		log.warn("ConfigurationEditor.unload() called without initialized scope")
+		return
+	end
 	log.debug("ConfigurationEditor.unload")
 
 	ConfigurationEditor.current:set(nil)
+	ConfigurationEditor.scope:doCleanup()
+	ConfigurationEditor.scope = ConfigurationEditor.baseScope:innerScope()
 end
 
 --[[
@@ -103,9 +89,14 @@ local LightSettingsEditorActions = LightSettingsEditor.createActions(function()
 	return scope, current.lightSettings
 end)
 
+local SirensEditorActions = SirensEditor.createActions(function()
+	local scope, current = getContext()
+	return scope, current.sirens
+end)
+
 local actions = {}
 
-for _, editorActions in { LightSettingsEditorActions } do
+for _, editorActions in { LightSettingsEditorActions :: { [any]: unknown }, SirensEditorActions } do
 	for actionName, action in editorActions do
 		assert(actions[actionName] == nil, `Duplicate action name: {actionName}`)
 
@@ -113,6 +104,8 @@ for _, editorActions in { LightSettingsEditorActions } do
 	end
 end
 
-return setmetatable(ConfigurationEditor, {
-	__index = actions :: typeof(LightSettingsEditorActions),
-})
+return (
+	setmetatable(ConfigurationEditor, {
+		__index = actions,
+	}) :: any
+) :: typeof(ConfigurationEditor) & typeof(LightSettingsEditorActions) & typeof(SirensEditorActions)

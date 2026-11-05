@@ -441,9 +441,8 @@ local function createChildren(
 													RemoveForPadding = UDim2.fromOffset(0, 10),
 
 													OnOptionSelected = function(_, v)
-														data.value:set(v)
 														if data.selectionChanged then
-															data.selectionChanged()
+															data.selectionChanged(v)
 														end
 													end,
 												})
@@ -584,7 +583,6 @@ return function(
 		rowSize: Fusion.Value<number>,
 	}
 ): Fusion.Child
-	log.debug(props)
 	if props.childOptions == nil or props.actualTableSize == nil then
 		local baseSize = props.baseSize or 75
 		return createChildren(scope, {
@@ -603,7 +601,6 @@ return function(
 		if currentOptions == nil then
 			currentOptions = {}
 		end
-		log.debug(currentOptions)
 		local firstOption: childOption = {
 			options = props.options,
 			-- onOptionChange = props.onOptionChange,

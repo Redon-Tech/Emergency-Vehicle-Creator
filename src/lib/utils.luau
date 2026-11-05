@@ -126,4 +126,18 @@ utils.bloomColors = {
 	Purple = Color3.fromRGB(246, 114, 255),
 }
 
+--- Compares the provided string to the table of strings, if it already exists append a number to make it unique.
+function utils.getUniqueString(input: string, existingStrings: { string }): string
+	if not table.find(existingStrings, input) then
+		return input
+	end
+
+	local i = 1
+	while table.find(existingStrings, `{input} ({i})`) do
+		i += 1
+	end
+
+	return `{input} ({i})`
+end
+
 return utils

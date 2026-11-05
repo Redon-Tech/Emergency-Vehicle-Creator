@@ -1,7 +1,6 @@
 --# selene: allow(unused_variable)
 -- Redon Tech Emergency Vehicle Creator, MIT License
 
-
 local Fusion = require("../Packages/fusion")
 local RedonUI = require("../Packages/redon-ui")
 local utils = require("./lib/utils")
@@ -238,19 +237,24 @@ export type elsFunction = {
 
 -- Siren Types
 
+export type ModifierParentSoundBehavior = "Play Parent Sound" | "Plays Simultaneously"
+export type ModifierBehavior = "Play Automatically" | "Require Parent Replay"
+
 export type modifier = {
 	name: string,
 	modifiedSirenName: string,
-	parentSoundBehavior: "Play Parent Sound" | "Plays Simultaneously",
-	behavoir: "Play Automatically" | "Require Parent Replay",
+	parentSoundBehavior: ModifierParentSoundBehavior,
+	behavoir: ModifierBehavior,
 	delay: number,
 }
+
+export type SirenBehavior = "Overrides Other Sounds" | "Plays Simultaneously"
 
 export type siren =
 	{
 		name: string,
 		type: "Siren" | "Hold",
-		behavoir: "Overrides Other Sounds" | "Plays Simultaneously",
+		behavoir: SirenBehavior,
 		keybinds: { Enum.KeyCode },
 		modifiers: { modifier },
 	}
