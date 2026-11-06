@@ -4,6 +4,7 @@
 local Fusion = require("../../../../Packages/fusion")
 local RedonUI = require("../../../../Packages/redon-ui")
 local types = require("../../../types")
+local ChassisHandler = require("../../../lib/ChassisHandler")
 local ConfigurationEditor = require("../../../lib/ConfigurationEditor")
 local SirensEditor = require("../../../lib/ConfigurationEditor/SirensEditor")
 local popup = require("../../popup")
@@ -47,11 +48,17 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			BackgroundTransparency = 1,
 
 			[Fusion.Children] = {
+				scope:New("UIListLayout") {
+					SortOrder = Enum.SortOrder.LayoutOrder,
+				},
+				scope:New("UIPadding") {
+					PaddingTop = UDim.new(0.0145251397, 0),
+				},
+
 				scope:base {
 					Size = UDim2.fromScale(1, 0.0558659218),
-					AnchorPoint = Vector2.new(0.5, 0),
-					Position = UDim2.fromScale(0.5, 0.0145251397),
 					BackgroundTransparency = 1,
+					LayoutOrder = 0,
 
 					[Fusion.Children] = {
 						scope:New("UIListLayout") {
@@ -130,8 +137,43 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					},
 				},
 
+				scope:base {
+					Size = UDim2.fromScale(1, 0.0558659218),
+					BackgroundTransparency = 1,
+					LayoutOrder = 1,
+
+					[Fusion.Children] = Fusion.Child {
+						scope:New("UIListLayout") {
+							Padding = UDim.new(0.0082417582, 0),
+							FillDirection = Enum.FillDirection.Horizontal,
+							SortOrder = Enum.SortOrder.LayoutOrder,
+						},
+
+						scope:New("UIPadding") {
+							PaddingLeft = UDim.new(0.0082417582, 0),
+						},
+
+						scope:ForPairs(
+							{ "Sound name", "Type", "Sound behavior", "Keyboard", "Gamepad" },
+							function(_, scope: typeof(scope), key: number, value: string)
+								return key,
+									scope:textLabel {
+										Size = UDim2.fromScale(0.1373626374, 1),
+										Text = value,
+										FontWeight = Enum.FontWeight.Medium,
+										TextXAlignment = Enum.TextXAlignment.Left,
+										TextScaled = true,
+										MaxTextSize = 16,
+										BackgroundTransparency = 1,
+										LayoutOrder = key,
+									}
+							end
+						),
+					},
+				},
+
 				scope:list {
-					Size = UDim2.fromScale(1, 0.9162011173), -- 895 -75 total 820
+					Size = UDim2.fromScale(1, 0.8324022346), -- 895 -75-75 total 745
 					AnchorPoint = Vector2.new(0.5, 1),
 					Position = UDim2.fromScale(0.5, 1),
 					BackgroundColor3 = currentTheme.colors.mantle,
@@ -140,6 +182,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					PrimaryColor = "Alternate" :: "Alternate",
 					CornerRadius = UDim.new(0.0182926829, 0),
 					AutomaticSize = Enum.AutomaticSize.Y,
+					LayoutOrder = 2,
 					[Fusion.Out "AbsoluteSize"] = actualTableSize,
 					Rows = scope:ForPairs(sirens, function(_, scope: typeof(scope), key: number, siren)
 						local rowSize = scope:Value(75)
@@ -149,7 +192,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						return key,
 							scope:base {
 								Size = scope:Computed(function(use)
-									return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(actualTableSize).Y)
+									return UDim2.new(1, 0, 0, (use(rowSize) / 745) * use(actualTableSize).Y)
 								end),
 								BackgroundColor3 = currentTheme.colors.surface0,
 								BackgroundTransparency = bg,
@@ -159,10 +202,20 @@ return function(scope: types.Scope, props: props): Fusion.Child
 									options = scope:Computed(function(use)
 										local options: { createChildren.option } = {
 											{
-												type = "string",
+												type = "select",
 												value = siren.name,
 												layoutOrder = 1,
-												focusLost = function(newValue)
+												options = scope:Computed(function(use)
+													local currentVehicle = use(props.CurrentVehicle)
+													if
+														currentVehicle == nil
+														or typeof(currentVehicle) ~= "Instance"
+													then
+														return {}
+													end
+													return ChassisHandler.getSirens(currentVehicle)
+												end),
+												selectionChanged = function(newValue)
 													ConfigurationEditor.updateSirenName(key, newValue)
 												end,
 											},
@@ -179,15 +232,19 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 										if use(siren.type) ~= "Modifier" then
 											local siren = siren :: SirensEditor.SirenHoldState
-											table.insert(options, {
-												type = "select",
-												value = siren.behavoir,
-												layoutOrder = 3,
-												options = { "Overrides Other Sounds", "Plays Simultaneously" },
-												selectionChanged = function(newValue)
-													ConfigurationEditor.updateSirenBehavior(key, newValue)
-												end,
-											})
+											table.insert(
+												options,
+												3,
+												{
+													type = "select",
+													value = siren.behavoir,
+													layoutOrder = 3,
+													options = { "Overrides Other Sounds", "Plays Simultaneously" },
+													selectionChanged = function(newValue)
+														ConfigurationEditor.updateSirenBehavior(key, newValue)
+													end,
+												} :: createChildren.option
+											)
 
 											table.insert(options, {
 												type = "button",
@@ -197,17 +254,30 @@ return function(scope: types.Scope, props: props): Fusion.Child
 													ConfigurationEditor.addModifier(key)
 												end,
 											})
+										else
+											table.insert(
+												options,
+												3,
+												{
+													type = "spacer",
+													layoutOrder = 3,
+												} :: createChildren.option
+											)
 										end
 
 										for i, keybind in use(siren.keybinds) do
-											table.insert(options, {
-												type = "keycode",
-												value = keybind,
-												layoutOrder = i + 3,
-												focusLost = function(newValue)
-													ConfigurationEditor.updateSirenKeybind(key, i, newValue)
-												end,
-											})
+											table.insert(
+												options,
+												i + 3,
+												{
+													type = if i == 2 then "controllerKeycode" else "keycode",
+													value = keybind,
+													layoutOrder = i + 3,
+													focusLost = function(newValue)
+														ConfigurationEditor.updateSirenKeybind(key, i, newValue)
+													end,
+												} :: createChildren.option
+											)
 										end
 
 										return options
@@ -237,18 +307,30 @@ return function(scope: types.Scope, props: props): Fusion.Child
 															selectionChanged = function(newValue)
 																ConfigurationEditor.updateModifierName(key, i, newValue)
 															end,
+															header = "Modifier",
 														} :: createChildren.option,
 														{
-															type = "string",
+															type = "select",
 															value = modifier.modifiedSirenName,
 															layoutOrder = 2,
-															focusLost = function(newValue)
+															options = scope:Computed(function(use)
+																local currentVehicle = use(props.CurrentVehicle)
+																if
+																	currentVehicle == nil
+																	or typeof(currentVehicle) ~= "Instance"
+																then
+																	return {}
+																end
+																return ChassisHandler.getSirens(currentVehicle)
+															end),
+															selectionChanged = function(newValue)
 																ConfigurationEditor.updateModifierSirenName(
 																	key,
 																	i,
 																	newValue
 																)
 															end,
+															header = "Modified Siren Name",
 														},
 														{
 															type = "select",
@@ -265,6 +347,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																	newValue
 																)
 															end,
+															header = "Modifier Behavior",
 														},
 														{
 															type = "select",
@@ -281,6 +364,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																	newValue
 																)
 															end,
+															header = "",
 														},
 														{
 															type = "number",
@@ -293,6 +377,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 																	newValue
 																)
 															end,
+															header = "Delay (Seconds)",
 														},
 													},
 													onDelete = function()

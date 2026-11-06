@@ -7,39 +7,34 @@ local types = require("../../../types")
 local assets = require("../../../assets")
 local log = require("../../../log")
 local colorPicker = require("../../base/colorPicker")
+local UserInputHelper = require("../../../lib/UserInputHelper")
 
-local specialKeycodeLookup = {
-	["+"] = Enum.KeyCode.Plus,
-	["-"] = Enum.KeyCode.Minus,
-	["*"] = Enum.KeyCode.Asterisk,
-	["/"] = Enum.KeyCode.Slash,
-	["."] = Enum.KeyCode.Period,
-	[";"] = Enum.KeyCode.Semicolon,
-	[","] = Enum.KeyCode.Comma,
-	["="] = Enum.KeyCode.Equals,
-	["["] = Enum.KeyCode.LeftBracket,
-	["]"] = Enum.KeyCode.RightBracket,
-	["\\"] = Enum.KeyCode.BackSlash,
-	["'"] = Enum.KeyCode.Quote,
-	["`"] = Enum.KeyCode.Backquote,
-	["~"] = Enum.KeyCode.Tilde,
-	["|"] = Enum.KeyCode.Pipe,
-	["@"] = Enum.KeyCode.At,
-	["#"] = Enum.KeyCode.Hash,
-	["$"] = Enum.KeyCode.Dollar,
-	["%"] = Enum.KeyCode.Percent,
-	["^"] = Enum.KeyCode.Caret,
-	["&"] = Enum.KeyCode.Ampersand,
-	["("] = Enum.KeyCode.LeftParenthesis,
-	[")"] = Enum.KeyCode.RightParenthesis,
-	["_"] = Enum.KeyCode.Underscore,
-	["{"] = Enum.KeyCode.LeftCurly,
-	["}"] = Enum.KeyCode.RightCurly,
-	[":"] = Enum.KeyCode.Colon,
-	['"'] = Enum.KeyCode.QuotedDouble,
-	["<"] = Enum.KeyCode.LessThan,
-	[">"] = Enum.KeyCode.GreaterThan,
-	["?"] = Enum.KeyCode.Question,
+local controllerKeycodes = {
+	["None"] = Enum.KeyCode.None,
+	["ButtonX"] = Enum.KeyCode.ButtonX,
+	["ButtonY"] = Enum.KeyCode.ButtonY,
+	["ButtonA"] = Enum.KeyCode.ButtonA,
+	["ButtonB"] = Enum.KeyCode.ButtonB,
+	["ButtonR1"] = Enum.KeyCode.ButtonR1,
+	["ButtonL1"] = Enum.KeyCode.ButtonL1,
+	["ButtonR2"] = Enum.KeyCode.ButtonR2,
+	["ButtonL2"] = Enum.KeyCode.ButtonL2,
+	["ButtonR3"] = Enum.KeyCode.ButtonR3,
+	["ButtonL3"] = Enum.KeyCode.ButtonL3,
+	["ButtonStart"] = Enum.KeyCode.ButtonStart,
+	["ButtonSelect"] = Enum.KeyCode.ButtonSelect,
+	["DPadLeft"] = Enum.KeyCode.DPadLeft,
+	["DPadRight"] = Enum.KeyCode.DPadRight,
+	["DPadUp"] = Enum.KeyCode.DPadUp,
+	["DPadDown"] = Enum.KeyCode.DPadDown,
+	["Thumbstick1Up"] = Enum.KeyCode.Thumbstick1Up,
+	["Thumbstick1Down"] = Enum.KeyCode.Thumbstick1Down,
+	["Thumbstick1Left"] = Enum.KeyCode.Thumbstick1Left,
+	["Thumbstick1Right"] = Enum.KeyCode.Thumbstick1Right,
+	["Thumbstick2Up"] = Enum.KeyCode.Thumbstick2Up,
+	["Thumbstick2Down"] = Enum.KeyCode.Thumbstick2Down,
+	["Thumbstick2Left"] = Enum.KeyCode.Thumbstick2Left,
+	["Thumbstick2Right"] = Enum.KeyCode.Thumbstick2Right,
 }
 
 export type option =
@@ -52,6 +47,7 @@ export type option =
 		OverrideXSize: number?,
 		disabled: Fusion.UsedAs<boolean?>,
 		visible: Fusion.UsedAs<boolean?>,
+		header: Fusion.UsedAs<string>?,
 	}
 	| {
 		type: "string",
@@ -61,15 +57,17 @@ export type option =
 		OverrideXSize: number?,
 		disabled: Fusion.UsedAs<boolean?>,
 		visible: Fusion.UsedAs<boolean?>,
+		header: Fusion.UsedAs<string>?,
 	}
 	| {
-		type: "keycode",
+		type: "keycode" | "controllerKeycode",
 		layoutOrder: number,
 		value: Fusion.Value<Enum.KeyCode>,
 		focusLost: ((newValue: Enum.KeyCode) -> ())?,
 		OverrideXSize: number?,
 		disabled: Fusion.UsedAs<boolean?>,
 		visible: Fusion.UsedAs<boolean?>,
+		header: Fusion.UsedAs<string>?,
 	}
 	| {
 		type: "number",
@@ -79,6 +77,7 @@ export type option =
 		OverrideXSize: number?,
 		disabled: Fusion.UsedAs<boolean?>,
 		visible: Fusion.UsedAs<boolean?>,
+		header: Fusion.UsedAs<string>?,
 	}
 	| {
 		type: "button",
@@ -88,6 +87,7 @@ export type option =
 		callback: () -> (),
 		disabled: Fusion.UsedAs<boolean?>,
 		visible: Fusion.UsedAs<boolean?>,
+		header: Fusion.UsedAs<string>?,
 	}
 	| {
 		type: "color",
@@ -97,6 +97,15 @@ export type option =
 		label: string,
 		disabled: Fusion.UsedAs<boolean?>,
 		visible: Fusion.UsedAs<boolean?>,
+		header: Fusion.UsedAs<string>?,
+	}
+	| {
+		type: "spacer",
+		layoutOrder: number,
+		OverrideXSize: number?,
+		disabled: Fusion.UsedAs<boolean?>,
+		visible: Fusion.UsedAs<boolean?>,
+		header: Fusion.UsedAs<string>?,
 	}
 
 export type childOption = {
@@ -255,9 +264,9 @@ local function createChildren(
 										Visible = data.visible,
 										CornerRadius = UDim.new(0, 5),
 										Border = 1,
-										TextScaled = true,
-										MaxTextSize = 20,
-										FontWeight = Enum.FontWeight.Regular,
+										TextScaled = true :: boolean?,
+										MaxTextSize = 20 :: number?,
+										FontWeight = Enum.FontWeight.Regular :: Enum.FontWeight?,
 										LayoutOrder = data.layoutOrder,
 									}
 									-- if data.disabled == true then
@@ -286,32 +295,36 @@ local function createChildren(
 												end,
 											}))
 									elseif data.type == "keycode" then
-										local value = scope:Value(scope.peek(data.value).Name)
-										return key,
-											scope:textBox(scope.CombineProperties(baseProps, textBaseProps, {
-												Text = scope:Computed(function(use)
-													return use(data.value).Name
-												end),
-												[Fusion.Out "Text"] = value,
-												TextXAlignment = Enum.TextXAlignment.Left,
-												[Fusion.OnEvent "FocusLost"] = function()
-													local success, actualValue = pcall(function()
-														local possibleKeycode = scope.peek(value)
-														if specialKeycodeLookup[possibleKeycode] then
-															return specialKeycodeLookup[possibleKeycode]
-														end
-														return (Enum.KeyCode :: any)[possibleKeycode]
-													end)
-													if not success then
-														log.warn("Unable to serialize keycode", actualValue)
-														return
-													end
-
+										local capturing = scope:Value(false)
+										local textBox
+										textBox = scope:textBox(scope.CombineProperties(baseProps, textBaseProps, {
+											Text = scope:Computed(function(use)
+												return if use(capturing) == true
+													then "Escape to cancel..."
+													else use(data.value).Name
+											end),
+											TextXAlignment = Enum.TextXAlignment.Left,
+											TextEditable = false,
+											[Fusion.OnEvent "Focused"] = function()
+												capturing:set(true)
+												textBox:ReleaseFocus()
+											end,
+										})) :: TextBox
+										UserInputHelper.InputBegan(scope, function(input)
+											if
+												scope.peek(capturing) == true
+												and input.UserInputType == Enum.UserInputType.Keyboard
+											then
+												if input.KeyCode ~= Enum.KeyCode.Escape then
+													local keycode = input.KeyCode
 													if data.focusLost then
-														data.focusLost(actualValue)
+														data.focusLost(keycode)
 													end
-												end,
-											}))
+												end
+												capturing:set(false)
+											end
+										end)
+										return key, textBox
 									elseif data.type == "number" then
 										local value = scope:Value(tostring(scope.peek(data.value)))
 										return key,
@@ -403,7 +416,7 @@ local function createChildren(
 												end,
 												Reactive = true,
 											}))
-									elseif data.type == "select" then
+									elseif data.type == "select" or data.type == "controllerKeycode" then
 										-- local value = scope:Value(data.initialValue)
 										local absoluteSize = scope:Value(Vector2.one)
 										return key,
@@ -411,9 +424,21 @@ local function createChildren(
 												scope,
 												scope.CombineProperties(baseProps, {
 													DropdownHeight = 100,
-													Options = data.options,
+													Options = if data.type == "select"
+														then data.options
+														else scope:Computed(function()
+															local options = {}
+															for _, keycode: Enum.KeyCode in pairs(controllerKeycodes) do
+																table.insert(options, keycode.Name)
+															end
+															table.sort(options)
+															return options
+														end),
 													Text = scope:Computed(function(use)
 														local currentValue = use(data.value)
+														if data.type == "controllerKeycode" then
+															currentValue = currentValue.Name
+														end
 														return if currentValue == nil then "None" else currentValue
 													end),
 													TextXAlignment = Enum.TextXAlignment.Left,
@@ -441,12 +466,32 @@ local function createChildren(
 													RemoveForPadding = UDim2.fromOffset(0, 10),
 
 													OnOptionSelected = function(_, v)
-														if data.selectionChanged then
-															data.selectionChanged(v)
+														if data.type == "select" then
+															if data.selectionChanged then
+																data.selectionChanged(v)
+															end
+														elseif data.type == "controllerKeycode" then
+															if data.focusLost then
+																local keycode = controllerKeycodes[v]
+																if keycode == nil then
+																	log.warn("Invalid controller keycode selected:", v)
+																	return
+																end
+																data.focusLost(keycode)
+															end
 														end
 													end,
 												})
 											)
+									elseif data.type == "spacer" then
+										baseProps.FontWeight = nil
+										baseProps.MaxTextSize = nil
+										baseProps.TextScaled = nil
+										local props = scope.CombineProperties(baseProps, {
+											BackgroundTransparency = 1,
+											Border = 0,
+										})
+										return key, scope:base(props)
 									end
 									return key, {} :: any
 								end),
@@ -630,31 +675,102 @@ return function(
 				props.rowSize:set(total)
 			end)
 			return key,
-				scope:base {
-					Size = UDim2.fromScale(1, 0),
-					BackgroundTransparency = 1,
-					LayoutOrder = key,
-					AutomaticSize = Enum.AutomaticSize.Y,
-					ZIndex = key,
+				Fusion.Child {
+					scope:Computed(function()
+						if key ~= 2 then
+							return {}
+						end
 
-					[Fusion.Children] = {
-						scope:base {
-							Size = scope:Computed(function(use)
-								return UDim2.new(1, 0, 0, (use(thisRowSize) / 820) * use(props.actualTableSize).Y)
-							end),
-							BackgroundTransparency = 1,
+						local hasHeader = false
+						for _, v in ipairs(value.options) do
+							if v.header ~= nil then
+								hasHeader = true
+								break
+							end
+						end
 
-							[Fusion.Children] = createChildren(scope, {
-								options = value.options,
+						if hasHeader then
+							return {
+								scope:New("UIListLayout") {},
 
-								-- onOptionChange = value.onOptionChange,
-								onEdit = value.onEdit,
-								onDownload = value.onDownload,
-								onDelete = value.onDelete,
+								scope:base {
+									Size = scope:Computed(function(use)
+										return UDim2.new(1, 0, 0, (25 / 745) * use(props.actualTableSize).Y)
+									end),
+									BackgroundTransparency = 1,
+									LayoutOrder = key,
 
-								baseSize = scope.peek(thisRowSize),
-								rowSize = thisRowSize,
-							}),
+									[Fusion.Children] = Fusion.Child {
+										scope:New("UIListLayout") {
+											Padding = UDim.new(0.0082417582, 0),
+											FillDirection = Enum.FillDirection.Horizontal,
+											SortOrder = Enum.SortOrder.LayoutOrder,
+										},
+
+										scope:New("UIPadding") {
+											--50
+											PaddingLeft = UDim.new(0.0274725275, 0),
+										},
+
+										scope:ForPairs(
+											value.options,
+											function(
+												_,
+												scope: typeof(scope),
+												key: number,
+												optionData
+											): (number, Fusion.Child)
+												if optionData.header == nil then
+													return key, {}
+												end
+												return key,
+													scope:textLabel {
+														--1770
+														Size = UDim2.fromScale(0.1412429379, 1),
+														Text = optionData.header,
+														FontWeight = Enum.FontWeight.Medium,
+														TextXAlignment = Enum.TextXAlignment.Left,
+														TextScaled = true,
+														MaxTextSize = 16,
+														BackgroundTransparency = 1,
+														LayoutOrder = key,
+													}
+											end
+										),
+									},
+								},
+							}
+						end
+
+						return {}
+					end),
+
+					scope:base {
+						Size = UDim2.fromScale(1, 0),
+						BackgroundTransparency = 1,
+						LayoutOrder = key,
+						AutomaticSize = Enum.AutomaticSize.Y,
+						ZIndex = key,
+
+						[Fusion.Children] = {
+							scope:base {
+								Size = scope:Computed(function(use)
+									return UDim2.new(1, 0, 0, (use(thisRowSize) / 745) * use(props.actualTableSize).Y)
+								end),
+								BackgroundTransparency = 1,
+
+								[Fusion.Children] = createChildren(scope, {
+									options = value.options,
+
+									-- onOptionChange = value.onOptionChange,
+									onEdit = value.onEdit,
+									onDownload = value.onDownload,
+									onDelete = value.onDelete,
+
+									baseSize = scope.peek(thisRowSize),
+									rowSize = thisRowSize,
+								}),
+							},
 						},
 					},
 				}

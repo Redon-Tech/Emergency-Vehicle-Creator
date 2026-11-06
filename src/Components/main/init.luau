@@ -5,6 +5,7 @@ local RedonUI = require("../../Packages/redon-ui")
 local types = require("../types")
 local ChassisHandler = require("../lib/ChassisHandler")
 local UIState = require("../lib/UIState")
+local UserInputHelper = require("../lib/UserInputHelper")
 local log = require("../log")
 local popup = require("./popup")
 
@@ -178,6 +179,16 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				Interactable = scope:Computed(function(use)
 					return not use(props.PopupShown)
 				end),
+
+				[Fusion.OnEvent "InputBegan"] = function(input)
+					UserInputHelper.CallInputBegan(input)
+				end :: unknown,
+				[Fusion.OnEvent "InputChanged"] = function(input)
+					UserInputHelper.CallInputChanged(input)
+				end,
+				[Fusion.OnEvent "InputEnded"] = function(input)
+					UserInputHelper.CallInputEnded(input)
+				end,
 
 				[Fusion.Children] = Fusion.Child {
 					scope:topbar {

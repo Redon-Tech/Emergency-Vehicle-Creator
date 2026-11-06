@@ -77,9 +77,9 @@ return function(scope: types.Scope, props: props)
 									Size = UDim2.fromScale(0.1373626374, 1),
 									Text = value,
 									FontWeight = Enum.FontWeight.Medium,
-									TextXAlignment = Enum.TextXAlignment.Center,
+									TextXAlignment = Enum.TextXAlignment.Left,
 									TextScaled = true,
-									MaxTextSize = 25,
+									MaxTextSize = 16,
 									BackgroundTransparency = 1,
 									LayoutOrder = key,
 								}

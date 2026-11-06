@@ -6,6 +6,7 @@ local VehicleHandler = require("./VehicleHandler")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local LuaEncode = require("../../Packages/LuaEncode")
 local Fusion = require("../../Packages/fusion")
+local SimilarityChecker = require("./SimilarityChecker")
 local handler = script.Parent.Parent.handler
 local LuaEncodeSettings = {
 	Prettify = false,
@@ -50,6 +51,7 @@ type ChassisHandler = {
 	getConfiguration: (self: ChassisHandler, model: Model) -> chassisConfiguration?,
 	saveConfiguration: (self: ChassisHandler, model: Model, data: chassisConfiguration) -> boolean,
 	getLights: (currentConfiguration: chassisConfiguration, model: Instance) -> { string },
+	getSirens: (model: Instance) -> { string },
 	defaults: {
 		functions: types.elsFunction,
 		modifier: types.siren,
@@ -727,6 +729,32 @@ function ChassisHandler.getLights(currentConfiguration: chassisConfiguration, mo
 
 	table.sort(possibleLights)
 	return possibleLights
+end
+
+function ChassisHandler.getSirens(model: Instance): { string }
+	local sirens: { string } = {}
+	for _, sound in model:GetDescendants() do
+		if sound:IsA("Sound") then
+			table.insert(sirens, sound.Name)
+		end
+	end
+	return SimilarityChecker.sortStringsBySimilarity(sirens, {
+		"wail",
+		"yelp",
+		"priority",
+		"phaser",
+		"horn",
+		"airhorn",
+		"hilo",
+		"hyper hilo",
+		"powercall",
+		"pc",
+		"powercall plus",
+		"pc plus",
+		"manual",
+		"siren",
+		"dual",
+	})
 end
 
 return ChassisHandler
