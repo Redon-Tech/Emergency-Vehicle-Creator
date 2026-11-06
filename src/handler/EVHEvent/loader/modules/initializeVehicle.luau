@@ -34,8 +34,9 @@ return function(vehicle: Instance): types.vehicle?
 			shouldChangeNeons = oldLightConfiguration.shouldChangeNeons,
 			shouldChangeLights = oldLightConfiguration.shouldChangeLights,
 			shouldChangeLightos = oldLightConfiguration.shouldChangeLightos,
+			shouldChangeParticleEmitters = false,
 			partTransparency = 0.011,
-		};
+		}
 		(currentConfiguration.lightSettings :: any).optimizations = nil
 	end
 
@@ -93,9 +94,10 @@ return function(vehicle: Instance): types.vehicle?
 					if data.time == nil or data.type == nil then
 						continue
 					end
-					data.timeStart = totalTime
+					local timing = data :: types.FaderTiming
+					timing.timeStart = totalTime
 					totalTime += data.time
-					data.timeEnd = totalTime
+					timing.timeEnd = totalTime
 				end
 				fader.totalTime = totalTime
 			end

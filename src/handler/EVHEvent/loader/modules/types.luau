@@ -1,5 +1,7 @@
 --!strict
 
+local ConfigurationTypes = require("./configurationTypes")
+
 export type vehicle = {
 	configuration: chassisConfiguration,
 	lights: lights,
@@ -19,67 +21,23 @@ export type lights = {
 	},
 }
 
--- Configuration Types
+export type color = ConfigurationTypes.color
+export type lightSettings = ConfigurationTypes.lightSettings
 
-export type color = {
-	name: string,
-	partColor: Color3,
-	lightColor: Color3,
-	lightoColor: Color3,
-}
-
-export type lightSettings = {
-	version: number,
-	colors: { color },
-	configuration: {
-		shouldChangeNeons: boolean,
-		shouldChangeLights: boolean,
-		shouldChangeLightos: boolean,
-		shouldChangeParticleEmitters: boolean?,
-		partTransparency: number,
-	},
-	lightGroups: {
-		{
-			name: string,
-			lights: { string },
-		}
-	},
-}
-
+-- The handler initializes ELS separately from siren playback.
 export type chassisConfiguration = {
 	lightSettings: lightSettings,
 	functions: { elsFunction },
 }
 
--- ELS Types
-
-export type elsColor = number
-
-export type flasherSection = {
-	waitTime: number,
-	rowCount: number,
-	columns: { [number]: { lightName: string, rows: { elsColor } } },
-	currentRow: number?,
-}
-
-export type faderSection = {
-	lightName: string,
-	data: {
-		{
-			type: "Simple" | "Advanced" | "Wait",
-			time: number,
-			timeStart: number,
-			timeEnd: number,
-
-			-- Non-Wait Specific
-			goal: number?,
-			color: elsColor?,
-
-			-- Advanced Specific
-			easingStyle: Enum.EasingStyle?,
-			easingDirection: Enum.EasingDirection?,
-		}
-	},
+export type elsColor = ConfigurationTypes.elsColor
+export type flasherSection = ConfigurationTypes.flasherSection & { currentRow: number? }
+export type FaderTiming = { timeStart: number, timeEnd: number }
+export type faderData =
+	(ConfigurationTypes.simpleFaderData & FaderTiming)
+	| (ConfigurationTypes.advancedFaderData & FaderTiming)
+	| (ConfigurationTypes.waitFaderData & FaderTiming)
+export type faderSection = ConfigurationTypes.faderSectionData<faderData> & {
 	currentTween: number?,
 	currentPercentage: number?,
 	currentValue: number?,
@@ -87,104 +45,24 @@ export type faderSection = {
 	returnStartValue: number?,
 	totalTime: number,
 }
-
-export type rotatorSection = {
-	lightName: string,
-	data: {
-		{
-			type: "Angle" | "Infinite" | "Wait",
-			-- Non-Wait Specific
-			color: number?,
-			velocity: number?,
-
-			-- Angle Specific
-			angle: number?,
-
-			-- Wait Specific
-			time: number?,
-		}
-	},
+export type rotatorSection = ConfigurationTypes.rotatorSection & {
 	currentAngle: number?,
 	currentPercentage: number?,
 	currentValue: number?,
 	previousGoal: number?,
 	currentLightState: number?,
 }
-
-export type pattern = {
-	flashers: { flasherSection },
-	faders: { faderSection },
-	rotators: { rotatorSection },
+export type pattern = ConfigurationTypes.patternData<flasherSection, faderSection, rotatorSection> & {
 	vehicle: Instance,
 	functionId: number,
 	patternTime: number,
 }
-
-export type selectedPattern = {
-	functionId: number,
-	patternId: number,
-	pattern: pattern,
-}
-
-export type activation = {
-	type: "Standard",
-	mode: "Cycle" | "Set Pattern",
-	pattern: number,
-	keybinds: { Enum.KeyCode },
-} | {
-	type: "Default",
-	pattern: number,
-} | {
-	type: "Override",
-	mode: "Siren Override" | "Park" | "Brake" | "Reverse",
-	siren: string?,
-	dependentFunction: string,
-	dependentPattern: number,
-} | {
-	type: "Conditional",
-	mode: "Always Active" | "Keybind" | "Function" | "Siren",
-	conditions: {
-		{
-			type: "Function",
-			mode: "Is" | "Is Not",
-			dependentFunction: string,
-			dependentPattern: number,
-		}
-	},
-} | {
-	type: "AG-Event",
-	mode: "Stages" | "Traffic Advisor" | "Scene" | "Ally Left" | "Ally Right" | "Rear Scene",
-}
-
-export type elsFunction = {
-	weight: number,
-	name: string,
-	activations: { activation },
-	patterns: { pattern },
-}
-
--- Siren Types
-
-export type modifier = {
-	name: string,
-	modifiedSirenName: string,
-	parentSoundBehavior: "Play Parent Sound" | "Plays Simultaneously",
-	behavoir: "Play Automatically" | "Require Parent Replay",
-	delay: number,
-}
-
-export type siren = {
-	name: string,
-	type: "Siren" | "Hold",
-	enabled: boolean?,
-	behavoir: "Overrides Other Sounds" | "Plays Simultaneously",
-	keybinds: { Enum.KeyCode },
-	modifiers: { modifier },
-} | {
-	name: string,
-	type: "Modifier",
-	enabled: boolean?,
-	keybinds: { Enum.KeyCode },
-}
+export type selectedPattern = { functionId: number, patternId: number, pattern: pattern }
+export type activation = ConfigurationTypes.activation
+export type elsFunction = ConfigurationTypes.functionData<pattern>
+export type modifier = ConfigurationTypes.modifier
+export type siren =
+	(ConfigurationTypes.sirenHold & { enabled: boolean? })
+	| (ConfigurationTypes.sirenModifier & { enabled: boolean? })
 
 return {}

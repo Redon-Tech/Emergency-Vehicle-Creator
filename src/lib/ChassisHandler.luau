@@ -1,4 +1,5 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
+local ConfigurationTypes = require("../handler/EVHEvent/loader/modules/configurationTypes")
 local log = require("../log")
 local types = require("../types")
 local VehicleHandler = require("./VehicleHandler")
@@ -17,30 +18,8 @@ local exportHeader =
 local latestVersion = 0.092
 -- please ensure to update handler/EVHEvent/configuration/lightSettings.luau if you update this
 
-export type color = {
-	name: string,
-	partColor: Color3,
-	lightColor: Color3,
-	lightoColor: Color3,
-}
-
-export type lightSettings = {
-	version: number,
-	colors: { color },
-	configuration: {
-		shouldChangeNeons: boolean,
-		shouldChangeLights: boolean,
-		shouldChangeLightos: boolean,
-		shouldChangeParticleEmitters: boolean,
-		partTransparency: number,
-	},
-	lightGroups: {
-		{
-			name: string,
-			lights: { string },
-		}
-	},
-}
+export type color = ConfigurationTypes.color
+export type lightSettings = ConfigurationTypes.lightSettings
 
 export type lightSettingsState = {
 	colors: Fusion.Value<{ color }>,
@@ -54,11 +33,7 @@ export type lightSettingsState = {
 	lightGroups: Fusion.Value<{ { name: Fusion.Value<string>, lights: Fusion.Value<{ string }> } }>,
 }
 
-export type chassisConfiguration = {
-	lightSettings: lightSettings,
-	functions: { types.elsFunction },
-	sirens: { types.siren },
-}
+export type chassisConfiguration = ConfigurationTypes.chassisConfiguration
 
 type ChassisHandler = {
 	cache: {

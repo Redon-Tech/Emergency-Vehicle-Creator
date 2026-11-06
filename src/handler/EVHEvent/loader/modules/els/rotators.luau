@@ -85,7 +85,7 @@ function rotators.processReturnToZero(deltaTime: number)
 		local lastAngle = data.section.data[data.section.currentAngle or 1]
 		local startRotation = (data.section.currentValue or 0) % (math.pi * 2)
 		local currentRotation = (data.section.currentValue or 0) % (math.pi * 2)
-		local velocity: number = math.abs(lastAngle.velocity or 0.1)
+		local velocity: number = math.abs(if lastAngle.type ~= "Wait" then lastAngle.velocity or 0.1 else 0.1)
 		local step = velocity * 60 * deltaTime
 		local difference = -currentRotation
 

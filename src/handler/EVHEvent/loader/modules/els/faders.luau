@@ -35,9 +35,10 @@ function faders.processPattern(pattern: types.pattern)
 		local previousColor = 0
 		if data.totalTime > 0 and pattern.patternTime >= data.totalTime then
 			for i = #currentTweens, 1, -1 do
-				if currentTweens[i].type ~= "Wait" then
-					previousGoal = currentTweens[i].goal or 0
-					previousColor = currentTweens[i].color or 0
+				local tween = currentTweens[i]
+				if tween.type ~= "Wait" then
+					previousGoal = tween.goal or 0
+					previousColor = tween.color or 0
 					break
 				end
 			end
@@ -59,13 +60,17 @@ function faders.processPattern(pattern: types.pattern)
 			else (math.min(cycleTime, currentTween.timeEnd) - currentTween.timeStart) / currentTween.time
 
 		if currentTween.type ~= "Wait" and currentPercentage >= 0 then
-			local goal: number = currentTweens[tweenId].goal or 0
+			local goal: number = currentTween.goal or 0
 
 			data.currentValue = (goal - previousGoal)
 					* TweenService:GetValue(
 						currentPercentage,
-						currentTween.easingStyle or Enum.EasingStyle.Linear,
-						currentTween.easingDirection or Enum.EasingDirection.InOut
+						if currentTween.type == "Advanced"
+							then currentTween.easingStyle or Enum.EasingStyle.Linear
+							else Enum.EasingStyle.Linear,
+						if currentTween.type == "Advanced"
+							then currentTween.easingDirection or Enum.EasingDirection.InOut
+							else Enum.EasingDirection.InOut
 					)
 				+ previousGoal
 
@@ -90,8 +95,8 @@ function faders.processPattern(pattern: types.pattern)
 		end
 
 		if currentPercentage >= 1 then
-			if currentTweens[tweenId] ~= nil and currentTweens[tweenId].type ~= "Wait" then
-				data.previousGoal = currentTweens[tweenId].goal
+			if currentTween.type ~= "Wait" then
+				data.previousGoal = currentTween.goal
 			end
 			tweenId += 1
 		end
@@ -142,8 +147,12 @@ function faders.processReturnToZero(deltaTime: number)
 		data.section.currentValue = (1 - previousGoal)
 				* TweenService:GetValue(
 					currentPercentage,
-					lastTween.easingStyle or Enum.EasingStyle.Linear,
-					lastTween.easingDirection or Enum.EasingDirection.InOut
+					if lastTween.type == "Advanced"
+						then lastTween.easingStyle or Enum.EasingStyle.Linear
+						else Enum.EasingStyle.Linear,
+					if lastTween.type == "Advanced"
+						then lastTween.easingDirection or Enum.EasingDirection.InOut
+						else Enum.EasingDirection.InOut
 				)
 			+ previousGoal
 
@@ -151,7 +160,7 @@ function faders.processReturnToZero(deltaTime: number)
 			data.vehicle,
 			nil :: any,
 			data.section.lightName,
-			lastTween.color or 0,
+			if lastTween.type ~= "Wait" then lastTween.color or 0 else 0,
 			data.section.currentValue or 0
 		)
 	end
