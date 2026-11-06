@@ -47,6 +47,21 @@ function ConfigurationEditor.load(configuration: ChassisHandler.chassisConfigura
 	UIState.unsavedChanges:set(false)
 end
 
+function ConfigurationEditor.toConfiguration(): ChassisHandler.chassisConfiguration?
+	local scope = ConfigurationEditor.scope
+	local current = Fusion.peek(ConfigurationEditor.current)
+	if scope == nil or current == nil then
+		log.warn("Cannot export without a loaded configuration")
+		return
+	end
+
+	return {
+		lightSettings = LightSettingsEditor.toConfiguration(scope, current.lightSettings),
+		functions = FunctionsEditor.fromState(scope, current.functions),
+		sirens = SirensEditor.toConfiguration(scope, current.sirens),
+	}
+end
+
 function ConfigurationEditor.unload()
 	if Fusion.peek(ConfigurationEditor.current) == nil then
 		log.warn("ConfigurationEditor.unload() called while not loaded")

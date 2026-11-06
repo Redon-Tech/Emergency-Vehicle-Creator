@@ -87,10 +87,14 @@ function SirensEditor.toConfiguration(scope: types.Scope, state: SirensState): {
 	local sirens = {} :: { types.siren }
 
 	for _, sirenState in ipairs(scope.peek(state)) do
+		local keybinds = {}
+		for _, keybind in ipairs(scope.peek(sirenState.keybinds)) do
+			table.insert(keybinds, scope.peek(keybind))
+		end
 		local siren = {
 			name = scope.peek(sirenState.name),
 			type = scope.peek(sirenState.type),
-			keybinds = scope.peek(sirenState.keybinds),
+			keybinds = keybinds,
 		}
 
 		if siren.type == "Siren" or siren.type == "Hold" then

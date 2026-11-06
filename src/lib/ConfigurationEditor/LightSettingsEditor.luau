@@ -98,7 +98,7 @@ function LightSettingsEditor.toConfiguration(
 	for _, groupState in ipairs(scope.peek(state.lightGroups)) do
 		table.insert(lightGroups, {
 			name = scope.peek(groupState.name),
-			lights = scope.peek(groupState.lights),
+			lights = table.clone(scope.peek(groupState.lights)),
 		})
 	end
 

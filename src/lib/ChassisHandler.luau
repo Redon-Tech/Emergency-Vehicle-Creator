@@ -73,7 +73,7 @@ type ChassisHandler = {
 	hasEVCChassisPluginInstalled: (self: ChassisHandler, model: Model) -> (boolean, LocalScript?),
 	installPlugin: (self: ChassisHandler, model: Model) -> boolean,
 	getConfiguration: (self: ChassisHandler, model: Model) -> chassisConfiguration?,
-	saveConfiguration: (self: ChassisHandler, model: Model) -> boolean,
+	saveConfiguration: (self: ChassisHandler, model: Model, data: chassisConfiguration) -> boolean,
 	getLights: (currentConfiguration: chassisConfiguration, model: Instance) -> { string },
 	defaults: {
 		functions: types.elsFunction,
@@ -668,20 +668,20 @@ function ChassisHandler.getConfiguration(self: ChassisHandler, model: Model): ch
 end
 
 --- Saves the current configuration for the given model.
-function ChassisHandler.saveConfiguration(self: ChassisHandler, model: Model): boolean
+function ChassisHandler.saveConfiguration(self: ChassisHandler, model: Model, data: chassisConfiguration): boolean
 	local configuration = self.cache[model]
 	if configuration == nil then
 		return false
 	end
 
-	local functionsSourceBase = LuaEncode(configuration.data.functions, LuaEncodeSettings)
-	local sirensSourceBase = LuaEncode(configuration.data.sirens, LuaEncodeSettings)
-	local lightSettingsSourceBase = LuaEncode(configuration.data.lightSettings, LuaEncodeSettings)
+	local functionsSourceBase = LuaEncode(data.functions, LuaEncodeSettings)
+	local sirensSourceBase = LuaEncode(data.sirens, LuaEncodeSettings)
+	local lightSettingsSourceBase = LuaEncode(data.lightSettings, LuaEncodeSettings)
 
 	log.debug(
 		"Saved configuration for",
 		model.Name,
-		configuration.data,
+		data,
 		{ functionsSourceBase },
 		{ sirensSourceBase },
 		{ lightSettingsSourceBase }
@@ -690,6 +690,7 @@ function ChassisHandler.saveConfiguration(self: ChassisHandler, model: Model): b
 	configuration.sirens.Source = exportHeader .. sirensSourceBase
 	configuration.lightSettings.Source = exportHeader .. lightSettingsSourceBase
 	ChangeHistoryService:SetWaypoint("Saved configuration")
+	configuration.data = data
 
 	return true
 end

@@ -7,6 +7,7 @@ local UIState = require("../../lib/UIState")
 local types = require("../../types")
 local popup = require("../popup")
 local ChassisHandler = require("../../lib/ChassisHandler")
+local ConfigurationEditor = require("../../lib/ConfigurationEditor")
 local VehicleHandler = require("../../lib/VehicleHandler")
 local savePopup = require("./savePopup")
 
@@ -167,7 +168,12 @@ return function(scope: types.Scope, props: props): Fusion.Child
 											if currentVehicle == nil or typeof(currentVehicle) == "string" then
 												return
 											end
-											local saved = ChassisHandler:saveConfiguration(currentVehicle)
+											local configuration = ConfigurationEditor.toConfiguration()
+											if configuration == nil then
+												return
+											end
+											local saved =
+												ChassisHandler:saveConfiguration(currentVehicle, configuration)
 											if saved == true then
 												UIState.unsavedChanges:set(false)
 											end
