@@ -5,6 +5,9 @@ local Fusion = require("../../../../Packages/fusion")
 local RedonUI = require("../../../../Packages/redon-ui")
 local types = require("../../../types")
 local popup = require("../../popup")
+local Editor = require("../../../lib/ConfigurationEditor/FunctionsEditor/RotatorsEditor")
+local FunctionsEditor = require("../../../lib/ConfigurationEditor/FunctionsEditor")
+local ConfigurationEditor = require("../../../lib/ConfigurationEditor")
 local ChassisHandler = require("../../../lib/ChassisHandler")
 local assets = require("../../../assets")
 local log = require("../../../log")
@@ -25,6 +28,14 @@ type props = {
 	CurrentPattern: Fusion.Value<types.selectedPattern?>,
 }
 
+type RotatorSection = Editor.RotatorSectionState & {
+	currentAngle: Fusion.Value<number>,
+	currentPercentage: Fusion.Value<number>,
+	currentValue: Fusion.Value<number>,
+	currentColor: Fusion.Value<number?>,
+	previousGoal: number,
+}
+
 --[[
 	Rotators
 	Creates the rotators screen for the main app
@@ -32,10 +43,23 @@ type props = {
 return function(baseScope: types.Scope, props: props): Fusion.Child
 	local currentTheme = RedonUI.theme.theme:now()
 	local scope = baseScope:innerScope(components)
-	local firstScope = scope:innerScope()
 
-	local currentConfiguration: ChassisHandler.chassisConfiguration? = nil
-	local colors: Fusion.Value<{ ChassisHandler.color }> = scope:Value(ChassisHandler.defaults.colors)
+	local colors = scope:Computed(function(use)
+		local configuration = use(ConfigurationEditor.current)
+		local result: { ChassisHandler.color } = {}
+		if configuration == nil then
+			return result
+		end
+		for _, color in use(configuration.lightSettings.colors) do
+			table.insert(result, {
+				name = use(color.name),
+				partColor = use(color.partColor),
+				lightColor = use(color.lightColor),
+				lightoColor = use(color.lightoColor),
+			})
+		end
+		return result
+	end)
 	local playing = scope:Value(false)
 	local function temporarlyPause()
 		local wasPlaying = scope.peek(playing)
@@ -45,49 +69,41 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		end
 	end
 	local holdingShift = scope:Value(false) -- This is used to skip certain popups
-	local rotators: Fusion.Value<{ types.rotatorSectionState }> = scope:Value({})
-
-	local function updateCurrentConfiguration()
-		local currentPattern = scope.peek(props.CurrentPattern)
-		if currentPattern ~= nil then
-			local assembledRotators: { types.rotatorSection } = {}
-			for _, rotator in scope.peek(rotators) do
-				local assembledData: { types.rotatorData } = {}
-				for _, angle in scope.peek(rotator.data) do
-					if scope.peek(angle.type) == "Angle" then
-						table.insert(assembledData, {
-							type = "Angle",
-							color = scope.peek(angle.color),
-							angle = scope.peek(angle.angle),
-							velocity = scope.peek(angle.velocity),
-						})
-					elseif scope.peek(angle.type) == "Infinite" then
-						table.insert(assembledData, {
-							type = "Infinite",
-							color = scope.peek(angle.color),
-							velocity = scope.peek(angle.velocity),
-						})
-					elseif scope.peek(angle.type) == "Wait" then
-						table.insert(assembledData, {
-							type = "Wait",
-							time = scope.peek(angle.time),
-						})
-					end
-				end
-				table.insert(assembledRotators, {
-					lightName = scope.peek(rotator.lightName),
-					data = assembledData,
-				})
-			end
-
-			if scope.compareTables(currentPattern.pattern.rotators, assembledRotators) == true then
-				return
-			end
-
-			currentPattern.pattern.rotators = assembledRotators
-			props.UnsavedChanges:set(true)
+	local pattern = scope:Computed(function(use): FunctionsEditor.PatternState?
+		local selected = use(props.CurrentPattern)
+		local configuration = use(ConfigurationEditor.current)
+		if selected == nil or configuration == nil then
+			return nil
 		end
+		local func = use(configuration.functions)[selected.functionId]
+		if func == nil then
+			return nil
+		end
+		return use(func.patterns)[selected.patternId]
+	end)
+	local source = scope:Computed(function(use)
+		local current = use(pattern)
+		return if current == nil then {} else use(current.rotators)
+	end)
+	local rotators = scope:ForPairs(source, function(_, previewScope: types.Scope, index: number, section)
+		return index,
+			{
+				lightName = section.lightName,
+				data = section.data,
+				currentAngle = previewScope:Value(1),
+				currentPercentage = previewScope:Value(0),
+				currentValue = previewScope:Value(0),
+				currentColor = previewScope:Value(nil) :: Fusion.Value<number?>,
+				previousGoal = 0,
+			} :: RotatorSection
+	end)
+	local function updateCurrentConfiguration()
+		playing:set(false)
+		props.UnsavedChanges:set(true)
 	end
+	scope:Observer(pattern):onChange(function()
+		playing:set(false)
+	end)
 
 	local function promptReset()
 		popup:addPopup(scope, {
@@ -110,7 +126,13 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					callback = function(newPopup)
 						popup:removePopup(newPopup)
 						playing:set(false)
-						rotators:set({})
+						local selected = scope.peek(props.CurrentPattern)
+						if selected == nil then
+							return
+						end
+						for index = #scope.peek(rotators), 1, -1 do
+							ConfigurationEditor.removeRotatorSection(selected.functionId, selected.patternId, index)
+						end
 						updateCurrentConfiguration()
 					end,
 				},
@@ -118,87 +140,20 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		})
 	end
 
-	scope:Observer(props.CurrentPattern):onChange(function()
-		local currentPattern = scope.peek(props.CurrentPattern)
-		local currentVehicle = scope.peek(props.CurrentVehicle)
-		if currentPattern ~= nil then
-			playing:set(false)
-			if typeof(currentVehicle) == "Instance" then
-				currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
-				if currentConfiguration ~= nil then
-					colors:set(currentConfiguration.lightSettings.colors)
-				else
-					colors:set(ChassisHandler.defaults.colors)
-				end
-			end
-
-			local newRotators = {}
-			for i, rotator in currentPattern.pattern.rotators do
-				local data = {}
-				for angleId, angle in rotator.data do
-					if angle.type == "Angle" then
-						table.insert(data, angleId, {
-							type = firstScope:Value(angle.type :: any),
-							color = angle.color and firstScope:Value(angle.color) or nil,
-							angle = angle.angle and firstScope:Value(angle.angle) or nil,
-							velocity = angle.velocity and firstScope:Value(angle.velocity) or nil,
-						})
-					elseif angle.type == "Infinite" then
-						table.insert(data, angleId, {
-							type = firstScope:Value(angle.type :: any),
-							color = angle.color and firstScope:Value(angle.color) or nil,
-							velocity = angle.velocity and firstScope:Value(angle.velocity) or nil,
-						})
-					elseif angle.type == "Wait" then
-						table.insert(data, angleId, {
-							type = firstScope:Value(angle.type :: any),
-							time = angle.time and firstScope:Value(angle.time) or nil,
-						})
-					end
-				end
-				local newRotator = {
-					lightName = firstScope:Value(rotator.lightName),
-					currentPercentage = firstScope:Value(0),
-					currentAngle = firstScope:Value(1),
-					currentValue = firstScope:Value(0),
-					previousGoal = 0,
-					data = firstScope:Value(data),
-				}
-				table.insert(newRotators, i, newRotator)
-			end
-			log.debug(newRotators)
-			rotators:set(newRotators)
-		end
-	end)
-
 	local function addRotator(atPoint: number?)
-		local unpause = temporarlyPause()
-		local currentRotators = scope.peek(rotators)
-		if atPoint == nil then
-			atPoint = #currentRotators + 1
+		local selected = scope.peek(props.CurrentPattern)
+		if selected == nil or scope.peek(pattern) == nil then
+			return
 		end
-		table.insert(currentRotators, atPoint :: number, {
-			lightName = firstScope:Value("Rotator " .. atPoint :: number),
-			data = firstScope:Value({
-				{
-					type = firstScope:Value("Angle" :: any), -- me when luau types
-					color = firstScope:Value(1),
-					angle = firstScope:Value(90),
-					velocity = firstScope:Value(0.1),
-				},
-				{
-					type = firstScope:Value("Angle" :: any), -- me when luau types
-					color = firstScope:Value(1),
-					angle = firstScope:Value(-90),
-					velocity = firstScope:Value(0.1),
-				},
-			}),
-			currentAngle = firstScope:Value(1),
-			currentPercentage = firstScope:Value(0),
-			currentValue = firstScope:Value(0),
-		})
-
-		rotators:set(currentRotators)
+		local unpause = temporarlyPause()
+		local index = atPoint or #scope.peek(rotators) + 1
+		ConfigurationEditor.addRotatorSection(selected.functionId, selected.patternId, {
+			lightName = `Rotator {index}`,
+			data = {
+				{ type = "Angle", angle = 90, velocity = 0.1, color = 1 },
+				{ type = "Angle", angle = -90, velocity = 0.1, color = 1 },
+			},
+		}, index)
 		updateCurrentConfiguration()
 		unpause()
 	end
@@ -213,7 +168,12 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	end
 	table.insert(scope, stopPlayback)
 
+	scope:Observer(source):onChange(function()
+		playing:set(false)
+	end)
+
 	scope:Observer(playing):onChange(function()
+		stopPlayback()
 		local isPlaying = scope.peek(playing)
 		local currentRotators = scope.peek(rotators)
 		if isPlaying == true then
@@ -227,6 +187,9 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			connection = RunService.Heartbeat:Connect(function(deltaTime: number)
 				for _, data in currentRotators do
 					local currentAngles = scope.peek(data.data)
+					if #currentAngles == 0 then
+						continue
+					end
 					local angleId = scope.peek(data.currentAngle)
 					local currentPercentage = scope.peek(data.currentPercentage)
 					if angleId > #currentAngles then
@@ -236,10 +199,19 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 					data.currentAngle:set(angleId) -- Fusion wont push this change if its the same value
 					local currentAngle = currentAngles[angleId]
+					if scope.peek(currentAngle.type) ~= "Wait" then
+						data.currentColor:set(
+							scope.peek((currentAngle :: Editor.AngleRotatorState | Editor.InfiniteRotatorState).color)
+						)
+					end
 					if scope.peek(currentAngle.type) == "Angle" then
 						local currentRotation = math.rad(scope.peek(data.currentValue))
-						local goal = math.rad(scope.peek(currentAngle.angle))
-						local velocity = math.abs(scope.peek(currentAngle.velocity))
+						local goal = math.rad(scope.peek((currentAngle :: Editor.AngleRotatorState).angle))
+						local velocity = math.abs(
+							scope.peek(
+								(currentAngle :: Editor.AngleRotatorState | Editor.InfiniteRotatorState).velocity
+							)
+						)
 						local step = velocity * 60 * deltaTime
 						local difference = goal - currentRotation
 
@@ -259,14 +231,17 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						data.currentValue:set(math.deg(currentRotation))
 					elseif scope.peek(currentAngle.type) == "Infinite" then
 						local currentRotation = math.rad(scope.peek(data.currentValue))
-						local velocity: number = scope.peek(currentAngle.velocity)
+						local velocity: number = scope.peek(
+							(currentAngle :: Editor.AngleRotatorState | Editor.InfiniteRotatorState).velocity
+						)
 						-- log.debug(angleId, scope.peek(currentAngle.color))
 
 						currentRotation += (velocity * 60) * deltaTime
 						data.currentValue:set(math.deg(currentRotation) % 360)
 					else
 						-- log.debug(angleId, scope.peek(currentAngle.time))
-						currentPercentage += deltaTime / scope.peek(currentAngle.time)
+						local duration = scope.peek((currentAngle :: Editor.WaitState).time)
+						currentPercentage = if duration <= 0 then 1 else currentPercentage + deltaTime / duration
 						if currentPercentage >= 1 then
 							data.currentAngle:set(if angleId ~= #currentAngles then angleId + 1 else 1)
 							currentPercentage = 0
@@ -284,6 +259,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				data.currentAngle:set(1)
 				data.currentPercentage:set(0)
 				data.currentValue:set(0)
+				data.currentColor:set(nil)
 				data.previousGoal = 0
 			end
 		end
@@ -476,7 +452,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 										temporarlyPause = temporarlyPause,
 										updateCurrentConfiguration = updateCurrentConfiguration,
 										addRotator = addRotator,
-										firstScope = firstScope,
+										CurrentPattern = props.CurrentPattern,
 										size = size,
 									}
 							end),

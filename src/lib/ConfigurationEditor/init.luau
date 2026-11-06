@@ -6,23 +6,14 @@ local Fusion = require("../../Packages/fusion")
 
 local LightSettingsEditor = require("@self/LightSettingsEditor")
 local SirensEditor = require("@self/SirensEditor")
-
-type PatternState = {
-	flashers: Fusion.Value<{ types.flasherSectionState }>,
-	faders: Fusion.Value<{ types.faderSectionState }>,
-	rotators: Fusion.Value<{ types.rotatorSectionState }>,
-}
-
-type FunctionState = {
-	weight: Fusion.Value<number>,
-	name: Fusion.Value<string>,
-	activations: Fusion.Value<{ types.activationState }>,
-	patterns: Fusion.Value<{ PatternState }>,
-}
+local FunctionsEditor = require("@self/FunctionsEditor")
+local FadersEditor = require("@self/FunctionsEditor/FadersEditor")
+local RotatorsEditor = require("@self/FunctionsEditor/RotatorsEditor")
+local FlashersEditor = require("@self/FunctionsEditor/FlashersEditor")
 
 type ConfigurationState = {
 	lightSettings: LightSettingsEditor.LightSettingsState,
-	functions: Fusion.Value<{ FunctionState }>,
+	functions: FunctionsEditor.FunctionsState,
 	sirens: SirensEditor.SirensState,
 }
 
@@ -49,7 +40,7 @@ function ConfigurationEditor.load(configuration: ChassisHandler.chassisConfigura
 
 	ConfigurationEditor.current:set({
 		lightSettings = LightSettingsEditor.toState(ConfigurationEditor.scope, configuration.lightSettings),
-		functions = ConfigurationEditor.scope:Value({}),
+		functions = FunctionsEditor.toState(ConfigurationEditor.scope, configuration.functions),
 		sirens = SirensEditor.toState(ConfigurationEditor.scope, configuration.sirens),
 	})
 end
@@ -86,7 +77,7 @@ end
 
 local LightSettingsEditorActions = LightSettingsEditor.createActions(function()
 	local scope, current = getContext()
-	return scope, current.lightSettings
+	return scope, current.lightSettings, current.functions
 end)
 
 local SirensEditorActions = SirensEditor.createActions(function()
@@ -94,9 +85,46 @@ local SirensEditorActions = SirensEditor.createActions(function()
 	return scope, current.sirens
 end)
 
-local actions = {}
+local FunctionsEditorActions = FunctionsEditor.createActions(function()
+	local scope, current = getContext()
+	return scope, current.functions
+end)
 
-for _, editorActions in { LightSettingsEditorActions :: { [any]: unknown }, SirensEditorActions } do
+local function getPatternContext(functionId: number, patternIndex: number)
+	local scope, current = getContext()
+	local functionState = scope.peek(current.functions)[functionId]
+	assert(functionState ~= nil, `No function found at index {functionId}`)
+	local patternState = scope.peek(functionState.patterns)[patternIndex]
+	assert(patternState ~= nil, `No pattern found at index {patternIndex}`)
+	return scope, patternState
+end
+
+local FlashersEditorActions = FlashersEditor.createActions(function(functionId: number, patternIndex: number)
+	local scope, pattern = getPatternContext(functionId, patternIndex)
+	return scope, pattern.flashers
+end)
+
+local FadersEditorActions = FadersEditor.createActions(function(functionId: number, patternIndex: number)
+	local scope, pattern = getPatternContext(functionId, patternIndex)
+	return scope, pattern.faders
+end)
+
+local RotatorsEditorActions = RotatorsEditor.createActions(function(functionId: number, patternIndex: number)
+	local scope, pattern = getPatternContext(functionId, patternIndex)
+	return scope, pattern.rotators
+end)
+
+local actions: { [string]: any } = {}
+
+local actionGroups: { { [string]: any } } = {
+	LightSettingsEditorActions,
+	SirensEditorActions,
+	FunctionsEditorActions,
+	FlashersEditorActions,
+	FadersEditorActions,
+	RotatorsEditorActions,
+}
+for _, editorActions in actionGroups do
 	for actionName, action in editorActions do
 		assert(actions[actionName] == nil, `Duplicate action name: {actionName}`)
 
@@ -108,4 +136,4 @@ return (
 	setmetatable(ConfigurationEditor, {
 		__index = actions,
 	}) :: any
-) :: typeof(ConfigurationEditor) & typeof(LightSettingsEditorActions) & typeof(SirensEditorActions)
+) :: typeof(ConfigurationEditor) & typeof(LightSettingsEditorActions) & typeof(SirensEditorActions) & typeof(FunctionsEditorActions) & typeof(FlashersEditorActions) & typeof(FadersEditorActions) & typeof(RotatorsEditorActions)

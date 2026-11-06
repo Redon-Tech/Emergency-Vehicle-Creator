@@ -113,6 +113,9 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	scope:Observer(props.PossibleVehicle):onBind(configurePossibleVehicle)
 
 	scope:Observer(props.CurrentVehicle):onChange(function()
+		if scope.peek(ConfigurationEditor.current) ~= nil then
+			ConfigurationEditor.unload()
+		end
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if currentVehicle ~= nil and typeof(currentVehicle) ~= "string" then
 			local currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
@@ -122,9 +125,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			else
 				log.warn("No vehicle configuration found for current vehicle")
 			end
-		else
-			log.debug("Current vehicle is nil or not a model, unloading configuration editor")
-			ConfigurationEditor.unload()
 		end
 	end)
 

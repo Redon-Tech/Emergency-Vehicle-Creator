@@ -6,6 +6,9 @@ local RedonUI = require("../../../../Packages/redon-ui")
 local types = require("../../../types")
 local popup = require("../../popup")
 local ChassisHandler = require("../../../lib/ChassisHandler")
+local Editor = require("../../../lib/ConfigurationEditor/FunctionsEditor/FlashersEditor")
+local FunctionsEditor = require("../../../lib/ConfigurationEditor/FunctionsEditor")
+local ConfigurationEditor = require("../../../lib/ConfigurationEditor")
 local assets = require("../../../assets")
 local log = require("../../../log")
 local SettingsHandler = require("../../../lib/SettingsHandler")
@@ -25,6 +28,8 @@ type props = {
 	CurrentPattern: Fusion.Value<types.selectedPattern?>,
 }
 
+type FlasherSection = Editor.FlasherSectionState & { currentRow: Fusion.Value<number> }
+
 --[[
 	Flashers
 	Creates the flashers screen for the main app
@@ -32,10 +37,23 @@ type props = {
 return function(baseScope: types.Scope, props: props): Fusion.Child
 	local currentTheme = RedonUI.theme.theme:now()
 	local scope = baseScope:innerScope(components)
-	local firstScope = scope:innerScope()
 
-	local currentConfiguration: ChassisHandler.chassisConfiguration? = nil
-	local colors: Fusion.Value<{ ChassisHandler.color }> = scope:Value(ChassisHandler.defaults.colors)
+	local colors = scope:Computed(function(use)
+		local configuration = use(ConfigurationEditor.current)
+		local result: { ChassisHandler.color } = {}
+		if configuration == nil then
+			return result
+		end
+		for _, color in use(configuration.lightSettings.colors) do
+			table.insert(result, {
+				name = use(color.name),
+				partColor = use(color.partColor),
+				lightColor = use(color.lightColor),
+				lightoColor = use(color.lightoColor),
+			})
+		end
+		return result
+	end)
 	local currentColor = scope:Value(1)
 	local drawing = scope:Value(0) -- -1 = remove, 0 = none, 1 = add
 	local playing = scope:Value(false)
@@ -48,39 +66,38 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	end
 	local locked = scope:Value(false)
 	local holdingShift = scope:Value(false) -- This is used to skip certain popups
-	local sections: Fusion.Value<{ types.flasherSectionState }> = scope:Value({})
 
-	local function updateCurrentConfiguration()
-		local currentPattern = scope.peek(props.CurrentPattern)
-		if currentPattern ~= nil then
-			local assembledSections = {}
-			for i, section in scope.peek(sections) do
-				local assembledSection: types.flasherSection = {
-					waitTime = scope.peek(section.waitTime),
-					rowCount = scope.peek(section.rowCount),
-					columns = {},
-				}
-				for columnId, columnData in scope.peek(section.columns) do
-					local assembledColumn = {} :: { lightName: string, rows: { types.elsColor } }
-					assembledColumn.lightName = scope.peek(columnData.lightName)
-					assembledColumn.rows = {}
-					for _, color in scope.peek(columnData.rows) do
-						table.insert(assembledColumn.rows, scope.peek(color))
-					end
-					assembledSection.columns[columnId] = assembledColumn
-				end
-
-				table.insert(assembledSections, i, assembledSection)
-			end
-
-			if scope.compareTables(currentPattern.pattern.flashers, assembledSections) == true then
-				return
-			end
-
-			currentPattern.pattern.flashers = assembledSections
-			props.UnsavedChanges:set(true)
+	local pattern = scope:Computed(function(use): FunctionsEditor.PatternState?
+		local selected = use(props.CurrentPattern)
+		local configuration = use(ConfigurationEditor.current)
+		if selected == nil or configuration == nil then
+			return nil
 		end
+		local func = use(configuration.functions)[selected.functionId]
+		if func == nil then
+			return nil
+		end
+		return use(func.patterns)[selected.patternId]
+	end)
+	local source = scope:Computed(function(use)
+		local current = use(pattern)
+		return if current == nil then {} else use(current.flashers)
+	end)
+	local sections = scope:ForPairs(source, function(_, previewScope: types.Scope, index: number, section)
+		return index,
+			{
+				waitTime = section.waitTime,
+				rowCount = section.rowCount,
+				columns = section.columns,
+				currentRow = previewScope:Value(1),
+			} :: FlasherSection
+	end)
+	local function updateCurrentConfiguration()
+		props.UnsavedChanges:set(true)
 	end
+	scope:Observer(pattern):onChange(function()
+		playing:set(false)
+	end)
 
 	local function promptReset()
 		popup:addPopup(scope, {
@@ -102,10 +119,21 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					key = 2,
 					callback = function(newPopup)
 						popup:removePopup(newPopup)
+						local currentPattern = scope.peek(props.CurrentPattern)
+						if currentPattern == nil then
+							log.warn("Current pattern is nil when resetting flashers")
+							return
+						end
 						playing:set(false)
-						sections:set({})
 						locked:set(false)
 						drawing:set(0)
+						for index = #scope.peek(sections), 1, -1 do
+							ConfigurationEditor.removeFlasherSection(
+								currentPattern.functionId,
+								currentPattern.patternId,
+								index
+							)
+						end
 						updateCurrentConfiguration()
 					end,
 				},
@@ -113,81 +141,25 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		})
 	end
 
-	scope:Observer(props.CurrentPattern):onChange(function()
-		local currentPattern = scope.peek(props.CurrentPattern)
-		local currentVehicle = scope.peek(props.CurrentVehicle)
-		if currentPattern ~= nil then
-			playing:set(false)
-			if typeof(currentVehicle) == "Instance" then
-				currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
-				if currentConfiguration ~= nil then
-					colors:set(currentConfiguration.lightSettings.colors)
-				else
-					colors:set(ChassisHandler.defaults.colors)
-				end
-			end
-
-			local flashers = currentPattern.pattern.flashers
-			local newSections = {} :: { types.flasherSectionState }
-			for i, section in flashers do
-				local newColumns = {}
-				for columnId, columnData in section.columns do
-					local rows = {}
-					for _, color in columnData.rows do
-						table.insert(rows, color)
-					end
-					newColumns[columnId] = {
-						lightName = firstScope:Value(columnData.lightName),
-						rows = firstScope:Value(rows),
-					}
-				end
-				table.insert(newSections, i, {
-					waitTime = firstScope:Value(section.waitTime),
-					rowCount = firstScope:Value(section.rowCount),
-					currentRow = firstScope:Value(1),
-					columns = firstScope:Value(newColumns),
-				})
-			end
-			log.debug(newSections)
-			sections:set(newSections)
-		end
-	end)
-
 	local function addSection(atPoint: number?)
-		local unpause = temporarlyPause()
-		local currentSections = scope.peek(sections)
-		if atPoint == nil then
-			atPoint = #currentSections + 1
+		local selected = scope.peek(props.CurrentPattern)
+		if selected == nil or scope.peek(pattern) == nil then
+			return
 		end
-		table.insert(currentSections, atPoint :: number, {
-			waitTime = firstScope:Value(0.05),
-			rowCount = firstScope:Value(10),
-			currentRow = firstScope:Value(1),
-			columns = firstScope:Value({
-				{
-					lightName = firstScope:Value("Light 1"),
-					rows = firstScope:Value({
-						0,
-						0,
-						0,
-						0,
-						0,
-						0,
-						0,
-						0,
-						0,
-						0,
-					}),
-				},
-			}),
-		})
-		sections:set(currentSections)
+		local unpause = temporarlyPause()
+		local index = atPoint or #scope.peek(sections) + 1
+		ConfigurationEditor.addFlasherSection(
+			selected.functionId,
+			selected.patternId,
+			{ waitTime = 0.05, rowCount = 10, columns = { { lightName = "Light 1", rows = table.create(10, 0) } } },
+			index
+		)
 		updateCurrentConfiguration()
 		unpause()
 	end
 
 	-- player
-	local threads: { { activeThread: thread, sections: { number } } } = {}
+	local threads: { [number]: { activeThread: thread, sections: { number } } } = {}
 	local function stopPlayback()
 		for i, thread in threads do
 			task.cancel(thread.activeThread)
@@ -196,7 +168,12 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	end
 	table.insert(scope, stopPlayback)
 
+	scope:Observer(source):onChange(function()
+		playing:set(false)
+	end)
+
 	scope:Observer(playing):onChange(function()
+		stopPlayback()
 		local isPlaying = scope.peek(playing)
 		local currentSections = scope.peek(sections)
 		if isPlaying == true then
@@ -370,7 +347,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 							scope:ForPairs(
 								colors,
-								function(_, scope: typeof(scope), key: number, value: ChassisHandler.color)
+								function(use, scope: typeof(scope), key: number, value: ChassisHandler.color)
 									local color = scope.getColorByName(value.name, value.lightoColor)
 									return key,
 										scope:textButton {
@@ -526,6 +503,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 								locked = locked,
 								holdingShift = holdingShift,
 								sections = sections,
+								CurrentPattern = props.CurrentPattern,
 								updateCurrentConfiguration = updateCurrentConfiguration,
 								addSection = addSection,
 							},

@@ -5,6 +5,9 @@ local Fusion = require("../../../../Packages/fusion")
 local RedonUI = require("../../../../Packages/redon-ui")
 local types = require("../../../types")
 local popup = require("../../popup")
+local Editor = require("../../../lib/ConfigurationEditor/FunctionsEditor/FadersEditor")
+local FunctionsEditor = require("../../../lib/ConfigurationEditor/FunctionsEditor")
+local ConfigurationEditor = require("../../../lib/ConfigurationEditor")
 local ChassisHandler = require("../../../lib/ChassisHandler")
 local assets = require("../../../assets")
 local log = require("../../../log")
@@ -26,6 +29,13 @@ type props = {
 	CurrentPattern: Fusion.Value<types.selectedPattern?>,
 }
 
+type FaderSection = Editor.FaderSectionState & {
+	currentTween: Fusion.Value<number>,
+	currentPercentage: Fusion.Value<number>,
+	currentValue: Fusion.Value<number>,
+	previousGoal: number,
+}
+
 --[[
 	Faders
 	Creates the faders screen for the main app
@@ -33,10 +43,23 @@ type props = {
 return function(baseScope: types.Scope, props: props): Fusion.Child
 	local scope = baseScope:innerScope(components)
 	local currentTheme = RedonUI.theme.theme:now()
-	local firstScope = scope:innerScope()
 
-	local currentConfiguration: ChassisHandler.chassisConfiguration? = nil
-	local colors: Fusion.Value<{ ChassisHandler.color }> = scope:Value(ChassisHandler.defaults.colors)
+	local colors = scope:Computed(function(use)
+		local configuration = use(ConfigurationEditor.current)
+		local result: { ChassisHandler.color } = {}
+		if configuration == nil then
+			return result
+		end
+		for _, color in use(configuration.lightSettings.colors) do
+			table.insert(result, {
+				name = use(color.name),
+				partColor = use(color.partColor),
+				lightColor = use(color.lightColor),
+				lightoColor = use(color.lightoColor),
+			})
+		end
+		return result
+	end)
 	local playing = scope:Value(false)
 	local function temporarlyPause()
 		local wasPlaying = scope.peek(playing)
@@ -46,38 +69,40 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		end
 	end
 	local holdingShift = scope:Value(false) -- This is used to skip certain popups
-	local faders: Fusion.Value<{ types.faderSectionState }> = scope:Value({})
-
-	local function updateCurrentConfiguration()
-		local currentPattern = scope.peek(props.CurrentPattern)
-		if currentPattern ~= nil then
-			local assembledFaders: { types.faderSection } = {}
-			for faderId, fader in scope.peek(faders) do
-				local assembledTweens: { types.faderData } = {}
-				for tweenId, tween in scope.peek(fader.data) do
-					table.insert(assembledTweens, tweenId, {
-						type = scope.peek(tween.type) :: any,
-						time = scope.peek(tween.time),
-						goal = if tween.goal then scope.peek(tween.goal) else nil,
-						color = if tween.color then scope.peek(tween.color) else nil,
-						easingStyle = if tween.easingStyle then scope.peek(tween.easingStyle) else nil,
-						easingDirection = if tween.easingDirection then scope.peek(tween.easingDirection) else nil,
-					})
-				end
-				table.insert(assembledFaders, faderId, {
-					lightName = scope.peek(fader.lightName),
-					data = assembledTweens,
-				})
-			end
-
-			if scope.compareTables(currentPattern.pattern.faders, assembledFaders) == true then
-				return
-			end
-
-			currentPattern.pattern.faders = assembledFaders
-			props.UnsavedChanges:set(true)
+	local pattern = scope:Computed(function(use): FunctionsEditor.PatternState?
+		local selected = use(props.CurrentPattern)
+		local configuration = use(ConfigurationEditor.current)
+		if selected == nil or configuration == nil then
+			return nil
 		end
+		local func = use(configuration.functions)[selected.functionId]
+		if func == nil then
+			return nil
+		end
+		return use(func.patterns)[selected.patternId]
+	end)
+	local source = scope:Computed(function(use)
+		local current = use(pattern)
+		return if current == nil then {} else use(current.faders)
+	end)
+	local faders = scope:ForPairs(source, function(_, previewScope: types.Scope, index: number, section)
+		return index,
+			{
+				lightName = section.lightName,
+				data = section.data,
+				currentTween = previewScope:Value(1),
+				currentPercentage = previewScope:Value(0),
+				currentValue = previewScope:Value(1),
+				previousGoal = 1,
+			} :: FaderSection
+	end)
+	local function updateCurrentConfiguration()
+		playing:set(false)
+		props.UnsavedChanges:set(true)
 	end
+	scope:Observer(pattern):onChange(function()
+		playing:set(false)
+	end)
 
 	local function promptReset()
 		popup:addPopup(scope, {
@@ -100,7 +125,13 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					callback = function(newPopup)
 						popup:removePopup(newPopup)
 						playing:set(false)
-						faders:set({})
+						local selected = scope.peek(props.CurrentPattern)
+						if selected == nil then
+							return
+						end
+						for index = #scope.peek(faders), 1, -1 do
+							ConfigurationEditor.removeFaderSection(selected.functionId, selected.patternId, index)
+						end
 						updateCurrentConfiguration()
 					end,
 				},
@@ -108,91 +139,20 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		})
 	end
 
-	scope:Observer(props.CurrentPattern):onChange(function()
-		local currentPattern = scope.peek(props.CurrentPattern)
-		local currentVehicle = scope.peek(props.CurrentVehicle)
-		if currentPattern ~= nil then
-			playing:set(false)
-			if typeof(currentVehicle) == "Instance" then
-				currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
-				if currentConfiguration ~= nil then
-					colors:set(currentConfiguration.lightSettings.colors)
-				else
-					colors:set(ChassisHandler.defaults.colors)
-				end
-			end
-
-			local newFaders = {}
-			for faderId, fader in currentPattern.pattern.faders do
-				local newFader = {
-					lightName = firstScope:Value(fader.lightName),
-					currentPercentage = firstScope:Value(0),
-					currentTween = firstScope:Value(1),
-					currentValue = firstScope:Value(0),
-					previousGoal = 1,
-					data = firstScope:Value({}),
-				}
-				local newData = {}
-				for tweenId, tween in fader.data do
-					if tween.type == "Simple" then
-						table.insert(newData, tweenId, {
-							type = firstScope:Value(tween.type),
-							time = firstScope:Value(tween.time),
-							goal = tween.goal and firstScope:Value(tween.goal) or nil,
-							color = tween.color and scope:Value(tween.color) or nil,
-						})
-					elseif tween.type == "Advanced" then
-						table.insert(newData, tweenId, {
-							type = firstScope:Value(tween.type),
-							time = firstScope:Value(tween.time),
-							goal = tween.goal and firstScope:Value(tween.goal) or nil,
-							color = tween.color and firstScope:Value(tween.color) or nil,
-							easingStyle = tween.easingStyle and firstScope:Value(tween.easingStyle) or nil,
-							easingDirection = tween.easingDirection and firstScope:Value(tween.easingDirection) or nil,
-						})
-					elseif tween.type == "Wait" then
-						table.insert(newData, tweenId, {
-							type = firstScope:Value(tween.type),
-							time = firstScope:Value(tween.time),
-						})
-					end
-				end
-				newFader.data:set(newData)
-				table.insert(newFaders, faderId, newFader)
-			end
-			log.debug(faders)
-			faders:set(newFaders)
-		end
-	end)
-
 	local function addFader(atPoint: number?)
-		local unpause = temporarlyPause()
-		local currentFaders = scope.peek(faders)
-		if atPoint == nil then
-			atPoint = #currentFaders + 1
+		local selected = scope.peek(props.CurrentPattern)
+		if selected == nil or scope.peek(pattern) == nil then
+			return
 		end
-		table.insert(currentFaders, atPoint :: number, {
-			lightName = firstScope:Value("Fader " .. atPoint :: number),
-			data = firstScope:Value({
-				{
-					type = firstScope:Value("Simple" :: any), -- me when luau types
-					time = firstScope:Value(0.5),
-					goal = firstScope:Value(0),
-					color = firstScope:Value(4),
-				},
-				{
-					type = firstScope:Value("Simple" :: any), -- me when luau types
-					time = firstScope:Value(0.5),
-					goal = firstScope:Value(1),
-					color = firstScope:Value(4),
-				},
-			}),
-			currentTween = firstScope:Value(1),
-			currentPercentage = firstScope:Value(0),
-			currentValue = firstScope:Value(0),
-		})
-
-		faders:set(currentFaders)
+		local unpause = temporarlyPause()
+		local index = atPoint or #scope.peek(faders) + 1
+		ConfigurationEditor.addFaderSection(selected.functionId, selected.patternId, {
+			lightName = `Fader {index}`,
+			data = {
+				{ type = "Simple", time = 0.5, goal = 0, color = 4 },
+				{ type = "Simple", time = 0.5, goal = 1, color = 4 },
+			},
+		}, index)
 		updateCurrentConfiguration()
 		unpause()
 	end
@@ -207,7 +167,12 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	end
 	table.insert(scope, stopPlayback)
 
+	scope:Observer(source):onChange(function()
+		playing:set(false)
+	end)
+
 	scope:Observer(playing):onChange(function()
+		stopPlayback()
 		local isPlaying = scope.peek(playing)
 		local currentFaders = scope.peek(faders)
 		if isPlaying == true then
@@ -221,37 +186,53 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			connection = RunService.Heartbeat:Connect(function(deltaTime: number)
 				for _, data in currentFaders do
 					local currentTweens = scope.peek(data.data)
+					if #currentTweens == 0 then
+						continue
+					end
 					local tweenId = scope.peek(data.currentTween)
 					local currentPercentage = scope.peek(data.currentPercentage)
 					if currentPercentage >= 1 then
 						if currentTweens[tweenId] ~= nil and scope.peek(currentTweens[tweenId].type) ~= "Wait" then
-							data.previousGoal = scope.peek(currentTweens[tweenId].goal)
+							data.previousGoal = scope.peek(
+								(currentTweens[tweenId] :: Editor.SimpleFaderState | Editor.AdvancedFaderState).goal
+							)
 						end
 						tweenId += 1
 						currentPercentage = 0
 					end
 					if tweenId > #currentTweens then
 						if currentTweens[tweenId] ~= nil and scope.peek(currentTweens[tweenId].type) ~= "Wait" then
-							data.previousGoal = scope.peek(currentTweens[tweenId].goal)
+							data.previousGoal = scope.peek(
+								(currentTweens[tweenId] :: Editor.SimpleFaderState | Editor.AdvancedFaderState).goal
+							)
 						end
 						tweenId = 1
 						currentPercentage = 0
 					end
 					data.currentTween:set(tweenId) -- Fusion wont push this change if its the same value
 					local currentTween = currentTweens[tweenId]
-					currentPercentage += deltaTime / scope.peek(currentTween.time)
+					local duration = scope.peek(currentTween.time)
+					currentPercentage = if duration <= 0
+						then 1
+						else math.min(1, currentPercentage + deltaTime / duration)
 					data.currentPercentage:set(currentPercentage)
 					if scope.peek(currentTween.type) ~= "Wait" then
 						local previousGoal = data.previousGoal or 1
-						local goal: number = scope.peek(currentTweens[tweenId].goal) or 0
+						local goal: number = scope.peek(
+							(currentTweens[tweenId] :: Editor.SimpleFaderState | Editor.AdvancedFaderState).goal
+						) or 0
 						-- log.debug(tweenId, scope.peek(currentTween.time), goal, previousGoal)
 
 						data.currentValue:set(
 							(goal - previousGoal)
 									* TweenService:GetValue(
 										currentPercentage,
-										scope.peek(currentTween.easingStyle) or Enum.EasingStyle.Linear,
-										scope.peek(currentTween.easingDirection) or Enum.EasingDirection.InOut
+										if scope.peek(currentTween.type) == "Advanced"
+											then scope.peek((currentTween :: Editor.AdvancedFaderState).easingStyle)
+											else Enum.EasingStyle.Linear,
+										if scope.peek(currentTween.type) == "Advanced"
+											then scope.peek((currentTween :: Editor.AdvancedFaderState).easingDirection)
+											else Enum.EasingDirection.InOut
 									)
 								+ previousGoal
 						)
@@ -464,7 +445,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 										playing = playing,
 										colors = colors,
 										addFader = addFader,
-										firstScope = firstScope,
+										CurrentPattern = props.CurrentPattern,
 									}
 							end),
 						},

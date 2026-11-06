@@ -5,7 +5,16 @@ local Fusion = require("../../../../../Packages/fusion")
 local RedonUI = require("../../../../../Packages/redon-ui")
 local types = require("../../../../types")
 local ChassisHandler = require("../../../../lib/ChassisHandler")
+local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
+local Editor = require("../../../../lib/ConfigurationEditor/FunctionsEditor/RotatorsEditor")
 local assets = require("../../../../assets")
+
+type RotatorSection = Editor.RotatorSectionState & {
+	currentAngle: Fusion.Value<number>,
+	currentPercentage: Fusion.Value<number>,
+	currentValue: Fusion.Value<number>,
+	previousGoal: number,
+}
 
 --[[
 	Rotators
@@ -15,15 +24,18 @@ return function(
 	scope: types.Scope,
 	props: {
 		key: number,
-		angle: types.rotatorDataState,
-		rotator: types.rotatorSectionState,
+		sectionKey: number,
+		angle: Editor.RotatorDataState,
+		rotator: RotatorSection,
 		playing: Fusion.Value<boolean>,
-		colors: Fusion.Value<{ ChassisHandler.color }>,
+		colors: Fusion.UsedAs<{ ChassisHandler.color }>,
 		updateCurrentConfiguration: () -> (),
-		firstScope: types.Scope,
+		CurrentPattern: Fusion.Value<types.selectedPattern?>,
 		dataSize: Fusion.Value<Vector2>,
 	}
 ): Fusion.Child
+	local selected = scope.peek(props.CurrentPattern)
+	assert(selected ~= nil, "No selected pattern")
 	local currentTheme = RedonUI.theme.theme:now()
 
 	local controlSize = scope:Computed(function(use)
@@ -47,28 +59,13 @@ return function(
 			"Wait",
 		},
 		OnOptionSelected = function(_, newType)
-			if newType == "Wait" then
-				props.angle.color = nil
-				props.angle.angle = nil
-				props.angle.velocity = nil
-				props.angle.time = if props.angle.time ~= nil then props.angle.time else props.firstScope:Value(0.1)
-			elseif newType == "Infinite" then
-				props.angle.angle = nil
-				props.angle.time = nil
-				props.angle.color = if props.angle.color ~= nil then props.angle.color else props.firstScope:Value(1)
-				props.angle.velocity = if props.angle.velocity ~= nil
-					then props.angle.velocity
-					else props.firstScope:Value(0.1)
-			elseif newType == "Angle" then
-				props.angle.time = nil
-				props.angle.angle = if props.angle.angle ~= nil then props.angle.angle else props.firstScope:Value(90)
-				props.angle.color = if props.angle.color ~= nil then props.angle.color else props.firstScope:Value(1)
-				props.angle.velocity = if props.angle.velocity ~= nil
-					then props.angle.velocity
-					else props.firstScope:Value(0.1)
-			end
-
-			props.angle.type:set(newType :: "Angle" | "Infinite" | "Wait")
+			ConfigurationEditor.updateRotatorStepType(
+				selected.functionId,
+				selected.patternId,
+				props.sectionKey,
+				props.key,
+				newType :: "Angle" | "Infinite" | "Wait"
+			)
 			props.updateCurrentConfiguration()
 		end,
 	}
@@ -83,14 +80,15 @@ return function(
 		local currentType = use(props.angle.type)
 
 		if currentType == "Angle" or currentType == "Infinite" then
-			if props.angle.color ~= nil then
+			if (props.angle :: Editor.AngleRotatorState | Editor.InfiniteRotatorState).color ~= nil then
 				local colorDropdown = scope:dropdown {
 					Size = controlSize,
 					BackgroundColor3 = currentTheme.colors.crust,
 					CornerRadius = cornerRadius,
 					Border = 1,
 					Text = scope:Computed(function(use)
-						local colorId = use(props.angle.color)
+						local colorId =
+							use((props.angle :: Editor.AngleRotatorState | Editor.InfiniteRotatorState).color)
 						return if colorId == 0 then "None" else use(props.colors)[colorId].name
 					end),
 					TextXAlignment = Enum.TextXAlignment.Left,
@@ -117,13 +115,20 @@ return function(
 						return textColors :: any
 					end),
 					TextColor3 = scope:Computed(function(use)
-						local colorId = use(props.angle.color)
+						local colorId =
+							use((props.angle :: Editor.AngleRotatorState | Editor.InfiniteRotatorState).color)
 						return if colorId == 0
 							then currentTheme.colors.text
 							else scope.getColorByName(use(props.colors)[colorId].name, currentTheme.colors.text)
 					end),
 					OnOptionSelected = function(colorId: number)
-						props.angle.color:set(colorId - 1)
+						ConfigurationEditor.updateRotatorStepColor(
+							selected.functionId,
+							selected.patternId,
+							props.sectionKey,
+							props.key,
+							colorId - 1
+						)
 						props.updateCurrentConfiguration()
 					end,
 				}
@@ -131,8 +136,12 @@ return function(
 				colorDropdownFrame.LayoutOrder = 4
 				table.insert(controls, colorDropdown)
 			end
-			if props.angle.velocity ~= nil then
-				local currentText = scope:Value(tostring(scope.peek(props.angle.velocity)))
+			if (props.angle :: Editor.AngleRotatorState | Editor.InfiniteRotatorState).velocity ~= nil then
+				local currentText = scope:Value(
+					tostring(
+						scope.peek((props.angle :: Editor.AngleRotatorState | Editor.InfiniteRotatorState).velocity)
+					)
+				)
 				table.insert(
 					controls,
 					scope:textBox {
@@ -146,16 +155,28 @@ return function(
 						PlaceholderColor3 = currentTheme.colors.subtext0,
 						LayoutOrder = 7,
 						[Fusion.OnEvent "FocusLost"] = function()
-							props.angle.velocity:set(tonumber(scope.peek(currentText)) or 0)
-							currentText:set(tostring(scope.peek(props.angle.velocity)))
+							ConfigurationEditor.updateRotatorStepVelocity(
+								selected.functionId,
+								selected.patternId,
+								props.sectionKey,
+								props.key,
+								tonumber(scope.peek(currentText)) or 0
+							)
+							currentText:set(
+								tostring(
+									scope.peek(
+										(props.angle :: Editor.AngleRotatorState | Editor.InfiniteRotatorState).velocity
+									)
+								)
+							)
 							props.updateCurrentConfiguration()
 						end,
 					}
 				)
 			end
 		elseif currentType == "Wait" then
-			if props.angle.time ~= nil then
-				local currentText = scope:Value(tostring(scope.peek(props.angle.time)))
+			if (props.angle :: Editor.WaitState).time ~= nil then
+				local currentText = scope:Value(tostring(scope.peek((props.angle :: Editor.WaitState).time)))
 				table.insert(
 					controls,
 					scope:textBox {
@@ -169,8 +190,14 @@ return function(
 						PlaceholderColor3 = currentTheme.colors.subtext0,
 						LayoutOrder = 7,
 						[Fusion.OnEvent "FocusLost"] = function()
-							props.angle.time:set(tonumber(scope.peek(currentText)) or 0)
-							currentText:set(tostring(scope.peek(props.angle.time)))
+							ConfigurationEditor.updateRotatorStepWaitTime(
+								selected.functionId,
+								selected.patternId,
+								props.sectionKey,
+								props.key,
+								tonumber(scope.peek(currentText)) or 0
+							)
+							currentText:set(tostring(scope.peek((props.angle :: Editor.WaitState).time)))
 							props.updateCurrentConfiguration()
 						end,
 					}
@@ -179,8 +206,8 @@ return function(
 		end
 
 		if currentType == "Angle" then
-			if props.angle.angle ~= nil then
-				local currentText = scope:Value(tostring(scope.peek(props.angle.angle)))
+			if (props.angle :: Editor.AngleRotatorState).angle ~= nil then
+				local currentText = scope:Value(tostring(scope.peek((props.angle :: Editor.AngleRotatorState).angle)))
 				table.insert(
 					controls,
 					scope:textBox {
@@ -194,8 +221,14 @@ return function(
 						PlaceholderColor3 = currentTheme.colors.subtext0,
 						LayoutOrder = 6,
 						[Fusion.OnEvent "FocusLost"] = function()
-							props.angle.angle:set(tonumber(scope.peek(currentText)) or 0)
-							currentText:set(tostring(scope.peek(props.angle.angle)))
+							ConfigurationEditor.updateRotatorStepAngle(
+								selected.functionId,
+								selected.patternId,
+								props.sectionKey,
+								props.key,
+								tonumber(scope.peek(currentText)) or 0
+							)
+							currentText:set(tostring(scope.peek((props.angle :: Editor.AngleRotatorState).angle)))
 							props.updateCurrentConfiguration()
 						end,
 					}

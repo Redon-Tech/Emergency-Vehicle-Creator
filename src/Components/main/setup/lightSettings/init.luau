@@ -4,7 +4,6 @@
 local Fusion = require("../../../../Packages/fusion")
 local RedonUI = require("../../../../Packages/redon-ui")
 local types = require("../../../types")
-local LightSettingsEditor = require("../../../lib/ConfigurationEditor/LightSettingsEditor")
 local ChassisHandler = require("../../../lib/ChassisHandler")
 local log = require("../../../log")
 
@@ -49,13 +48,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			end
 		end
 	end)
-
-	local function removeColorReferences(removedId: number)
-		if currentConfiguration == nil then
-			return
-		end
-		LightSettingsEditor.removeColorReferences(currentConfiguration.functions, removedId)
-	end
 
 	scope:Observer(props.CurrentPage):onChange(function()
 		if scope.peek(props.CurrentPage) ~= "Light Settings" then
@@ -274,7 +266,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					},
 
 					scope:colors {
-						removeColorReferences = removeColorReferences,
 						actualTableSize = actualTableSize,
 						currentContent = currentContent,
 					},

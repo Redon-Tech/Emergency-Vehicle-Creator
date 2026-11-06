@@ -11,7 +11,6 @@ local createChildren = require("../createChildren")
 type props = {
 	actualTableSize: Fusion.Value<Vector2>,
 	currentContent: Fusion.Value<"settings" | "colors" | "light groups">,
-	removeColorReferences: (number) -> (),
 }
 
 local SPRING_SPEED = 20
@@ -165,7 +164,6 @@ return function(scope: types.Scope, props: props)
 											key = 2,
 											callback = function(newPopup)
 												popup:removePopup(newPopup)
-												props.removeColorReferences(key)
 												ConfigurationEditor.removeColor(key)
 											end,
 											keybind = Enum.KeyCode.Return,

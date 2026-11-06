@@ -3,6 +3,8 @@
 
 local Fusion = require("../../../../../Packages/fusion")
 local RedonUI = require("../../../../../Packages/redon-ui")
+local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
+local Editor = require("../../../../lib/ConfigurationEditor/FunctionsEditor/FlashersEditor")
 local types = require("../../../../types")
 local ChassisHandler = require("../../../../lib/ChassisHandler")
 local log = require("../../../../log")
@@ -15,19 +17,22 @@ return function(
 	scope: types.Scope,
 	props: {
 		columnKey: number,
-		columnData: any,
+		columnData: Editor.FlasherColumnState,
 		sectionKey: number,
 		currentlyHovering: Fusion.Value<number>,
 		columnPositions: Fusion.Value<{ [number]: { scope: any, value: Fusion.Value<Vector2> } }>,
 		drawing: Fusion.Value<number>,
 		size: Fusion.Value<Vector2>,
 		updateCurrentConfiguration: () -> (),
+		CurrentPattern: Fusion.Value<types.selectedPattern?>,
 		locked: Fusion.Value<boolean>,
 		currentColor: Fusion.Value<number>,
-		colors: Fusion.Value<{ ChassisHandler.color }>,
+		colors: Fusion.UsedAs<{ ChassisHandler.color }>,
 		lockedTo: Fusion.Value<{ section: number, column: number }?>,
 	}
 )
+	local selected = scope.peek(props.CurrentPattern)
+	assert(selected ~= nil, "No selected pattern")
 	local currentTheme = RedonUI.theme.theme:now()
 
 	return scope:base {
@@ -78,13 +83,15 @@ return function(
 						end
 					end
 
-					local currentRows = scope.peek(props.columnData.rows)
-					if scope.peek(props.drawing) == 1 then
-						currentRows[rowKey] = scope.peek(props.currentColor)
-					elseif scope.peek(props.drawing) == -1 then
-						currentRows[rowKey] = 0
-					end
-					props.columnData.rows:set(currentRows)
+					local colorId = if scope.peek(props.drawing) == 1 then scope.peek(props.currentColor) else 0
+					ConfigurationEditor.updateFlasherColumnRow(
+						selected.functionId,
+						selected.patternId,
+						props.sectionKey,
+						props.columnKey,
+						rowKey,
+						colorId
+					)
 					props.updateCurrentConfiguration()
 				end
 
@@ -93,7 +100,7 @@ return function(
 					scope:base {
 						Name = rowKey,
 						Size = UDim2.fromScale(1, 0.0447761194),
-						BackgroundColor3 = if rowColor == 0
+						BackgroundColor3 = if color == nil
 							then currentTheme.colors.base
 							else scope.getColorByName(color.name, color.lightoColor),
 						CornerRadius = UDim.new(0.1666666667, 0),

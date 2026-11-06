@@ -5,7 +5,7 @@ local Fusion = require("../../../../../Packages/fusion")
 local RedonUI = require("../../../../../Packages/redon-ui")
 local types = require("../../../../types")
 local ChassisHandler = require("../../../../lib/ChassisHandler")
-local log = require("../../../../log")
+local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
 local popup = require("../../../popup")
 local createChildren = require("../createChildren")
 
@@ -27,9 +27,7 @@ type props = {
 	UnsavedChanges: Fusion.Value<boolean>,
 	currentContent: Fusion.Value<"functions" | "activation" | "patterns">,
 	CurrentVehicle: Fusion.Value<Model | string?>,
-	functions: Fusion.Value<{ { name: string, weight: number } }>,
 	actualTableSize: Fusion.Value<Vector2>,
-	patterns: Fusion.Value<{ types.pattern }>,
 	selectedFunction: Fusion.Value<number?>,
 }
 
@@ -42,12 +40,16 @@ local SPRING_DAMPING = 0.75
 return function(scope: types.Scope, props: props)
 	local currentTheme = RedonUI.theme.theme:now()
 
-	local currentConfiguration = nil
-	scope:Observer(props.CurrentVehicle):onBind(function()
-		local currentVehicle = scope.peek(props.CurrentVehicle)
-		if typeof(currentVehicle) == "Instance" then
-			currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
+	local functions = scope:Computed(function(use)
+		local currentConfiguration = use(ConfigurationEditor.current)
+		if currentConfiguration == nil then
+			return {}
 		end
+		local currentFunctions = use(currentConfiguration.functions)
+		if currentFunctions == nil then
+			return {}
+		end
+		return currentFunctions
 	end)
 
 	local newFunctionName = scope:Value("")
@@ -116,7 +118,7 @@ return function(scope: types.Scope, props: props)
 						Reactive = true,
 
 						[Fusion.OnEvent "Activated"] = function()
-							log.debug(currentConfiguration)
+							local currentConfiguration = scope.peek(ConfigurationEditor.current)
 							if currentConfiguration == nil then
 								return
 							end
@@ -124,25 +126,12 @@ return function(scope: types.Scope, props: props)
 							if newFunctionName == "" then
 								newFunctionName = "New Function"
 							end
-							local currentFunctions = scope.peek(props.functions)
-							local functionsByName = {}
-							for i, func in currentFunctions do
-								functionsByName[i] = func.name
-							end
-							newFunctionName = testFunctionName(newFunctionName, functionsByName, 0)
 
 							local newFunctionData = scope.deepCopy(ChassisHandler.defaults.functions)
 							newFunctionData.name = newFunctionName
-							newFunctionData.weight = #currentConfiguration.functions + 1
-							table.insert(currentConfiguration.functions, newFunctionData)
+							newFunctionData.weight = #scope.peek(currentConfiguration.functions) + 1
 
-							table.insert(
-								currentFunctions,
-								{ name = newFunctionData.name, weight = newFunctionData.weight }
-							)
-							log.debug(currentConfiguration.functions, currentFunctions)
-							props.functions:set(currentFunctions)
-							props.UnsavedChanges:set(true)
+							ConfigurationEditor.addFunction(newFunctionData)
 						end,
 					},
 
@@ -173,180 +162,74 @@ return function(scope: types.Scope, props: props)
 				CornerRadius = UDim.new(0.0182926829, 0),
 				AutomaticSize = Enum.AutomaticSize.Y,
 				[Fusion.Out "AbsoluteSize"] = props.actualTableSize,
-				Rows = scope:ForPairs(
-					props.functions,
-					function(_, scope: typeof(scope), key: number, value: { name: string, weight: number })
-						local rowSize = scope:Value(75)
-						local bg = scope:Spring(scope:Value(1), 10, 1)
-						bg:setPosition(0)
+				Rows = scope:ForPairs(functions, function(_, scope: typeof(scope), key, value): (number, Fusion.Child)
+					local rowSize = scope:Value(75)
+					local bg = scope:Spring(scope:Value(1), 10, 1)
+					bg:setPosition(0)
 
-						local weight = scope:Value(value.weight)
-						local name = scope:Value(value.name)
-						return key,
-							scope:base {
-								Size = scope:Computed(function(use)
-									return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(props.actualTableSize).Y)
-								end),
-								BackgroundColor3 = currentTheme.colors.surface0,
-								BackgroundTransparency = bg,
+					return key,
+						scope:base {
+							Size = scope:Computed(function(use)
+								return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(props.actualTableSize).Y)
+							end),
+							BackgroundColor3 = currentTheme.colors.surface0,
+							BackgroundTransparency = bg,
 
-								[Fusion.Children] = createChildren(scope, {
-									rowSize = rowSize,
-									options = {
-										{
-											type = "number",
-											value = weight,
-											focusLost = function()
-												if currentConfiguration == nil then
-													return
-												end
-												local newValue = scope.peek(weight)
-												if
-													newValue ~= newValue
-													or newValue < 1
-													or newValue == math.huge
-													or newValue % 1 ~= 0
-												then
-													weight:set(currentConfiguration.functions[key].weight)
-													return
-												end
-												local currentFunctions = scope.peek(props.functions)
-												if currentFunctions[newValue] ~= nil then
-													local currentFunction = currentFunctions[key]
-													local otherFunction = currentFunctions[newValue]
-													if currentFunction == otherFunction then
-														log.warn("Attempted to swap function with itself")
-														return
-													end
-													-- update the weights first
-													currentFunctions[key].weight = newValue
-													currentConfiguration.functions[key].weight = newValue
-													currentFunctions[newValue].weight = key
-													currentConfiguration.functions[newValue].weight = key
+							[Fusion.Children] = createChildren(scope, {
+								rowSize = rowSize,
+								options = {
+									{
+										type = "number",
+										value = value.weight,
+										focusLost = function(newValue)
+											ConfigurationEditor.updateFunctionWeight(key, newValue)
+										end,
+										layoutOrder = 1,
+									},
+									{
+										type = "string",
+										value = value.name,
+										focusLost = function(newValue)
+											ConfigurationEditor.updateFunctionName(key, newValue)
+										end,
+										layoutOrder = 2,
+									},
+								} :: { createChildren.option },
 
-													-- now swap the functions
-													scope.arraySwap(currentFunctions, key, newValue)
-													scope.arraySwap(currentConfiguration.functions, key, newValue)
-													props.functions:set(currentFunctions)
-													props.UnsavedChanges:set(true)
-													return
-												end
-
-												local currentFunction = currentFunctions[key]
-												local currentData = currentConfiguration.functions[key]
-												-- Clear old
-												table.remove(currentFunctions, key)
-												table.remove(currentConfiguration.functions, key)
-
-												-- Insert new
-												local actualPos = scope.insertAtNumberOrEnd(
-													currentFunctions,
-													newValue,
-													currentFunction
-												)
-												scope.insertAtNumberOrEnd(
-													currentConfiguration.functions,
-													newValue,
-													currentData
-												)
-
-												-- Update weights
-												for i, func in currentFunctions do
-													func.weight = i
-													currentConfiguration.functions[i].weight = i
-												end
-
-												weight:set(actualPos)
-
-												props.functions:set(currentFunctions)
-												props.UnsavedChanges:set(true)
-											end,
-											layoutOrder = 1,
-										},
-										{
-											type = "string",
-											value = name,
-											focusLost = function()
-												if currentConfiguration == nil then
-													return
-												end
-												local newValue = scope.peek(name)
-												local currentFunctions = scope.peek(props.functions)
-												local otherNames = {}
-												for i, func in currentFunctions do
-													if i ~= key then
-														table.insert(otherNames, func.name)
-													end
-												end
-												newValue = testFunctionName(newValue, otherNames, 0)
-												name:set(newValue)
-												currentFunctions[key].name = newValue
-												local oldName = currentConfiguration.functions[key].name
-												for _, func in currentConfiguration.functions do
-													for _, activation in func.activations do
-														if
-															activation.type == "Override"
-															and activation.dependentFunction == oldName
-														then
-															activation.dependentFunction = newValue
-														end
-													end
-												end
-												currentConfiguration.functions[key].name = newValue
-												props.functions:set(currentFunctions)
-												props.UnsavedChanges:set(true)
-											end,
-											layoutOrder = 2,
-										},
-									} :: { createChildren.option },
-
-									onEdit = function()
-										if currentConfiguration == nil then
-											return
-										end
-										props.currentContent:set("patterns")
-										props.selectedFunction:set(key)
-										props.patterns:set(currentConfiguration.functions[key].patterns)
-									end,
-									onDelete = function()
-										if currentConfiguration == nil then
-											return
-										end
-
-										popup:addPopup(scope, {
-											title = "Delete Function",
-											description = "Are you sure you want to delete this function?\n<b>All data will be lost.</b>",
-											actions = {
-												{
-													text = "Cancel",
-													type = "primary",
-													key = 1,
-													callback = function(newPopup)
-														popup:removePopup(newPopup)
-													end,
-													keybind = Enum.KeyCode.Escape,
-												},
-												{
-													text = "Delete",
-													type = "danger",
-													key = 2,
-													callback = function(newPopup)
-														popup:removePopup(newPopup)
-														local currentFunctions = scope.peek(props.functions)
-														table.remove(currentFunctions, key)
-														table.remove(currentConfiguration.functions, key)
-														props.functions:set(currentFunctions)
-														props.UnsavedChanges:set(true)
-													end,
-												},
+								onEdit = function()
+									props.currentContent:set("patterns")
+									props.selectedFunction:set(key)
+								end,
+								onDelete = function()
+									popup:addPopup(scope, {
+										title = "Delete Function",
+										description = "Are you sure you want to delete this function?\n<b>All data will be lost.</b>",
+										actions = {
+											{
+												text = "Cancel",
+												type = "primary",
+												key = 1,
+												callback = function(newPopup)
+													popup:removePopup(newPopup)
+												end,
+												keybind = Enum.KeyCode.Escape,
 											},
-										})
-									end,
-									onDownload = function() end,
-								}),
-							}
-					end
-				),
+											{
+												text = "Delete",
+												type = "danger",
+												key = 2,
+												callback = function(newPopup)
+													popup:removePopup(newPopup)
+													ConfigurationEditor.removeFunction(key)
+												end,
+											},
+										},
+									})
+								end,
+								onDownload = function() end,
+							}),
+						}
+				end),
 			},
 		},
 	}

@@ -32,27 +32,15 @@ export type saveBackupMode = "Encrypted" | "Unencrypted" | "None"
 
 export type elsColor = number
 
+export type flasherColumn = {
+	lightName: string,
+	rows: { elsColor },
+}
+
 export type flasherSection = {
 	waitTime: number,
 	rowCount: number,
-	columns: { [number]: { lightName: string, rows: { elsColor } } },
-}
-
-export type flasherColumnDataState = {
-	currentName: Fusion.Value<string>?,
-	lightName: Fusion.Value<string>,
-	rows: Fusion.Value<{ elsColor }>,
-}
-export type flasherSectionState = {
-	waitTime: Fusion.Value<number>,
-	rowCount: Fusion.Value<number>,
-	nameTemplate: {
-		pattern: string,
-		originalPosition: number,
-		originalNumber: number,
-	}?,
-	columns: Fusion.Value<{ [number]: flasherColumnDataState }>,
-	currentRow: Fusion.Value<number>,
+	columns: { [number]: flasherColumn },
 }
 
 export type faderData =
@@ -80,28 +68,6 @@ export type faderSection = {
 	data: { faderData },
 }
 
-export type faderTweenDataState = {
-	type: Fusion.Value<"Simple" | "Advanced" | "Wait">,
-	time: Fusion.Value<number>,
-
-	-- Non-Wait Specific
-	goal: Fusion.Value<number>?,
-	color: Fusion.Value<elsColor>?,
-
-	-- Advanced Specific
-	easingStyle: Fusion.Value<Enum.EasingStyle>?,
-	easingDirection: Fusion.Value<Enum.EasingDirection>?,
-}
-
-export type faderSectionState = {
-	lightName: Fusion.Value<string>,
-	currentPercentage: Fusion.Value<number>,
-	currentTween: Fusion.Value<number>,
-	currentValue: Fusion.Value<number>,
-	previousGoal: number?,
-	data: Fusion.Value<{ faderTweenDataState }>,
-}
-
 export type rotatorData =
 	{
 		type: "Angle",
@@ -124,28 +90,6 @@ export type rotatorSection = {
 	data: { rotatorData },
 }
 
-export type rotatorDataState = {
-	type: Fusion.Value<"Angle" | "Infinite" | "Wait">,
-	-- Non-Wait Specific
-	velocity: Fusion.Value<number>?,
-	color: Fusion.Value<elsColor>?,
-
-	-- Angle Specific
-	angle: Fusion.Value<number>?,
-
-	-- Wait Specific
-	time: Fusion.Value<number>?,
-}
-
-export type rotatorSectionState = {
-	lightName: Fusion.Value<string>,
-	currentPercentage: Fusion.Value<number>,
-	currentAngle: Fusion.Value<number>,
-	currentValue: Fusion.Value<number>,
-	previousGoal: number?,
-	data: Fusion.Value<{ rotatorDataState }>,
-}
-
 export type pattern = {
 	flashers: { flasherSection },
 	faders: { faderSection },
@@ -155,13 +99,16 @@ export type pattern = {
 export type selectedPattern = {
 	functionId: number,
 	patternId: number,
-	pattern: pattern,
 }
+
+export type StandardActivationModes = "Cycle" | "Set Pattern"
+export type OverrideActivationModes = "Siren Override" | "Park" | "Brake" | "Reverse"
+export type AGEventActivationModes = "Stages" | "Traffic Advisor" | "Scene" | "Ally Left" | "Ally Right" | "Rear Scene"
 
 export type activation =
 	{
 		type: "Standard",
-		mode: "Cycle" | "Set Pattern",
+		mode: StandardActivationModes,
 		pattern: number,
 		keybinds: { Enum.KeyCode },
 	}
@@ -171,62 +118,15 @@ export type activation =
 	}
 	| {
 		type: "Override",
-		mode: "Siren Override" | "Park" | "Brake" | "Reverse",
+		mode: OverrideActivationModes,
 		siren: string?,
 		dependentFunction: string,
 		dependentPattern: number,
 	}
 	| {
-		type: "Conditional",
-		mode: "Always Active" | "Keybind" | "Function" | "Siren",
-		conditions: {
-			{
-				type: "Function",
-				mode: "Is" | "Is Not",
-				dependentFunction: string,
-				dependentPattern: number,
-			}
-		},
-	}
-	| {
 		type: "AG-Event",
-		mode: "Stages" | "Traffic Advisor" | "Scene" | "Ally Left" | "Ally Right" | "Rear Scene",
+		mode: AGEventActivationModes,
 	}
-
-export type activationState = {
-	type: Fusion.Value<"Standard" | "Default" | "Override" | "AG-Event">,
-	mode: Fusion.Value<
-		"Cycle"
-		| "Set Pattern"
-		| "Siren Override"
-		| "Park"
-		| "Brake"
-		| "Reverse"
-		| "Always Active"
-		| "Keybind"
-		| "Function"
-		| "Siren"
-		| "Stages"
-		| "Traffic Advisor"
-		| "Scene"
-		| "Ally Left"
-		| "Ally Right"
-		| "Rear Scene"
-	>?,
-	pattern: Fusion.Value<number>?,
-	keybinds: Fusion.Value<{ Fusion.Value<Enum.KeyCode> }>?,
-	siren: Fusion.Value<string?>?,
-	dependentFunction: Fusion.Value<string>?,
-	dependentPattern: Fusion.Value<number>?,
-	conditions: Fusion.Value<{
-		{
-			type: Fusion.Value<"Function">,
-			mode: Fusion.Value<"Is" | "Is Not">,
-			dependentFunction: Fusion.Value<string>,
-			dependentPattern: Fusion.Value<number>,
-		}
-	}>?,
-}
 
 export type elsFunction = {
 	weight: number,

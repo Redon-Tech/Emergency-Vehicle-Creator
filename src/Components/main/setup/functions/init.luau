@@ -4,7 +4,7 @@
 local Fusion = require("../../../../Packages/fusion")
 local RedonUI = require("../../../../Packages/redon-ui")
 local types = require("../../../types")
-local ChassisHandler = require("../../../lib/ChassisHandler")
+local ConfigurationEditor = require("../../../lib/ConfigurationEditor")
 
 local functionsPage = require("@self/functionsPage")
 local activationsPage = require("@self/activationsPage")
@@ -33,53 +33,15 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	local firstScope = scope:innerScope()
 
 	local currentContent: Fusion.Value<"functions" | "activation" | "patterns"> = scope:Value("functions" :: any)
-	local currentConfiguration = nil
-	local functions: Fusion.Value<{ { name: string, weight: number } }> = scope:Value({})
-	local patterns: Fusion.Value<{ types.pattern }> = scope:Value({})
-	local activations: Fusion.Value<{ types.activationState }> = scope:Value({})
 	local selectedFunction: Fusion.Value<number?> = scope:Value(nil)
 
 	scope:Observer(props.CurrentVehicle):onBind(function()
 		local currentVehicle = scope.peek(props.CurrentVehicle)
 		if typeof(currentVehicle) == "Instance" then
-			currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
+			local currentConfiguration = scope.peek(ConfigurationEditor.current)
 			if currentConfiguration ~= nil then
-				local newFunctions = {}
-				for i, func in currentConfiguration.functions do
-					newFunctions[i] = { name = func.name, weight = func.weight }
-				end
-				functions:set(newFunctions)
 				currentContent:set("functions")
 			end
-		end
-	end)
-
-	scope:Observer(selectedFunction):onChange(function()
-		local currentFunction = scope.peek(selectedFunction)
-		if currentConfiguration ~= nil and currentFunction ~= nil then
-			local newActivations: { types.activationState } = {}
-			for activationKey, activationData in pairs(currentConfiguration.functions[currentFunction].activations) do
-				local newActivation = {} :: types.activationState
-				for key, value in pairs(activationData) do
-					if typeof(value) == "table" then
-						local newTable = {}
-						for i, v in pairs(value) do
-							newTable[i] = firstScope:Value(v)
-						end
-						newActivation[key] = newTable
-					else
-						newActivation[key] = firstScope:Value(value)
-					end
-				end
-				if activationData.type == "Override" and activationData.siren == nil then
-					newActivation.siren = firstScope:Value(nil)
-				end
-
-				table.insert(newActivations, activationKey, newActivation)
-			end
-			activations:set(newActivations)
-		else
-			activations:set({})
 		end
 	end)
 
@@ -121,8 +83,10 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				Position = UDim2.fromScale(0.5, 0),
 				Text = scope:Computed(function(use)
 					local selected = use(selectedFunction)
-					return if selected ~= nil
-						then `Editing Function {scope.peek(functions)[selected].name}`
+					local currentConfiguration = scope.peek(ConfigurationEditor.current)
+
+					return if selected ~= nil and currentConfiguration ~= nil
+						then `Editing Function {scope.peek(scope.peek(currentConfiguration.functions)[selected].name)}`
 						else "Select A Function"
 				end),
 				FontWeight = scope:Computed(function(use)
@@ -144,9 +108,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						UnsavedChanges = props.UnsavedChanges,
 						CurrentVehicle = props.CurrentVehicle,
 						currentContent = currentContent,
-						functions = functions,
 						actualTableSize = actualTableSize,
-						patterns = patterns,
 						selectedFunction = selectedFunction,
 					},
 
@@ -159,10 +121,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						ReturnTo = props.ReturnTo,
 						firstScope = firstScope,
 						currentContent = currentContent,
-						functions = functions,
-						activations = activations,
 						actualTableSize = actualTableSize,
-						patterns = patterns,
 						selectedFunction = selectedFunction,
 					},
 				},

@@ -4,8 +4,17 @@
 local Fusion = require("../../../../../Packages/fusion")
 local RedonUI = require("../../../../../Packages/redon-ui")
 local types = require("../../../../types")
+local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
+local Editor = require("../../../../lib/ConfigurationEditor/FunctionsEditor/FadersEditor")
 local assets = require("../../../../assets")
 local ChassisHandler = require("../../../../lib/ChassisHandler")
+
+type FaderSection = Editor.FaderSectionState & {
+	currentTween: Fusion.Value<number>,
+	currentPercentage: Fusion.Value<number>,
+	currentValue: Fusion.Value<number>,
+	previousGoal: number,
+}
 
 --[[
 	faders.tween
@@ -15,15 +24,18 @@ return function(
 	scope: types.Scope,
 	props: {
 		key: number,
-		tween: types.faderTweenDataState,
+		sectionKey: number,
+		tween: Editor.FaderTweenState,
 		dataSize: Fusion.Value<Vector2>,
-		firstScope: types.Scope,
+		CurrentPattern: Fusion.Value<types.selectedPattern?>,
 		updateCurrentConfiguration: () -> (),
-		colors: Fusion.Value<{ ChassisHandler.color }>,
-		fader: types.faderSectionState,
+		colors: Fusion.UsedAs<{ ChassisHandler.color }>,
+		fader: FaderSection,
 		playing: Fusion.Value<boolean>,
 	}
 ): Fusion.Child
+	local selected = scope.peek(props.CurrentPattern)
+	assert(selected ~= nil, "No selected pattern")
 	local currentTheme = RedonUI.theme.theme:now()
 
 	local controlSize = scope:Computed(function(use)
@@ -47,27 +59,13 @@ return function(
 			"Wait",
 		},
 		OnOptionSelected = function(_, newType)
-			if newType == "Wait" then
-				props.tween.goal = nil
-				props.tween.color = nil
-				props.tween.easingStyle = nil
-				props.tween.easingDirection = nil
-			elseif newType == "Simple" then
-				props.tween.goal = if props.tween.goal ~= nil then props.tween.goal else props.firstScope:Value(0)
-				props.tween.color = if props.tween.color ~= nil then props.tween.color else props.firstScope:Value(4)
-				props.tween.easingStyle = nil
-				props.tween.easingDirection = nil
-			elseif newType == "Advanced" then
-				props.tween.goal = if props.tween.goal ~= nil then props.tween.goal else props.firstScope:Value(0)
-				props.tween.color = if props.tween.color ~= nil then props.tween.color else props.firstScope:Value(4)
-				props.tween.easingStyle = if props.tween.easingStyle ~= nil
-					then props.tween.easingStyle
-					else props.firstScope:Value(Enum.EasingStyle.Linear)
-				props.tween.easingDirection = if props.tween.easingDirection ~= nil
-					then props.tween.easingDirection
-					else props.firstScope:Value(Enum.EasingDirection.InOut)
-			end
-			props.tween.type:set(newType :: "Simple" | "Advanced" | "Wait")
+			ConfigurationEditor.updateFaderStepType(
+				selected.functionId,
+				selected.patternId,
+				props.sectionKey,
+				props.key,
+				newType :: "Simple" | "Advanced" | "Wait"
+			)
 			props.updateCurrentConfiguration()
 		end,
 	}
@@ -89,8 +87,14 @@ return function(
 			PlaceholderColor3 = currentTheme.colors.subtext0,
 			LayoutOrder = 7,
 			[Fusion.OnEvent "FocusLost"] = function()
-				props.tween.time:set(tonumber(scope.peek(currentTime)) or 0)
-				currentTime:set(tostring(scope.peek(currentTime)))
+				ConfigurationEditor.updateFaderStepTime(
+					selected.functionId,
+					selected.patternId,
+					props.sectionKey,
+					props.key,
+					tonumber(scope.peek(currentTime)) or 0
+				)
+				currentTime:set(tostring(scope.peek(props.tween.time)))
 				props.updateCurrentConfiguration()
 			end,
 		},
@@ -101,14 +105,14 @@ return function(
 		local currentType = use(props.tween.type)
 
 		if currentType == "Simple" or currentType == "Advanced" then
-			if props.tween.color ~= nil then
+			if (props.tween :: Editor.SimpleFaderState | Editor.AdvancedFaderState).color ~= nil then
 				local colorDropdown = scope:dropdown {
 					Size = controlSize,
 					BackgroundColor3 = currentTheme.colors.crust,
 					CornerRadius = cornerRadius,
 					Border = 1,
 					Text = scope:Computed(function(use)
-						local colorId = use(props.tween.color)
+						local colorId = use((props.tween :: Editor.SimpleFaderState | Editor.AdvancedFaderState).color)
 						return if colorId == 0 then "None" else use(props.colors)[colorId].name
 					end),
 					TextXAlignment = Enum.TextXAlignment.Left,
@@ -135,13 +139,19 @@ return function(
 						return textColors :: any
 					end),
 					TextColor3 = scope:Computed(function(use)
-						local colorId = use(props.tween.color)
+						local colorId = use((props.tween :: Editor.SimpleFaderState | Editor.AdvancedFaderState).color)
 						return if colorId == 0
 							then currentTheme.colors.text
 							else scope.getColorByName(use(props.colors)[colorId].name, currentTheme.colors.text)
 					end),
 					OnOptionSelected = function(colorId: number)
-						props.tween.color:set(colorId - 1)
+						ConfigurationEditor.updateFaderStepColor(
+							selected.functionId,
+							selected.patternId,
+							props.sectionKey,
+							props.key,
+							colorId - 1
+						)
 						props.updateCurrentConfiguration()
 					end,
 				}
@@ -149,8 +159,10 @@ return function(
 				colorDropdownFrame.LayoutOrder = 4
 				table.insert(controls, colorDropdown)
 			end
-			if props.tween.goal ~= nil then
-				local currentText = scope:Value(tostring(scope.peek(props.tween.goal)))
+			if (props.tween :: Editor.SimpleFaderState | Editor.AdvancedFaderState).goal ~= nil then
+				local currentText = scope:Value(
+					tostring(scope.peek((props.tween :: Editor.SimpleFaderState | Editor.AdvancedFaderState).goal))
+				)
 				table.insert(
 					controls,
 					scope:textBox {
@@ -164,15 +176,27 @@ return function(
 						PlaceholderColor3 = currentTheme.colors.subtext0,
 						LayoutOrder = 6,
 						[Fusion.OnEvent "FocusLost"] = function()
-							props.tween.goal:set(tonumber(scope.peek(currentText)) or 0)
-							currentText:set(tostring(scope.peek(props.tween.goal)))
+							ConfigurationEditor.updateFaderStepGoal(
+								selected.functionId,
+								selected.patternId,
+								props.sectionKey,
+								props.key,
+								tonumber(scope.peek(currentText)) or 0
+							)
+							currentText:set(
+								tostring(
+									scope.peek(
+										(props.tween :: Editor.SimpleFaderState | Editor.AdvancedFaderState).goal
+									)
+								)
+							)
 							props.updateCurrentConfiguration()
 						end,
 					}
 				)
 			end
 			if currentType == "Advanced" then
-				if props.tween.easingStyle ~= nil then
+				if (props.tween :: Editor.AdvancedFaderState).easingStyle ~= nil then
 					local options = {}
 					for _, easingStyle: Enum.EasingStyle in pairs(Enum.EasingStyle:GetEnumItems()) do
 						table.insert(options, easingStyle.Name)
@@ -183,7 +207,7 @@ return function(
 						CornerRadius = cornerRadius,
 						Border = 1,
 						Text = scope:Computed(function(use)
-							return use(props.tween.easingStyle).Name
+							return use((props.tween :: Editor.AdvancedFaderState).easingStyle).Name
 						end),
 						TextXAlignment = Enum.TextXAlignment.Left,
 						LayoutOrder = 8,
@@ -196,7 +220,13 @@ return function(
 							if not success then
 								return
 							end
-							props.tween.easingStyle:set(newEasingStyle :: Enum.EasingStyle)
+							ConfigurationEditor.updateFaderStepEasingStyle(
+								selected.functionId,
+								selected.patternId,
+								props.sectionKey,
+								props.key,
+								newEasingStyle :: Enum.EasingStyle
+							)
 							props.updateCurrentConfiguration()
 						end,
 					}
@@ -204,7 +234,7 @@ return function(
 					easingStyleDropdownFrame.LayoutOrder = 9
 					table.insert(controls, easingStyleDropdown)
 				end
-				if props.tween.easingDirection ~= nil then
+				if (props.tween :: Editor.AdvancedFaderState).easingDirection ~= nil then
 					local options = {}
 					for _, easingStyle: Enum.EasingDirection in pairs(Enum.EasingDirection:GetEnumItems()) do
 						table.insert(options, easingStyle.Name)
@@ -215,7 +245,7 @@ return function(
 						CornerRadius = cornerRadius,
 						Border = 1,
 						Text = scope:Computed(function(use)
-							return use(props.tween.easingDirection).Name
+							return use((props.tween :: Editor.AdvancedFaderState).easingDirection).Name
 						end),
 						TextXAlignment = Enum.TextXAlignment.Left,
 						LayoutOrder = 10,
@@ -228,7 +258,13 @@ return function(
 							if not success then
 								return
 							end
-							props.tween.easingDirection:set(newEasingDirection :: Enum.EasingDirection)
+							ConfigurationEditor.updateFaderStepEasingDirection(
+								selected.functionId,
+								selected.patternId,
+								props.sectionKey,
+								props.key,
+								newEasingDirection :: Enum.EasingDirection
+							)
 							props.updateCurrentConfiguration()
 						end,
 					}

@@ -6,6 +6,8 @@ local RedonUI = require("../../../../../Packages/redon-ui")
 local types = require("../../../../types")
 local popup = require("../../../popup")
 local ChassisHandler = require("../../../../lib/ChassisHandler")
+local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
+local Editor = require("../../../../lib/ConfigurationEditor/FunctionsEditor/RotatorsEditor")
 local assets = require("../../../../assets")
 local log = require("../../../../log")
 local SettingsHandler = require("../../../../lib/SettingsHandler")
@@ -13,6 +15,14 @@ local SettingsHandler = require("../../../../lib/SettingsHandler")
 local angle = require("./angle")
 local components = {
 	angle = angle,
+}
+
+type RotatorSection = Editor.RotatorSectionState & {
+	currentAngle: Fusion.Value<number>,
+	currentPercentage: Fusion.Value<number>,
+	currentValue: Fusion.Value<number>,
+	currentColor: Fusion.Value<number?>,
+	previousGoal: number,
 }
 
 --[[
@@ -23,38 +33,35 @@ return function(
 	baseScope: types.Scope,
 	props: {
 		key: number,
-		rotator: types.rotatorSectionState,
+		rotator: RotatorSection,
 		playing: Fusion.Value<boolean>,
 		holdingShift: Fusion.Value<boolean>,
-		colors: Fusion.Value<{ ChassisHandler.color }>,
-		rotators: Fusion.Value<{ types.rotatorSectionState }>,
+		colors: Fusion.UsedAs<{ ChassisHandler.color }>,
+		rotators: Fusion.UsedAs<{ RotatorSection }>,
 		temporarlyPause: () -> () -> (),
 		updateCurrentConfiguration: () -> (),
 		addRotator: (number) -> (),
-		firstScope: types.Scope,
+		CurrentPattern: Fusion.Value<types.selectedPattern?>,
 		size: Fusion.Value<Vector2>,
 	}
 ): Fusion.Child
+	local selected = baseScope.peek(props.CurrentPattern)
+	assert(selected ~= nil, "No selected pattern")
 	local currentTheme = RedonUI.theme.theme:now()
 	local scope = baseScope:innerScope(components)
 
 	local dataSize = scope:Value(Vector2.one)
+	local lightName = scope:Value(scope.peek(props.rotator.lightName))
 	local color = scope:Computed(function(use)
 		if use(props.playing) == false then
 			return Color3.new()
 		end
 
-		local currentAngles = use(props.rotator.data)
-		local currentAngle = currentAngles[use(props.rotator.currentAngle)]
-		if currentAngle == nil then
-			log.warn("Somehow the current angle is nil", currentAngle, scope.peek(props.rotator.currentAngle))
-			return Color3.new()
-		end
-		local colorId = use(currentAngle.color)
+		local colorId = use(props.rotator.currentColor)
 		if colorId == nil then
 			return Color3.new()
 		end
-		local colorData = scope.peek(props.colors)[colorId]
+		local colorData = use(props.colors)[colorId]
 		local finalColor = if colorData == nil
 			then Color3.new()
 			else if scope.bloomColors[colorData.name] ~= nil
@@ -218,9 +225,11 @@ return function(
 						[Fusion.OnEvent "Activated"] = function()
 							local function remove()
 								local unpause = props.temporarlyPause()
-								local currentRotators = scope.peek(props.rotators)
-								table.remove(currentRotators, props.key)
-								props.rotators:set(currentRotators)
+								ConfigurationEditor.removeRotatorSection(
+									selected.functionId,
+									selected.patternId,
+									props.key
+								)
 								props.updateCurrentConfiguration()
 								unpause()
 							end
@@ -265,8 +274,14 @@ return function(
 						Border = 1,
 						BackgroundColor3 = currentTheme.colors.crust,
 						Text = props.rotator.lightName,
-						[Fusion.Out "Text"] = props.rotator.lightName :: unknown,
+						[Fusion.Out "Text"] = lightName :: unknown,
 						[Fusion.OnEvent "FocusLost"] = function()
+							ConfigurationEditor.updateRotatorSectionLightName(
+								selected.functionId,
+								selected.patternId,
+								props.key,
+								scope.peek(lightName)
+							)
 							props.updateCurrentConfiguration()
 						end,
 					},
@@ -326,7 +341,8 @@ return function(
 								playing = props.playing,
 								colors = props.colors,
 								updateCurrentConfiguration = props.updateCurrentConfiguration,
-								firstScope = props.firstScope,
+								CurrentPattern = props.CurrentPattern,
+								sectionKey = props.key,
 								dataSize = dataSize,
 							}
 					end),
@@ -355,9 +371,12 @@ return function(
 									local deleting = #scope.peek(props.rotator.data)
 
 									local function remove()
-										local currentData = scope.peek(props.rotator.data)
-										table.remove(currentData, deleting)
-										props.rotator.data:set(currentData)
+										ConfigurationEditor.removeRotatorStep(
+											selected.functionId,
+											selected.patternId,
+											props.key,
+											deleting
+										)
 										props.updateCurrentConfiguration()
 									end
 
@@ -407,12 +426,12 @@ return function(
 								ImageColor3 = currentTheme.colors.text,
 
 								[Fusion.OnEvent "Activated"] = function()
-									local currentData = scope.peek(props.rotator.data)
-									table.insert(currentData, {
-										type = props.firstScope:Value("Wait" :: any), -- the day I dont need this I will be so glad
-										time = props.firstScope:Value(0.5),
-									})
-									props.rotator.data:set(currentData)
+									ConfigurationEditor.addRotatorStep(
+										selected.functionId,
+										selected.patternId,
+										props.key,
+										{ type = "Wait", time = 0.5 }
+									)
 									props.updateCurrentConfiguration()
 								end,
 							},

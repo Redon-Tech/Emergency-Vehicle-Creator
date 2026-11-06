@@ -6,6 +6,8 @@ local RedonUI = require("../../../../../Packages/redon-ui")
 local types = require("../../../../types")
 local popup = require("../../../popup")
 local ChassisHandler = require("../../../../lib/ChassisHandler")
+local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
+local Editor = require("../../../../lib/ConfigurationEditor/FunctionsEditor/FadersEditor")
 local assets = require("../../../../assets")
 local log = require("../../../../log")
 local SettingsHandler = require("../../../../lib/SettingsHandler")
@@ -13,6 +15,13 @@ local SettingsHandler = require("../../../../lib/SettingsHandler")
 local tween = require("./tween")
 local components = {
 	tween = tween,
+}
+
+type FaderSection = Editor.FaderSectionState & {
+	currentTween: Fusion.Value<number>,
+	currentPercentage: Fusion.Value<number>,
+	currentValue: Fusion.Value<number>,
+	previousGoal: number,
 }
 
 --[[
@@ -23,21 +32,24 @@ return function(
 	baseScope: types.Scope,
 	props: {
 		key: number,
-		fader: types.faderSectionState,
+		fader: FaderSection,
 		size: Fusion.Value<Vector2>,
 		temporarlyPause: () -> () -> (),
-		faders: Fusion.Value<{ types.faderSectionState }>,
+		faders: Fusion.UsedAs<{ FaderSection }>,
 		updateCurrentConfiguration: () -> (),
 		holdingShift: Fusion.Value<boolean>,
 		playing: Fusion.Value<boolean>,
-		colors: Fusion.Value<{ ChassisHandler.color }>,
+		colors: Fusion.UsedAs<{ ChassisHandler.color }>,
 		addFader: (atPoint: number) -> (),
-		firstScope: types.Scope,
+		CurrentPattern: Fusion.Value<types.selectedPattern?>,
 	}
 ): Fusion.Child
 	local scope = baseScope:innerScope(components)
+	local selected = baseScope.peek(props.CurrentPattern)
+	assert(selected ~= nil, "No selected pattern")
 	local currentTheme = RedonUI.theme.theme:now()
 	local dataSize = scope:Value(Vector2.one)
+	local lightName = scope:Value(scope.peek(props.fader.lightName))
 
 	return scope:base {
 		Name = props.key,
@@ -84,9 +96,11 @@ return function(
 						[Fusion.OnEvent "Activated"] = function()
 							local function remove()
 								local unpause = props.temporarlyPause()
-								local currentFaders = scope.peek(props.faders)
-								table.remove(currentFaders, props.key)
-								props.faders:set(currentFaders)
+								ConfigurationEditor.removeFaderSection(
+									selected.functionId,
+									selected.patternId,
+									props.key
+								)
 								props.updateCurrentConfiguration()
 								unpause()
 							end
@@ -139,12 +153,18 @@ return function(
 								Size = UDim2.fromScale(1, 1),
 								BackgroundTransparency = 1,
 								Text = props.fader.lightName,
-								[Fusion.Out "Text"] = props.fader.lightName :: unknown,
+								[Fusion.Out "Text"] = lightName :: unknown,
 								Visible = scope:Computed(function(use)
 									return use(props.playing) == false
 								end),
 
 								[Fusion.OnEvent "FocusLost"] = function()
+									ConfigurationEditor.updateFaderSectionLightName(
+										selected.functionId,
+										selected.patternId,
+										props.key,
+										scope.peek(lightName)
+									)
 									props.updateCurrentConfiguration()
 								end,
 							},
@@ -166,7 +186,11 @@ return function(
 										)
 										return Color3.new(1, 1, 1)
 									end
-									local colorId = use(currentTween.color)
+									local colorId = if use(currentTween.type) == "Wait"
+										then nil
+										else use(
+											(currentTween :: Editor.SimpleFaderState | Editor.AdvancedFaderState).color
+										)
 									if colorId == nil then
 										return scope.peek(knownColor)
 									end
@@ -311,7 +335,8 @@ return function(
 								key = key,
 								tween = tween,
 								dataSize = dataSize,
-								firstScope = props.firstScope,
+								CurrentPattern = props.CurrentPattern,
+								sectionKey = props.key,
 								updateCurrentConfiguration = props.updateCurrentConfiguration,
 								colors = props.colors,
 								fader = props.fader,
@@ -343,9 +368,12 @@ return function(
 									local deleting = #scope.peek(props.fader.data)
 
 									local function remove()
-										local currentData = scope.peek(props.fader.data)
-										table.remove(currentData, deleting)
-										props.fader.data:set(currentData)
+										ConfigurationEditor.removeFaderStep(
+											selected.functionId,
+											selected.patternId,
+											props.key,
+											deleting
+										)
 										props.updateCurrentConfiguration()
 									end
 
@@ -395,15 +423,12 @@ return function(
 								ImageColor3 = currentTheme.colors.text,
 
 								[Fusion.OnEvent "Activated"] = function()
-									local currentData = scope.peek(props.fader.data)
-									table.insert(
-										currentData,
-										{
-											type = props.firstScope:Value("Wait"),
-											time = props.firstScope:Value(0.5),
-										} :: any
+									ConfigurationEditor.addFaderStep(
+										selected.functionId,
+										selected.patternId,
+										props.key,
+										{ type = "Wait", time = 0.5 }
 									)
-									props.fader.data:set(currentData)
 									props.updateCurrentConfiguration()
 								end,
 							},

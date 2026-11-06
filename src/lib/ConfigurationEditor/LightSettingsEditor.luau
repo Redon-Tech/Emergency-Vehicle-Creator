@@ -2,9 +2,12 @@
 local log = require("../../log")
 local types = require("../../types")
 local ChassisHandler = require("../ChassisHandler")
+local FunctionsEditor = require("./FunctionsEditor")
+local FadersEditor = require("./FunctionsEditor/FadersEditor")
+local RotatorsEditor = require("./FunctionsEditor/RotatorsEditor")
 local Fusion = require("../../../Packages/fusion")
 
-type ColorState = {
+export type ColorState = {
 	name: Fusion.Value<string>,
 	partColor: Fusion.Value<Color3>,
 	lightColor: Fusion.Value<Color3>,
@@ -112,30 +115,38 @@ function LightSettingsEditor.toConfiguration(
 	}
 end
 
-function LightSettingsEditor.removeColorReferences(functions: { types.elsFunction }, removedId: number)
+function LightSettingsEditor.removeColorReferences(
+	scope: types.Scope,
+	functions: FunctionsEditor.FunctionsState,
+	removedId: number
+)
 	local function remap(color: number): number
 		return if color == removedId then 0 elseif color > removedId then color - 1 else color
 	end
-	for _, func in functions do
-		for _, pattern in func.patterns do
-			for _, section in pattern.flashers do
-				for _, column in section.columns do
-					for row, color in column.rows do
-						column.rows[row] = remap(color)
+	for _, func in scope.peek(functions) do
+		for _, pattern in scope.peek(func.patterns) do
+			for _, section in scope.peek(pattern.flashers) do
+				for _, column in scope.peek(section.columns) do
+					local rows = table.clone(scope.peek(column.rows))
+					for row, color in rows do
+						rows[row] = remap(color)
+					end
+					column.rows:set(rows)
+				end
+			end
+			for _, section in scope.peek(pattern.faders) do
+				for _, step in scope.peek(section.data) do
+					if scope.peek(step.type) ~= "Wait" then
+						local color = (step :: FadersEditor.SimpleFaderState).color
+						color:set(remap(scope.peek(color)))
 					end
 				end
 			end
-			for _, sections in pattern.faders do
-				for _, step in sections.data do
-					if step.type ~= "Wait" and step.color ~= nil then
-						(step :: { color: number }).color = remap(step.color)
-					end
-				end
-			end
-			for _, sections in pattern.rotators do
-				for _, step in sections.data do
-					if step.type ~= "Wait" and step.color ~= nil then
-						(step :: { color: number }).color = remap(step.color)
+			for _, section in scope.peek(pattern.rotators) do
+				for _, step in scope.peek(section.data) do
+					if scope.peek(step.type) ~= "Wait" then
+						local color = (step :: RotatorsEditor.AngleRotatorState).color
+						color:set(remap(scope.peek(color)))
 					end
 				end
 			end
@@ -143,7 +154,9 @@ function LightSettingsEditor.removeColorReferences(functions: { types.elsFunctio
 	end
 end
 
-function LightSettingsEditor.createActions(getContext: () -> (types.Scope, LightSettingsState))
+function LightSettingsEditor.createActions(
+	getContext: () -> (types.Scope, LightSettingsState, FunctionsEditor.FunctionsState)
+)
 	local actions = {}
 
 	--[[
@@ -164,9 +177,12 @@ function LightSettingsEditor.createActions(getContext: () -> (types.Scope, Light
 	end
 
 	function actions.removeColor(index: number)
-		local scope, state = getContext()
-
+		local scope, state, functions = getContext()
 		local colors = scope.peek(state.colors)
+		if colors[index] == nil then
+			return
+		end
+		LightSettingsEditor.removeColorReferences(scope, functions, index)
 		table.remove(colors, index)
 		state.colors:set(colors)
 	end

@@ -3,10 +3,14 @@
 
 local Fusion = require("../../../../../Packages/fusion")
 local RedonUI = require("../../../../../Packages/redon-ui")
+local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
+local Editor = require("../../../../lib/ConfigurationEditor/FunctionsEditor/FlashersEditor")
 local types = require("../../../../types")
 local ChassisHandler = require("../../../../lib/ChassisHandler")
 local assets = require("../../../../assets")
 local SettingsHandler = require("../../../../lib/SettingsHandler")
+
+type FlasherSection = Editor.FlasherSectionState & { currentRow: Fusion.Value<number> }
 
 --[=[
 	flashers.columnHeader
@@ -17,17 +21,21 @@ return function(
 	props: {
 		use: Fusion.Use,
 		columnKey: number,
-		columnData: types.flasherColumnDataState,
+		sectionKey: number,
+		columnData: Editor.FlasherColumnState,
 		columnPositions: Fusion.Value<{ [number]: { scope: any, value: Fusion.Value<Vector2> } }>,
-		colors: Fusion.Value<{ ChassisHandler.color }>,
+		colors: Fusion.UsedAs<{ ChassisHandler.color }>,
 		playing: Fusion.Value<boolean>,
 		size: Fusion.Value<Vector2>,
 		position: Fusion.Value<Vector2>,
-		section: types.flasherSectionState,
+		section: FlasherSection,
 		updateCurrentConfiguration: () -> (),
-		propagateNameChange: (columnData: types.flasherColumnDataState, columnKey: number) -> (),
+		CurrentPattern: Fusion.Value<types.selectedPattern?>,
+		propagateNameChange: (columnData: Editor.FlasherColumnState, columnKey: number, originalName: string) -> (),
 	}
 )
+	local selected = scope.peek(props.CurrentPattern)
+	assert(selected ~= nil, "No selected pattern")
 	local currentTheme = RedonUI.theme.theme:now()
 
 	local currentColumnPositions = props.use(props.columnPositions)
@@ -39,7 +47,7 @@ return function(
 			return currentTheme.colors.base
 		end
 		local currentRow = use(props.section.currentRow)
-		local colorData = scope.peek(props.colors)[scope.peek(props.columnData.rows)[currentRow]]
+		local colorData = use(props.colors)[use(props.columnData.rows)[currentRow]]
 		return if colorData == nil
 			then currentTheme.colors.base
 			else if scope.bloomColors[colorData.name] ~= nil
@@ -164,7 +172,7 @@ return function(
 	else
 		baseProps.BackgroundColor3 = color
 	end
-	props.columnData.currentName = scope:Value(scope.peek(props.columnData.lightName))
+	local currentName = scope:Value(scope.peek(props.columnData.lightName))
 	table.insert(
 		children,
 		1,
@@ -175,14 +183,20 @@ return function(
 			end),
 			Size = UDim2.fromScale(1, 1),
 			Text = props.columnData.lightName,
-			[Fusion.Out "Text"] = props.columnData.lightName :: unknown,
+			[Fusion.Out "Text"] = currentName :: unknown,
 
 			[Fusion.OnEvent "FocusLost"] = function(enterPressed: boolean)
-				if enterPressed == false then
-					props.updateCurrentConfiguration()
-					return
+				local originalName = scope.peek(props.columnData.lightName)
+				ConfigurationEditor.updateFlasherColumnLightName(
+					selected.functionId,
+					selected.patternId,
+					props.sectionKey,
+					props.columnKey,
+					scope.peek(currentName)
+				)
+				if enterPressed then
+					props.propagateNameChange(props.columnData, props.columnKey, originalName)
 				end
-				props.propagateNameChange(props.columnData, props.columnKey)
 				props.updateCurrentConfiguration()
 			end,
 		}
