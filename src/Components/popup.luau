@@ -2,6 +2,7 @@
 
 local Fusion = require("../../Packages/fusion")
 local RedonUI = require("../../Packages/redon-ui")
+local UIState = require("../lib/UIState")
 local types = require("../types")
 
 type action = {
@@ -224,7 +225,8 @@ end
 function popup.container(self, scope)
 	self.parentScope = scope
 	local currentTheme = RedonUI.theme.theme:now()
-	self.enabled = scope:Value(false)
+	self.enabled = UIState.popupShown
+	self.enabled:set(false)
 
 	local container = scope:base {
 		Size = UDim2.fromScale(2, 2),

@@ -20,7 +20,6 @@ local components = {
 }
 
 type props = {
-	UnsavedChanges: Fusion.Value<boolean>,
 	Enabled: Fusion.UsedAs<boolean>,
 	Mode: Fusion.Value<types.mode>,
 	CurrentPanel: Fusion.Value<types.mainPanels>,
@@ -96,9 +95,8 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				previousGoal = 1,
 			} :: FaderSection
 	end)
-	local function updateCurrentConfiguration()
+	local function onEdited()
 		playing:set(false)
-		props.UnsavedChanges:set(true)
 	end
 	scope:Observer(pattern):onChange(function()
 		playing:set(false)
@@ -132,7 +130,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						for index = #scope.peek(faders), 1, -1 do
 							ConfigurationEditor.removeFaderSection(selected.functionId, selected.patternId, index)
 						end
-						updateCurrentConfiguration()
+						onEdited()
 					end,
 				},
 			},
@@ -153,7 +151,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				{ type = "Simple", time = 0.5, goal = 1, color = 4 },
 			},
 		}, index)
-		updateCurrentConfiguration()
+		onEdited()
 		unpause()
 	end
 
@@ -440,7 +438,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 										size = size,
 										temporarlyPause = temporarlyPause,
 										faders = faders,
-										updateCurrentConfiguration = updateCurrentConfiguration,
+										onEdited = onEdited,
 										holdingShift = holdingShift,
 										playing = playing,
 										colors = colors,

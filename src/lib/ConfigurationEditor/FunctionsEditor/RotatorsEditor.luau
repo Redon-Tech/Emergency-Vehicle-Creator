@@ -1,6 +1,7 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local log = require("../../../log")
 local types = require("../../../types")
+local UIState = require("../../UIState")
 local Fusion = require("../../../../Packages/fusion")
 
 export type AngleRotatorState = {
@@ -133,6 +134,7 @@ function RotatorsEditor.createActions(
 		local currentSections = scope.peek(state)
 		table.insert(currentSections, atPoint or #currentSections + 1, rotatorSectionToState(scope, section))
 		state:set(currentSections)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removeRotatorSection(functionId: number, patternIndex: number, index: number)
@@ -141,6 +143,7 @@ function RotatorsEditor.createActions(
 		local currentSections = scope.peek(state)
 		table.remove(currentSections, index)
 		state:set(currentSections)
+		UIState.unsavedChanges:set(true)
 	end
 
 	local function getRotatorSectionState(functionId: number, patternIndex: number, index: number): RotatorSectionState
@@ -164,6 +167,7 @@ function RotatorsEditor.createActions(
 		local sectionState = getRotatorSectionState(functionId, patternIndex, index)
 
 		sectionState.lightName:set(newLightName)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -188,6 +192,7 @@ function RotatorsEditor.createActions(
 		local currentSteps = scope.peek(sectionState.data)
 		table.insert(currentSteps, rotatorDataToState(scope, step))
 		sectionState.data:set(currentSteps)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removeRotatorStep(
@@ -208,6 +213,7 @@ function RotatorsEditor.createActions(
 		local currentSteps = scope.peek(sectionState.data)
 		table.remove(currentSteps, stepIndex)
 		sectionState.data:set(currentSteps)
+		UIState.unsavedChanges:set(true)
 	end
 
 	local function getRotatorStepState(
@@ -288,6 +294,7 @@ function RotatorsEditor.createActions(
 		local currentSteps = scope.peek(sectionState.data)
 		currentSteps[stepIndex] = newStepState
 		sectionState.data:set(currentSteps)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -309,6 +316,7 @@ function RotatorsEditor.createActions(
 		end
 
 		(stepState :: AngleRotatorState).velocity:set(newVelocity)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateRotatorStepColor(
@@ -326,6 +334,7 @@ function RotatorsEditor.createActions(
 		end
 
 		(stepState :: AngleRotatorState).color:set(newColor)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -347,6 +356,7 @@ function RotatorsEditor.createActions(
 		end
 
 		(stepState :: AngleRotatorState).angle:set(newAngle)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -368,6 +378,7 @@ function RotatorsEditor.createActions(
 		end
 
 		(stepState :: WaitState).time:set(newTime)
+		UIState.unsavedChanges:set(true)
 	end
 
 	return actions

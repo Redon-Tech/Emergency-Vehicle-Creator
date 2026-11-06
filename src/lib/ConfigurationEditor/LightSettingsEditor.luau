@@ -5,6 +5,7 @@ local ChassisHandler = require("../ChassisHandler")
 local FunctionsEditor = require("./FunctionsEditor")
 local FadersEditor = require("./FunctionsEditor/FadersEditor")
 local RotatorsEditor = require("./FunctionsEditor/RotatorsEditor")
+local UIState = require("../UIState")
 local Fusion = require("../../../Packages/fusion")
 
 export type ColorState = {
@@ -132,6 +133,7 @@ function LightSettingsEditor.removeColorReferences(
 						rows[row] = remap(color)
 					end
 					column.rows:set(rows)
+					UIState.unsavedChanges:set(true)
 				end
 			end
 			for _, section in scope.peek(pattern.faders) do
@@ -139,6 +141,7 @@ function LightSettingsEditor.removeColorReferences(
 					if scope.peek(step.type) ~= "Wait" then
 						local color = (step :: FadersEditor.SimpleFaderState).color
 						color:set(remap(scope.peek(color)))
+						UIState.unsavedChanges:set(true)
 					end
 				end
 			end
@@ -147,6 +150,7 @@ function LightSettingsEditor.removeColorReferences(
 					if scope.peek(step.type) ~= "Wait" then
 						local color = (step :: RotatorsEditor.AngleRotatorState).color
 						color:set(remap(scope.peek(color)))
+						UIState.unsavedChanges:set(true)
 					end
 				end
 			end
@@ -174,6 +178,7 @@ function LightSettingsEditor.createActions(
 			lightoColor = scope:Value(color.lightoColor),
 		})
 		state.colors:set(colors)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removeColor(index: number)
@@ -185,6 +190,7 @@ function LightSettingsEditor.createActions(
 		LightSettingsEditor.removeColorReferences(scope, functions, index)
 		table.remove(colors, index)
 		state.colors:set(colors)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateColor(index: number, colorType: "partColor" | "lightColor" | "lightoColor", value: Color3)
@@ -194,6 +200,7 @@ function LightSettingsEditor.createActions(
 		local colorState = colors[index]
 		if colorState then
 			colorState[colorType]:set(value)
+			UIState.unsavedChanges:set(true)
 		end
 	end
 
@@ -204,6 +211,7 @@ function LightSettingsEditor.createActions(
 		local colorState = colors[index]
 		if colorState then
 			colorState.name:set(name)
+			UIState.unsavedChanges:set(true)
 		end
 	end
 
@@ -220,6 +228,7 @@ function LightSettingsEditor.createActions(
 		local _, state = getContext()
 
 		state.configuration[key]:set(value)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -235,6 +244,7 @@ function LightSettingsEditor.createActions(
 			lights = scope:Value(group.lights),
 		})
 		state.lightGroups:set(lightGroups)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removeLightGroup(index: number)
@@ -243,6 +253,7 @@ function LightSettingsEditor.createActions(
 		local lightGroups = scope.peek(state.lightGroups)
 		table.remove(lightGroups, index)
 		state.lightGroups:set(lightGroups)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.setLightGroupLights(groupIndex: number, lights: { string })
@@ -252,6 +263,7 @@ function LightSettingsEditor.createActions(
 		local groupState = lightGroups[groupIndex]
 		if groupState then
 			groupState.lights:set(lights)
+			UIState.unsavedChanges:set(true)
 		end
 	end
 
@@ -262,6 +274,7 @@ function LightSettingsEditor.createActions(
 		local groupState = lightGroups[groupIndex]
 		if groupState then
 			groupState.name:set(name)
+			UIState.unsavedChanges:set(true)
 		end
 	end
 

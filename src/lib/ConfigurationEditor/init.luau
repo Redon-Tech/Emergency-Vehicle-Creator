@@ -2,6 +2,7 @@
 local log = require("../log")
 local types = require("../types")
 local ChassisHandler = require("./ChassisHandler")
+local UIState = require("./UIState")
 local Fusion = require("../../Packages/fusion")
 
 local LightSettingsEditor = require("@self/LightSettingsEditor")
@@ -43,6 +44,7 @@ function ConfigurationEditor.load(configuration: ChassisHandler.chassisConfigura
 		functions = FunctionsEditor.toState(ConfigurationEditor.scope, configuration.functions),
 		sirens = SirensEditor.toState(ConfigurationEditor.scope, configuration.sirens),
 	})
+	UIState.unsavedChanges:set(false)
 end
 
 function ConfigurationEditor.unload()

@@ -4,6 +4,7 @@ local plugin = script:FindFirstAncestorOfClass("Plugin")
 
 local Fusion = require("../../../Packages/fusion")
 local RedonUI = require("../../../Packages/redon-ui")
+local UIState = require("../../lib/UIState")
 local types = require("../../types")
 local log = require("../../log")
 local LuaEncode = require("../../../Packages/LuaEncode")
@@ -44,7 +45,6 @@ type v2Save = {
 }
 
 type props = {
-	UnsavedChanges: Fusion.Value<boolean>,
 	CurrentPattern: Fusion.Value<types.selectedPattern?>,
 	CurrentVehicle: Fusion.Value<Model | string?>,
 }
@@ -450,7 +450,7 @@ return function(scope: types.Scope, props: props): Instance
 																popup:removePopup(newPopup)
 																local value = scope.deepCopy(value)
 																log.debug("Loading", value)
-																props.UnsavedChanges:set(true)
+																UIState.unsavedChanges:set(true)
 																props.CurrentPattern:set({
 																	functionId = currentPattern.functionId,
 																	patternId = currentPattern.patternId,

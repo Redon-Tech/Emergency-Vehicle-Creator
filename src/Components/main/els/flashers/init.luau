@@ -19,7 +19,6 @@ local components = {
 }
 
 type props = {
-	UnsavedChanges: Fusion.Value<boolean>,
 	Enabled: Fusion.UsedAs<boolean>,
 	Mode: Fusion.Value<types.mode>,
 	CurrentPanel: Fusion.Value<types.mainPanels>,
@@ -92,9 +91,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				currentRow = previewScope:Value(1),
 			} :: FlasherSection
 	end)
-	local function updateCurrentConfiguration()
-		props.UnsavedChanges:set(true)
-	end
 	scope:Observer(pattern):onChange(function()
 		playing:set(false)
 	end)
@@ -134,7 +130,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 								index
 							)
 						end
-						updateCurrentConfiguration()
 					end,
 				},
 			},
@@ -154,7 +149,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 			{ waitTime = 0.05, rowCount = 10, columns = { { lightName = "Light 1", rows = table.create(10, 0) } } },
 			index
 		)
-		updateCurrentConfiguration()
+
 		unpause()
 	end
 
@@ -347,7 +342,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 							scope:ForPairs(
 								colors,
-								function(use, scope: typeof(scope), key: number, value: ChassisHandler.color)
+								function(_, scope: typeof(scope), key: number, value: ChassisHandler.color)
 									local color = scope.getColorByName(value.name, value.lightoColor)
 									return key,
 										scope:textButton {
@@ -504,7 +499,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 								holdingShift = holdingShift,
 								sections = sections,
 								CurrentPattern = props.CurrentPattern,
-								updateCurrentConfiguration = updateCurrentConfiguration,
 								addSection = addSection,
 							},
 						},

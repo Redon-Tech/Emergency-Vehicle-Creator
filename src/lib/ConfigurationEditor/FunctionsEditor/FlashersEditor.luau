@@ -1,6 +1,7 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local log = require("../../../log")
 local types = require("../../../types")
+local UIState = require("../../UIState")
 local Fusion = require("../../../../Packages/fusion")
 
 export type FlasherColumnState = {
@@ -82,6 +83,7 @@ function FlashersEditor.createActions(
 		local flasherSections = scope.peek(state)
 		table.insert(flasherSections, atPoint or #flasherSections + 1, flasherSectionToState(scope, section))
 		state:set(flasherSections)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removeFlasherSection(functionId: number, patternIndex: number, sectionIndex: number)
@@ -90,6 +92,7 @@ function FlashersEditor.createActions(
 		local flasherSections = scope.peek(state)
 		table.remove(flasherSections, sectionIndex)
 		state:set(flasherSections)
+		UIState.unsavedChanges:set(true)
 	end
 
 	local function getFlasherSectionState(
@@ -119,6 +122,7 @@ function FlashersEditor.createActions(
 		local sectionState = getFlasherSectionState(functionId, patternIndex, sectionIndex)
 
 		sectionState.waitTime:set(newWaitTime)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.addSectionRow(functionId: number, patternIndex: number, sectionIndex: number)
@@ -127,12 +131,14 @@ function FlashersEditor.createActions(
 
 		local currentRowCount = scope.peek(sectionState.rowCount)
 		sectionState.rowCount:set(currentRowCount + 1)
+		UIState.unsavedChanges:set(true)
 
 		local columns = scope.peek(sectionState.columns)
 		for _, column in ipairs(columns) do
 			local rows = scope.peek(column.rows)
 			table.insert(rows, 0)
 			column.rows:set(rows)
+			UIState.unsavedChanges:set(true)
 		end
 	end
 
@@ -164,6 +170,7 @@ function FlashersEditor.createActions(
 			local rows = scope.peek(column.rows)
 			table.remove(rows, rowIndex)
 			column.rows:set(rows)
+			UIState.unsavedChanges:set(true)
 		end
 	end
 
@@ -180,6 +187,7 @@ function FlashersEditor.createActions(
 		local columns = scope.peek(sectionState.columns)
 		table.insert(columns, atPoint or #columns + 1, flasherColumnToState(scope, column))
 		sectionState.columns:set(columns)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removeFlasherColumn(
@@ -194,6 +202,7 @@ function FlashersEditor.createActions(
 		local columns = scope.peek(sectionState.columns)
 		table.remove(columns, columnIndex)
 		sectionState.columns:set(columns)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateFlasherColumnLightName(
@@ -216,6 +225,7 @@ function FlashersEditor.createActions(
 		end
 
 		columnState.lightName:set(newLightName)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateFlasherColumnRow(
@@ -247,6 +257,7 @@ function FlashersEditor.createActions(
 		end
 		rows[rowIndex] = newRowValue
 		columnState.rows:set(rows)
+		UIState.unsavedChanges:set(true)
 	end
 
 	return actions

@@ -23,7 +23,6 @@ return function(
 		columnPositions: Fusion.Value<{ [number]: { scope: any, value: Fusion.Value<Vector2> } }>,
 		drawing: Fusion.Value<number>,
 		size: Fusion.Value<Vector2>,
-		updateCurrentConfiguration: () -> (),
 		CurrentPattern: Fusion.Value<types.selectedPattern?>,
 		locked: Fusion.Value<boolean>,
 		currentColor: Fusion.Value<number>,
@@ -92,7 +91,6 @@ return function(
 						rowKey,
 						colorId
 					)
-					props.updateCurrentConfiguration()
 				end
 
 				local color = use(props.colors)[rowColor]

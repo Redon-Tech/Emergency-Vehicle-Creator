@@ -1,6 +1,7 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local log = require("../../../log")
 local types = require("../../../types")
+local UIState = require("../../UIState")
 local Fusion = require("../../../../Packages/fusion")
 
 export type SimpleFaderState = {
@@ -142,6 +143,7 @@ function FadersEditor.createActions(
 		local faderSections = scope.peek(state)
 		table.insert(faderSections, atPoint or #faderSections + 1, faderSectionToState(scope, section))
 		state:set(faderSections)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removeFaderSection(functionId: number, patternIndex: number, sectionIndex: number)
@@ -150,6 +152,7 @@ function FadersEditor.createActions(
 		local faderSections = scope.peek(state)
 		table.remove(faderSections, sectionIndex)
 		state:set(faderSections)
+		UIState.unsavedChanges:set(true)
 	end
 
 	local function getFaderSectionState(
@@ -179,6 +182,7 @@ function FadersEditor.createActions(
 		local sectionState = getFaderSectionState(functionId, patternIndex, sectionIndex)
 
 		sectionState.lightName:set(newLightName)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -192,6 +196,7 @@ function FadersEditor.createActions(
 		local steps = scope.peek(sectionState.data)
 		table.insert(steps, faderStepToState(scope, step))
 		sectionState.data:set(steps)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removeFaderStep(functionId: number, patternIndex: number, sectionIndex: number, stepIndex: number)
@@ -201,6 +206,7 @@ function FadersEditor.createActions(
 		local steps = scope.peek(sectionState.data)
 		table.remove(steps, stepIndex)
 		sectionState.data:set(steps)
+		UIState.unsavedChanges:set(true)
 	end
 
 	local function getFaderStepState(
@@ -279,6 +285,7 @@ function FadersEditor.createActions(
 		local steps = scope.peek(sectionState.data)
 		steps[stepIndex] = newStepState
 		sectionState.data:set(steps)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateFaderStepTime(
@@ -291,6 +298,7 @@ function FadersEditor.createActions(
 		local stepState = getFaderStepState(functionId, patternIndex, sectionIndex, stepIndex);
 
 		(stepState :: SimpleFaderState).time:set(newTime)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -312,6 +320,7 @@ function FadersEditor.createActions(
 		end
 
 		(stepState :: SimpleFaderState).goal:set(newGoal)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateFaderStepColor(
@@ -329,6 +338,7 @@ function FadersEditor.createActions(
 		end
 
 		(stepState :: SimpleFaderState).color:set(newColor)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -350,6 +360,7 @@ function FadersEditor.createActions(
 		end
 
 		(stepState :: AdvancedFaderState).easingStyle:set(newEasingStyle)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateFaderStepEasingDirection(
@@ -367,6 +378,7 @@ function FadersEditor.createActions(
 		end
 
 		(stepState :: AdvancedFaderState).easingDirection:set(newEasingDirection)
+		UIState.unsavedChanges:set(true)
 	end
 
 	return actions

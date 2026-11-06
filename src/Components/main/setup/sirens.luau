@@ -10,7 +10,6 @@ local popup = require("../../popup")
 local createChildren = require("./createChildren")
 
 type props = {
-	UnsavedChanges: Fusion.Value<boolean>,
 	Mode: Fusion.Value<types.mode>,
 	CurrentPanel: Fusion.Value<types.mainPanels>,
 	CurrentPage: Fusion.Value<types.pages?>,

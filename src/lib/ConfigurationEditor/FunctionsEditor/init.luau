@@ -1,6 +1,7 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local log = require("../../log")
 local types = require("../../types")
+local UIState = require("../UIState")
 local Fusion = require("../../../Packages/fusion")
 
 local FlashersEditor = require("@self/FlashersEditor")
@@ -224,6 +225,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 		local currentFunctions = scope.peek(state)
 		table.insert(currentFunctions, functionTypeToState(scope, func))
 		state:set(currentFunctions)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removeFunction(index: number)
@@ -233,8 +235,10 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 		table.remove(currentFunctions, index)
 		for weight, func in ipairs(currentFunctions) do
 			func.weight:set(weight)
+			UIState.unsavedChanges:set(true)
 		end
 		state:set(currentFunctions)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateFunctionWeight(fromIndex: number, toIndex: number)
@@ -253,8 +257,10 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 		table.insert(reordered, toIndex, func)
 		for index, entry in ipairs(reordered) do
 			entry.weight:set(index)
+			UIState.unsavedChanges:set(true)
 		end
 		state:set(reordered)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateFunctionName(index: number, newName: string)
@@ -267,6 +273,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 			return
 		end
 		func.name:set(newName)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -292,6 +299,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 		local activations = scope.peek(func.activations)
 		table.insert(activations, activationTypeToState(scope, activation))
 		func.activations:set(activations)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removeActivation(functionIndex: number, activationIndex: number)
@@ -302,6 +310,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 		local activations = scope.peek(func.activations)
 		table.remove(activations, activationIndex)
 		func.activations:set(activations)
+		UIState.unsavedChanges:set(true)
 	end
 
 	local function getActivation(functionIndex: number, activationIndex: number): ActivationState
@@ -370,6 +379,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 		local activations = scope.peek(func.activations)
 		activations[activationIndex] = newActivation
 		func.activations:set(activations)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -390,6 +400,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 			return
 		end
 		(activation :: StandardActivationState).mode:set(newMode)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateStandardActivationPattern(functionIndex: number, activationIndex: number, newPattern: number)
@@ -402,6 +413,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 			return
 		end
 		(activation :: StandardActivationState).pattern:set(newPattern)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateStandardActivationKeybind(
@@ -420,6 +432,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 		end
 		local keybinds = scope.peek((activation :: StandardActivationState).keybinds)
 		keybinds[keybindIndex]:set(newKeybind)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -436,6 +449,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 			return
 		end
 		(activation :: DefaultActivationState).pattern:set(newPattern)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -456,6 +470,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 			return
 		end
 		(activation :: OverrideActivationState).mode:set(newMode)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateOverrideActivationSiren(functionIndex: number, activationIndex: number, newSiren: string?)
@@ -468,6 +483,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 			return
 		end
 		(activation :: OverrideActivationState).siren:set(newSiren)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateOverrideActivationDependentFunction(
@@ -484,6 +500,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 			return
 		end
 		(activation :: OverrideActivationState).dependentFunction:set(newDependentFunction)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateOverrideActivationDependentPattern(
@@ -500,6 +517,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 			return
 		end
 		(activation :: OverrideActivationState).dependentPattern:set(newDependentPattern)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -520,6 +538,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 			return
 		end
 		(activation :: AGEventActivationState).mode:set(newMode)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -533,6 +552,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 		local currentPatterns = scope.peek(funcState.patterns)
 		table.insert(currentPatterns, patternToState(scope, pattern))
 		funcState.patterns:set(currentPatterns)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removePattern(functionId: number, index: number)
@@ -542,6 +562,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 		local currentPatterns = scope.peek(funcState.patterns)
 		table.remove(currentPatterns, index)
 		funcState.patterns:set(currentPatterns)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updatePatternPosition(functionId: number, fromIndex: number, toIndex: number)
@@ -560,6 +581,7 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 		end
 		table.insert(reordered, toIndex, patternToMove)
 		funcState.patterns:set(reordered)
+		UIState.unsavedChanges:set(true)
 	end
 
 	return actions

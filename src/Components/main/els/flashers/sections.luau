@@ -38,7 +38,6 @@ return function(
 		locked: Fusion.Value<boolean>,
 		holdingShift: Fusion.Value<boolean>,
 		sections: Fusion.UsedAs<{ FlasherSection }>,
-		updateCurrentConfiguration: () -> (),
 		CurrentPattern: Fusion.Value<types.selectedPattern?>,
 		addSection: (atPoint: number) -> (),
 	}
@@ -223,7 +222,7 @@ return function(
 														selected.patternId,
 														key
 													)
-													props.updateCurrentConfiguration()
+
 													unpause()
 												end,
 												keybind = Enum.KeyCode.Return,
@@ -252,7 +251,7 @@ return function(
 										math.max(0, tonumber(scope.peek(waitTimeText)) or 0.05)
 									)
 									waitTimeText:set(tostring(scope.peek(value.waitTime)))
-									props.updateCurrentConfiguration()
+
 									unpause()
 									unpause()
 								end,
@@ -302,7 +301,7 @@ return function(
 										section = value,
 										sectionKey = key,
 										CurrentPattern = props.CurrentPattern,
-										updateCurrentConfiguration = props.updateCurrentConfiguration,
+
 										propagateNameChange = propagateNameChange,
 									}
 							end
@@ -374,7 +373,6 @@ return function(
 											key,
 											deleting
 										)
-										props.updateCurrentConfiguration()
 									end
 
 									if scope.peek(props.holdingShift) then
@@ -444,7 +442,7 @@ return function(
 										adding + 1
 									)
 									propagateNameChange(scope.peek(value.columns)[adding + 1], adding + 1, originalName)
-									props.updateCurrentConfiguration()
+
 									task.delay(1 / 16, function()
 										currentlyHovering:set(adding + 1)
 									end)
@@ -494,7 +492,7 @@ return function(
 											drawing = props.drawing,
 											size = props.size,
 											CurrentPattern = props.CurrentPattern,
-											updateCurrentConfiguration = props.updateCurrentConfiguration,
+
 											locked = props.locked,
 											currentColor = props.currentColor,
 											colors = props.colors,
@@ -639,7 +637,6 @@ return function(
 													key,
 													deleting
 												)
-												props.updateCurrentConfiguration()
 											end
 
 											if scope.peek(props.holdingShift) then
@@ -693,7 +690,6 @@ return function(
 													key
 												)
 											end
-											props.updateCurrentConfiguration()
 										end,
 									},
 								},

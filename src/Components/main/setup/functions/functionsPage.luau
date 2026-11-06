@@ -24,7 +24,6 @@ local function testFunctionName(name: string, functions: { string }, currentDept
 end
 
 type props = {
-	UnsavedChanges: Fusion.Value<boolean>,
 	currentContent: Fusion.Value<"functions" | "activation" | "patterns">,
 	CurrentVehicle: Fusion.Value<Model | string?>,
 	actualTableSize: Fusion.Value<Vector2>,

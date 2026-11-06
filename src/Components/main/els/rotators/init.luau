@@ -19,7 +19,6 @@ local components = {
 }
 
 type props = {
-	UnsavedChanges: Fusion.Value<boolean>,
 	Enabled: Fusion.UsedAs<boolean>,
 	Mode: Fusion.Value<types.mode>,
 	CurrentPanel: Fusion.Value<types.mainPanels>,
@@ -97,9 +96,8 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				previousGoal = 0,
 			} :: RotatorSection
 	end)
-	local function updateCurrentConfiguration()
+	local function onEdited()
 		playing:set(false)
-		props.UnsavedChanges:set(true)
 	end
 	scope:Observer(pattern):onChange(function()
 		playing:set(false)
@@ -133,7 +131,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						for index = #scope.peek(rotators), 1, -1 do
 							ConfigurationEditor.removeRotatorSection(selected.functionId, selected.patternId, index)
 						end
-						updateCurrentConfiguration()
+						onEdited()
 					end,
 				},
 			},
@@ -154,7 +152,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 				{ type = "Angle", angle = -90, velocity = 0.1, color = 1 },
 			},
 		}, index)
-		updateCurrentConfiguration()
+		onEdited()
 		unpause()
 	end
 
@@ -450,7 +448,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 										colors = colors,
 										rotators = rotators,
 										temporarlyPause = temporarlyPause,
-										updateCurrentConfiguration = updateCurrentConfiguration,
+										onEdited = onEdited,
 										addRotator = addRotator,
 										CurrentPattern = props.CurrentPattern,
 										size = size,

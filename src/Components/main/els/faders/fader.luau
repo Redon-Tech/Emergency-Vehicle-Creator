@@ -36,7 +36,7 @@ return function(
 		size: Fusion.Value<Vector2>,
 		temporarlyPause: () -> () -> (),
 		faders: Fusion.UsedAs<{ FaderSection }>,
-		updateCurrentConfiguration: () -> (),
+		onEdited: () -> (),
 		holdingShift: Fusion.Value<boolean>,
 		playing: Fusion.Value<boolean>,
 		colors: Fusion.UsedAs<{ ChassisHandler.color }>,
@@ -101,7 +101,7 @@ return function(
 									selected.patternId,
 									props.key
 								)
-								props.updateCurrentConfiguration()
+								props.onEdited()
 								unpause()
 							end
 
@@ -165,7 +165,7 @@ return function(
 										props.key,
 										scope.peek(lightName)
 									)
-									props.updateCurrentConfiguration()
+									props.onEdited()
 								end,
 							},
 
@@ -337,7 +337,7 @@ return function(
 								dataSize = dataSize,
 								CurrentPattern = props.CurrentPattern,
 								sectionKey = props.key,
-								updateCurrentConfiguration = props.updateCurrentConfiguration,
+								onEdited = props.onEdited,
 								colors = props.colors,
 								fader = props.fader,
 								playing = props.playing,
@@ -374,7 +374,7 @@ return function(
 											props.key,
 											deleting
 										)
-										props.updateCurrentConfiguration()
+										props.onEdited()
 									end
 
 									if scope.peek(props.holdingShift) then
@@ -429,7 +429,7 @@ return function(
 										props.key,
 										{ type = "Wait", time = 0.5 }
 									)
-									props.updateCurrentConfiguration()
+									props.onEdited()
 								end,
 							},
 						},

@@ -46,7 +46,6 @@ local function addButton(
 end
 
 type props = {
-	UnsavedChanges: Fusion.Value<boolean>,
 	CurrentPanel: Fusion.Value<types.mainPanels>,
 	CurrentPage: Fusion.Value<types.pages?>,
 	CurrentVehicle: Fusion.Value<Model | string?>,

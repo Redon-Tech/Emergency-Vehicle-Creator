@@ -29,7 +29,6 @@ return function(
 		size: Fusion.Value<Vector2>,
 		position: Fusion.Value<Vector2>,
 		section: FlasherSection,
-		updateCurrentConfiguration: () -> (),
 		CurrentPattern: Fusion.Value<types.selectedPattern?>,
 		propagateNameChange: (columnData: Editor.FlasherColumnState, columnKey: number, originalName: string) -> (),
 	}
@@ -197,7 +196,6 @@ return function(
 				if enterPressed then
 					props.propagateNameChange(props.columnData, props.columnKey, originalName)
 				end
-				props.updateCurrentConfiguration()
 			end,
 		}
 	)

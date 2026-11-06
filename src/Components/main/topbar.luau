@@ -3,6 +3,7 @@
 
 local Fusion = require("../../../Packages/fusion")
 local RedonUI = require("../../../Packages/redon-ui")
+local UIState = require("../../lib/UIState")
 local types = require("../../types")
 local popup = require("../popup")
 local ChassisHandler = require("../../lib/ChassisHandler")
@@ -10,7 +11,6 @@ local VehicleHandler = require("../../lib/VehicleHandler")
 local savePopup = require("./savePopup")
 
 type props = {
-	UnsavedChanges: Fusion.Value<boolean>,
 	Mode: Fusion.Value<types.mode>,
 	CurrentPanel: Fusion.Value<types.mainPanels>,
 	CurrentPage: Fusion.Value<types.pages?>,
@@ -125,7 +125,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						TextScaled = true,
 						Text = scope:Computed(function(use)
 							local baseText = if use(props.CurrentVehicle) == nil then "Custom Export" else "Export"
-							return if use(props.UnsavedChanges) == true then `{baseText}*` else baseText
+							return if use(UIState.unsavedChanges) == true then `{baseText}*` else baseText
 						end),
 						BackgroundTransparency = 1,
 						TextXAlignment = Enum.TextXAlignment.Right,
@@ -169,7 +169,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 											end
 											local saved = ChassisHandler:saveConfiguration(currentVehicle)
 											if saved == true then
-												props.UnsavedChanges:set(false)
+												UIState.unsavedChanges:set(false)
 											end
 										end,
 										keybind = Enum.KeyCode.Return,

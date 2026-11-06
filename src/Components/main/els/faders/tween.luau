@@ -28,7 +28,7 @@ return function(
 		tween: Editor.FaderTweenState,
 		dataSize: Fusion.Value<Vector2>,
 		CurrentPattern: Fusion.Value<types.selectedPattern?>,
-		updateCurrentConfiguration: () -> (),
+		onEdited: () -> (),
 		colors: Fusion.UsedAs<{ ChassisHandler.color }>,
 		fader: FaderSection,
 		playing: Fusion.Value<boolean>,
@@ -66,7 +66,7 @@ return function(
 				props.key,
 				newType :: "Simple" | "Advanced" | "Wait"
 			)
-			props.updateCurrentConfiguration()
+			props.onEdited()
 		end,
 	}
 	local baseDropdownFrame = baseDropdown[2] :: Frame
@@ -95,7 +95,7 @@ return function(
 					tonumber(scope.peek(currentTime)) or 0
 				)
 				currentTime:set(tostring(scope.peek(props.tween.time)))
-				props.updateCurrentConfiguration()
+				props.onEdited()
 			end,
 		},
 	}
@@ -152,7 +152,7 @@ return function(
 							props.key,
 							colorId - 1
 						)
-						props.updateCurrentConfiguration()
+						props.onEdited()
 					end,
 				}
 				local colorDropdownFrame = colorDropdown[2] :: Frame
@@ -190,7 +190,7 @@ return function(
 									)
 								)
 							)
-							props.updateCurrentConfiguration()
+							props.onEdited()
 						end,
 					}
 				)
@@ -227,7 +227,7 @@ return function(
 								props.key,
 								newEasingStyle :: Enum.EasingStyle
 							)
-							props.updateCurrentConfiguration()
+							props.onEdited()
 						end,
 					}
 					local easingStyleDropdownFrame = easingStyleDropdown[2] :: Frame
@@ -265,7 +265,7 @@ return function(
 								props.key,
 								newEasingDirection :: Enum.EasingDirection
 							)
-							props.updateCurrentConfiguration()
+							props.onEdited()
 						end,
 					}
 					local easingStyleDropdownFrame = easingStyleDropdown[2] :: Frame

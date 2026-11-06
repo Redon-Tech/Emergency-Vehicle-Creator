@@ -14,7 +14,6 @@ local components = {
 }
 
 type props = {
-	UnsavedChanges: Fusion.Value<boolean>,
 	Mode: Fusion.Value<types.mode>,
 	CurrentPanel: Fusion.Value<types.mainPanels>,
 	CurrentPage: Fusion.Value<types.pages?>,
@@ -105,7 +104,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 				[Fusion.Children] = {
 					scope:functionsPage {
-						UnsavedChanges = props.UnsavedChanges,
 						CurrentVehicle = props.CurrentVehicle,
 						currentContent = currentContent,
 						actualTableSize = actualTableSize,
@@ -113,7 +111,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					},
 
 					scope:activationsPage {
-						UnsavedChanges = props.UnsavedChanges,
 						CurrentPanel = props.CurrentPanel,
 						CurrentPage = props.CurrentPage,
 						CurrentVehicle = props.CurrentVehicle,

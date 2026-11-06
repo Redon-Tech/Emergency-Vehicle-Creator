@@ -39,7 +39,7 @@ return function(
 		colors: Fusion.UsedAs<{ ChassisHandler.color }>,
 		rotators: Fusion.UsedAs<{ RotatorSection }>,
 		temporarlyPause: () -> () -> (),
-		updateCurrentConfiguration: () -> (),
+		onEdited: () -> (),
 		addRotator: (number) -> (),
 		CurrentPattern: Fusion.Value<types.selectedPattern?>,
 		size: Fusion.Value<Vector2>,
@@ -230,7 +230,7 @@ return function(
 									selected.patternId,
 									props.key
 								)
-								props.updateCurrentConfiguration()
+								props.onEdited()
 								unpause()
 							end
 
@@ -282,7 +282,7 @@ return function(
 								props.key,
 								scope.peek(lightName)
 							)
-							props.updateCurrentConfiguration()
+							props.onEdited()
 						end,
 					},
 
@@ -340,7 +340,7 @@ return function(
 								rotator = props.rotator,
 								playing = props.playing,
 								colors = props.colors,
-								updateCurrentConfiguration = props.updateCurrentConfiguration,
+								onEdited = props.onEdited,
 								CurrentPattern = props.CurrentPattern,
 								sectionKey = props.key,
 								dataSize = dataSize,
@@ -377,7 +377,7 @@ return function(
 											props.key,
 											deleting
 										)
-										props.updateCurrentConfiguration()
+										props.onEdited()
 									end
 
 									if scope.peek(props.holdingShift) then
@@ -432,7 +432,7 @@ return function(
 										props.key,
 										{ type = "Wait", time = 0.5 }
 									)
-									props.updateCurrentConfiguration()
+									props.onEdited()
 								end,
 							},
 						},

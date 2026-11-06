@@ -84,10 +84,11 @@ end
 
 -- Main Requirements
 local SettingsHandler = require("@self/lib/SettingsHandler")
+local UIState = require("@self/lib/UIState")
+local ChassisHandler = require("@self/lib/ChassisHandler")
 local ConfigurationEditor = require("@self/lib/ConfigurationEditor")
 local Fusion = require("./Packages/fusion")
 local RedonUI = require("./Packages/redon-ui")
-local types = require("@self/types")
 
 -- Setup Scope
 local utils = require("@self/lib/utils")
@@ -118,14 +119,50 @@ if scope.peek(SettingsHandler.values.debugMode) == true then
 	log.verbosity = log.level.debug
 end
 
+UIState.init(scope, isRBXM and IS_DEV)
 ConfigurationEditor.init(scope)
 
--- Values
-local enabled = scope:Value(isRBXM and IS_DEV)
-local mode = scope:Value("menu" :: types.mode)
-local currentVehicle: Fusion.Value<Model | string?> = scope:Value(nil)
-local possibleVehicle: Fusion.Value<Model?> = scope:Value(nil)
-local returnTo = scope:Value("menu" :: types.returnTo)
+-- Shared UI state
+local enabled = UIState.enabled
+local mode = UIState.mode
+local currentVehicle = UIState.currentVehicle
+local possibleVehicle = UIState.possibleVehicle
+local returnTo = UIState.returnTo
+
+-- Vehicle state outlives UI scopes, including theme changes.
+scope:Observer(currentVehicle):onChange(function()
+	UIState.currentPattern:set(nil)
+	if scope.peek(ConfigurationEditor.current) ~= nil then
+		ConfigurationEditor.unload()
+	end
+	local vehicle = scope.peek(currentVehicle)
+	if typeof(vehicle) == "Instance" then
+		local configuration = ChassisHandler:getConfiguration(vehicle)
+		if configuration ~= nil then
+			ConfigurationEditor.load(configuration)
+		else
+			log.warn("No vehicle configuration found for current vehicle")
+		end
+	end
+end)
+
+local mainEnabled = scope:Computed(function(use)
+	return use(enabled) and use(mode) == "main"
+end)
+scope:Observer(mainEnabled):onChange(function()
+	if not scope.peek(mainEnabled) then
+		return
+	end
+	if scope.peek(currentVehicle) ~= nil then
+		UIState.mainPanel:set("Vehicle Setup")
+		UIState.mainPage:set("Functions")
+	elseif scope.peek(possibleVehicle) == nil then
+		UIState.currentPattern:set({ functionId = 0, patternId = 0 })
+		UIState.mainPanel:set("ELS Setup")
+		UIState.mainPage:set("Flashers")
+	end
+end)
+
 local theme = scope.peek(SettingsHandler.values.theme)
 
 -- UI Initialization

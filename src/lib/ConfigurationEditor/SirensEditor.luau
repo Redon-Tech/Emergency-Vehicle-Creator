@@ -1,6 +1,7 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local log = require("../../log")
 local types = require("../../types")
+local UIState = require("../UIState")
 local Fusion = require("../../../Packages/fusion")
 local utils = require("../utils")
 
@@ -141,6 +142,7 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 		local currentSirens = scope.peek(sirensState)
 		table.insert(currentSirens, newSirenState)
 		sirensState:set(currentSirens)
+		UIState.unsavedChanges:set(true)
 		return newSirenState
 	end
 
@@ -150,6 +152,7 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 		local currentSirens = scope.peek(sirensState)
 		table.remove(currentSirens, index)
 		sirensState:set(currentSirens)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--- Gets all sirens of type "Modifier" from the given SirensState.
@@ -180,6 +183,7 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 		end
 
 		(siren.name :: Fusion.Value<string>):set(newName)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateSirenType(index: number, newType: "Siren" | "Hold" | "Modifier")
@@ -203,6 +207,7 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 			local currentSirens = scope.peek(sirensState)
 			currentSirens[index] = newSirenState
 			sirensState:set(currentSirens)
+			UIState.unsavedChanges:set(true)
 		elseif currentType == "Modifier" and (newType == "Siren" or newType == "Hold") then
 			local newSirenState: SirenHoldState = {
 				name = siren.name,
@@ -214,8 +219,10 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 			local currentSirens = scope.peek(sirensState)
 			currentSirens[index] = newSirenState
 			sirensState:set(currentSirens)
+			UIState.unsavedChanges:set(true)
 		else
 			(siren :: SirenHoldState).type:set(newType :: any)
+			UIState.unsavedChanges:set(true)
 		end
 	end
 
@@ -230,6 +237,7 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 
 		local keybinds = scope.peek(siren.keybinds)
 		keybinds[keybindIndex]:set(newKeybind)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -255,6 +263,7 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 		local siren = getSirenHoldState(index)
 
 		siren.behavoir:set(newBehavior)
+		UIState.unsavedChanges:set(true)
 	end
 
 	--[[
@@ -293,6 +302,7 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 		local modifiers = scope.peek(siren.modifiers)
 		table.insert(modifiers, newModifierState)
 		siren.modifiers:set(modifiers)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.removeModifier(sirenIndex: number, modifierIndex: number)
@@ -302,6 +312,7 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 		local modifiers = scope.peek(siren.modifiers)
 		table.remove(modifiers, modifierIndex)
 		siren.modifiers:set(modifiers)
+		UIState.unsavedChanges:set(true)
 	end
 
 	-- Helper function to get a modifier state given a siren index and modifier index
@@ -319,11 +330,13 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 	function actions.updateModifierName(sirenIndex: number, modifierIndex: number, newName: string)
 		local modifier = getModifier(sirenIndex, modifierIndex)
 		modifier.name:set(newName)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateModifierSirenName(sirenIndex: number, modifierIndex: number, newModifiedSirenName: string)
 		local modifier = getModifier(sirenIndex, modifierIndex)
 		modifier.modifiedSirenName:set(newModifiedSirenName)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateModifierParentSoundBehavior(
@@ -333,6 +346,7 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 	)
 		local modifier = getModifier(sirenIndex, modifierIndex)
 		modifier.parentSoundBehavior:set(newBehavior)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateModifierBehavior(
@@ -342,11 +356,13 @@ function SirensEditor.createActions(getContext: () -> (types.Scope, SirensState)
 	)
 		local modifier = getModifier(sirenIndex, modifierIndex)
 		modifier.behavoir:set(newBehavior)
+		UIState.unsavedChanges:set(true)
 	end
 
 	function actions.updateModifierDelay(sirenIndex: number, modifierIndex: number, newDelay: number)
 		local modifier = getModifier(sirenIndex, modifierIndex)
 		modifier.delay:set(newDelay)
+		UIState.unsavedChanges:set(true)
 	end
 
 	return actions

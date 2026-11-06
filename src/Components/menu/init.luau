@@ -2,6 +2,7 @@
 
 local Fusion = require("../../Packages/fusion")
 local RedonUI = require("../../Packages/redon-ui")
+local UIState = require("../lib/UIState")
 local types = require("../types")
 
 local widget = require("./base/widget")
@@ -50,9 +51,9 @@ return function(baseScope: types.Scope, props: props)
 	local scope = Fusion.innerScope(baseScope, components)
 	local currentTheme = RedonUI.theme.theme:now()
 
-	local currentPanel = scope:Value("Home")
-	local lastPanelIndex = scope:Value(1)
-	local currentPanelIndex = scope:Value(1)
+	local currentPanel = UIState.menuPanel
+	local lastPanelIndex = scope:Value(panelByName[scope.peek(currentPanel)])
+	local currentPanelIndex = scope:Value(panelByName[scope.peek(currentPanel)])
 	scope:Observer(currentPanel):onChange(function()
 		local newPanel = scope.peek(currentPanel)
 		local newIndex = panelByName[newPanel]

@@ -29,7 +29,7 @@ return function(
 		rotator: RotatorSection,
 		playing: Fusion.Value<boolean>,
 		colors: Fusion.UsedAs<{ ChassisHandler.color }>,
-		updateCurrentConfiguration: () -> (),
+		onEdited: () -> (),
 		CurrentPattern: Fusion.Value<types.selectedPattern?>,
 		dataSize: Fusion.Value<Vector2>,
 	}
@@ -66,7 +66,7 @@ return function(
 				props.key,
 				newType :: "Angle" | "Infinite" | "Wait"
 			)
-			props.updateCurrentConfiguration()
+			props.onEdited()
 		end,
 	}
 	local baseDropdownFrame = baseDropdown[2] :: Frame
@@ -129,7 +129,7 @@ return function(
 							props.key,
 							colorId - 1
 						)
-						props.updateCurrentConfiguration()
+						props.onEdited()
 					end,
 				}
 				local colorDropdownFrame = colorDropdown[2] :: Frame
@@ -169,7 +169,7 @@ return function(
 									)
 								)
 							)
-							props.updateCurrentConfiguration()
+							props.onEdited()
 						end,
 					}
 				)
@@ -198,7 +198,7 @@ return function(
 								tonumber(scope.peek(currentText)) or 0
 							)
 							currentText:set(tostring(scope.peek((props.angle :: Editor.WaitState).time)))
-							props.updateCurrentConfiguration()
+							props.onEdited()
 						end,
 					}
 				)
@@ -229,7 +229,7 @@ return function(
 								tonumber(scope.peek(currentText)) or 0
 							)
 							currentText:set(tostring(scope.peek((props.angle :: Editor.AngleRotatorState).angle)))
-							props.updateCurrentConfiguration()
+							props.onEdited()
 						end,
 					}
 				)

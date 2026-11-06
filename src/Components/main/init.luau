@@ -4,7 +4,7 @@ local Fusion = require("../../Packages/fusion")
 local RedonUI = require("../../Packages/redon-ui")
 local types = require("../types")
 local ChassisHandler = require("../lib/ChassisHandler")
-local ConfigurationEditor = require("../lib/ConfigurationEditor")
+local UIState = require("../lib/UIState")
 local log = require("../log")
 local popup = require("./popup")
 
@@ -43,10 +43,10 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 	local scope = Fusion.innerScope(baseScope, components)
 	local currentTheme = RedonUI.theme.theme:now()
 
-	local currentPanel = scope:Value("Vehicle Setup")
-	local currentPage = scope:Value(nil)
-	local unsavedChanges = scope:Value(false)
-	local currentPattern = scope:Value(nil)
+	local currentPanel = UIState.mainPanel
+	local currentPage = UIState.mainPage
+	local unsavedChanges = UIState.unsavedChanges
+	local currentPattern = UIState.currentPattern
 	local installAutoLoader = game:FindFirstChild("Emergency Vehicle Handler - Auto Loader") == nil
 
 	local function configurePossibleVehicle()
@@ -112,22 +112,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 	scope:Observer(props.PossibleVehicle):onBind(configurePossibleVehicle)
 
-	scope:Observer(props.CurrentVehicle):onChange(function()
-		if scope.peek(ConfigurationEditor.current) ~= nil then
-			ConfigurationEditor.unload()
-		end
-		local currentVehicle = scope.peek(props.CurrentVehicle)
-		if currentVehicle ~= nil and typeof(currentVehicle) ~= "string" then
-			local currentConfiguration = ChassisHandler:getConfiguration(currentVehicle)
-			if currentConfiguration ~= nil then
-				log.debug("Found vehicle configuration for current vehicle")
-				ConfigurationEditor.load(currentConfiguration)
-			else
-				log.warn("No vehicle configuration found for current vehicle")
-			end
-		end
-	end)
-
 	if installAutoLoader then
 		popup:addPopup(scope, {
 			title = "Install EVH Auto Loader",
@@ -181,24 +165,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		end),
 
 		Enabled = scope:Computed(function(use)
-			local enable = use(props.Enabled) == true and use(props.Mode) == "main"
-			if enable and scope.peek(props.CurrentVehicle) ~= nil then
-				currentPanel:set("Vehicle Setup")
-				currentPage:set("Functions")
-			elseif enable and scope.peek(props.PossibleVehicle) == nil then
-				currentPattern:set({
-					functionId = 0,
-					patternId = 0,
-					pattern = {
-						flashers = {},
-						faders = {},
-						rotators = {},
-					},
-				})
-				currentPanel:set("ELS Setup")
-				currentPage:set("Flashers")
-			end
-			return enable
+			return use(props.Enabled) == true and use(props.Mode) == "main"
 		end),
 
 		[Fusion.Children] = {
@@ -214,8 +181,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 				[Fusion.Children] = Fusion.Child {
 					scope:topbar {
-						UnsavedChanges = unsavedChanges,
-						CurrentPanel = currentPanel :: any,
+						CurrentPanel = currentPanel,
 						CurrentPage = currentPage,
 						CurrentVehicle = props.CurrentVehicle,
 						PossibleVehicle = props.PossibleVehicle,
@@ -225,8 +191,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					},
 
 					functions(scope, {
-						UnsavedChanges = unsavedChanges,
-						CurrentPanel = currentPanel :: any,
+						CurrentPanel = currentPanel,
 						CurrentPage = currentPage,
 						Mode = props.Mode,
 						CurrentVehicle = props.CurrentVehicle,
@@ -235,8 +200,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					}),
 
 					sirens(scope, {
-						UnsavedChanges = unsavedChanges,
-						CurrentPanel = currentPanel :: any,
+						CurrentPanel = currentPanel,
 						CurrentPage = currentPage,
 						Mode = props.Mode,
 						CurrentVehicle = props.CurrentVehicle,
@@ -244,16 +208,14 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 
 					lightSettings(scope, {
 						CurrentPattern = currentPattern,
-						UnsavedChanges = unsavedChanges,
-						CurrentPanel = currentPanel :: any,
+						CurrentPanel = currentPanel,
 						CurrentPage = currentPage,
 						Mode = props.Mode,
 						CurrentVehicle = props.CurrentVehicle,
 					}),
 
 					flashers(scope, {
-						UnsavedChanges = unsavedChanges,
-						CurrentPanel = currentPanel :: any,
+						CurrentPanel = currentPanel,
 						CurrentPage = currentPage,
 						Mode = props.Mode,
 						CurrentVehicle = props.CurrentVehicle,
@@ -262,8 +224,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					}),
 
 					faders(scope, {
-						UnsavedChanges = unsavedChanges,
-						CurrentPanel = currentPanel :: any,
+						CurrentPanel = currentPanel,
 						CurrentPage = currentPage,
 						Mode = props.Mode,
 						CurrentVehicle = props.CurrentVehicle,
@@ -272,8 +233,7 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					}),
 
 					rotators(scope, {
-						UnsavedChanges = unsavedChanges,
-						CurrentPanel = currentPanel :: any,
+						CurrentPanel = currentPanel,
 						CurrentPage = currentPage,
 						Mode = props.Mode,
 						CurrentVehicle = props.CurrentVehicle,
