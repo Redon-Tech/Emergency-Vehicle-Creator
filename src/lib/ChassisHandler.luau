@@ -512,6 +512,22 @@ function ChassisHandler.installPlugin(self: ChassisHandler, model: Model): boole
 	return true
 end
 
+--- Require a fresh clone to bypass Roblox's ModuleScript result cache.
+local function readConfigurationModule(module: ModuleScript): unknown
+	local clone = module:Clone()
+	local success, result = pcall(function()
+		return (require :: any)(clone)
+	end)
+	clone:Destroy()
+
+	if not success then
+		log.warn("Failed to load configuration module", module:GetFullName(), result)
+		return nil
+	end
+
+	return result
+end
+
 --- Retrieves the configuration for the given model.
 --- If the configuration is already cached, it will return the cached data.
 function ChassisHandler.getConfiguration(self: ChassisHandler, model: Model): chassisConfiguration?
@@ -550,35 +566,23 @@ function ChassisHandler.getConfiguration(self: ChassisHandler, model: Model): ch
 		return
 	end
 
-	--[[
-		This is done to ensure that we are not requiring a reference
-		but rather the actual data in the ModuleScript
-		because for reasons beyond me, some things like lightgroups
-		just wont show up in the data if its re-required after
-		exporting new data to it
-		DM parker if u dont understand this
-		I personally hate this 😎
-	]]
-	--[[
-		Hello, it is me again.
-		I understand this now.
-		Turns out I am a dumbass and the nightmare of this codebase
-		has caused issues like the above, hopefully in the future
-		this can be fixed so we can remove dumbass workarounds like
-		this.
-		- Parker, looking back at the codebase 6 months later
-	]]
-	local clonedFunctions = functions:Clone()
-	local clonedSirens = sirens:Clone()
-	local clonedLightSettings = lightSettings:Clone()
+	local functionsData = readConfigurationModule(functions) :: { types.elsFunction }?
+	if functionsData == nil then
+		return
+	end
+	local sirensData = readConfigurationModule(sirens) :: { types.siren }?
+	if sirensData == nil then
+		return
+	end
+	local lightSettingsData = readConfigurationModule(lightSettings) :: lightSettings?
+	if lightSettingsData == nil then
+		return
+	end
 	local data = {
-		functions = (require :: any)(clonedFunctions) :: { types.elsFunction },
-		sirens = (require :: any)(clonedSirens) :: { types.siren },
-		lightSettings = (require :: any)(clonedLightSettings) :: lightSettings,
+		functions = functionsData,
+		sirens = sirensData,
+		lightSettings = lightSettingsData,
 	}
-	clonedFunctions:Destroy()
-	clonedSirens:Destroy()
-	clonedLightSettings:Destroy()
 	log.debug("Loaded configuration for", model.Name, data)
 
 	--TODO: In the future abstract updating
