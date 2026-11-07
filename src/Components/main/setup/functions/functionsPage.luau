@@ -141,7 +141,7 @@ return function(scope: types.Scope, props: props)
 								newFunctionName = "New Function"
 							end
 
-							local newFunctionData = scope.deepCopy(ChassisHandler.defaults.functions)
+							local newFunctionData = scope.deepCopy(ChassisHandler.defaults.functions[1])
 							newFunctionData.name = newFunctionName
 							newFunctionData.weight = #scope.peek(currentConfiguration.functions) + 1
 

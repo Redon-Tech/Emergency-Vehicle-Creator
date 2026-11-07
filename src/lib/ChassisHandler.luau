@@ -52,21 +52,18 @@ type ChassisHandler = {
 	saveConfiguration: (self: ChassisHandler, model: Model, data: chassisConfiguration) -> boolean,
 	getLights: (currentConfiguration: chassisConfiguration, model: Instance) -> { string },
 	getSirens: (model: Instance) -> { string },
-	defaults: {
-		functions: types.elsFunction,
-		modifier: types.siren,
-		colors: { color },
-	},
+	defaults: chassisConfiguration,
 }
 
 local ChassisHandler = {
 	cache = {},
 	defaults = {
 		functions = {
+			{
 			weight = 0,
 			name = "default",
 			activations = {
-				{
+			{
 					type = "Standard",
 					mode = "Cycle",
 					pattern = 0,
@@ -79,11 +76,10 @@ local ChassisHandler = {
 				rotators = {},
 			} },
 		},
-		modifier = {
-			name = "default",
-			type = "Modifier",
-			keybinds = { Enum.KeyCode.T, Enum.KeyCode.None },
 		},
+		sirens = {},
+		lightSettings = {
+			version = latestVersion,
 		colors = {
 			{
 				name = "Blue",
@@ -121,6 +117,15 @@ local ChassisHandler = {
 				lightColor = Color3.fromRGB(200, 0, 200),
 				lightoColor = Color3.fromRGB(188, 12, 211),
 			},
+			},
+			configuration = {
+				shouldChangeNeons = true,
+				shouldChangeLights = true,
+				shouldChangeLightos = true,
+				shouldChangeParticleEmitters = false,
+				partTransparency = 0.011,
+			},
+			lightGroups = {},
 		},
 	},
 } :: ChassisHandler

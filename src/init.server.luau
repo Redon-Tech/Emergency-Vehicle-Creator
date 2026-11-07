@@ -130,7 +130,7 @@ local possibleVehicle = UIState.possibleVehicle
 local returnTo = UIState.returnTo
 
 -- Vehicle state outlives UI scopes, including theme changes.
-scope:Observer(currentVehicle):onChange(function()
+scope:Observer(currentVehicle):onBind(function()
 	UIState.currentPattern:set(nil)
 	if scope.peek(ConfigurationEditor.current) ~= nil then
 		ConfigurationEditor.unload()
@@ -143,6 +143,8 @@ scope:Observer(currentVehicle):onChange(function()
 		else
 			log.warn("No vehicle configuration found for current vehicle")
 		end
+	elseif vehicle == nil then
+		ConfigurationEditor.load(ChassisHandler.defaults)
 	end
 end)
 
@@ -157,7 +159,7 @@ scope:Observer(mainEnabled):onChange(function()
 		UIState.mainPanel:set("Vehicle Setup")
 		UIState.mainPage:set("Functions")
 	elseif scope.peek(possibleVehicle) == nil then
-		UIState.currentPattern:set({ functionId = 0, patternId = 0 })
+		UIState.currentPattern:set({ functionId = 1, patternId = 1 })
 		UIState.mainPanel:set("ELS Setup")
 		UIState.mainPage:set("Flashers")
 	end
