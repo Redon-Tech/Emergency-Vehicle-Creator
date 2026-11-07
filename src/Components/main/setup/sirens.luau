@@ -9,6 +9,7 @@ local ConfigurationEditor = require("../../../lib/ConfigurationEditor")
 local SirensEditor = require("../../../lib/ConfigurationEditor/SirensEditor")
 local popup = require("../../popup")
 local createChildren = require("./createChildren")
+local controls = require("./controls")
 
 type props = {
 	Mode: Fusion.Value<types.mode>,
@@ -23,9 +24,12 @@ type props = {
 ]]
 return function(scope: types.Scope, props: props): Fusion.Child
 	local currentTheme = RedonUI.theme.theme:now()
+	local viewportSize = scope:Value(Vector2.new(1820, 895))
+	local scale = scope:Computed(function(use)
+		return use(viewportSize).X / 1820
+	end)
 
 	local newSirenName = scope:Value("")
-	local actualTableSize = scope:Value(Vector2.one)
 
 	local sirens = scope:Computed(function(use)
 		local currentConfiguration = use(ConfigurationEditor.current)
@@ -39,6 +43,266 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		return currentSirens
 	end)
 
+	local soundNames = scope:Computed(function(use): { string }
+		local vehicle = use(props.CurrentVehicle)
+		if typeof(vehicle) ~= "Instance" then
+			return {}
+		end
+		return ChassisHandler.getSirens(vehicle)
+	end)
+
+	local modifierNames = scope:Computed(function(use): { string }
+		local configuration = use(ConfigurationEditor.current)
+		if configuration == nil then
+			return {}
+		end
+		-- The editor helper uses peek, so track its input states here.
+		for _, siren in use(configuration.sirens) do
+			use(siren.type)
+			use(siren.name)
+		end
+		return ConfigurationEditor.getAllModifiers()
+	end)
+
+	local rows = scope:ForPairs(sirens, function(use, scope: types.Scope, key, siren): (number, createChildren.Row)
+		local keybinds: { [string]: Fusion.Child? } = {}
+		local currentKeybinds = use(siren.keybinds)
+		for index, keybind in currentKeybinds do
+			local columnKey = tostring(index)
+			keybinds[columnKey] = controls.keybindInput(scope, {
+				Scale = scale,
+				Value = keybind,
+				Gamepad = index == 2,
+				OnChange = function(value)
+					ConfigurationEditor.updateSirenKeybind(key, index, value)
+				end,
+			})
+		end
+
+		local cells: { [string]: Fusion.Child? } = {
+			type = createChildren.Dropdown<<"Siren" | "Hold" | "Modifier">>(scope, {
+				Scale = scale,
+				Selected = siren.type :: Fusion.StateObject<"Siren" | "Hold" | "Modifier">,
+				Options = { "Siren", "Hold", "Modifier" } :: { "Siren" | "Hold" | "Modifier" },
+				Height = 50,
+				OnSelect = function(value: "Siren" | "Hold" | "Modifier")
+					ConfigurationEditor.updateSirenType(key, value)
+				end,
+			}),
+			keyboard = keybinds["1"],
+			gamepad = keybinds["2"],
+			actions = controls.actions(scope, {
+				Scale = scale,
+				OnDelete = function()
+					popup:addPopup(scope, {
+						title = "Delete Siren",
+						description = "Are you sure you want to delete this siren?\n<b>All data will be lost.</b>",
+						actions = {
+							{
+								text = "Cancel",
+								type = "primary",
+								key = 1,
+								callback = function(newPopup)
+									popup:removePopup(newPopup)
+								end,
+								keybind = Enum.KeyCode.Escape,
+							},
+							{
+								text = "Delete",
+								type = "danger",
+								key = 2,
+								callback = function(newPopup)
+									popup:removePopup(newPopup)
+									ConfigurationEditor.removeSiren(key)
+								end,
+								keybind = Enum.KeyCode.Return,
+							},
+						},
+					})
+				end,
+				OnDownload = function() end,
+			}),
+		}
+
+		local children: Fusion.Child? = nil
+		if use(siren.type) ~= "Modifier" then
+			local siren = siren :: SirensEditor.SirenHoldState
+			cells.name = createChildren.Dropdown(scope, {
+				Scale = scale,
+				Selected = siren.name,
+				Options = soundNames,
+				Height = 50,
+				OnSelect = function(name)
+					ConfigurationEditor.updateSirenName(key, name)
+				end,
+			})
+			cells.behavior = createChildren.Dropdown<<types.SirenBehavior>>(scope, {
+				Scale = scale,
+				Selected = siren.behavoir,
+				Options = { "Overrides Other Sounds", "Plays Simultaneously" } :: { types.SirenBehavior },
+				Height = 50,
+				OnSelect = function(value: types.SirenBehavior)
+					ConfigurationEditor.updateSirenBehavior(key, value)
+				end,
+			})
+			cells.modifiers = controls.button(scope, {
+				Scale = scale,
+				Value = "Add Modifiers",
+				OnChange = function()
+					ConfigurationEditor.addModifier(key)
+				end,
+			})
+			children = {
+				createChildren.Table(scope, {
+					Scale = scale,
+					Padding = 0,
+					RowPadding = 8.5,
+					HeaderHeight = 25,
+					HideWhenEmpty = true,
+					LayoutOrder = 1,
+					Columns = {
+						{ key = "name", width = UDim.new(0, 250) },
+						{ key = "sound", width = UDim.new(0, 250) },
+						{ key = "parentBehavior", width = UDim.new(0, 250) },
+						{ key = "behavior", width = UDim.new(0, 250) },
+						{ key = "delay", width = UDim.new(0, 75) },
+						{ key = "actions", rightAligned = true },
+					},
+					Headers = {
+						name = "Modifier",
+						sound = "Modified siren name",
+						parentBehavior = "Parent sound behavior",
+						behavior = "Replay behavior",
+						delay = "Delay",
+					},
+					Rows = scope:ForPairs(
+						siren.modifiers,
+						function(_, scope: types.Scope, i, modifier): (number, createChildren.Row)
+							return i,
+								{
+									Cells = {
+										name = createChildren.Dropdown(scope, {
+											Scale = scale,
+											Selected = modifier.name,
+											Options = modifierNames,
+											Height = 45,
+											OnSelect = function(value)
+												ConfigurationEditor.updateModifierName(key, i, value)
+											end,
+										}),
+										sound = createChildren.Dropdown(scope, {
+											Scale = scale,
+											Selected = modifier.modifiedSirenName,
+											Options = soundNames,
+											Height = 45,
+											OnSelect = function(value)
+												ConfigurationEditor.updateModifierSirenName(key, i, value)
+											end,
+										}),
+										parentBehavior = createChildren.Dropdown<<types.ModifierParentSoundBehavior>>(
+											scope,
+											{
+												Scale = scale,
+												Selected = modifier.parentSoundBehavior,
+												Options = { "Play Parent Sound", "Plays Simultaneously" } :: { types.ModifierParentSoundBehavior },
+												Height = 45,
+												OnSelect = function(value: types.ModifierParentSoundBehavior)
+													ConfigurationEditor.updateModifierParentSoundBehavior(key, i, value)
+												end,
+											}
+										),
+										behavior = createChildren.Dropdown<<types.ModifierBehavior>>(scope, {
+											Scale = scale,
+											Selected = modifier.behavoir,
+											Options = { "Play Automatically", "Require Parent Replay" } :: { types.ModifierBehavior },
+											Height = 45,
+											OnSelect = function(value: types.ModifierBehavior)
+												ConfigurationEditor.updateModifierBehavior(key, i, value)
+											end,
+										}),
+										delay = controls.numberInput(scope, {
+											Scale = scale,
+											Value = modifier.delay,
+											Height = 45,
+											OnChange = function(value)
+												ConfigurationEditor.updateModifierDelay(key, i, value)
+											end,
+										}),
+										actions = controls.actions(scope, {
+											Scale = scale,
+											Height = 45,
+											OnDelete = function()
+												popup:addPopup(scope, {
+													title = "Delete Modifier",
+													description = "Are you sure you want to delete this modifier?\n<b>All data will be lost.</b>",
+													actions = {
+														{
+															text = "Cancel",
+															type = "primary",
+															key = 1,
+															callback = function(newPopup)
+																popup:removePopup(newPopup)
+															end,
+															keybind = Enum.KeyCode.Escape,
+														},
+														{
+															text = "Delete",
+															type = "danger",
+															key = 2,
+															callback = function(newPopup)
+																popup:removePopup(newPopup)
+																ConfigurationEditor.removeModifier(key, i)
+															end,
+															keybind = Enum.KeyCode.Return,
+														},
+													},
+												})
+											end,
+										}),
+									},
+								}
+						end
+					),
+				}),
+			}
+		else
+			cells.name = controls.textInput(scope, {
+				Scale = scale,
+				Value = siren.name,
+				Height = 50,
+				OnChange = function(name)
+					ConfigurationEditor.updateSirenName(key, name)
+				end,
+			})
+		end
+
+		if #currentKeybinds > 2 then
+			local extraBindings: { Fusion.Child } = {}
+			for index = 3, #currentKeybinds do
+				table.insert(
+					extraBindings,
+					createChildren.Field(scope, {
+						Scale = scale,
+						Label = `Keybind {index}`,
+						LayoutOrder = index,
+						Content = keybinds[tostring(index)] or {},
+					})
+				)
+			end
+			children = { children or {}, extraBindings }
+		end
+
+		return key,
+			{
+				BackgroundColor3 = if key % 2 == 0 then currentTheme.colors.mantle else currentTheme.colors.crust,
+				Cells = cells,
+				Children = children,
+				ChildrenHidden = scope:Computed(function(use)
+					return if use(siren.type) ~= "Modifier" then #use(siren.modifiers) == 0 else true
+				end),
+			}
+	end)
+
 	-- 1820, 895
 	local content = {
 		scope:base {
@@ -46,10 +310,14 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			Position = UDim2.fromScale(0.5, 0.5),
 			BackgroundTransparency = 1,
+			[Fusion.Out "AbsoluteSize"] = viewportSize :: unknown,
 
 			[Fusion.Children] = {
 				scope:New("UIListLayout") {
 					SortOrder = Enum.SortOrder.LayoutOrder,
+					Padding = scope:Computed(function(use)
+						return UDim.new(0, 15 * use(scale))
+					end),
 				},
 				scope:New("UIPadding") {
 					PaddingTop = UDim.new(0.0145251397, 0),
@@ -59,6 +327,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 					Size = UDim2.fromScale(1, 0.0558659218),
 					BackgroundTransparency = 1,
 					LayoutOrder = 0,
+					ZIndex = 2,
 
 					[Fusion.Children] = {
 						scope:New("UIListLayout") {
@@ -138,316 +407,44 @@ return function(scope: types.Scope, props: props): Fusion.Child
 				},
 
 				scope:base {
-					Size = UDim2.fromScale(1, 0.0558659218),
-					BackgroundTransparency = 1,
-					LayoutOrder = 1,
+					ClassName = "ScrollingFrame",
+					ZIndex = 1,
+					ScrollBarThickness = 3,
+					ScrollBarImageColor3 = currentTheme.colors.text,
+					TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+					BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+					AutomaticCanvasSize = Enum.AutomaticSize.Y,
+					CanvasSize = UDim2.new(),
+					ClipsDescendants = true,
 
-					[Fusion.Children] = Fusion.Child {
-						scope:New("UIListLayout") {
-							Padding = UDim.new(0.0082417582, 0),
-							FillDirection = Enum.FillDirection.Horizontal,
-							SortOrder = Enum.SortOrder.LayoutOrder,
-						},
-
-						scope:New("UIPadding") {
-							PaddingLeft = UDim.new(0.0082417582, 0),
-						},
-
-						scope:ForPairs(
-							{ "Sound name", "Type", "Sound behavior", "Keyboard", "Gamepad" },
-							function(_, scope: typeof(scope), key: number, value: string)
-								return key,
-									scope:textLabel {
-										Size = UDim2.fromScale(0.1373626374, 1),
-										Text = value,
-										FontWeight = Enum.FontWeight.Medium,
-										TextXAlignment = Enum.TextXAlignment.Left,
-										TextScaled = true,
-										MaxTextSize = 16,
-										BackgroundTransparency = 1,
-										LayoutOrder = key,
-									}
-							end
-						),
-					},
-				},
-
-				scope:list {
-					Size = UDim2.fromScale(1, 0.8324022346), -- 895 -75-75 total 745
-					AnchorPoint = Vector2.new(0.5, 1),
-					Position = UDim2.fromScale(0.5, 1),
+					Size = UDim2.fromScale(1, 0.8882681564),
 					BackgroundColor3 = currentTheme.colors.mantle,
-					AlternateColor3 = currentTheme.colors.crust,
-					RowSize = UDim2.fromScale(1, 0), -- 1820, 75
-					PrimaryColor = "Alternate" :: "Alternate",
 					CornerRadius = UDim.new(0.0182926829, 0),
-					AutomaticSize = Enum.AutomaticSize.Y,
-					LayoutOrder = 2,
-					[Fusion.Out "AbsoluteSize"] = actualTableSize,
-					Rows = scope:ForPairs(sirens, function(_, scope: typeof(scope), key: number, siren)
-						local rowSize = scope:Value(75)
-						local bg = scope:Spring(scope:Value(1), 10, 1)
-						bg:setPosition(0)
-
-						return key,
-							scope:base {
-								Size = scope:Computed(function(use)
-									return UDim2.new(1, 0, 0, (use(rowSize) / 745) * use(actualTableSize).Y)
-								end),
-								BackgroundColor3 = currentTheme.colors.surface0,
-								BackgroundTransparency = bg,
-
-								[Fusion.Children] = createChildren(scope, {
-									rowSize = rowSize,
-									options = scope:Computed(function(use)
-										local options: { createChildren.option } = {
-											{
-												type = "select",
-												value = siren.name,
-												layoutOrder = 1,
-												options = scope:Computed(function(use)
-													local currentVehicle = use(props.CurrentVehicle)
-													if
-														currentVehicle == nil
-														or typeof(currentVehicle) ~= "Instance"
-													then
-														return {}
-													end
-													return ChassisHandler.getSirens(currentVehicle)
-												end),
-												selectionChanged = function(newValue)
-													ConfigurationEditor.updateSirenName(key, newValue)
-												end,
-											},
-											{
-												type = "select",
-												value = siren.type,
-												layoutOrder = 2,
-												options = { "Siren", "Hold", "Modifier" },
-												selectionChanged = function(newValue)
-													ConfigurationEditor.updateSirenType(key, newValue)
-												end,
-											},
-										}
-
-										if use(siren.type) ~= "Modifier" then
-											local siren = siren :: SirensEditor.SirenHoldState
-											table.insert(
-												options,
-												3,
-												{
-													type = "select",
-													value = siren.behavoir,
-													layoutOrder = 3,
-													options = { "Overrides Other Sounds", "Plays Simultaneously" },
-													selectionChanged = function(newValue)
-														ConfigurationEditor.updateSirenBehavior(key, newValue)
-													end,
-												} :: createChildren.option
-											)
-
-											table.insert(options, {
-												type = "button",
-												text = "Add Modifier",
-												layoutOrder = 4000,
-												callback = function()
-													ConfigurationEditor.addModifier(key)
-												end,
-											})
-										else
-											table.insert(
-												options,
-												3,
-												{
-													type = "spacer",
-													layoutOrder = 3,
-												} :: createChildren.option
-											)
-										end
-
-										for i, keybind in use(siren.keybinds) do
-											table.insert(
-												options,
-												i + 3,
-												{
-													type = if i == 2 then "controllerKeycode" else "keycode",
-													value = keybind,
-													layoutOrder = i + 3,
-													focusLost = function(newValue)
-														ConfigurationEditor.updateSirenKeybind(key, i, newValue)
-													end,
-												} :: createChildren.option
-											)
-										end
-
-										return options
-									end),
-									childOptions = scope:Computed(function(use): { createChildren.childOption }?
-										if use(siren.type) ~= "Modifier" then
-											local siren = siren :: SirensEditor.SirenHoldState
-											local options = {}
-
-											for i, modifierState in use(siren.modifiers) do
-												local modifier = scope.peek(modifierState)
-												table.insert(options, i, {
-													options = {
-														{
-															type = "select",
-															value = modifier.name,
-															layoutOrder = 1,
-															options = scope:Computed(function(use)
-																local currentConfiguration =
-																	use(ConfigurationEditor.current)
-																if currentConfiguration == nil then
-																	return {}
-																end
-																use(currentConfiguration.lightSettings)
-																return ConfigurationEditor.getAllModifiers()
-															end),
-															selectionChanged = function(newValue)
-																ConfigurationEditor.updateModifierName(key, i, newValue)
-															end,
-															header = "Modifier",
-														} :: createChildren.option,
-														{
-															type = "select",
-															value = modifier.modifiedSirenName,
-															layoutOrder = 2,
-															options = scope:Computed(function(use)
-																local currentVehicle = use(props.CurrentVehicle)
-																if
-																	currentVehicle == nil
-																	or typeof(currentVehicle) ~= "Instance"
-																then
-																	return {}
-																end
-																return ChassisHandler.getSirens(currentVehicle)
-															end),
-															selectionChanged = function(newValue)
-																ConfigurationEditor.updateModifierSirenName(
-																	key,
-																	i,
-																	newValue
-																)
-															end,
-															header = "Modified Siren Name",
-														},
-														{
-															type = "select",
-															value = modifier.parentSoundBehavior,
-															layoutOrder = 3,
-															options = {
-																"Play Parent Sound",
-																"Plays Simultaneously",
-															},
-															selectionChanged = function(newValue)
-																ConfigurationEditor.updateModifierParentSoundBehavior(
-																	key,
-																	i,
-																	newValue
-																)
-															end,
-															header = "Modifier Behavior",
-														},
-														{
-															type = "select",
-															value = modifier.behavoir,
-															layoutOrder = 4,
-															options = {
-																"Play Automatically",
-																"Require Parent Replay",
-															},
-															selectionChanged = function(newValue)
-																ConfigurationEditor.updateModifierBehavior(
-																	key,
-																	i,
-																	newValue
-																)
-															end,
-															header = "",
-														},
-														{
-															type = "number",
-															value = modifier.delay,
-															layoutOrder = 5,
-															focusLost = function(newValue)
-																ConfigurationEditor.updateModifierDelay(
-																	key,
-																	i,
-																	newValue
-																)
-															end,
-															header = "Delay (Seconds)",
-														},
-													},
-													onDelete = function()
-														popup:addPopup(scope, {
-															title = "Delete Modifier",
-															description = "Are you sure you want to delete this modifier?\n<b>All data will be lost.</b>",
-															actions = {
-																{
-																	text = "Cancel",
-																	type = "primary",
-																	key = 1,
-																	callback = function(newPopup)
-																		popup:removePopup(newPopup)
-																	end,
-																	keybind = Enum.KeyCode.Escape,
-																},
-																{
-																	text = "Delete",
-																	type = "danger",
-																	key = 2,
-																	callback = function(newPopup)
-																		popup:removePopup(newPopup)
-																		ConfigurationEditor.removeModifier(key, i)
-																	end,
-																	keybind = Enum.KeyCode.Return,
-																},
-															},
-														})
-													end,
-												})
-											end
-
-											return options
-										end
-
-										return
-									end),
-									actualTableSize = actualTableSize,
-
-									onDelete = function()
-										popup:addPopup(scope, {
-											title = "Delete Siren",
-											description = "Are you sure you want to delete this siren?\n<b>All data will be lost.</b>",
-											actions = {
-												{
-													text = "Cancel",
-													type = "primary",
-													key = 1,
-													callback = function(newPopup)
-														popup:removePopup(newPopup)
-													end,
-													keybind = Enum.KeyCode.Escape,
-												},
-												{
-													text = "Delete",
-													type = "danger",
-													key = 2,
-													callback = function(newPopup)
-														popup:removePopup(newPopup)
-														ConfigurationEditor.removeSiren(key)
-													end,
-													keybind = Enum.KeyCode.Return,
-												},
-											},
-										})
-									end,
-									onDownload = function() end,
-								}),
-							}
-					end),
+					LayoutOrder = 1,
+					[Fusion.Children] = Fusion.Child {
+						scope:New("UIListLayout") { SortOrder = Enum.SortOrder.LayoutOrder },
+						createChildren.Table(scope, {
+							Scale = scale,
+							Headers = {
+								name = "Sound name",
+								type = "Type",
+								behavior = "Sound behavior",
+								keyboard = "Keyboard",
+								gamepad = "Gamepad",
+							},
+							Columns = {
+								{ key = "name", width = UDim.new(0, 250) },
+								{ key = "type", width = UDim.new(0, 250) },
+								{ key = "behavior", width = UDim.new(0, 250) },
+								{ key = "keyboard", width = UDim.new(0, 250) },
+								{ key = "gamepad", width = UDim.new(0, 250) },
+								{ key = "modifiers", width = UDim.new(0, 250) },
+								{ key = "actions", rightAligned = true },
+							},
+							RowSpacing = 0,
+							Rows = rows,
+						}),
+					},
 				},
 			},
 		},

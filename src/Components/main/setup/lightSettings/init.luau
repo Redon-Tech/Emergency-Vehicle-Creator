@@ -266,7 +266,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					},
 
 					scope:colors {
-						actualTableSize = actualTableSize,
 						currentContent = currentContent,
 					},
 

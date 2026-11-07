@@ -8,7 +8,10 @@ local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
 local FunctionsEditor = require("../../../../lib/ConfigurationEditor/FunctionsEditor")
 local popup = require("../../../popup")
 local createChildren = require("../createChildren")
+local controls = require("../controls")
 local VehicleHandler = require("../../../../lib/VehicleHandler")
+
+type ActivationType = "Standard" | "Default" | "Override" | "AG-Event"
 
 local function addButton(
 	scope: types.Scope,
@@ -53,7 +56,6 @@ type props = {
 	ReturnTo: Fusion.Value<types.returnTo>,
 	firstScope: types.Scope,
 	currentContent: Fusion.Value<"functions" | "activation" | "patterns">,
-	actualTableSize: Fusion.Value<Vector2>,
 	selectedFunction: Fusion.Value<number?>,
 }
 
@@ -65,6 +67,10 @@ local SPRING_DAMPING = 0.75
 ]]
 return function(scope: types.Scope, props: props)
 	local currentTheme = RedonUI.theme.theme:now()
+	local viewportSize = scope:Value(Vector2.new(1820, 895))
+	local scale = scope:Computed(function(use)
+		return use(viewportSize).X / 1820
+	end)
 
 	local currentFunction = scope:Computed(function(use): FunctionsEditor.FunctionState?
 		local currentConfiguration = use(ConfigurationEditor.current)
@@ -109,6 +115,370 @@ return function(scope: types.Scope, props: props)
 		return currentActivations
 	end)
 
+	local activationTypes = scope:Computed(function(use): { ActivationType }
+		local options: { ActivationType } = { "Standard", "Default", "Override" }
+		local vehicle = use(props.CurrentVehicle)
+		if typeof(vehicle) == "Instance" then
+			local vehicleType = VehicleHandler:isValidVehicle(vehicle)
+			if vehicleType == "ag" or vehicleType == "mg" then
+				table.insert(options, "AG-Event")
+			end
+		end
+		return options
+	end)
+
+	local sirenNames = scope:Computed(function(use): { string }
+		local configuration = use(ConfigurationEditor.current)
+		local names = {}
+		if configuration ~= nil then
+			for _, siren in use(configuration.sirens) do
+				table.insert(names, use(siren.name))
+			end
+		end
+		return names
+	end)
+
+	local dependentFunctions = scope:Computed(function(use): { string }
+		local names = { "No Dependent Function" }
+		local configuration = use(ConfigurationEditor.current)
+		local selected = use(props.selectedFunction)
+		if configuration ~= nil then
+			for index, func in use(configuration.functions) do
+				if index ~= selected then
+					table.insert(names, use(func.name))
+				end
+			end
+		end
+		return names
+	end)
+
+	local patternRows = scope:ForPairs(
+		patterns,
+		function(_, scope: types.Scope, key: number): (number, createChildren.Row)
+			local index = scope:Value(key)
+			return key,
+				{
+					BackgroundColor3 = if key % 2 == 0 then currentTheme.colors.mantle else currentTheme.colors.crust,
+					Cells = {
+						index = controls.numberInput(scope, {
+							Scale = scale,
+							Value = index,
+							OnChange = function(newIndex)
+								local selectedFunction = scope.peek(props.selectedFunction)
+								if selectedFunction == nil or newIndex < 1 or newIndex % 1 ~= 0 then
+									index:set(key, true)
+									return
+								end
+								newIndex = math.min(newIndex, #scope.peek(patterns))
+								ConfigurationEditor.updatePatternPosition(selectedFunction, key, newIndex)
+								local selected = scope.peek(props.CurrentPattern)
+								if selected ~= nil and selected.functionId == selectedFunction then
+									local patternId = selected.patternId
+									if patternId == key then
+										patternId = newIndex
+									elseif key < patternId and patternId <= newIndex then
+										patternId -= 1
+									elseif newIndex <= patternId and patternId < key then
+										patternId += 1
+									end
+									props.CurrentPattern:set({
+										functionId = selectedFunction,
+										patternId = patternId,
+									})
+								end
+							end,
+							TextXAlignment = Enum.TextXAlignment.Center,
+						}),
+						actions = controls.actions(scope, {
+							Scale = scale,
+							OnEdit = function()
+								local selectedFunction = scope.peek(props.selectedFunction)
+								if selectedFunction == nil then
+									return
+								end
+								props.CurrentPattern:set({ functionId = selectedFunction, patternId = key })
+								props.CurrentPage:set("Flashers")
+								props.CurrentPanel:set("ELS Setup")
+								props.ReturnTo:set("vehicleSetup")
+							end,
+							OnDelete = function()
+								popup:addPopup(scope, {
+									title = "Delete Pattern",
+									description = "Are you sure you want to delete this pattern?\n<b>All data will be lost.</b>",
+									actions = {
+										{
+											text = "Cancel",
+											type = "primary",
+											key = 1,
+											callback = function(newPopup)
+												popup:removePopup(newPopup)
+											end,
+											keybind = Enum.KeyCode.Escape,
+										},
+										{
+											text = "Delete",
+											type = "danger",
+											key = 2,
+											callback = function(newPopup)
+												popup:removePopup(newPopup)
+												local selectedFunction = scope.peek(props.selectedFunction)
+												if selectedFunction == nil then
+													return
+												end
+												ConfigurationEditor.removePattern(selectedFunction, key)
+												local selected = scope.peek(props.CurrentPattern)
+												if selected ~= nil and selected.functionId == selectedFunction then
+													if selected.patternId == key then
+														props.CurrentPattern:set(nil)
+													elseif selected.patternId > key then
+														props.CurrentPattern:set({
+															functionId = selectedFunction,
+															patternId = selected.patternId - 1,
+														})
+													end
+												end
+											end,
+										},
+									},
+								})
+							end,
+							OnDownload = function() end,
+						}),
+					},
+				}
+		end
+	)
+
+	local activationRows = scope:ForPairs(
+		currentActivations,
+		function(use, scope: types.Scope, key, value): (number, createChildren.Row)
+			local selectedFunction = use(props.selectedFunction)
+			if selectedFunction == nil then
+				return key, { Cells = {} }
+			end
+
+			local settings: { [string]: Fusion.Child? } = {}
+			local columns: { createChildren.Column } = {}
+			local function field(name: string, content: Fusion.Child, width: number, visible: Fusion.UsedAs<boolean>?)
+				local fieldKey = tostring(#columns + 1)
+				table.insert(columns, {
+					key = fieldKey,
+					width = scope:Computed(function(use)
+						return if use(visible) == false then UDim.new(0, 0) else UDim.new(0, width)
+					end),
+				})
+				settings[fieldKey] = createChildren.Field(scope, {
+					Scale = scale,
+					Label = name,
+					Content = content,
+					Visible = visible,
+				})
+			end
+
+			local activationType = use(value.type)
+			if activationType == "Standard" then
+				local activation = value :: FunctionsEditor.StandardActivationState
+				field(
+					"Mode",
+					createChildren.Dropdown<<types.StandardActivationModes>>(scope, {
+						Scale = scale,
+						Selected = activation.mode,
+						Options = { "Cycle", "Set Pattern" } :: { types.StandardActivationModes },
+						Height = 50,
+						OnSelect = function(mode: types.StandardActivationModes)
+							ConfigurationEditor.updateStandardActivationMode(selectedFunction, key, mode)
+						end,
+					}),
+					250
+				)
+				field(
+					"Pattern",
+					controls.numberInput(scope, {
+						Scale = scale,
+						Value = activation.pattern,
+						Disabled = scope:Computed(function(use)
+							return use(activation.mode) == "Cycle"
+						end),
+						OnChange = function(pattern)
+							ConfigurationEditor.updateStandardActivationPattern(selectedFunction, key, pattern)
+						end,
+					}),
+					75
+				)
+				for keybindIndex, keybind in use(activation.keybinds) do
+					field(
+						if keybindIndex == 2 then "Gamepad" else "Keyboard",
+						controls.keybindInput(scope, {
+							Scale = scale,
+							Value = keybind,
+							Gamepad = keybindIndex == 2,
+							OnChange = function(keycode)
+								ConfigurationEditor.updateStandardActivationKeybind(
+									selectedFunction,
+									key,
+									keybindIndex,
+									keycode
+								)
+							end,
+						}),
+						250
+					)
+				end
+			elseif activationType == "Override" then
+				local activation = value :: FunctionsEditor.OverrideActivationState
+				field(
+					"Mode",
+					createChildren.Dropdown<<types.OverrideActivationModes>>(scope, {
+						Scale = scale,
+						Selected = activation.mode,
+						Options = { "Siren Override", "Park", "Brake", "Reverse" } :: { types.OverrideActivationModes },
+						Height = 50,
+						OnSelect = function(mode: types.OverrideActivationModes)
+							ConfigurationEditor.updateOverrideActivationMode(selectedFunction, key, mode)
+						end,
+					}),
+					250
+				)
+				field(
+					"Siren",
+					createChildren.Dropdown(scope, {
+						Scale = scale,
+						Selected = scope:Computed(function(use)
+							return use(activation.siren) or "None"
+						end),
+						Options = sirenNames,
+						Height = 50,
+						OnSelect = function(name)
+							ConfigurationEditor.updateOverrideActivationSiren(selectedFunction, key, name)
+						end,
+					}),
+					250,
+					scope:Computed(function(use)
+						return use(activation.mode) == "Siren Override"
+					end)
+				)
+				field(
+					"Dependent function",
+					createChildren.Dropdown(scope, {
+						Scale = scale,
+						Selected = activation.dependentFunction,
+						Options = dependentFunctions,
+						Height = 50,
+						OnSelect = function(name)
+							ConfigurationEditor.updateOverrideActivationDependentFunction(selectedFunction, key, name)
+						end,
+					}),
+					250
+				)
+				field(
+					"and Pattern",
+					controls.numberInput(scope, {
+						Scale = scale,
+						Value = activation.dependentPattern,
+						OnChange = function(pattern)
+							ConfigurationEditor.updateOverrideActivationDependentPattern(selectedFunction, key, pattern)
+						end,
+						Disabled = scope:Computed(function(use)
+							return use(activation.dependentFunction) == "No Dependent Function"
+						end),
+					}),
+					100
+				)
+			elseif activationType == "Default" then
+				local activation = value :: FunctionsEditor.DefaultActivationState
+				field(
+					"Pattern",
+					controls.numberInput(scope, {
+						Scale = scale,
+						Value = activation.pattern,
+						OnChange = function(pattern)
+							ConfigurationEditor.updateDefaultActivationPattern(selectedFunction, key, pattern)
+						end,
+					}),
+					75
+				)
+			elseif activationType == "AG-Event" then
+				local activation = value :: FunctionsEditor.AGEventActivationState
+				field(
+					"Mode",
+					createChildren.Dropdown<<types.AGEventActivationModes>>(scope, {
+						Scale = scale,
+						Selected = activation.mode,
+						Options = { "Stages", "Traffic Advisor", "Scene", "Ally Left", "Ally Right", "Rear Scene" } :: { types.AGEventActivationModes },
+						Height = 50,
+						OnSelect = function(mode: types.AGEventActivationModes)
+							ConfigurationEditor.updateAGEventActivationMode(selectedFunction, key, mode)
+						end,
+					}),
+					250
+				)
+			end
+
+			return key,
+				{
+					BackgroundColor3 = if key % 2 == 0 then currentTheme.colors.mantle else currentTheme.colors.crust,
+					Cells = {
+						type = createChildren.Field(scope, {
+							Scale = scale,
+							Label = "Type",
+							Content = createChildren.Dropdown<<ActivationType>>(scope, {
+								Scale = scale,
+								Selected = value.type :: Fusion.StateObject<ActivationType>,
+								Options = activationTypes,
+								Height = 50,
+								OnSelect = function(newType: ActivationType)
+									ConfigurationEditor.updateActivationType(selectedFunction, key, newType)
+								end,
+							}),
+						}),
+						settings = createChildren.Table(scope, {
+							AutoWidth = true,
+							Scale = scale,
+							Columns = columns,
+							Padding = 0,
+							RowPadding = 0,
+							Rows = { { Cells = settings } },
+						}),
+						actions = createChildren.Field(scope, {
+							Scale = scale,
+							Label = "",
+							Content = controls.actions(scope, {
+								Scale = scale,
+								OnDelete = function()
+									popup:addPopup(scope, {
+										title = "Delete Activation",
+										description = "Are you sure you want to delete this activation?\n<b>All data will be lost.</b>",
+										actions = {
+											{
+												text = "Cancel",
+												type = "primary",
+												key = 1,
+												callback = function(newPopup)
+													popup:removePopup(newPopup)
+												end,
+												keybind = Enum.KeyCode.Escape,
+											},
+											{
+												text = "Delete",
+												type = "danger",
+												key = 2,
+												callback = function(newPopup)
+													popup:removePopup(newPopup)
+													ConfigurationEditor.removeActivation(selectedFunction, key)
+												end,
+												keybind = Enum.KeyCode.Return,
+											},
+										},
+									})
+								end,
+								OnDownload = function() end,
+							}),
+						}),
+					},
+				}
+		end
+	)
+
 	local contentChooserXSize = 0.1098901099
 	return scope:base {
 		Size = UDim2.fromScale(1, 1),
@@ -126,6 +496,7 @@ return function(scope: types.Scope, props: props)
 			SPRING_DAMPING
 		),
 		BackgroundTransparency = 1,
+		[Fusion.Out "AbsoluteSize"] = viewportSize :: unknown,
 		ClipsDescendants = true,
 
 		[Fusion.Children] = {
@@ -135,6 +506,7 @@ return function(scope: types.Scope, props: props)
 				Position = UDim2.fromScale(0.5, 0.0145251397),
 				BackgroundTransparency = 1,
 				ClipsDescendants = true,
+				ZIndex = 2,
 
 				[Fusion.Children] = {
 					scope:textButton {
@@ -230,7 +602,17 @@ return function(scope: types.Scope, props: props)
 			},
 
 			--TODO: This can be seperated into its own section
-			scope:list {
+			scope:base {
+				ClassName = "ScrollingFrame",
+				ZIndex = 1,
+				ScrollBarThickness = 3,
+				ScrollBarImageColor3 = currentTheme.colors.text,
+				TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+				BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+				AutomaticCanvasSize = Enum.AutomaticSize.Y,
+				CanvasSize = UDim2.new(),
+				ClipsDescendants = true,
+
 				Size = UDim2.fromScale(1, 0.9162011173), -- 895 -75 total 820
 				AnchorPoint = Vector2.new(0.5, 1),
 				Position = scope:Spring(
@@ -248,125 +630,42 @@ return function(scope: types.Scope, props: props)
 					SPRING_DAMPING
 				),
 				BackgroundColor3 = currentTheme.colors.mantle,
-				AlternateColor3 = currentTheme.colors.crust,
-				RowSize = UDim2.fromScale(1, 0), -- 1820, 75
-				PrimaryColor = "Alternate" :: "Alternate",
 				CornerRadius = UDim.new(0.0182926829, 0),
-				AutomaticSize = Enum.AutomaticSize.Y,
-				Rows = scope:ForPairs(patterns, function(_, scope: typeof(scope), key: number)
-					local rowSize = scope:Value(75)
-					local bg = scope:Spring(scope:Value(1), 10, 1)
-					bg:setPosition(0)
 
-					local index = scope:Value(key)
-					return key,
-						scope:base {
-							Size = scope:Computed(function(use)
-								return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(props.actualTableSize).Y)
-							end),
-							BackgroundColor3 = currentTheme.colors.surface0,
-							BackgroundTransparency = bg,
-
-							[Fusion.Children] = createChildren(scope, {
-								rowSize = rowSize,
-								options = {
-									{
-										type = "number",
-										value = index,
-										focusLost = function(newIndex)
-											local selectedFunction = scope.peek(props.selectedFunction)
-											if selectedFunction == nil or newIndex < 1 or newIndex % 1 ~= 0 then
-												index:set(key, true)
-												return
-											end
-											newIndex = math.min(newIndex, #scope.peek(patterns))
-											ConfigurationEditor.updatePatternPosition(selectedFunction, key, newIndex)
-											local selected = scope.peek(props.CurrentPattern)
-											if selected ~= nil and selected.functionId == selectedFunction then
-												local patternId = selected.patternId
-												if patternId == key then
-													patternId = newIndex
-												elseif key < patternId and patternId <= newIndex then
-													patternId -= 1
-												elseif newIndex <= patternId and patternId < key then
-													patternId += 1
-												end
-												props.CurrentPattern:set({
-													functionId = selectedFunction,
-													patternId = patternId,
-												})
-											end
-										end,
-										layoutOrder = 1,
-									},
-								} :: { createChildren.option },
-
-								onEdit = function()
-									local selectedFunction = scope.peek(props.selectedFunction)
-									if selectedFunction == nil then
-										return
-									end
-									props.CurrentPattern:set({ functionId = selectedFunction, patternId = key })
-									props.CurrentPage:set("Flashers")
-									props.CurrentPanel:set("ELS Setup")
-									props.ReturnTo:set("vehicleSetup")
-								end,
-								onDelete = function()
-									popup:addPopup(scope, {
-										title = "Delete Pattern",
-										description = "Are you sure you want to delete this pattern?\n<b>All data will be lost.</b>",
-										actions = {
-											{
-												text = "Cancel",
-												type = "primary",
-												key = 1,
-												callback = function(newPopup)
-													popup:removePopup(newPopup)
-												end,
-												keybind = Enum.KeyCode.Escape,
-											},
-											{
-												text = "Delete",
-												type = "danger",
-												key = 2,
-												callback = function(newPopup)
-													popup:removePopup(newPopup)
-													local selectedFunction = scope.peek(props.selectedFunction)
-													if selectedFunction == nil then
-														return
-													end
-													ConfigurationEditor.removePattern(selectedFunction, key)
-													local selected = scope.peek(props.CurrentPattern)
-													if selected ~= nil and selected.functionId == selectedFunction then
-														if selected.patternId == key then
-															props.CurrentPattern:set(nil)
-														elseif selected.patternId > key then
-															props.CurrentPattern:set({
-																functionId = selectedFunction,
-																patternId = selected.patternId - 1,
-															})
-														end
-													end
-												end,
-											},
-										},
-									})
-								end,
-								onDownload = function() end,
-							}),
-						}
-				end),
-				[Fusion.Children] = addButton(scope, currentTheme, "Add Pattern", function()
-					local selectedFunction = scope.peek(props.selectedFunction)
-					if selectedFunction == nil then
-						return
-					end
-					ConfigurationEditor.addPattern(selectedFunction, { flashers = {}, faders = {}, rotators = {} })
-				end),
+				[Fusion.Children] = Fusion.Child {
+					scope:New("UIListLayout") { SortOrder = Enum.SortOrder.LayoutOrder },
+					createChildren.Table(scope, {
+						Scale = scale,
+						Columns = {
+							{ key = "index", width = UDim.new(0, 50) },
+							{ key = "actions", rightAligned = true },
+						},
+						Headers = { index = "#" },
+						RowSpacing = 0,
+						Rows = patternRows,
+					}),
+					addButton(scope, currentTheme, "Add Pattern", function()
+						local selectedFunction = scope.peek(props.selectedFunction)
+						if selectedFunction == nil then
+							return
+						end
+						ConfigurationEditor.addPattern(selectedFunction, { flashers = {}, faders = {}, rotators = {} })
+					end),
+				},
 			},
 
 			--TODO: This can be seperated into its own section
-			scope:list {
+			scope:base {
+				ClassName = "ScrollingFrame",
+				ZIndex = 1,
+				ScrollBarThickness = 3,
+				ScrollBarImageColor3 = currentTheme.colors.text,
+				TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+				BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+				AutomaticCanvasSize = Enum.AutomaticSize.Y,
+				CanvasSize = UDim2.new(),
+				ClipsDescendants = true,
+
 				Size = UDim2.fromScale(1, 0.9162011173), -- 895 -75 total 820
 				AnchorPoint = Vector2.new(0.5, 1),
 				Position = scope:Spring(
@@ -382,287 +681,33 @@ return function(scope: types.Scope, props: props)
 					SPRING_DAMPING
 				),
 				BackgroundColor3 = currentTheme.colors.mantle,
-				AlternateColor3 = currentTheme.colors.crust,
-				RowSize = UDim2.fromScale(1, 0), -- 1820, 75
-				PrimaryColor = "Alternate" :: "Alternate",
 				CornerRadius = UDim.new(0.0182926829, 0),
-				AutomaticSize = Enum.AutomaticSize.Y,
-				Rows = scope:ForPairs(
-					currentActivations,
-					function(_, scope: typeof(scope), key, value): (number, Fusion.Child)
+
+				[Fusion.Children] = Fusion.Child {
+					scope:New("UIListLayout") { SortOrder = Enum.SortOrder.LayoutOrder },
+					createChildren.Table(scope, {
+						Scale = scale,
+						Columns = {
+							{ key = "type", width = UDim.new(0, 250) },
+							{ key = "settings" },
+							{ key = "actions", rightAligned = true },
+						},
+						RowSpacing = 0,
+						Rows = activationRows,
+					}),
+					addButton(scope, currentTheme, "Add Activation", function()
 						local selectedFunction = scope.peek(props.selectedFunction)
 						if selectedFunction == nil then
-							return key, {}
+							return
 						end
-
-						local rowSize = scope:Value(75)
-						local activationType = scope:Value(scope.peek(value.type))
-						return key,
-							scope:base {
-								Size = scope:Computed(function(use)
-									return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(props.actualTableSize).Y)
-								end),
-								BackgroundTransparency = 1,
-
-								[Fusion.Children] = createChildren(scope, {
-									rowSize = rowSize,
-									options = scope:Computed(function(use)
-										local controls: { createChildren.option } = {
-											{
-												type = "select",
-												value = activationType,
-												layoutOrder = 1,
-												options = scope:Computed(function(use)
-													local defaultOptions = { "Standard", "Default", "Override" }
-													local currentVehicle = use(props.CurrentVehicle)
-													if
-														currentVehicle ~= nil
-														and typeof(currentVehicle) == "Instance"
-													then
-														local vehicleType =
-															VehicleHandler:isValidVehicle(currentVehicle)
-														if vehicleType == "ag" or vehicleType == "mg" then
-															table.insert(defaultOptions, "AG-Event")
-														end
-													end
-													return defaultOptions
-												end),
-												selectionChanged = function(newValue)
-													ConfigurationEditor.updateActivationType(
-														selectedFunction,
-														key,
-														newValue
-													)
-												end,
-											},
-										}
-
-										local currentType = use(value.type)
-										if currentType == "Standard" then
-											local activation = value :: FunctionsEditor.StandardActivationState
-											table.insert(controls, {
-												type = "select",
-												value = activation.mode,
-												layoutOrder = 2,
-												options = { "Cycle", "Set Pattern" },
-												selectionChanged = function(newValue)
-													ConfigurationEditor.updateStandardActivationMode(
-														selectedFunction,
-														key,
-														newValue
-													)
-												end,
-											})
-											table.insert(controls, {
-												type = "number",
-												value = activation.pattern,
-												layoutOrder = 3,
-												disabled = scope:Computed(function(use)
-													return if use(activation.mode) == "Cycle" then true else false
-												end),
-												focusLost = function(newValue)
-													ConfigurationEditor.updateStandardActivationPattern(
-														selectedFunction,
-														key,
-														newValue
-													)
-												end,
-											})
-											for i, keybind in use(activation.keybinds) do
-												table.insert(controls, {
-													type = "keycode",
-													value = keybind,
-													layoutOrder = i + 3,
-													focusLost = function(newValue)
-														ConfigurationEditor.updateStandardActivationKeybind(
-															selectedFunction,
-															key,
-															i,
-															newValue
-														)
-													end,
-												})
-											end
-										elseif currentType == "Override" then
-											local activation = value :: FunctionsEditor.OverrideActivationState
-											table.insert(controls, {
-												type = "select",
-												value = activation.mode,
-												layoutOrder = 2,
-												options = { "Siren Override", "Park", "Brake", "Reverse" },
-												selectionChanged = function(newValue)
-													ConfigurationEditor.updateOverrideActivationMode(
-														selectedFunction,
-														key,
-														newValue
-													)
-												end,
-											})
-											table.insert(controls, {
-												type = "select",
-												value = activation.siren,
-												layoutOrder = 3,
-												options = scope:Computed(function()
-													local currentConfiguration = scope.peek(ConfigurationEditor.current)
-													if currentConfiguration == nil then
-														return {}
-													end
-													local sirens = scope.peek(currentConfiguration.sirens)
-													if sirens == nil then
-														return {}
-													end
-
-													local sirensByName = {}
-													for _, siren in pairs(sirens) do
-														table.insert(sirensByName, scope.peek(siren.name))
-													end
-													return sirensByName
-												end),
-												selectionChanged = function(newValue)
-													ConfigurationEditor.updateOverrideActivationSiren(
-														selectedFunction,
-														key,
-														newValue
-													)
-												end,
-												visible = scope:Computed(function(use)
-													return if use(activation.mode) == "Siren Override"
-														then true
-														else false
-												end),
-											})
-											table.insert(controls, {
-												type = "select",
-												value = activation.dependentFunction,
-												layoutOrder = 4,
-												options = scope:Computed(function(use)
-													local currentConfiguration = use(ConfigurationEditor.current)
-													if currentConfiguration == nil then
-														return {}
-													end
-
-													local choices = { "No Dependent Function" }
-													for funcKey, func in use(use(currentConfiguration.functions)) do
-														if funcKey == selectedFunction then
-															continue
-														end
-														table.insert(
-															choices,
-															scope.peek(func.weight),
-															scope.peek(func.name)
-														)
-													end
-													return choices
-												end),
-												selectionChanged = function(newValue)
-													ConfigurationEditor.updateOverrideActivationDependentFunction(
-														selectedFunction,
-														key,
-														newValue
-													)
-												end,
-											})
-											table.insert(controls, {
-												type = "number",
-												value = activation.dependentPattern,
-												layoutOrder = 5,
-												focusLost = function(newValue)
-													ConfigurationEditor.updateOverrideActivationDependentPattern(
-														selectedFunction,
-														key,
-														newValue
-													)
-												end,
-											})
-										elseif currentType == "Default" then
-											local activation = value :: FunctionsEditor.DefaultActivationState
-											table.insert(controls, {
-												type = "number",
-												value = activation.pattern,
-												layoutOrder = 2,
-												focusLost = function(newValue)
-													ConfigurationEditor.updateDefaultActivationPattern(
-														selectedFunction,
-														key,
-														newValue
-													)
-												end,
-											})
-										elseif currentType == "AG-Event" then
-											local activation = value :: FunctionsEditor.AGEventActivationState
-											table.insert(controls, {
-												type = "select",
-												value = activation.mode,
-												layoutOrder = 2,
-												options = {
-													"Stages",
-													"Traffic Advisor",
-													"Scene",
-													"Ally Left",
-													"Ally Right",
-													"Rear Scene",
-												},
-												selectionChanged = function(newValue)
-													ConfigurationEditor.updateAGEventActivationMode(
-														selectedFunction,
-														key,
-														newValue
-													)
-												end,
-											})
-										end
-
-										return controls
-									end),
-
-									onDelete = function()
-										popup:addPopup(scope, {
-											title = "Delete Activation",
-											description = "Are you sure you want to delete this activation?\n<b>All data will be lost.</b>",
-											actions = {
-												{
-													text = "Cancel",
-													type = "primary",
-													key = 1,
-													callback = function(newPopup)
-														popup:removePopup(newPopup)
-													end,
-													keybind = Enum.KeyCode.Escape,
-												},
-												{
-													text = "Delete",
-													type = "danger",
-													key = 2,
-													callback = function(newPopup)
-														popup:removePopup(newPopup)
-														ConfigurationEditor.removeActivation(selectedFunction, key)
-													end,
-													keybind = Enum.KeyCode.Return,
-												},
-											},
-										})
-									end,
-									onDownload = function() end,
-								}),
-							}
-					end
-				),
-				[Fusion.Children] = addButton(scope, currentTheme, "Add Activation", function()
-					local currentFunction = scope.peek(props.selectedFunction)
-					if currentFunction == nil then
-						return
-					end
-
-					ConfigurationEditor.addActivation(currentFunction, {
-						type = "Standard",
-						mode = "Cycle",
-						pattern = 0,
-						keybinds = {
-							Enum.KeyCode.J,
-							Enum.KeyCode.DPadLeft,
-						},
-					})
-				end),
+						ConfigurationEditor.addActivation(selectedFunction, {
+							type = "Standard",
+							mode = "Cycle",
+							pattern = 0,
+							keybinds = { Enum.KeyCode.J, Enum.KeyCode.DPadLeft },
+						})
+					end),
+				},
 			},
 		},
 	}

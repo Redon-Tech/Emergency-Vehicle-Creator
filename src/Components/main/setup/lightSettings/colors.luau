@@ -7,9 +7,9 @@ local types = require("../../../../types")
 local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
 local popup = require("../../../popup")
 local createChildren = require("../createChildren")
+local controls = require("../controls")
 
 type props = {
-	actualTableSize: Fusion.Value<Vector2>,
 	currentContent: Fusion.Value<"settings" | "colors" | "light groups">,
 }
 
@@ -21,130 +21,57 @@ local SPRING_DAMPING = 0.75
 ]]
 return function(scope: types.Scope, props: props)
 	local currentTheme = RedonUI.theme.theme:now()
+	local viewportSize = scope:Value(Vector2.new(1820, 895))
+	local scale = scope:Computed(function(use)
+		return use(viewportSize).X / 1820
+	end)
 
-	return scope:base {
-		ClassName = "ScrollingFrame",
-		Size = UDim2.fromScale(1, 0.9162011173), -- 1820, 820
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = scope:Spring(
-			scope:Computed(function(use)
-				local activeContent = use(props.currentContent)
-				if activeContent == "colors" then
-					return UDim2.fromScale(0.5, 1)
-				elseif activeContent == "settings" then
-					return UDim2.fromScale(1.5, 1)
-				else
-					return UDim2.fromScale(-1, 1)
-				end
-			end),
-			SPRING_SPEED,
-			SPRING_DAMPING
-		),
-		BackgroundTransparency = 1,
-		ScrollBarThickness = 3,
-		ScrollBarImageColor3 = currentTheme.colors.text,
-		TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
-		BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
-		AutomaticCanvasSize = Enum.AutomaticSize.Y,
-		CanvasSize = UDim2.new(),
+	local colors = scope:Computed(function(use)
+		local configuration = use(ConfigurationEditor.current)
+		if configuration == nil then
+			return {}
+		end
+		return use(configuration.lightSettings.colors)
+	end)
 
-		[Fusion.Children] = Fusion.Child {
-			scope:New("UIListLayout") {
-				SortOrder = Enum.SortOrder.LayoutOrder,
-			},
-
-			scope:base {
-				Size = UDim2.fromScale(1, 0.0609756098),
-				BackgroundTransparency = 1,
-				LayoutOrder = 0,
-
-				[Fusion.Children] = Fusion.Child {
-					scope:New("UIListLayout") {
-						Padding = UDim.new(0.0082417582, 0),
-						FillDirection = Enum.FillDirection.Horizontal,
-						SortOrder = Enum.SortOrder.LayoutOrder,
-					},
-
-					scope:New("UIPadding") {
-						PaddingLeft = UDim.new(0.0082417582, 0),
-					},
-
-					scope:ForPairs(
-						{ "Name", "Part Color", "Light Color", "Lighto Color" },
-						function(_, scope: typeof(scope), key: number, value: string)
-							return key,
-								scope:textLabel {
-									Size = UDim2.fromScale(0.1373626374, 1),
-									Text = value,
-									FontWeight = Enum.FontWeight.Medium,
-									TextXAlignment = Enum.TextXAlignment.Left,
-									TextScaled = true,
-									MaxTextSize = 16,
-									BackgroundTransparency = 1,
-									LayoutOrder = key,
-								}
-						end
-					),
-				},
-			},
-
-			scope:Computed(function(use, scope: typeof(scope))
-				local currentConfiguration = use(ConfigurationEditor.current)
-				if currentConfiguration == nil then
-					return {}
-				end
-				local currentLightSettings = use(currentConfiguration.lightSettings)
-
-				if currentLightSettings ~= nil then
-					return scope:ForPairs(currentLightSettings.colors, function(_, scope: typeof(scope), key, colorData)
-						local rowSize = scope:Value(75)
-
-						local childrenProps = {
-							rowSize = rowSize,
-							actualTableSize = props.actualTableSize,
-
-							options = {
-								{
-									type = "string",
-									layoutOrder = 1,
-									value = colorData.name,
-									disabled = key < 7,
-									focusLost = function(newValue)
-										ConfigurationEditor.updateColorName(key, newValue)
-									end,
-								},
-								{
-									type = "color",
-									layoutOrder = 2,
-									value = colorData.partColor,
-									label = "Part Color",
-									colorChanged = function(newValue)
-										ConfigurationEditor.updateColor(key, "partColor", newValue)
-									end,
-								},
-								{
-									type = "color",
-									layoutOrder = 3,
-									value = colorData.lightColor,
-									label = "Light Color",
-									colorChanged = function(newValue)
-										ConfigurationEditor.updateColor(key, "lightColor", newValue)
-									end,
-								},
-								{
-									type = "color",
-									layoutOrder = 4,
-									value = colorData.lightoColor,
-									label = "Lighto Color",
-									colorChanged = function(newValue)
-										ConfigurationEditor.updateColor(key, "lightoColor", newValue)
-									end,
-								},
-							} :: { createChildren.option },
-						}
-
-						if key > 6 then
-							childrenProps.onDelete = function()
+	local rows = scope:ForPairs(colors, function(_, scope: types.Scope, key, colorData): (number, createChildren.Row)
+		return key,
+			{
+				BackgroundColor3 = if key % 2 == 0 then currentTheme.colors.mantle else currentTheme.colors.crust,
+				Cells = {
+					name = controls.textInput(scope, {
+						Scale = scale,
+						Value = colorData.name,
+						Disabled = key < 7,
+						OnChange = function(value)
+							ConfigurationEditor.updateColorName(key, value)
+						end,
+					}),
+					partColor = controls.colorInput(scope, {
+						Scale = scale,
+						Value = colorData.partColor,
+						OnChange = function(value)
+							ConfigurationEditor.updateColor(key, "partColor", value)
+						end,
+					}),
+					lightColor = controls.colorInput(scope, {
+						Scale = scale,
+						Value = colorData.lightColor,
+						OnChange = function(value)
+							ConfigurationEditor.updateColor(key, "lightColor", value)
+						end,
+					}),
+					lightoColor = controls.colorInput(scope, {
+						Scale = scale,
+						Value = colorData.lightoColor,
+						OnChange = function(value)
+							ConfigurationEditor.updateColor(key, "lightoColor", value)
+						end,
+					}),
+					actions = if key > 6
+						then controls.actions(scope, {
+							Scale = scale,
+							OnDelete = function()
 								popup:addPopup(scope, {
 									title = "Remove Color",
 									description = `Are you sure you want to delete color <b>{scope.peek(colorData.name)}</b>?\n<b>All data will be lost.</b>`,
@@ -170,27 +97,63 @@ return function(scope: types.Scope, props: props)
 										},
 									},
 								})
-							end
-						end
+							end,
+						})
+						else {},
+				},
+			}
+	end)
 
-						return key,
-							scope:base {
-								Size = scope:Computed(function(use)
-									return UDim2.new(1, 0, 0, (use(rowSize) / 820) * use(props.actualTableSize).Y)
-								end),
-								BackgroundColor3 = currentTheme.colors.crust,
-								BackgroundTransparency = if key % 2 == 0 then 1 else 0,
-								LayoutOrder = key,
-
-								[Fusion.Children] = {
-									createChildren(scope, childrenProps),
-								},
-							}
-					end)
+	return scope:base {
+		ClassName = "ScrollingFrame",
+		Size = UDim2.fromScale(1, 0.9162011173), -- 1820, 820
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = scope:Spring(
+			scope:Computed(function(use)
+				local activeContent = use(props.currentContent)
+				if activeContent == "colors" then
+					return UDim2.fromScale(0.5, 1)
+				elseif activeContent == "settings" then
+					return UDim2.fromScale(1.5, 1)
+				else
+					return UDim2.fromScale(-1, 1)
 				end
-
-				return {} :: any
 			end),
+			SPRING_SPEED,
+			SPRING_DAMPING
+		),
+		BackgroundTransparency = 1,
+		[Fusion.Out "AbsoluteSize"] = viewportSize :: unknown,
+		ScrollBarThickness = 3,
+		ScrollBarImageColor3 = currentTheme.colors.text,
+		TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+		BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
+
+		[Fusion.Children] = Fusion.Child {
+			scope:New("UIListLayout") {
+				SortOrder = Enum.SortOrder.LayoutOrder,
+			},
+
+			createChildren.Table(scope, {
+				Scale = scale,
+				Columns = {
+					{ key = "name", width = UDim.new(0, 250) },
+					{ key = "partColor", width = UDim.new(0, 250) },
+					{ key = "lightColor", width = UDim.new(0, 250) },
+					{ key = "lightoColor", width = UDim.new(0, 250) },
+					{ key = "actions", rightAligned = true },
+				},
+				Headers = {
+					name = "Name",
+					partColor = "Part Color",
+					lightColor = "Light Color",
+					lightoColor = "Lighto Color",
+				},
+				RowSpacing = 0,
+				Rows = rows,
+			}),
 
 			scope:base {
 				Size = UDim2.fromScale(1, 0.0914634146),

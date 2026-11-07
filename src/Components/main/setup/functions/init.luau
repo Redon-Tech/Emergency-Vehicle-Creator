@@ -44,8 +44,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 		end
 	end)
 
-	local actualTableSize = scope:Value(Vector2.one)
-
 	-- 1820, 895
 	return scope:base {
 		Name = "Functions",
@@ -106,7 +104,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 					scope:functionsPage {
 						CurrentVehicle = props.CurrentVehicle,
 						currentContent = currentContent,
-						actualTableSize = actualTableSize,
 						selectedFunction = selectedFunction,
 					},
 
@@ -118,7 +115,6 @@ return function(baseScope: types.Scope, props: props): Fusion.Child
 						ReturnTo = props.ReturnTo,
 						firstScope = firstScope,
 						currentContent = currentContent,
-						actualTableSize = actualTableSize,
 						selectedFunction = selectedFunction,
 					},
 				},
