@@ -41,9 +41,24 @@ return function(
 	local controlSize = scope:Computed(function(use)
 		return UDim2.new(1, 0, 0, 0.1010101010 * use(props.dataSize).Y)
 	end)
+	local headerSize = scope:Computed(function(use)
+		return UDim2.new(1, 0, 0, 0.0404040404 * use(props.dataSize).Y)
+	end)
 	local cornerRadius = scope:Computed(function(use)
 		return UDim.new(0, 0.0202020202 * use(props.dataSize).Y)
 	end)
+	local function label(text: Fusion.UsedAs<string>, layoutOrder: Fusion.UsedAs<number>): Fusion.Child
+		return scope:textLabel {
+			Size = headerSize,
+			BackgroundTransparency = 1,
+			Text = text,
+			TextScaled = true,
+			MaxTextSize = 20,
+			TextColor3 = currentTheme.colors.subtext0,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			LayoutOrder = layoutOrder,
+		}
+	end
 	local baseDropdown = scope:dropdown {
 		Size = controlSize,
 		BackgroundColor3 = currentTheme.colors.crust,
@@ -72,6 +87,7 @@ return function(
 	local baseDropdownFrame = baseDropdown[2] :: Frame
 	baseDropdownFrame.LayoutOrder = 2
 	local baseControls: { Fusion.Child } = {
+		label("Type", 1),
 		baseDropdown,
 	}
 
@@ -134,6 +150,7 @@ return function(
 				}
 				local colorDropdownFrame = colorDropdown[2] :: Frame
 				colorDropdownFrame.LayoutOrder = 4
+				table.insert(controls, label("Color", 3))
 				table.insert(controls, colorDropdown)
 			end
 			if (props.angle :: Editor.AngleRotatorState | Editor.InfiniteRotatorState).velocity ~= nil then
@@ -142,6 +159,7 @@ return function(
 						scope.peek((props.angle :: Editor.AngleRotatorState | Editor.InfiniteRotatorState).velocity)
 					)
 				)
+				table.insert(controls, label("Velocity", 7))
 				table.insert(
 					controls,
 					scope:textBox {
@@ -177,6 +195,7 @@ return function(
 		elseif currentType == "Wait" then
 			if (props.angle :: Editor.WaitState).time ~= nil then
 				local currentText = scope:Value(tostring(scope.peek((props.angle :: Editor.WaitState).time)))
+				table.insert(controls, label("Wait Time", 7))
 				table.insert(
 					controls,
 					scope:textBox {
@@ -208,6 +227,7 @@ return function(
 		if currentType == "Angle" then
 			if (props.angle :: Editor.AngleRotatorState).angle ~= nil then
 				local currentText = scope:Value(tostring(scope.peek((props.angle :: Editor.AngleRotatorState).angle)))
+				table.insert(controls, label("Angle", 6))
 				table.insert(
 					controls,
 					scope:textBox {

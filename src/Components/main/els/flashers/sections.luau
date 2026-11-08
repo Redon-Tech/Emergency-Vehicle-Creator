@@ -312,13 +312,16 @@ return function(
 						Size = scope:Computed(function(use)
 							return UDim2.new(
 								0,
-								use(contentSize).X - (0.0106951872 * use(props.size).X),
+								(use(contentSize).X - (0.0187165775 * use(props.size).X))
+									- (0.0106951872 * use(props.size).X),
 								0.0114285714,
 								0
 							)
 						end),
 						AnchorPoint = Vector2.new(0.5, 0),
-						Position = UDim2.fromScale(0.5, 0.1428571429),
+						Position = scope:Computed(function(use)
+							return UDim2.new(0.5, (0.0093582888 * use(props.size).X), 0.1428571429, 0)
+						end),
 						BackgroundColor3 = currentTheme.colors.base,
 						CornerRadius = UDim.new(1, 0),
 					},
@@ -477,6 +480,44 @@ return function(
 								HorizontalAlignment = Enum.HorizontalAlignment.Center,
 								SortOrder = Enum.SortOrder.LayoutOrder,
 								[Fusion.Out "AbsoluteContentSize"] = contentSize :: unknown,
+							},
+
+							scope:base {
+								Size = scope:Computed(function(use)
+									return UDim2.new(0, 0.0187165775 * use(props.size).X, 1, 0)
+								end),
+								BackgroundTransparency = 1,
+								LayoutOrder = 0,
+
+								[Fusion.Children] = Fusion.Child {
+									scope:New("UIListLayout") {
+										Padding = UDim.new(0.0114285714, 0),
+										SortOrder = Enum.SortOrder.LayoutOrder,
+									},
+
+									scope:Computed(function(use)
+										local children = {}
+
+										for i = 1, use(value.rowCount) do
+											table.insert(
+												children,
+												scope:textLabel {
+													Size = UDim2.fromScale(1, 0.0447761194),
+													BackgroundTransparency = 1,
+													Text = tostring(i),
+													TextColor3 = currentTheme.colors.subtext0,
+													TextScaled = true,
+													MaxTextSize = 17,
+													TextXAlignment = Enum.TextXAlignment.Right,
+													FontWeight = Enum.FontWeight.Regular,
+													LayoutOrder = i,
+												}
+											)
+										end
+
+										return children
+									end),
+								},
 							},
 
 							scope:ForPairs(

@@ -41,9 +41,24 @@ return function(
 	local controlSize = scope:Computed(function(use)
 		return UDim2.new(1, 0, 0, 0.0628930818 * use(props.dataSize).Y)
 	end)
+	local headerSize = scope:Computed(function(use)
+		return UDim2.new(1, 0, 0, 0.0251572327 * use(props.dataSize).Y)
+	end)
 	local cornerRadius = scope:Computed(function(use)
 		return UDim.new(0, 0.0125786164 * use(props.dataSize).Y)
 	end)
+	local function label(text: Fusion.UsedAs<string>, layoutOrder: Fusion.UsedAs<number>): Fusion.Child
+		return scope:textLabel {
+			Size = headerSize,
+			BackgroundTransparency = 1,
+			Text = text,
+			TextScaled = true,
+			MaxTextSize = 20,
+			TextColor3 = currentTheme.colors.subtext0,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			LayoutOrder = layoutOrder,
+		}
+	end
 	local baseDropdown = scope:dropdown {
 		Size = controlSize,
 		BackgroundColor3 = currentTheme.colors.crust,
@@ -73,7 +88,14 @@ return function(
 	baseDropdownFrame.LayoutOrder = 2
 	local currentTime = scope:Value(tostring(scope.peek(props.tween.time)))
 	local baseControls: { Fusion.Child } = {
+		label("Type", 1),
 		baseDropdown,
+		label(
+			scope:Computed(function(use)
+				return if use(props.tween.type) == "Wait" then "Wait Time" else "Time"
+			end),
+			7
+		),
 		scope:textBox {
 			Size = controlSize,
 			BackgroundColor3 = currentTheme.colors.crust,
@@ -157,12 +179,14 @@ return function(
 				}
 				local colorDropdownFrame = colorDropdown[2] :: Frame
 				colorDropdownFrame.LayoutOrder = 4
+				table.insert(controls, label("Color", 3))
 				table.insert(controls, colorDropdown)
 			end
 			if (props.tween :: Editor.SimpleFaderState | Editor.AdvancedFaderState).goal ~= nil then
 				local currentText = scope:Value(
 					tostring(scope.peek((props.tween :: Editor.SimpleFaderState | Editor.AdvancedFaderState).goal))
 				)
+				table.insert(controls, label("Goal", 6))
 				table.insert(
 					controls,
 					scope:textBox {
@@ -232,6 +256,7 @@ return function(
 					}
 					local easingStyleDropdownFrame = easingStyleDropdown[2] :: Frame
 					easingStyleDropdownFrame.LayoutOrder = 9
+					table.insert(controls, label("Easing Style", 8))
 					table.insert(controls, easingStyleDropdown)
 				end
 				if (props.tween :: Editor.AdvancedFaderState).easingDirection ~= nil then
@@ -270,6 +295,7 @@ return function(
 					}
 					local easingStyleDropdownFrame = easingStyleDropdown[2] :: Frame
 					easingStyleDropdownFrame.LayoutOrder = 11
+					table.insert(controls, label("Easing Direction", 10))
 					table.insert(controls, easingStyleDropdown)
 				end
 			end
