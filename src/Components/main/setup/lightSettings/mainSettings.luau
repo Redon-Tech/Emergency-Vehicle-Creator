@@ -3,6 +3,9 @@
 
 local Fusion = require("../../../../../Packages/fusion")
 local RedonUI = require("../../../../../Packages/redon-ui")
+local SaveLibrary = require("../../../../lib/SaveLibrary")
+local popup = require("../../../popup")
+local savePopup = require("../../savePopup")
 local types = require("../../../../types")
 local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
 local LightSettingsEditor = require("../../../../lib/ConfigurationEditor/LightSettingsEditor")
@@ -44,6 +47,7 @@ local SPRING_DAMPING = 0.75
 ]]
 return function(scope: types.Scope, props: props)
 	local currentTheme = RedonUI.theme.theme:now()
+	local lightSettingsSaveMenu: Instance? = nil
 
 	return scope:base {
 		ClassName = "ScrollingFrame",
@@ -73,6 +77,7 @@ return function(scope: types.Scope, props: props)
 		[Fusion.Children] = Fusion.Child {
 			scope:New("UIListLayout") {
 				SortOrder = Enum.SortOrder.LayoutOrder,
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
 			},
 
 			scope:ForPairs(mainSettings, function(_, scope: typeof(scope), key, value)
@@ -263,6 +268,34 @@ return function(scope: types.Scope, props: props)
 						},
 					}
 			end),
+			scope:textButton {
+				LayoutOrder = 4000,
+				Size = UDim2.fromScale(0.0961538462, 0.0609756098),
+				MaxSize = Vector2.new(175, 50),
+				Text = "Save/Load",
+				BackgroundColor3 = currentTheme.colors.crust,
+				CornerRadius = UDim.new(0, 5),
+				Border = 1,
+				TextScaled = true,
+				MaxTextSize = 30,
+				FontWeight = Enum.FontWeight.Medium,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				Reactive = true,
+				[Fusion.OnEvent "Activated"] = function()
+					local menu: Instance = lightSettingsSaveMenu
+						or savePopup(scope, {
+							Title = "Light Settings",
+							Collection = SaveLibrary.lightSettings,
+							GetValue = function(): types.lightSettings?
+								local configuration = ConfigurationEditor.toConfiguration()
+								return if configuration then configuration.lightSettings else nil
+							end,
+							OnLoad = ConfigurationEditor.replaceLightSettings,
+						})
+					lightSettingsSaveMenu = menu
+					popup:customPopup(scope, menu)
+				end,
+			},
 		},
 	}
 end

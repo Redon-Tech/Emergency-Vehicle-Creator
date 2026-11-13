@@ -3,6 +3,8 @@
 
 local Fusion = require("../../../../../Packages/fusion")
 local RedonUI = require("../../../../../Packages/redon-ui")
+local SaveLibrary = require("../../../../lib/SaveLibrary")
+local savePopup = require("../../savePopup")
 local types = require("../../../../types")
 local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
 local popup = require("../../../popup")
@@ -21,6 +23,7 @@ local SPRING_DAMPING = 0.75
 ]]
 return function(scope: types.Scope, props: props)
 	local currentTheme = RedonUI.theme.theme:now()
+	local colorsLoadMenu: Instance? = nil
 	local viewportSize = scope:Value(Vector2.new(1820, 895))
 	local scale = scope:Computed(function(use)
 		return use(viewportSize).X / 1820
@@ -35,6 +38,7 @@ return function(scope: types.Scope, props: props)
 	end)
 
 	local rows = scope:ForPairs(colors, function(_, scope: types.Scope, key, colorData): (number, createChildren.Row)
+		local colorsSaveMenu: Instance? = nil
 		return key,
 			{
 				BackgroundColor3 = if key % 2 == 0 then currentTheme.colors.mantle else currentTheme.colors.crust,
@@ -70,6 +74,42 @@ return function(scope: types.Scope, props: props)
 					}),
 					actions = if key > 6
 						then controls.actions(scope, {
+							Save = scope:textButton {
+								Text = "Save",
+								Size = scope:Computed(function(use)
+									return UDim2.fromOffset(90 * use(scale), 50 * use(scale))
+								end),
+								LayoutOrder = 2,
+								BackgroundColor3 = currentTheme.colors.crust,
+								CornerRadius = UDim.new(0, 5),
+								Border = 1,
+								TextScaled = true,
+								MaxTextSize = 30,
+								FontWeight = Enum.FontWeight.Medium,
+								TextXAlignment = Enum.TextXAlignment.Center,
+								Reactive = true,
+								Shadow = true,
+								ShadowColor3 = currentTheme.colors.mantle,
+								ButtonGlow = true,
+								ButtonGlowColor3 = currentTheme.colors.mantle,
+								[Fusion.OnEvent "Activated"] = function()
+									local menu: Instance = colorsSaveMenu
+										or savePopup(scope, {
+											Title = "Color",
+											Collection = SaveLibrary.colors,
+											LoadAdds = true,
+											GetValue = function(): types.color?
+												local configuration = ConfigurationEditor.toConfiguration()
+												return if configuration
+													then configuration.lightSettings.colors[key]
+													else nil
+											end,
+											OnLoad = ConfigurationEditor.addColor,
+										})
+									colorsSaveMenu = menu
+									popup:customPopup(scope, menu)
+								end,
+							},
 							Scale = scale,
 							OnDelete = function()
 								popup:addPopup(scope, {
@@ -99,7 +139,42 @@ return function(scope: types.Scope, props: props)
 								})
 							end,
 						})
-						else {},
+						else scope:textButton {
+							Text = "Save",
+							Size = scope:Computed(function(use)
+								return UDim2.fromOffset(90 * use(scale), 50 * use(scale))
+							end),
+							LayoutOrder = 2,
+							BackgroundColor3 = currentTheme.colors.crust,
+							CornerRadius = UDim.new(0, 5),
+							Border = 1,
+							TextScaled = true,
+							MaxTextSize = 30,
+							FontWeight = Enum.FontWeight.Medium,
+							TextXAlignment = Enum.TextXAlignment.Center,
+							Reactive = true,
+							Shadow = true,
+							ShadowColor3 = currentTheme.colors.mantle,
+							ButtonGlow = true,
+							ButtonGlowColor3 = currentTheme.colors.mantle,
+							[Fusion.OnEvent "Activated"] = function()
+								local menu: Instance = colorsSaveMenu
+									or savePopup(scope, {
+										Title = "Color",
+										Collection = SaveLibrary.colors,
+										LoadAdds = true,
+										GetValue = function(): types.color?
+											local configuration = ConfigurationEditor.toConfiguration()
+											return if configuration
+												then configuration.lightSettings.colors[key]
+												else nil
+										end,
+										OnLoad = ConfigurationEditor.addColor,
+									})
+								colorsSaveMenu = menu
+								popup:customPopup(scope, menu)
+							end,
+						},
 				},
 			}
 	end)
@@ -161,11 +236,43 @@ return function(scope: types.Scope, props: props)
 				LayoutOrder = 4000,
 
 				[Fusion.Children] = {
+					scope:New("UIListLayout") {
+						FillDirection = Enum.FillDirection.Horizontal,
+						HorizontalAlignment = Enum.HorizontalAlignment.Center,
+						VerticalAlignment = Enum.VerticalAlignment.Center,
+						SortOrder = Enum.SortOrder.LayoutOrder,
+						Padding = UDim.new(0.0082417582, 0),
+					},
 					scope:textButton {
-						Size = UDim2.fromScale(1, 0.6666666667),
+						Text = "Load",
+						Size = UDim2.fromScale(0.0961538462, 0.6666666667),
 						MaxSize = Vector2.new(175, 50),
-						AnchorPoint = Vector2.new(0.5, 0.5),
-						Position = UDim2.fromScale(0.5, 0.5),
+						LayoutOrder = 2,
+						BackgroundColor3 = currentTheme.colors.crust,
+						CornerRadius = UDim.new(0, 5),
+						Border = 1,
+						TextScaled = true,
+						MaxTextSize = 30,
+						FontWeight = Enum.FontWeight.Medium,
+						TextXAlignment = Enum.TextXAlignment.Center,
+						Reactive = true,
+						[Fusion.OnEvent "Activated"] = function()
+							local menu: Instance = colorsLoadMenu
+								or savePopup(scope, {
+									Title = "Color",
+									Collection = SaveLibrary.colors,
+									LoadAdds = true,
+									OnLoad = ConfigurationEditor.addColor,
+								})
+							colorsLoadMenu = menu
+							popup:customPopup(scope, menu)
+						end,
+					},
+
+					scope:textButton {
+						LayoutOrder = 1,
+						Size = UDim2.fromScale(0.0961538462, 0.6666666667),
+						MaxSize = Vector2.new(175, 50),
 						BackgroundColor3 = currentTheme.colors.crust,
 						CornerRadius = UDim.new(0, 5),
 						Border = 1,

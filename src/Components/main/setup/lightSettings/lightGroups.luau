@@ -3,6 +3,8 @@
 
 local Fusion = require("../../../../../Packages/fusion")
 local RedonUI = require("../../../../../Packages/redon-ui")
+local SaveLibrary = require("../../../../lib/SaveLibrary")
+local savePopup = require("../../savePopup")
 local types = require("../../../../types")
 local assets = require("../../../../assets")
 local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
@@ -25,6 +27,7 @@ local SPRING_DAMPING = 0.75
 ]]
 return function(scope: types.Scope, props: props)
 	local currentTheme = RedonUI.theme.theme:now()
+	local lightGroupsLoadMenu: Instance? = nil
 	local holdingShift = false
 
 	local lightGroups = scope:Computed(function(use)
@@ -85,6 +88,7 @@ return function(scope: types.Scope, props: props)
 			},
 
 			scope:ForPairs(lightGroups, function(_, scope: typeof(scope), key: number, value: LightGroup)
+				local lightGroupsSaveMenu: Instance? = nil
 				local isOpen = scope:Value(false)
 				local draftName: Fusion.Value<string> = scope:Value(scope.peek(value.name))
 				local size = scope:Value(Vector2.one)
@@ -174,6 +178,38 @@ return function(scope: types.Scope, props: props)
 										TextXAlignment = Enum.TextXAlignment.Left,
 									},
 
+									scope:textButton {
+										Text = "Save",
+										Size = UDim2.fromScale(0.08, 0.6666666667),
+										Position = UDim2.fromScale(0.92, 0.5),
+										AnchorPoint = Vector2.new(1, 0.5),
+										LayoutOrder = 2,
+										BackgroundColor3 = currentTheme.colors.crust,
+										CornerRadius = UDim.new(0, 5),
+										Border = 1,
+										TextScaled = true,
+										MaxTextSize = 30,
+										FontWeight = Enum.FontWeight.Medium,
+										TextXAlignment = Enum.TextXAlignment.Center,
+										Reactive = true,
+										[Fusion.OnEvent "Activated"] = function()
+											local menu: Instance = lightGroupsSaveMenu
+												or savePopup(scope, {
+													Title = "Light Group",
+													Collection = SaveLibrary.lightGroups,
+													LoadAdds = true,
+													GetValue = function(): types.lightGroup?
+														local configuration = ConfigurationEditor.toConfiguration()
+														return if configuration
+															then configuration.lightSettings.lightGroups[key]
+															else nil
+													end,
+													OnLoad = ConfigurationEditor.addLightGroup,
+												})
+											lightGroupsSaveMenu = menu
+											popup:customPopup(scope, menu)
+										end,
+									},
 									scope:New("ImageLabel") {
 										Name = "Arrow",
 										AnchorPoint = Vector2.new(1, 0.5),
@@ -363,11 +399,43 @@ return function(scope: types.Scope, props: props)
 				LayoutOrder = 4000,
 
 				[Fusion.Children] = {
+					scope:New("UIListLayout") {
+						FillDirection = Enum.FillDirection.Horizontal,
+						HorizontalAlignment = Enum.HorizontalAlignment.Center,
+						VerticalAlignment = Enum.VerticalAlignment.Center,
+						SortOrder = Enum.SortOrder.LayoutOrder,
+						Padding = UDim.new(0.0082417582, 0),
+					},
+
 					scope:textButton {
-						Size = UDim2.fromScale(1, 0.6666666667),
 						MaxSize = Vector2.new(175, 50),
-						AnchorPoint = Vector2.new(0.5, 0.5),
-						Position = UDim2.fromScale(0.5, 0.5),
+						Size = UDim2.fromScale(0.0961538462, 0.6666666667),
+						LayoutOrder = 2,
+						Text = "Load",
+						BackgroundColor3 = currentTheme.colors.crust,
+						CornerRadius = UDim.new(0, 5),
+						Border = 1,
+						TextScaled = true,
+						MaxTextSize = 30,
+						FontWeight = Enum.FontWeight.Medium,
+						TextXAlignment = Enum.TextXAlignment.Center,
+						Reactive = true,
+						[Fusion.OnEvent "Activated"] = function()
+							local menu: Instance = lightGroupsLoadMenu
+								or savePopup(scope, {
+									Title = "Light Group",
+									Collection = SaveLibrary.lightGroups,
+									LoadAdds = true,
+									OnLoad = ConfigurationEditor.addLightGroup,
+								})
+							lightGroupsLoadMenu = menu
+							popup:customPopup(scope, menu)
+						end,
+					},
+					scope:textButton {
+						LayoutOrder = 1,
+						Size = UDim2.fromScale(0.0961538462, 0.6666666667),
+						MaxSize = Vector2.new(175, 50),
 						BackgroundColor3 = currentTheme.colors.crust,
 						CornerRadius = UDim.new(0, 5),
 						Border = 1,

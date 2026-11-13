@@ -3,6 +3,8 @@
 
 local Fusion = require("../../../../Packages/fusion")
 local RedonUI = require("../../../../Packages/redon-ui")
+local SaveLibrary = require("../../../lib/SaveLibrary")
+local savePopup = require("../savePopup")
 local types = require("../../../types")
 local ChassisHandler = require("../../../lib/ChassisHandler")
 local ConfigurationEditor = require("../../../lib/ConfigurationEditor")
@@ -24,6 +26,7 @@ type props = {
 ]]
 return function(scope: types.Scope, props: props): Fusion.Child
 	local currentTheme = RedonUI.theme.theme:now()
+	local sirensLoadMenu: Instance? = nil
 	local viewportSize = scope:Value(Vector2.new(1820, 895))
 	local scale = scope:Computed(function(use)
 		return use(viewportSize).X / 1820
@@ -65,6 +68,7 @@ return function(scope: types.Scope, props: props): Fusion.Child
 	end)
 
 	local rows = scope:ForPairs(sirens, function(use, scope: types.Scope, key, siren): (number, createChildren.Row)
+		local sirensSaveMenu: Instance? = nil
 		local keybinds: { [string]: Fusion.Child? } = {}
 		local currentKeybinds = use(siren.keybinds)
 		for index, keybind in currentKeybinds do
@@ -92,6 +96,42 @@ return function(scope: types.Scope, props: props): Fusion.Child
 			keyboard = keybinds["1"],
 			gamepad = keybinds["2"],
 			actions = controls.actions(scope, {
+				Save = scope:textButton {
+					Text = "Save",
+					Size = scope:Computed(function(use)
+						return UDim2.fromOffset(90 * use(scale), 50 * use(scale))
+					end),
+					LayoutOrder = 2,
+					BackgroundColor3 = currentTheme.colors.crust,
+					CornerRadius = UDim.new(0, 5),
+					Border = 1,
+					TextScaled = true,
+					MaxTextSize = 30,
+					FontWeight = Enum.FontWeight.Medium,
+					TextXAlignment = Enum.TextXAlignment.Center,
+					Reactive = true,
+					Shadow = true,
+					ShadowColor3 = currentTheme.colors.mantle,
+					ButtonGlow = true,
+					ButtonGlowColor3 = currentTheme.colors.mantle,
+					[Fusion.OnEvent "Activated"] = function()
+						local menu: Instance = sirensSaveMenu
+							or savePopup(scope, {
+								Title = "Siren",
+								Collection = SaveLibrary.sirens,
+								LoadAdds = true,
+								GetValue = function(): types.siren?
+									local configuration = ConfigurationEditor.toConfiguration()
+									return if configuration then configuration.sirens[key] else nil
+								end,
+								OnLoad = function(value: types.siren)
+									ConfigurationEditor.addSiren(value)
+								end,
+							})
+						sirensSaveMenu = menu
+						popup:customPopup(scope, menu)
+					end,
+				},
 				Scale = scale,
 				OnDelete = function()
 					popup:addPopup(scope, {
@@ -120,13 +160,13 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						},
 					})
 				end,
-				OnDownload = function() end,
 			}),
 		}
 
 		local children: Fusion.Child? = nil
 		if use(siren.type) ~= "Modifier" then
 			local siren = siren :: SirensEditor.SirenHoldState
+
 			cells.name = createChildren.Dropdown(scope, {
 				Scale = scale,
 				Selected = siren.name,
@@ -392,16 +432,30 @@ return function(scope: types.Scope, props: props): Fusion.Child
 
 						scope:textButton {
 							Size = UDim2.fromScale(0.0961538462, 1),
-							MaxSize = Vector2.new(175, 50),
+							LayoutOrder = 3,
+							Text = "Load",
 							BackgroundColor3 = currentTheme.colors.crust,
 							CornerRadius = UDim.new(0.2, 0),
 							Border = 2,
-							Text = "Import",
 							TextScaled = true,
 							MaxTextSize = 30,
 							FontWeight = Enum.FontWeight.Bold,
-							LayoutOrder = 3,
+							TextXAlignment = Enum.TextXAlignment.Center,
 							Reactive = true,
+							MaxSize = Vector2.new(175, 50),
+							[Fusion.OnEvent "Activated"] = function()
+								local menu: Instance = sirensLoadMenu
+									or savePopup(scope, {
+										Title = "Siren",
+										Collection = SaveLibrary.sirens,
+										LoadAdds = true,
+										OnLoad = function(value: types.siren)
+											ConfigurationEditor.addSiren(value)
+										end,
+									})
+								sirensLoadMenu = menu
+								popup:customPopup(scope, menu)
+							end,
 						},
 					},
 				},

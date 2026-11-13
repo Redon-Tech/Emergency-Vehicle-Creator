@@ -3,6 +3,8 @@
 
 local Fusion = require("../../../../../Packages/fusion")
 local RedonUI = require("../../../../../Packages/redon-ui")
+local SaveLibrary = require("../../../../lib/SaveLibrary")
+local savePopup = require("../../savePopup")
 local types = require("../../../../types")
 local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
 local FunctionsEditor = require("../../../../lib/ConfigurationEditor/FunctionsEditor")
@@ -17,34 +19,26 @@ local function addButton(
 	scope: types.Scope,
 	currentTheme: typeof(RedonUI.theme.mocha),
 	buttonText: Fusion.UsedAs<string>,
-	onPress: () -> ()
-): Fusion.Child
-	return scope:base {
-		Size = UDim2.fromScale(1, 0.0914634146),
-		BackgroundTransparency = 1,
-		LayoutOrder = 1000,
+	onPress: () -> (),
+	layoutOrder: number
+): Instance
+	return scope:textButton {
+		LayoutOrder = layoutOrder,
+		Size = UDim2.fromScale(0.0961538462, 0.6666666667),
+		MaxSize = Vector2.new(175, 50),
+		BackgroundColor3 = currentTheme.colors.crust,
+		CornerRadius = UDim.new(0, 5),
+		Border = 1,
+		Text = buttonText,
+		TextScaled = true,
+		MaxTextSize = 30,
+		FontWeight = Enum.FontWeight.Medium,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Reactive = true,
 
-		[Fusion.Children] = {
-			scope:textButton {
-				Size = UDim2.fromScale(1, 0.6666666667),
-				MaxSize = Vector2.new(175, 50),
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.fromScale(0.5, 0.5),
-				BackgroundColor3 = currentTheme.colors.crust,
-				CornerRadius = UDim.new(0, 5),
-				Border = 1,
-				Text = buttonText,
-				TextScaled = true,
-				MaxTextSize = 30,
-				FontWeight = Enum.FontWeight.Medium,
-				TextXAlignment = Enum.TextXAlignment.Center,
-				Reactive = true,
-
-				[Fusion.OnEvent "Activated"] = function()
-					onPress()
-				end,
-			},
-		},
+		[Fusion.OnEvent "Activated"] = function()
+			onPress()
+		end,
 	}
 end
 
@@ -67,6 +61,8 @@ local SPRING_DAMPING = 0.75
 ]]
 return function(scope: types.Scope, props: props)
 	local currentTheme = RedonUI.theme.theme:now()
+	local activationsLoadMenu: Instance? = nil
+	local patternsLoadMenu: Instance? = nil
 	local viewportSize = scope:Value(Vector2.new(1820, 895))
 	local scale = scope:Computed(function(use)
 		return use(viewportSize).X / 1820
@@ -155,6 +151,7 @@ return function(scope: types.Scope, props: props)
 	local patternRows = scope:ForPairs(
 		patterns,
 		function(_, scope: types.Scope, key: number): (number, createChildren.Row)
+			local patternsSaveMenu: Instance? = nil
 			local index = scope:Value(key)
 			return key,
 				{
@@ -190,6 +187,48 @@ return function(scope: types.Scope, props: props)
 							TextXAlignment = Enum.TextXAlignment.Center,
 						}),
 						actions = controls.actions(scope, {
+							Save = scope:textButton {
+								Text = "Save",
+								Size = scope:Computed(function(use)
+									return UDim2.fromOffset(90 * use(scale), 50 * use(scale))
+								end),
+								LayoutOrder = 2,
+								BackgroundColor3 = currentTheme.colors.crust,
+								CornerRadius = UDim.new(0, 5),
+								Border = 1,
+								TextScaled = true,
+								MaxTextSize = 30,
+								FontWeight = Enum.FontWeight.Medium,
+								TextXAlignment = Enum.TextXAlignment.Center,
+								Reactive = true,
+								Shadow = true,
+								ShadowColor3 = currentTheme.colors.mantle,
+								ButtonGlow = true,
+								ButtonGlowColor3 = currentTheme.colors.mantle,
+								[Fusion.OnEvent "Activated"] = function()
+									local menu: Instance = patternsSaveMenu
+										or savePopup(scope, {
+											Title = "Pattern",
+											Collection = SaveLibrary.patterns,
+											LoadAdds = true,
+											GetValue = function(): types.pattern?
+												local configuration = ConfigurationEditor.toConfiguration()
+												local selected = scope.peek(props.selectedFunction)
+												local func = if configuration and selected
+													then configuration.functions[selected]
+													else nil
+												return if func then func.patterns[key] else nil
+											end,
+											OnLoad = function(value: types.pattern)
+												local selected = scope.peek(props.selectedFunction)
+												assert(selected ~= nil, "No selected function")
+												ConfigurationEditor.addPattern(selected, value)
+											end,
+										})
+									patternsSaveMenu = menu
+									popup:customPopup(scope, menu)
+								end,
+							},
 							Scale = scale,
 							OnEdit = function()
 								local selectedFunction = scope.peek(props.selectedFunction)
@@ -242,7 +281,6 @@ return function(scope: types.Scope, props: props)
 									},
 								})
 							end,
-							OnDownload = function() end,
 						}),
 					},
 				}
@@ -252,6 +290,7 @@ return function(scope: types.Scope, props: props)
 	local activationRows = scope:ForPairs(
 		currentActivations,
 		function(use, scope: types.Scope, key, value): (number, createChildren.Row)
+			local activationsSaveMenu: Instance? = nil
 			local selectedFunction = use(props.selectedFunction)
 			if selectedFunction == nil then
 				return key, { Cells = {} }
@@ -443,6 +482,48 @@ return function(scope: types.Scope, props: props)
 							Scale = scale,
 							Label = "",
 							Content = controls.actions(scope, {
+								Save = scope:textButton {
+									Text = "Save",
+									Size = scope:Computed(function(use)
+										return UDim2.fromOffset(90 * use(scale), 50 * use(scale))
+									end),
+									LayoutOrder = 2,
+									BackgroundColor3 = currentTheme.colors.crust,
+									CornerRadius = UDim.new(0, 5),
+									Border = 1,
+									TextScaled = true,
+									MaxTextSize = 30,
+									FontWeight = Enum.FontWeight.Medium,
+									TextXAlignment = Enum.TextXAlignment.Center,
+									Reactive = true,
+									Shadow = true,
+									ShadowColor3 = currentTheme.colors.mantle,
+									ButtonGlow = true,
+									ButtonGlowColor3 = currentTheme.colors.mantle,
+									[Fusion.OnEvent "Activated"] = function()
+										local menu: Instance = activationsSaveMenu
+											or savePopup(scope, {
+												Title = "Activation",
+												Collection = SaveLibrary.activations,
+												LoadAdds = true,
+												GetValue = function(): types.activation?
+													local configuration = ConfigurationEditor.toConfiguration()
+													local selected = scope.peek(props.selectedFunction)
+													local func = if configuration and selected
+														then configuration.functions[selected]
+														else nil
+													return if func then func.activations[key] else nil
+												end,
+												OnLoad = function(value: types.activation)
+													local selected = scope.peek(props.selectedFunction)
+													assert(selected ~= nil, "No selected function")
+													ConfigurationEditor.addActivation(selected, value)
+												end,
+											})
+										activationsSaveMenu = menu
+										popup:customPopup(scope, menu)
+									end,
+								},
 								Scale = scale,
 								OnDelete = function()
 									popup:addPopup(scope, {
@@ -471,7 +552,6 @@ return function(scope: types.Scope, props: props)
 										},
 									})
 								end,
-								OnDownload = function() end,
 							}),
 						}),
 					},
@@ -644,13 +724,45 @@ return function(scope: types.Scope, props: props)
 						RowSpacing = 0,
 						Rows = patternRows,
 					}),
-					addButton(scope, currentTheme, "Add Pattern", function()
-						local selectedFunction = scope.peek(props.selectedFunction)
-						if selectedFunction == nil then
-							return
-						end
-						ConfigurationEditor.addPattern(selectedFunction, { flashers = {}, faders = {}, rotators = {} })
-					end),
+					scope:base {
+						Size = UDim2.fromScale(1, 0.0914634146),
+						BackgroundTransparency = 1,
+						LayoutOrder = 1000,
+						[Fusion.Children] = {
+							scope:New("UIListLayout") {
+								FillDirection = Enum.FillDirection.Horizontal,
+								HorizontalAlignment = Enum.HorizontalAlignment.Center,
+								VerticalAlignment = Enum.VerticalAlignment.Center,
+								SortOrder = Enum.SortOrder.LayoutOrder,
+								Padding = UDim.new(0.0082417582, 0),
+							},
+							addButton(scope, currentTheme, "Load", function()
+								local menu: Instance = patternsLoadMenu
+									or savePopup(scope, {
+										Title = "Pattern",
+										Collection = SaveLibrary.patterns,
+										LoadAdds = true,
+										OnLoad = function(value: types.pattern)
+											local selected = scope.peek(props.selectedFunction)
+											assert(selected ~= nil, "No selected function")
+											ConfigurationEditor.addPattern(selected, value)
+										end,
+									})
+								patternsLoadMenu = menu
+								popup:customPopup(scope, menu)
+							end, 2),
+							addButton(scope, currentTheme, "Add Pattern", function()
+								local selectedFunction = scope.peek(props.selectedFunction)
+								if selectedFunction == nil then
+									return
+								end
+								ConfigurationEditor.addPattern(
+									selectedFunction,
+									{ flashers = {}, faders = {}, rotators = {} }
+								)
+							end, 1),
+						},
+					},
 				},
 			},
 
@@ -695,18 +807,47 @@ return function(scope: types.Scope, props: props)
 						RowSpacing = 0,
 						Rows = activationRows,
 					}),
-					addButton(scope, currentTheme, "Add Activation", function()
-						local selectedFunction = scope.peek(props.selectedFunction)
-						if selectedFunction == nil then
-							return
-						end
-						ConfigurationEditor.addActivation(selectedFunction, {
-							type = "Standard",
-							mode = "Cycle",
-							pattern = 0,
-							keybinds = { Enum.KeyCode.J, Enum.KeyCode.DPadLeft },
-						})
-					end),
+					scope:base {
+						Size = UDim2.fromScale(1, 0.0914634146),
+						BackgroundTransparency = 1,
+						LayoutOrder = 1000,
+						[Fusion.Children] = {
+							scope:New("UIListLayout") {
+								FillDirection = Enum.FillDirection.Horizontal,
+								HorizontalAlignment = Enum.HorizontalAlignment.Center,
+								VerticalAlignment = Enum.VerticalAlignment.Center,
+								SortOrder = Enum.SortOrder.LayoutOrder,
+								Padding = UDim.new(0.0082417582, 0),
+							},
+							addButton(scope, currentTheme, "Load", function()
+								local menu: Instance = activationsLoadMenu
+									or savePopup(scope, {
+										Title = "Activation",
+										Collection = SaveLibrary.activations,
+										LoadAdds = true,
+										OnLoad = function(value: types.activation)
+											local selected = scope.peek(props.selectedFunction)
+											assert(selected ~= nil, "No selected function")
+											ConfigurationEditor.addActivation(selected, value)
+										end,
+									})
+								activationsLoadMenu = menu
+								popup:customPopup(scope, menu)
+							end, 2),
+							addButton(scope, currentTheme, "Add Activation", function()
+								local selectedFunction = scope.peek(props.selectedFunction)
+								if selectedFunction == nil then
+									return
+								end
+								ConfigurationEditor.addActivation(selectedFunction, {
+									type = "Standard",
+									mode = "Cycle",
+									pattern = 0,
+									keybinds = { Enum.KeyCode.J, Enum.KeyCode.DPadLeft },
+								})
+							end, 1),
+						},
+					},
 				},
 			},
 		},

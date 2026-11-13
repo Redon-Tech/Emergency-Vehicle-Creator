@@ -268,8 +268,8 @@ function Controls.actions(
 	scope: types.Scope,
 	props: {
 		OnEdit: (() -> ())?,
+		Save: Fusion.Child?,
 		OnDelete: () -> (),
-		OnDownload: (() -> ())?,
 		Scale: Fusion.UsedAs<number>?,
 		Height: Fusion.UsedAs<number>?,
 	}
@@ -280,7 +280,7 @@ function Controls.actions(
 		return scope:iconButton {
 			Size = scope:Computed(function(use)
 				local scale = use(props.Scale) or 1
-				return UDim2.fromOffset((if order == 2 then 36 else 40) * scale, (use(props.Height) or 50) * scale)
+				return UDim2.fromOffset(40 * scale, (use(props.Height) or 50) * scale)
 			end),
 			BackgroundTransparency = 1,
 			Image = scope:Computed(function(use)
@@ -338,9 +338,7 @@ function Controls.actions(
 					[Fusion.OnEvent "Activated"] = props.OnEdit,
 				}
 				else {},
-			if props.OnDownload ~= nil
-				then icon(assets.images.redonUI.download, assets.images.redonUI.downloadFilled, 2, props.OnDownload)
-				else {},
+			props.Save or {},
 			icon(assets.images.redonUI.trash, assets.images.redonUI.trashFilled, 3, props.OnDelete),
 		},
 	}

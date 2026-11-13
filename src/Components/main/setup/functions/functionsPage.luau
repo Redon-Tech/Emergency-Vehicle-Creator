@@ -3,6 +3,8 @@
 
 local Fusion = require("../../../../../Packages/fusion")
 local RedonUI = require("../../../../../Packages/redon-ui")
+local SaveLibrary = require("../../../../lib/SaveLibrary")
+local savePopup = require("../../savePopup")
 local types = require("../../../../types")
 local ChassisHandler = require("../../../../lib/ChassisHandler")
 local ConfigurationEditor = require("../../../../lib/ConfigurationEditor")
@@ -38,6 +40,7 @@ local SPRING_DAMPING = 0.75
 ]]
 return function(scope: types.Scope, props: props)
 	local currentTheme = RedonUI.theme.theme:now()
+	local functionsLoadMenu: Instance? = nil
 	local viewportSize = scope:Value(Vector2.new(1820, 895))
 	local scale = scope:Computed(function(use)
 		return use(viewportSize).X / 1820
@@ -151,16 +154,33 @@ return function(scope: types.Scope, props: props)
 
 					scope:textButton {
 						Size = UDim2.fromScale(0.0961538462, 1),
-						MaxSize = Vector2.new(175, 50),
+						LayoutOrder = 3,
+						Text = "Load",
 						BackgroundColor3 = currentTheme.colors.crust,
 						CornerRadius = UDim.new(0.2, 0),
 						Border = 2,
-						Text = "Import",
 						TextScaled = true,
 						MaxTextSize = 30,
 						FontWeight = Enum.FontWeight.Bold,
-						LayoutOrder = 3,
+						TextXAlignment = Enum.TextXAlignment.Center,
 						Reactive = true,
+						MaxSize = Vector2.new(175, 50),
+						[Fusion.OnEvent "Activated"] = function()
+							local menu: Instance = functionsLoadMenu
+								or savePopup(scope, {
+									Title = "Function",
+									Collection = SaveLibrary.functions,
+									LoadAdds = true,
+									OnLoad = function(value: types.elsFunction)
+										local configuration = ConfigurationEditor.toConfiguration()
+										assert(configuration ~= nil, "No loaded configuration")
+										value.weight = #configuration.functions + 1
+										ConfigurationEditor.addFunction(value)
+									end,
+								})
+							functionsLoadMenu = menu
+							popup:customPopup(scope, menu)
+						end,
 					},
 				},
 			},
@@ -194,6 +214,7 @@ return function(scope: types.Scope, props: props)
 						Rows = scope:ForPairs(
 							functions,
 							function(_, scope: types.Scope, key, value): (number, createChildren.Row)
+								local functionsSaveMenu: Instance? = nil
 								return key,
 									{
 										BackgroundColor3 = if key % 2 == 0
@@ -216,6 +237,52 @@ return function(scope: types.Scope, props: props)
 												end,
 											}),
 											actions = controls.actions(scope, {
+												Save = scope:textButton {
+													Text = "Save",
+													Size = scope:Computed(function(use)
+														return UDim2.fromOffset(90 * use(scale), 50 * use(scale))
+													end),
+													LayoutOrder = 2,
+													BackgroundColor3 = currentTheme.colors.crust,
+													CornerRadius = UDim.new(0, 5),
+													Border = 1,
+													TextScaled = true,
+													MaxTextSize = 30,
+													FontWeight = Enum.FontWeight.Medium,
+													TextXAlignment = Enum.TextXAlignment.Center,
+													Reactive = true,
+													Shadow = true,
+													ShadowColor3 = currentTheme.colors.mantle,
+													ButtonGlow = true,
+													ButtonGlowColor3 = currentTheme.colors.mantle,
+													[Fusion.OnEvent "Activated"] = function()
+														local menu: Instance = functionsSaveMenu
+															or savePopup(scope, {
+																Title = "Function",
+																Collection = SaveLibrary.functions,
+																LoadAdds = true,
+																GetValue = function(): types.elsFunction?
+																	local configuration =
+																		ConfigurationEditor.toConfiguration()
+																	return if configuration
+																		then configuration.functions[key]
+																		else nil
+																end,
+																OnLoad = function(value: types.elsFunction)
+																	local configuration =
+																		ConfigurationEditor.toConfiguration()
+																	assert(
+																		configuration ~= nil,
+																		"No loaded configuration"
+																	)
+																	value.weight = #configuration.functions + 1
+																	ConfigurationEditor.addFunction(value)
+																end,
+															})
+														functionsSaveMenu = menu
+														popup:customPopup(scope, menu)
+													end,
+												},
 												Scale = scale,
 												OnEdit = function()
 													props.currentContent:set("patterns")
@@ -247,7 +314,6 @@ return function(scope: types.Scope, props: props)
 														},
 													})
 												end,
-												OnDownload = function() end,
 											}),
 										},
 									}
