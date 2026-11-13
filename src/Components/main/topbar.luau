@@ -10,6 +10,7 @@ local ChassisHandler = require("../../lib/ChassisHandler")
 local ConfigurationEditor = require("../../lib/ConfigurationEditor")
 local VehicleHandler = require("../../lib/VehicleHandler")
 local savePopup = require("./savePopup")
+local SaveLibrary = require("../../lib/SaveLibrary")
 
 type props = {
 	Mode: Fusion.Value<types.mode>,
@@ -51,7 +52,32 @@ return function(scope: types.Scope, props: props): Fusion.Child
 		value.size = scope:Value(Vector2.new(0, 0))
 	end
 
-	local savePopup = savePopup(scope, props)
+	local patternSavePopup = savePopup(scope, {
+		Title = "Pattern",
+		Collection = SaveLibrary.patterns,
+		GetValue = function(): types.pattern?
+			local selected = scope.peek(props.CurrentPattern)
+			if selected == nil or scope.peek(ConfigurationEditor.current) == nil then
+				return nil
+			end
+			return ConfigurationEditor.getPattern(selected.functionId, selected.patternId)
+		end,
+		OnLoad = function(pattern: types.pattern)
+			local selected = scope.peek(props.CurrentPattern)
+			assert(selected ~= nil, "Select a pattern before loading")
+			ConfigurationEditor.updatePattern(selected.functionId, selected.patternId, pattern)
+		end,
+	})
+
+	local configurationSavePopup = savePopup(scope, {
+		Title = "Configuration",
+		Collection = SaveLibrary.configurations,
+		GetValue = ConfigurationEditor.toConfiguration,
+		OnLoad = function(configuration: types.chassisConfiguration)
+			props.CurrentPattern:set(nil)
+			ConfigurationEditor.replaceConfiguration(configuration)
+		end,
+	})
 
 	local topbarSize = scope:Value(Vector2.one)
 	local topbarPosition = scope:Value(Vector2.one)
@@ -200,15 +226,18 @@ return function(scope: types.Scope, props: props): Fusion.Child
 						LayoutOrder = 1,
 
 						Visible = scope:Computed(function(use)
-							return use(props.CurrentPanel) == "ELS Setup"
+							return use(ConfigurationEditor.current) ~= nil
 						end),
 
 						[Fusion.OnEvent "Activated"] = function()
-							local currentPattern = scope.peek(props.CurrentPattern)
-							if currentPattern == nil then
-								return
+							if scope.peek(props.CurrentPanel) == "ELS Setup" then
+								if scope.peek(props.CurrentPattern) == nil then
+									return
+								end
+								popup:customPopup(scope, patternSavePopup)
+							else
+								popup:customPopup(scope, configurationSavePopup)
 							end
-							popup:customPopup(scope, savePopup)
 						end,
 					},
 				},

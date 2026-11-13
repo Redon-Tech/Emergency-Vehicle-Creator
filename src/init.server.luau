@@ -87,6 +87,7 @@ local SettingsHandler = require("@self/lib/SettingsHandler")
 local UIState = require("@self/lib/UIState")
 local ChassisHandler = require("@self/lib/ChassisHandler")
 local ConfigurationEditor = require("@self/lib/ConfigurationEditor")
+local SaveLibrary = require("@self/lib/SaveLibrary")
 local Fusion = require("./Packages/fusion")
 local RedonUI = require("./Packages/redon-ui")
 
@@ -121,6 +122,10 @@ end
 
 UIState.init(scope, isRBXM and IS_DEV)
 ConfigurationEditor.init(scope)
+local migrationReport = SaveLibrary.init(plugin)
+for _, failure in migrationReport.failures do
+	log.warn("Could not migrate save", failure.name, failure.message)
+end
 
 -- Shared UI state
 local enabled = UIState.enabled

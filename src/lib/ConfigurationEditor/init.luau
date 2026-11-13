@@ -47,6 +47,27 @@ function ConfigurationEditor.load(configuration: ChassisHandler.chassisConfigura
 	UIState.unsavedChanges:set(false)
 end
 
+function ConfigurationEditor.replaceConfiguration(configuration: types.chassisConfiguration)
+	local scope = ConfigurationEditor.scope
+	assert(scope ~= nil and Fusion.peek(ConfigurationEditor.current) ~= nil, "No loaded configuration")
+	ConfigurationEditor.current:set({
+		lightSettings = LightSettingsEditor.toState(scope, configuration.lightSettings),
+		functions = FunctionsEditor.toState(scope, configuration.functions),
+		sirens = SirensEditor.toState(scope, configuration.sirens),
+	})
+	UIState.unsavedChanges:set(true)
+end
+
+function ConfigurationEditor.replaceLightSettings(settings: types.lightSettings)
+	local scope = ConfigurationEditor.scope
+	local current = Fusion.peek(ConfigurationEditor.current)
+	assert(scope ~= nil and current ~= nil, "No loaded configuration")
+	local updated = table.clone(current)
+	updated.lightSettings = LightSettingsEditor.toState(scope, settings)
+	ConfigurationEditor.current:set(updated)
+	UIState.unsavedChanges:set(true)
+end
+
 function ConfigurationEditor.toConfiguration(): ChassisHandler.chassisConfiguration?
 	local scope = ConfigurationEditor.scope
 	local current = Fusion.peek(ConfigurationEditor.current)

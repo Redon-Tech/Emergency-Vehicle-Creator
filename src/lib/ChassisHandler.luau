@@ -4,16 +4,18 @@ local log = require("../log")
 local types = require("../types")
 local VehicleHandler = require("./VehicleHandler")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
-local LuaEncode = require("../../Packages/LuaEncode")
+local ConfigurationCodec = require("./ConfigurationCodec")
 local Fusion = require("../../Packages/fusion")
 local SimilarityChecker = require("./SimilarityChecker")
 local handler = script.Parent.Parent.handler
-local LuaEncodeSettings = {
-	Prettify = false,
-	OutputWarnings = false,
-}
 local exportHeader =
-	"-- Redon Tech Emergency Vehicle Creator, MIT License\n\n--DO NOT MODIFY BELOW\n--SUPPORT WILL BE VOIDED IF MODIFIED\n\nreturn "
+	"-- Redon Tech Emergency Vehicle Creator, MIT License\n\n--DO NOT MODIFY BELOW\n--SUPPORT WILL BE VOIDED IF MODIFIED\n\n"
+
+local function encodeConfiguration(data: any): string
+	local source, problem = ConfigurationCodec.encode(data)
+	assert(source, problem)
+	return source
+end
 
 -- version format: minor.{if rc then 0 else 1}patch
 local latestVersion = 0.092
@@ -60,63 +62,63 @@ local ChassisHandler = {
 	defaults = {
 		functions = {
 			{
-			weight = 0,
-			name = "default",
-			activations = {
-			{
-					type = "Standard",
-					mode = "Cycle",
-					pattern = 0,
-					keybinds = { Enum.KeyCode.J, Enum.KeyCode.DPadLeft },
+				weight = 0,
+				name = "default",
+				activations = {
+					{
+						type = "Standard",
+						mode = "Cycle",
+						pattern = 0,
+						keybinds = { Enum.KeyCode.J, Enum.KeyCode.DPadLeft },
+					},
 				},
+				patterns = { {
+					flashers = {},
+					faders = {},
+					rotators = {},
+				} },
 			},
-			patterns = { {
-				flashers = {},
-				faders = {},
-				rotators = {},
-			} },
-		},
 		},
 		sirens = {},
 		lightSettings = {
 			version = latestVersion,
-		colors = {
-			{
-				name = "Blue",
-				partColor = Color3.fromRGB(110, 153, 202),
-				lightColor = Color3.fromRGB(0, 0, 255),
-				lightoColor = Color3.fromRGB(47, 71, 255),
-			},
-			{
-				name = "Red",
-				partColor = Color3.fromRGB(190, 104, 98),
-				lightColor = Color3.fromRGB(255, 0, 0),
-				lightoColor = Color3.fromRGB(185, 58, 60),
-			},
-			{
-				name = "Yellow",
-				partColor = Color3.fromRGB(226, 155, 64),
-				lightColor = Color3.fromRGB(255, 200, 0),
-				lightoColor = Color3.fromRGB(253, 194, 66),
-			},
-			{
-				name = "White",
-				partColor = Color3.fromRGB(255, 255, 255),
-				lightColor = Color3.fromRGB(255, 255, 255),
-				lightoColor = Color3.fromRGB(255, 255, 255),
-			},
-			{
-				name = "Green",
-				partColor = Color3.fromRGB(0, 255, 0),
-				lightColor = Color3.fromRGB(0, 255, 0),
-				lightoColor = Color3.fromRGB(75, 255, 75),
-			},
-			{
-				name = "Purple",
-				partColor = Color3.fromRGB(170, 0, 170),
-				lightColor = Color3.fromRGB(200, 0, 200),
-				lightoColor = Color3.fromRGB(188, 12, 211),
-			},
+			colors = {
+				{
+					name = "Blue",
+					partColor = Color3.fromRGB(110, 153, 202),
+					lightColor = Color3.fromRGB(0, 0, 255),
+					lightoColor = Color3.fromRGB(47, 71, 255),
+				},
+				{
+					name = "Red",
+					partColor = Color3.fromRGB(190, 104, 98),
+					lightColor = Color3.fromRGB(255, 0, 0),
+					lightoColor = Color3.fromRGB(185, 58, 60),
+				},
+				{
+					name = "Yellow",
+					partColor = Color3.fromRGB(226, 155, 64),
+					lightColor = Color3.fromRGB(255, 200, 0),
+					lightoColor = Color3.fromRGB(253, 194, 66),
+				},
+				{
+					name = "White",
+					partColor = Color3.fromRGB(255, 255, 255),
+					lightColor = Color3.fromRGB(255, 255, 255),
+					lightoColor = Color3.fromRGB(255, 255, 255),
+				},
+				{
+					name = "Green",
+					partColor = Color3.fromRGB(0, 255, 0),
+					lightColor = Color3.fromRGB(0, 255, 0),
+					lightoColor = Color3.fromRGB(75, 255, 75),
+				},
+				{
+					name = "Purple",
+					partColor = Color3.fromRGB(170, 0, 170),
+					lightColor = Color3.fromRGB(200, 0, 200),
+					lightoColor = Color3.fromRGB(188, 12, 211),
+				},
 			},
 			configuration = {
 				shouldChangeNeons = true,
@@ -318,7 +320,7 @@ function ChassisHandler.installPlugin(self: ChassisHandler, model: Model): boole
 				end
 			end
 		end
-		newHandler.EVHEvent.configuration.sirens.Source = exportHeader .. LuaEncode(convertedSirens, LuaEncodeSettings)
+		newHandler.EVHEvent.configuration.sirens.Source = exportHeader .. encodeConfiguration(convertedSirens)
 
 		local convertedFunctions: { types.elsFunction } = {}
 		local lightbarName = loadedSettings.LightbarName or loadedSettings.LightbarLocation or "Lightbar"
@@ -477,7 +479,7 @@ function ChassisHandler.installPlugin(self: ChassisHandler, model: Model): boole
 						end
 
 						newHandler.EVHEvent.configuration.functions.Source = exportHeader
-							.. LuaEncode(convertedFunctions, LuaEncodeSettings)
+							.. encodeConfiguration(convertedFunctions)
 						moduleStore.Name = "NO LONGER USED, KEPT AS A BACKUP -> ModuleStore"
 					end
 				end
@@ -660,9 +662,13 @@ function ChassisHandler.saveConfiguration(self: ChassisHandler, model: Model, da
 		return false
 	end
 
-	local functionsSourceBase = LuaEncode(data.functions, LuaEncodeSettings)
-	local sirensSourceBase = LuaEncode(data.sirens, LuaEncodeSettings)
-	local lightSettingsSourceBase = LuaEncode(data.lightSettings, LuaEncodeSettings)
+	local functionsSourceBase, functionsError = ConfigurationCodec.encode(data.functions)
+	local sirensSourceBase, sirensError = ConfigurationCodec.encode(data.sirens)
+	local lightSettingsSourceBase, lightSettingsError = ConfigurationCodec.encode(data.lightSettings)
+	if not functionsSourceBase or not sirensSourceBase or not lightSettingsSourceBase then
+		log.warn("Could not encode configuration", functionsError, sirensError, lightSettingsError)
+		return false
+	end
 
 	log.debug(
 		"Saved configuration for",

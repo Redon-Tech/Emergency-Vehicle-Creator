@@ -67,6 +67,17 @@ index_url = "https://github.com/pesde-pkg/index"
 ref_ty = "pesde"
 index_url = "https://github.com/pesde-pkg/index"
 
+[graph."metamethods/typed@0.8.2 luau"]
+direct = ["typed", { name = "metamethods/typed", version = "=0.8.2", index = "default", target = "luau" }, "standard"]
+
+[graph."metamethods/typed@0.8.2 luau".pkg_ref]
+ref_ty = "pesde"
+index_url = "https://github.com/pesde-pkg/index"
+
+[graph."metamethods/typed@0.8.2 luau".pkg_ref.dependencies]
+rojo = [{ name = "pesde/rojo", version = "^7.5.1", index = "https://github.com/pesde-pkg/index", target = "lune" }, "dev"]
+scripts = [{ name = "pesde/scripts_rojo", version = "^0.2.0", index = "https://github.com/pesde-pkg/index", target = "lune" }, "dev"]
+
 [graph."pesde/rojo@7.6.1 lune"]
 direct = ["rojo", { name = "pesde/rojo", version = "^7.6.1", index = "default", target = "lune" }, "dev"]
 

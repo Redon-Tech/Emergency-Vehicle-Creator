@@ -31,6 +31,10 @@ export type saveBackupMode = "Encrypted" | "Unencrypted" | "None"
 
 -- ELS Types
 
+export type color = ConfigurationTypes.color
+export type lightGroup = ConfigurationTypes.lightGroup
+export type lightSettings = ConfigurationTypes.lightSettings
+export type chassisConfiguration = ConfigurationTypes.chassisConfiguration
 export type elsColor = ConfigurationTypes.elsColor
 export type flasherColumn = ConfigurationTypes.flasherColumn
 export type flasherSection = ConfigurationTypes.flasherSection

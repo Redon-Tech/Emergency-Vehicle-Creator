@@ -6,7 +6,10 @@
 			"$path": "src"
 		},
 		"Packages": {
-			"$path": "roblox_packages"
+			"$path": "roblox_packages",
+			"typed": {
+				"$path": "luau_packages/.pesde/metamethods+typed/0.8.2/typed/lib"
+			}
 		},
 		"LICENSE": {
 			"$path": "LICENSE.luau"

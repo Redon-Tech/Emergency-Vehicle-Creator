@@ -100,6 +100,14 @@ local function patternToState(scope: types.Scope, pattern: types.pattern): Patte
 	}
 end
 
+local function patternFromState(scope: types.Scope, pattern: PatternState): types.pattern
+	return {
+		flashers = FlashersEditor.fromState(scope, pattern.flashers),
+		faders = FadersEditor.fromState(scope, pattern.faders),
+		rotators = RotatorsEditor.fromState(scope, pattern.rotators),
+	}
+end
+
 local function patternsToState(scope: types.Scope, patterns: { types.pattern }): Fusion.Value<{ PatternState }>
 	local patternStates = {} :: { PatternState }
 	for _, pattern in ipairs(patterns) do
@@ -186,11 +194,7 @@ function FunctionsEditor.fromState(scope: types.Scope, state: FunctionsState): {
 
 		local patterns: { types.pattern } = {}
 		for _, patternState in ipairs(scope.peek(funcState.patterns)) do
-			table.insert(patterns, {
-				flashers = FlashersEditor.fromState(scope, patternState.flashers),
-				faders = FadersEditor.fromState(scope, patternState.faders),
-				rotators = RotatorsEditor.fromState(scope, patternState.rotators),
-			})
+			table.insert(patterns, patternFromState(scope, patternState))
 		end
 
 		table.insert(functions, {
@@ -544,6 +548,23 @@ function FunctionsEditor.createActions(getContext: () -> (types.Scope, Functions
 	--[[
 		Patterns
 	]]
+
+	function actions.getPattern(functionId: number, index: number): types.pattern?
+		local scope, state = getContext()
+		local funcState = scope.peek(state)[functionId]
+		local pattern = if funcState then scope.peek(funcState.patterns)[index] else nil
+		return if pattern then patternFromState(scope, pattern) else nil
+	end
+
+	function actions.updatePattern(functionId: number, index: number, pattern: types.pattern)
+		local scope = getContext()
+		local funcState = getFunction(functionId)
+		local patterns = table.clone(scope.peek(funcState.patterns))
+		assert(patterns[index] ~= nil, `No pattern found at index {index}`)
+		patterns[index] = patternToState(scope, pattern)
+		funcState.patterns:set(patterns)
+		UIState.unsavedChanges:set(true)
+	end
 
 	function actions.addPattern(functionId: number, pattern: types.pattern)
 		local scope = getContext()

@@ -8,6 +8,8 @@ export type color = {
 	lightoColor: Color3,
 }
 
+export type lightGroup = { name: string, lights: { string } }
+
 export type lightSettings = {
 	version: number,
 	colors: { color },
@@ -18,12 +20,7 @@ export type lightSettings = {
 		shouldChangeParticleEmitters: boolean,
 		partTransparency: number,
 	},
-	lightGroups: {
-		{
-			name: string,
-			lights: { string },
-		}
-	},
+	lightGroups: { lightGroup },
 }
 
 export type chassisConfiguration = {
