@@ -3,6 +3,7 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 
 local types = require("./types")
+local ConfigurationUpdater = require("./ConfigurationUpdater")
 
 --- Initializes a vehicle by loading its configuration and lights.
 return function(vehicle: Instance): types.vehicle?
@@ -24,48 +25,18 @@ return function(vehicle: Instance): types.vehicle?
 		functions = (require :: any)(functions) :: { types.elsFunction },
 		lightSettings = (require :: any)(lightSettings) :: types.lightSettings,
 	}
+	ConfigurationUpdater.update(currentConfiguration)
+
 	local lights = {}
 	local lightConnectedGroups = {}
 
-	-- setup backwards compatibility
-	local oldLightConfiguration = (currentConfiguration.lightSettings :: any).optimizations
-	if oldLightConfiguration ~= nil then
-		currentConfiguration.lightSettings.configuration = {
-			shouldChangeNeons = oldLightConfiguration.shouldChangeNeons,
-			shouldChangeLights = oldLightConfiguration.shouldChangeLights,
-			shouldChangeLightos = oldLightConfiguration.shouldChangeLightos,
-			shouldChangeParticleEmitters = false,
-			partTransparency = 0.011,
-		}
-		(currentConfiguration.lightSettings :: any).optimizations = nil
-	end
-
-	-- get lights
-	for functionIndex = #currentConfiguration.functions, 1, -1 do
-		local currentFunction = currentConfiguration.functions[functionIndex]
-		if currentFunction.patterns == nil or currentFunction.name == nil or currentFunction.weight == nil then
-			table.remove(currentConfiguration.functions, functionIndex)
-		end
-	end
+	-- prepare config
 	for _, currentFunction in currentConfiguration.functions do
-		-- also since we are here, format the name properly
 		currentFunction.name = currentFunction.name:gsub("[^%a%d]", "")
-
 		for _, pattern in currentFunction.patterns do
-			-- also since we are here, insert the time var
 			pattern.patternTime = 0
-
-			pattern.flashers = pattern.flashers or {}
-			pattern.faders = pattern.faders or {}
-			pattern.rotators = pattern.rotators or {}
 			for _, flasher in pattern.flashers do
-				if flasher.columns == nil then
-					flasher.columns = {}
-				end
 				for _, columns in flasher.columns do
-					if columns.lightName == nil then
-						columns.lightName = "corruptedLightName"
-					end
 					if lights[columns.lightName] == nil then
 						lights[columns.lightName] = {
 							isLightGroup = false,
@@ -78,9 +49,6 @@ return function(vehicle: Instance): types.vehicle?
 			end
 
 			for _, fader in pattern.faders do
-				if fader.lightName == nil then
-					fader.lightName = "corruptedLightName"
-				end
 				if lights[fader.lightName] == nil then
 					lights[fader.lightName] = {
 						isLightGroup = false,
@@ -89,6 +57,7 @@ return function(vehicle: Instance): types.vehicle?
 						currentState = 0,
 					}
 				end
+
 				local totalTime = 0
 				for _, data in fader.data do
 					if data.time == nil or data.type == nil then
@@ -103,9 +72,6 @@ return function(vehicle: Instance): types.vehicle?
 			end
 
 			for _, rotator in pattern.rotators do
-				if rotator.lightName == nil then
-					rotator.lightName = "corruptedLightName"
-				end
 				if lights[rotator.lightName] == nil then
 					lights[rotator.lightName] = {
 						isLightGroup = false,
@@ -120,9 +86,6 @@ return function(vehicle: Instance): types.vehicle?
 
 	-- get light connected groups
 	for _, lightGroup in currentConfiguration.lightSettings.lightGroups do
-		if lightGroup.name == nil or lightGroup.lights == nil then
-			continue
-		end
 		lights[lightGroup.name] = {
 			isLightGroup = true,
 			possibleFunctions = {},

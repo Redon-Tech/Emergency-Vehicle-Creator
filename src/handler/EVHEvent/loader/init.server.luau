@@ -2,6 +2,7 @@
 
 -- version format: minor.{if rc then 1 else 0}patch
 local types = require("@self/modules/types")
+local ConfigurationUpdater = require("@self/modules/ConfigurationUpdater")
 local configuration = script.Parent.configuration
 local lightSettingsModule = configuration:WaitForChild("lightSettings")
 local lightSettings = (require :: any)(lightSettingsModule) :: types.lightSettings
@@ -114,6 +115,21 @@ local function load()
 		return
 	end
 	driveSeat = possibleDriveSeat :: VehicleSeat
+
+	local functionsModule = configuration:WaitForChild("functions")
+	local sirensModule = configuration:WaitForChild("sirens")
+	if functionsModule:IsA("ModuleScript") == false or sirensModule:IsA("ModuleScript") == false then
+		return
+	end
+
+	functions = (require :: any)(functionsModule) :: { types.elsFunction }
+	sirens = (require :: any)(sirensModule) :: { types.siren }
+	ConfigurationUpdater.update({
+		functions = functions,
+		sirens = sirens,
+		lightSettings = lightSettings,
+	})
+
 	driveSeat:GetPropertyChangedSignal("Occupant"):Connect(function()
 		for _, siren in sirens do
 			if siren.type == "Hold" and siren.enabled == true then
@@ -124,15 +140,6 @@ local function load()
 	uuid = HTTPService:GenerateGUID(false)
 	car:SetAttribute("uuid", uuid)
 	car:SetAttribute("version", version)
-
-	local functionsModule = configuration:WaitForChild("functions")
-	local sirensModule = configuration:WaitForChild("sirens")
-	if functionsModule:IsA("ModuleScript") == false or sirensModule:IsA("ModuleScript") == false then
-		return
-	end
-
-	functions = (require :: any)(functionsModule) :: { types.elsFunction }
-	sirens = (require :: any)(sirensModule) :: { types.siren }
 
 	for i, siren in sirens do
 		if siren.keybinds == nil or siren.name == nil or siren.type == nil then
@@ -161,14 +168,6 @@ local function load()
 	local possibleLights = {}
 	local possibleRotators = {}
 	for functionId, currentFunction in functions do
-		if
-			currentFunction.activations == nil
-			or currentFunction.patterns == nil
-			or currentFunction.name == nil
-			or currentFunction.weight == nil
-		then
-			continue
-		end
 		currentFunction.name = currentFunction.name:gsub("[^%a%d]", "")
 		car:SetAttribute(currentFunction.name, 0)
 		car:GetAttributeChangedSignal(currentFunction.name):Connect(function()
@@ -235,17 +234,8 @@ local function load()
 		end
 
 		for _, pattern in currentFunction.patterns do
-			pattern.flashers = pattern.flashers or {}
-			pattern.faders = pattern.faders or {}
-			pattern.rotators = pattern.rotators or {}
 			for _, flasher in pattern.flashers do
-				if flasher.columns == nil then
-					flasher.columns = {}
-				end
 				for _, columns in flasher.columns do
-					if columns.lightName == nil then
-						continue
-					end
 					if table.find(possibleLights, columns.lightName) == nil then
 						table.insert(possibleLights, columns.lightName)
 					end
@@ -253,18 +243,12 @@ local function load()
 			end
 
 			for _, fader in pattern.faders do
-				if fader.lightName == nil then
-					continue
-				end
 				if table.find(possibleLights, fader.lightName) == nil then
 					table.insert(possibleLights, fader.lightName)
 				end
 			end
 
 			for _, rotator in pattern.rotators do
-				if rotator.lightName == nil then
-					continue
-				end
 				if table.find(possibleLights, rotator.lightName) == nil then
 					table.insert(possibleLights, rotator.lightName)
 				end

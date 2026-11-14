@@ -1,5 +1,6 @@
 -- Redon Tech Emergency Vehicle Creator, MIT License
 local ConfigurationTypes = require("../handler/EVHEvent/loader/modules/configurationTypes")
+local ConfigurationUpdater = require("../handler/EVHEvent/loader/modules/ConfigurationUpdater")
 local log = require("../log")
 local types = require("../types")
 local VehicleHandler = require("./VehicleHandler")
@@ -17,9 +18,7 @@ local function encodeConfiguration(data: any): string
 	return source
 end
 
--- version format: minor.{if rc then 0 else 1}patch
-local latestVersion = 0.092
--- please ensure to update handler/EVHEvent/configuration/lightSettings.luau if you update this
+local latestVersion = ConfigurationUpdater.version
 
 export type color = ConfigurationTypes.color
 export type lightSettings = ConfigurationTypes.lightSettings
@@ -567,27 +566,9 @@ function ChassisHandler.getConfiguration(self: ChassisHandler, model: Model): ch
 		sirens = sirensData,
 		lightSettings = lightSettingsData,
 	}
+	ConfigurationUpdater.update(data)
 	log.debug("Loaded configuration for", model.Name, data)
 
-	--TODO: In the future abstract updating
-	if data.lightSettings.version == nil then
-		data.lightSettings.version = 0
-	end
-	local oldLightConfiguration = (data.lightSettings :: any).optimizations
-	if oldLightConfiguration ~= nil then
-		data.lightSettings.configuration = {
-			shouldChangeNeons = oldLightConfiguration.shouldChangeNeons,
-			shouldChangeLights = oldLightConfiguration.shouldChangeLights,
-			shouldChangeLightos = oldLightConfiguration.shouldChangeLightos,
-			shouldChangeParticleEmitters = false,
-			partTransparency = 0.011,
-		}
-		(data.lightSettings :: any).optimizations = nil
-		log.info("Updated lightSettings from optimizations to configuration", oldLightConfiguration, data.lightSettings)
-	end
-	if data.lightSettings.configuration.shouldChangeParticleEmitters == nil then
-		data.lightSettings.configuration.shouldChangeParticleEmitters = false
-	end
 	if data.lightSettings.version ~= latestVersion then
 		local oldLoader = event:FindFirstChild("loader")
 		if oldLoader ~= nil then
@@ -600,51 +581,6 @@ function ChassisHandler.getConfiguration(self: ChassisHandler, model: Model): ch
 		ChangeHistoryService:SetWaypoint("Updated EVH")
 	end
 	data.lightSettings.version = latestVersion
-
-	--TODO: in the future abstract this error checking
-	for _, currentFunction in data.functions do
-		for _, pattern in currentFunction.patterns do
-			if pattern.flashers == nil then
-				pattern.flashers = {}
-			end
-			if pattern.faders == nil then
-				pattern.faders = {}
-			end
-			if pattern.rotators == nil then
-				pattern.rotators = {}
-			end
-
-			for _, flasher in pattern.flashers do
-				if flasher.columns == nil then
-					flasher.columns = {}
-				end
-				if flasher.rowCount == nil then
-					flasher.rowCount = 1
-				end
-				if flasher.waitTime == nil then
-					flasher.waitTime = 0.1
-				end
-			end
-
-			for _, fader in pattern.faders do
-				if fader.lightName == nil then
-					fader.lightName = "LightNameCorrupted"
-				end
-				if fader.data == nil then
-					fader.data = {}
-				end
-			end
-
-			for _, rotator in pattern.rotators do
-				if rotator.lightName == nil then
-					rotator.lightName = "LightNameCorrupted"
-				end
-				if rotator.data == nil then
-					rotator.data = {}
-				end
-			end
-		end
-	end
 
 	self.cache[model] = {
 		data = data,
